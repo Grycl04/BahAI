@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealEase - Seller Dashboard</title>
+<style>
+/* ===== Global Styles ===== */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f4f4;
+}
+
+/* ===== Header & Navigation ===== */
+header {
+    background: #2c3e50;
+    padding: 10px 20px;
+    position: relative;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: block;
+}
+
+nav a:hover {
+    background: #34495e;
+    border-radius: 4px;
+}
+
+/* ===== Dropdowns (if needed) ===== */
+.dropdown { position: relative; }
+.dropdown > a { cursor: pointer; }
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 220px;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.dropdown:hover > .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 8px 12px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+/* ===== Hamburger ===== */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 25px;
+    height: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.hamburger span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background: white;
+    border-radius: 2px;
+    transition: 0.3s;
+}
+
+.hamburger.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    nav {
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: #2c3e50;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 0;
+        display: none;
+    }
+
+    nav.active { display: flex; }
+
+    .nav-left, .nav-right { flex-direction: column; width: 100%; gap: 0; }
+
+    nav a { width: 100%; padding: 12px 20px; }
+
+    .hamburger { display: flex; position: absolute; right: 20px; top: 15px; }
+}
+
+/* ===== Welcome Section ===== */
+.welcome {
+    text-align: center;
+    padding: 50px;
+    background: #ecf0f1;
+}
+
+/* ===== Properties Grid ===== */
+.properties {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.property-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.property-card:hover { transform: scale(1.03); }
+
+.property-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.property-info {
+    padding: 15px;
+}
+
+/* ===== Modal ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow-y: auto;
+    background-color: rgba(0,0,0,0.5);
+    padding: 30px 0;
+}
+
+.modal-content {
+    background: white;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* ===== Carousel (if using videos/images) ===== */
+.carousel {
+    position: relative;
+    margin-top: 15px;
+    width: 100%;
+    max-height: 400px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #000;
+}
+
+.carousel img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    display: none;
+}
+
+.carousel img.active { display: block; }
+
+.carousel-controls {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+}
+
+.carousel-controls button {
+    background: rgba(255,255,255,0.7);
+    border: none;
+    font-size: 24px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.carousel-controls button:hover { background: rgba(255,255,255,0.9); }
+
+.carousel-indicators {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.carousel-indicators .dot {
+    height: 12px;
+    width: 12px;
+    margin: 0 4px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.carousel-indicators .dot.active { background-color: #333; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <button class="hamburger" onclick="toggleMenu(this)">
+    <span></span><span></span><span></span>
+  </button>
+  <nav>
+    <div class="nav-left">
+      <a href="#">Home</a>
+      <a href="#">Sell Property</a>
+    </div>
+    <div class="nav-right">
+      <a href="#" id="profileName">Profile</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </div>
+  </nav>
+</header>
+
+<div class="welcome">
+    <h1>Welcome, <span id="userName"></span></h1>
+    <p>Your smart real estate rental platform in Batangas for students and professionals.</p>
+</div>
+
+<div class="properties" id="propertiesContainer">
+    <!-- Property cards injected by JS -->
+</div>
+
+<!-- Modal Template -->
+<div id="modalTemplate" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-body"></div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Bahai Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784",
+  measurementId: "G-PDW1PRZTM9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Elements
+const propertiesContainer = document.getElementById("propertiesContainer");
+const userNameSpan = document.getElementById("userName");
+const logoutBtn = document.getElementById("logoutBtn");
+
+// Logout
+logoutBtn.addEventListener("click", async () => { await signOut(auth); window.location.href = "login.html"; });
+
+// Auth state
+onAuthStateChanged(auth, async (user) => {
+    if(!user) return window.location.href = "login.html";
+
+    const docSnap = await getDoc(doc(db, "users", user.uid));
+    if(!docSnap.exists()) return alert("User data not found!");
+    if(docSnap.data().role !== "seller") return alert("Access denied!");
+
+    userNameSpan.textContent = docSnap.data().fullname || user.email;
+
+    const propSnap = await getDocs(collection(db, "properties"));
+    propertiesContainer.innerHTML = "";
+    propSnap.forEach(d => {
+        const prop = d.data();
+        const card = document.createElement("div");
+        card.className = "property-card";
+        card.innerHTML = `
+            <img src="${prop.images?.[0] || 'placeholder.jpg'}" alt="Property">
+            <div class="property-info">
+                <h3>${prop.title}</h3>
+                <p>₱${prop.price}</p>
+                <p>${prop.property_type} • ${prop.bedrooms} BR • ${prop.bathrooms} BA</p>
+            </div>
+        `;
+        card.addEventListener("click", () => openModalFirebase(prop));
+        propertiesContainer.appendChild(card);
+    });
+});
+
+// Modal logic
+function openModalFirebase(prop){
+    const modal = document.getElementById("modalTemplate");
+    modal.querySelector(".modal-body").innerHTML = `
+        <h2>${prop.title}</h2>
+        <p><strong>Price:</strong> ₱${prop.price}</p>
+        <p><strong>Type:</strong> ${prop.property_type}</p>
+        <p><strong>Bedrooms:</strong> ${prop.bedrooms}</p>
+        <p><strong>Bathrooms:</strong> ${prop.bathrooms}</p>
+        <p><strong>Description:</strong> ${prop.description || ""}</p>
+        ${prop.video_url ? `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${getYoutubeID(prop.video_url)}" frameborder="0" allowfullscreen></iframe>` : ""}
+    `;
+    modal.style.display = "block";
+    modal.querySelector(".close").onclick = () => { modal.style.display = "none"; };
+    window.onclick = (e) => { if(e.target === modal) modal.style.display = "none"; };
+}
+function getYoutubeID(url){ const m = url.match(/^.*(youtu.be\/|v\/|watch\?v=|embed\/)([^#&?]*).*/); return (m && m[2].length===11)? m[2]:""; }
+
+// Hamburger
+function toggleMenu(el){ el.classList.toggle("open"); document.querySelector("nav").classList.toggle("active"); }
+</script>
+</body>
+</html>

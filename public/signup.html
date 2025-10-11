@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealEase - Signup</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="signup-container">
+  <div class="logo"><h1>RealEase</h1></div>
+  <h2>Create Your Account</h2>
+  <p class="subtitle">Join RealEase and discover your perfect property</p>
+
+  <form id="signupForm">
+    <div class="form-group">
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="Enter your full name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="Enter your email" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Create a password" required>
+    </div>
+
+    <div class="form-group">
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" id="confirm-password" placeholder="Confirm your password" required>
+    </div>
+
+    <div class="form-group">
+      <label for="role">Select Role</label>
+      <select id="role" required>
+        <option value="">-- Choose your role --</option>
+        <option value="buyer">Buyer</option>
+        <option value="seller">Seller</option>
+        <option value="broker">Broker</option>
+        <option value="agent">Agent</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Sign Up</button>
+    <button type="button" id="googleSignUpBtn" class="btn btn-google">
+      <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo">
+      Continue with Google
+    </button>
+  </form>
+
+  <div class="login-link">
+    Already have an account? <a href="login.html">Login here</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Bahai Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784",
+  measurementId: "G-PDW1PRZTM9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// Email/password signup
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fullName = document.getElementById("fullname").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirm-password").value;
+  const role = document.getElementById("role").value;
+
+  if(password !== confirmPassword){ alert("Passwords do not match!"); return; }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    await updateProfile(user, { displayName: fullName });
+    await setDoc(doc(db, "users", user.uid), { fullname: fullName, email, role, createdAt: new Date() });
+    alert("Signup successful!");
+    window.location.href = "login.html";
+  } catch(error){ alert(error.message); }
+});
+
+// Google signup/sign-in
+document.getElementById("googleSignUpBtn").addEventListener("click", async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    let role;
+    if(!docSnap.exists()){
+      role = prompt("Enter your role (buyer/seller/broker/agent):").toLowerCase();
+      await setDoc(userRef, { fullname: user.displayName, email: user.email, role, createdAt: new Date() });
+    } else {
+      role = docSnap.data().role;
+    }
+
+    window.location.href = role + "_dashboard.html";
+  } catch(error){
+    alert("Google sign-in failed: " + error.message);
+  }
+});
+</script>
+</body>
+</html>

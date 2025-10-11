@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealEase - Login</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="login-container">
+  <div class="logo"><h1>RealEase</h1></div>
+  <h2>Welcome Back</h2>
+  <p class="subtitle">Login to continue your real estate journey</p>
+
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="Enter your email" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+    <button type="button" id="googleLoginBtn" class="btn btn-google">
+      <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo">
+      Continue with Google
+    </button>
+  </form>
+
+  <p class="signup-link">Don’t have an account? <a href="signup.html">Sign up here</a></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Bahai Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784",
+  measurementId: "G-PDW1PRZTM9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// Email/password login
+// Email/password login
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    const docSnap = await getDoc(doc(db, "users", user.uid));
+    if(!docSnap.exists()) { alert("User data not found!"); return; }
+
+    const role = docSnap.data().role;
+
+    // Redirect based on role
+    if(role === "seller") window.location.href = "public/seller/seller_dashboard.html";
+    else if(role === "buyer") window.location.href = "buyer_dashboard.html";
+    else if(role === "broker") window.location.href = "broker_dashboard.html";
+    else window.location.href = "agent_dashboard.html";
+
+  } catch(error){
+    alert("Login failed: " + error.message);
+  }
+});
+
+// Google login
+document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    const docSnap = await getDoc(doc(db, "users", user.uid));
+    if(!docSnap.exists()){
+      const role = prompt("Enter your role (buyer/seller/broker/agent):").toLowerCase();
+      await setDoc(doc(db, "users", user.uid), {
+        fullname: user.displayName,
+        email: user.email,
+        role,
+        createdAt: new Date()
+      });
+    }
+
+    const role = docSnap.exists() ? docSnap.data().role : role;
+    if(role === "seller") window.location.href = "seller/seller_dashboard.html";
+    else if(role === "buyer") window.location.href = "buyer_dashboard.html";
+    else if(role === "broker") window.location.href = "broker_dashboard.html";
+    else window.location.href = "agent_dashboard.html";
+
+  } catch(error){
+    alert("Google sign-in failed: " + error.message);
+  }
+});
+
+</script>
+</body>
+</html>
