@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Landlord Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* ======== General Styles ======== */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f4f4;
+}
+header {
+  background: #2c3e50;
+  padding: 10px 20px;
+  position: relative;
+}
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 10px 15px;
+  display: block;
+}
+nav a:hover {
+  background: #34495e;
+  border-radius: 4px;
+}
+.dropdown {
+  position: relative;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background: white;
+  min-width: 220px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+.dropdown:hover > .dropdown-content {
+  display: block;
+}
+.dropdown-sub {
+  position: relative;
+}
+.dropdown-sub-content {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  min-width: 220px;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 11;
+}
+.dropdown-sub:hover > .dropdown-sub-content {
+  display: block;
+}
+.dropdown-content a, .dropdown-sub-content a {
+  color: black;
+  padding: 8px 12px;
+  text-decoration: none;
+  display: block;
+}
+.dropdown-content a:hover, .dropdown-sub-content a:hover {
+  background: #f1f1f1;
+}
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 25px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.hamburger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background: white;
+  border-radius: 2px;
+  transition: 0.3s;
+}
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+@media (max-width: 768px) {
+  nav { position: absolute; top: 60px; left: 0; width: 100%; background: #2c3e50; flex-direction: column; align-items: flex-start; padding: 10px 0; display: none; }
+  nav.active { display: flex; }
+  .nav-left, .nav-right { flex-direction: column; width: 100%; gap: 0; }
+  nav a { width: 100%; padding: 12px 20px; }
+  .hamburger { display: flex; position: absolute; right: 20px; top: 15px; }
+}
+.welcome {
+  text-align: center;
+  padding: 50px;
+  background: #ecf0f1;
+}
+.properties {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+.property-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.property-card:hover {
+  transform: scale(1.03);
+}
+.property-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+.property-info {
+  padding: 15px;
+}
+.message {
+  text-align: center;
+  font-weight: bold;
+  margin: 15px;
+  color: red;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="hamburger" onclick="toggleMenu(this)"><span></span><span></span><span></span></button>
+  <nav>
+    <div class="nav-left">
+      <a href="landlord_dashboard.html">Home</a>
+      <div class="dropdown">
+        <a href="#">Properties <span class="arrow">▾</span></a>
+        <div class="dropdown-content">
+          <div class="dropdown-sub">
+            <a href="#">Rent <span class="arrow">▸</span></a>
+            <div class="dropdown-sub-content">
+              <a href="#">Apartments</a>
+              <a href="#">Boarding Houses</a>
+              <a href="#">Bedspaces</a>
+              <a href="#">Transient / Short-term</a>
+            </div>
+          </div>
+          <div class="dropdown-sub">
+            <a href="#">Leasing <span class="arrow">▸</span></a>
+            <div class="dropdown-sub-content">
+              <a href="#">Commercial Spaces</a>
+            </div>
+          </div>
+          <div class="dropdown-sub">
+            <a href="#">For Sale <span class="arrow">▸</span></a>
+            <div class="dropdown-sub-content">
+              <a href="#">Apartments</a>
+              <a href="#">Commercial</a>
+              <a href="#">Land / Lots</a>
+              <a href="#">Houses / Townhouses</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a href="rent_property.html">Post Rental</a>
+    </div>
+    <div class="nav-right">
+      <a href="../profile.html">Profile</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </div>
+  </nav>
+</header>
+
+<div class="welcome">
+  <h1>Welcome to your Landlord Dashboard</h1>
+  <p>Manage all your properties and post new rentals here.</p>
+</div>
+
+<div id="properties" class="properties"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784",
+  measurementId: "G-PDW1PRZTM9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const propertyContainer = document.getElementById("properties");
+
+// ===== Auth Check =====
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = "../login.html";
+  } else {
+    loadProperties(user.uid);
+  }
+});
+
+// ===== Fetch & Listen to Firestore =====
+function loadProperties(userId) {
+  const q = query(collection(db, "listings"), where("user_id", "==", userId));
+  onSnapshot(q, (snapshot) => {
+    propertyContainer.innerHTML = "";
+    if (snapshot.empty) {
+      propertyContainer.innerHTML = "<p class='message'>No properties found.</p>";
+      return;
+    }
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const imgSrc = data.images && data.images.length > 0
+        ? data.images[0].data
+        : "placeholder.jpg";
+      const propertyCard = `
+        <div class="property-card">
+          <img src="${imgSrc}" alt="Property">
+          <div class="property-info">
+            <h3>${data.title}</h3>
+            <p>${data.property_type} • ${data.bedrooms} BR • ${data.bathrooms} BA</p>
+            <p>₱${parseFloat(data.price).toLocaleString()}</p>
+          </div>
+        </div>
+      `;
+      propertyContainer.innerHTML += propertyCard;
+    });
+  });
+}
+
+// ===== Logout =====
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "../login.html";
+});
+
+// ===== Hamburger =====
+function toggleMenu(el) {
+  el.classList.toggle("open");
+  document.querySelector("nav").classList.toggle("active");
+}
+window.toggleMenu = toggleMenu;
+</script>
+</body>
+</html>

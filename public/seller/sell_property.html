@@ -271,7 +271,7 @@ onAuthStateChanged(auth, user=>{
 });
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', ()=>signOut(auth).then(()=>location.href="login.html"));
+document.getElementById('logoutBtn').addEventListener('click', ()=>signOut(auth).then(()=>location.href="../login.html"));
 
 // Show amenities & extra fields
 document.getElementById('property_type').addEventListener('change', e=>{

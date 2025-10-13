@@ -1,114 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealEase - Login</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BahAI - Login</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f7f9fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    .logo h1 {
+      text-align: center;
+      color: #2e7d32;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .btn {
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #2e7d32;
+      color: #fff;
+      margin-top: 0.5rem;
+    }
+    .btn-google {
+      background: #fff;
+      border: 1px solid #ccc;
+      color: #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 0.6rem;
+    }
+    .btn-google img {
+      width: 20px;
+      height: 20px;
+    }
+    .signup-link {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    .signup-link a {
+      color: #2e7d32;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-<div class="login-container">
-  <div class="logo"><h1>BahAI</h1></div>
-  <h2>Welcome Back</h2>
-  <p class="subtitle">Login to continue your real estate journey</p>
+  <div class="login-container">
+    <div class="logo"><h1>BahAI</h1></div>
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Login to continue your real estate journey</p>
 
-  <form id="loginForm">
-    <div class="form-group">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email" required>
-    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="Enter your email" 
+          required 
+          aria-label="Email Address" 
+        />
+      </div>
 
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter your password" required>
-    </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Enter your password" 
+          required 
+          aria-label="Password" 
+        />
+      </div>
 
-    <button type="submit" class="btn btn-primary">Login</button>
-    <button type="button" id="googleLoginBtn" class="btn btn-google">
-      <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo">
-      Continue with Google
-    </button>
-  </form>
+      <button type="submit" class="btn btn-primary">Login</button>
+      <button type="button" id="googleLoginBtn" class="btn btn-google">
+        <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo" />
+        Continue with Google
+      </button>
+    </form>
 
-  <p class="signup-link">Don’t have an account? <a href="signup.html">Sign up here</a></p>
-</div>
+    <p class="signup-link">
+      Don’t have an account? <a href="signup.html">Sign up here</a>
+    </p>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+  <!-- Firebase + Role Redirect Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      signInWithPopup, 
+      GoogleAuthProvider 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      getDoc, 
+      setDoc 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// Bahai Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "bahai-1b76d.firebaseapp.com",
-  projectId: "bahai-1b76d",
-  storageBucket: "bahai-1b76d.firebasestorage.app",
-  messagingSenderId: "646878644941",
-  appId: "1:646878644941:web:5b4ccc3412250337587784",
-  measurementId: "G-PDW1PRZTM9"
-};
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+      authDomain: "bahai-1b76d.firebaseapp.com",
+      projectId: "bahai-1b76d",
+      storageBucket: "bahai-1b76d.firebasestorage.app",
+      messagingSenderId: "646878644941",
+      appId: "1:646878644941:web:5b4ccc3412250337587784",
+      measurementId: "G-PDW1PRZTM9",
+    };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
 
-// Email/password login
-// Email/password login
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+    // Email/Password Login
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const docSnap = await getDoc(doc(db, "users", user.uid));
 
-    const docSnap = await getDoc(doc(db, "users", user.uid));
-    if(!docSnap.exists()) { alert("User data not found!"); return; }
+        if (!docSnap.exists()) {
+          alert("User data not found!");
+          return;
+        }
 
-    const role = docSnap.data().role;
+        const role = docSnap.data().role;
+        window.location.href = getRedirectPage(role);
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    });
 
-    // Redirect based on role
-    if(role === "seller") window.location.href = "public/seller/seller_dashboard.html";
-    else if(role === "buyer") window.location.href = "buyer_dashboard.html";
-    else if(role === "broker") window.location.href = "broker_dashboard.html";
-    else window.location.href = "agent_dashboard.html";
+    // Google Login
+    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
 
-  } catch(error){
-    alert("Login failed: " + error.message);
-  }
-});
+        const userRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userRef);
 
-// Google login
-document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+        let role;
+        if (!docSnap.exists()) {
+          role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
+          await setDoc(userRef, {
+            fullname: user.displayName,
+            email: user.email,
+            role,
+            createdAt: new Date(),
+          });
+        } else {
+          role = docSnap.data().role;
+        }
 
-    const docSnap = await getDoc(doc(db, "users", user.uid));
-    if(!docSnap.exists()){
-      const role = prompt("Enter your role (buyer/seller/broker/agent):").toLowerCase();
-      await setDoc(doc(db, "users", user.uid), {
-        fullname: user.displayName,
-        email: user.email,
-        role,
-        createdAt: new Date()
-      });
+        window.location.href = getRedirectPage(role);
+      } catch (error) {
+        alert("Google sign-in failed: " + error.message);
+      }
+    });
+
+    // Role-Based Redirect
+    function getRedirectPage(role) {
+      switch (role) {
+        case "seller":
+          return "seller/seller_dashboard.html";
+        case "buyer":
+          return "buyer_dashboard.html";
+        case "broker":
+          return "broker_dashboard.html";
+        case "agent":
+          return "agent_dashboard.html";
+        case "landlord":
+          return "landlord/landlord_dashboard.html";
+        default:
+          return "login.html";
+      }
     }
-
-    const role = docSnap.exists() ? docSnap.data().role : role;
-    if(role === "seller") window.location.href = "seller/seller_dashboard.html";
-    else if(role === "buyer") window.location.href = "buyer_dashboard.html";
-    else if(role === "broker") window.location.href = "broker_dashboard.html";
-    else window.location.href = "agent_dashboard.html";
-
-  } catch(error){
-    alert("Google sign-in failed: " + error.message);
-  }
-});
-
-</script>
+  </script>
 </body>
 </html>
