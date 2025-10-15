@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login</title>
   <style>
     body {
@@ -21,9 +22,7 @@
       width: 320px;
       text-align: center;
     }
-    h2 {
-      margin-bottom: 20px;
-    }
+    h2 { margin-bottom: 20px; }
     input {
       width: 100%;
       padding: 10px;
@@ -42,13 +41,8 @@
       font-size: 16px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .error {
-      color: red;
-      margin-top: 10px;
-    }
+    button:hover { background-color: #0056b3; }
+    .error { color: red; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -63,10 +57,14 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { 
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { 
+      getFirestore, doc, getDoc 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    // 🔥 Your Firebase config
+    // 🔥 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
       authDomain: "bahai-1b76d.firebaseapp.com",
@@ -76,6 +74,7 @@
       appId: "1:646878644941:web:5b4ccc3412250337587784"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -83,7 +82,7 @@
     const loginBtn = document.getElementById("loginBtn");
     const errorDiv = document.getElementById("error");
 
-    // 🚀 Handle login
+    // 🚀 Handle Login
     loginBtn.addEventListener("click", async () => {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
@@ -92,15 +91,15 @@
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 🔍 Optional: Check Firestore role before allowing access
+        // 🔍 Check Firestore Role
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists() && userSnap.data().role === "admin") {
-          window.location.href = "admin_home1.html";
+          window.location.href = "admin_home.html";
         } else {
           errorDiv.textContent = "Access denied. Not an admin account.";
-          await auth.signOut();
+          await signOut(auth);
         }
 
       } catch (error) {
@@ -109,7 +108,7 @@
       }
     });
 
-    // ✅ If already logged in and is admin → go directly to dashboard
+    // ✅ Auto Redirect if already logged in as admin
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userRef = doc(db, "users", user.uid);
