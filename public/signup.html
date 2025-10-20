@@ -1,154 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealEase - Signup</title>
-<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign Up with KYC</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #eef2f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 15px;
+  }
+
+  .signup-box {
+    background: #fff;
+    padding: 25px 28px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    max-height: 95vh;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .signup-box::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #222;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    color: #333;
+  }
+
+  input, select, button {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
+  }
+
+  input:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+
+  button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  video, canvas, img {
+    width: 100%;
+    border-radius: 8px;
+    margin: 8px 0;
+    display: none;
+  }
+
+  .divider {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin: 6px 0;
+  }
+
+  .error {
+    color: red;
+    text-align: center;
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  h3 {
+    text-align: center;
+    font-size: 16px;
+    margin: 15px 0 8px;
+  }
+
+  @media (max-width: 420px) {
+    .signup-box {
+      padding: 18px;
+    }
+  }
+</style>
 </head>
 <body>
-<div class="signup-container">
-  <div class="logo"><h1>RealEase</h1></div>
-  <h2>Create Your Account</h2>
-  <p class="subtitle">Join RealEase and discover your perfect property</p>
 
-  <form id="signupForm">
-    <div class="form-group">
-      <label for="fullname">Full Name</label>
-      <input type="text" id="fullname" placeholder="Enter your full name" required>
-    </div>
+<main class="signup-box">
+  <h2>Sign Up (KYC Verification)</h2>
 
-    <div class="form-group">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email" required>
-    </div>
+  <form id="signupForm" novalidate>
+    <label for="fullName">Full Name</label>
+    <input type="text" id="fullName" placeholder="Enter your full name" required />
 
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Create a password" required>
-    </div>
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Enter your email" required />
 
-    <div class="form-group">
-      <label for="confirm-password">Confirm Password</label>
-      <input type="password" id="confirm-password" placeholder="Confirm your password" required>
-    </div>
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password" required />
 
-    <div class="form-group">
-      <label for="role">Select Role</label>
-      <select id="role" required>
-        <option value="">-- Choose your role --</option>
-        <option value="buyer">Buyer</option>
-        <option value="seller">Seller</option>
-        <option value="broker">Broker</option>
-        <option value="agent">Agent</option>
-        <option value="landlord">Landlord</option>
-      </select>
-    </div>
+    <label for="role">Select Role</label>
+    <select id="role" required>
+      <option value="">Choose a role</option>
+      <option value="buyer">Buyer</option>
+      <option value="landlord">Landlord</option>
+      <option value="admin">Admin</option>
+    </select>
 
-    <button type="submit" class="btn btn-primary">Sign Up</button>
-    <button type="button" id="googleSignUpBtn" class="btn btn-google">
-      <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo">
-      Continue with Google
-    </button>
+    <label for="kycFront">KYC Document (ID Front)</label>
+    <input type="file" id="kycFront" accept="image/*,application/pdf" required />
+
+    <label for="kycBack">KYC Document (ID Back)</label>
+    <input type="file" id="kycBack" accept="image/*,application/pdf" required />
+
+    <h3>Selfie with ID</h3>
+    <button type="button" id="openCameraBtn">📸 Open Camera</button>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <button type="button" id="captureBtn" style="display:none;">📷 Capture Selfie</button>
+
+    <div class="divider">— OR —</div>
+
+    <label for="selfieUpload">Upload Selfie from Gallery</label>
+    <input type="file" id="selfieUpload" accept="image/*" />
+    <img id="selfiePreview" alt="Selfie Preview" />
+
+    <button type="button" id="signupBtn">Sign Up</button>
+    <p id="error" class="error"></p>
   </form>
-
-  <div class="login-link">
-    Already have an account? <a href="login.html">Login here</a>
-  </div>
-</div>
+</main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "bahai-1b76d.firebaseapp.com",
-  projectId: "bahai-1b76d",
-  storageBucket: "bahai-1b76d.firebasestorage.app",
-  messagingSenderId: "646878644941",
-  appId: "1:646878644941:web:5b4ccc3412250337587784",
-  measurementId: "G-PDW1PRZTM9"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+    authDomain: "bahai-1b76d.firebaseapp.com",
+    projectId: "bahai-1b76d",
+    storageBucket: "bahai-1b76d.appspot.com",
+    messagingSenderId: "646878644941",
+    appId: "1:646878644941:web:5b4ccc3412250337587784"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-// Handle signup form
-document.getElementById("signupForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const fullName = document.getElementById("fullname").value;
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirm-password").value;
-  const role = document.getElementById("role").value;
+  const openCameraBtn = document.getElementById("openCameraBtn");
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  const captureBtn = document.getElementById("captureBtn");
+  const selfieUpload = document.getElementById("selfieUpload");
+  const selfiePreview = document.getElementById("selfiePreview");
+  const signupBtn = document.getElementById("signupBtn");
+  const errorDiv = document.getElementById("error");
 
-  if (password !== confirmPassword) {
-    alert("Passwords do not match!");
-    return;
-  }
+  let selfieBase64 = "";
+  let stream = null;
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    await updateProfile(user, { displayName: fullName });
+  openCameraBtn.addEventListener("click", async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      video.style.display = "block";
+      captureBtn.style.display = "block";
+      openCameraBtn.style.display = "none";
+    } catch {
+      alert("Camera access denied. Please upload a selfie instead.");
+    }
+  });
 
-    await setDoc(doc(db, "users", user.uid), {
-      fullname: fullName,
-      email,
-      role,
-      createdAt: new Date()
-    });
+  captureBtn.addEventListener("click", () => {
+    const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    selfieBase64 = canvas.toDataURL("image/jpeg");
+    selfiePreview.src = selfieBase64;
+    selfiePreview.style.display = "block";
+    captureBtn.style.display = "none";
+    video.style.display = "none";
+    openCameraBtn.style.display = "block";
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+  });
 
-    alert("Signup successful!");
-    window.location.href = "login.html";
-  } catch (error) {
-    alert(error.message);
-  }
-});
+  selfieUpload.addEventListener("change", () => {
+    const file = selfieUpload.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        selfieBase64 = e.target.result;
+        selfiePreview.src = selfieBase64;
+        selfiePreview.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
 
-// Google signup
-document.getElementById("googleSignUpBtn").addEventListener("click", async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    const userRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(userRef);
+  const toBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
-    let role;
-    if (!docSnap.exists()) {
-      role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
-      await setDoc(userRef, {
-        fullname: user.displayName,
-        email: user.email,
-        role,
-        createdAt: new Date()
-      });
-    } else {
-      role = docSnap.data().role;
+  signupBtn.addEventListener("click", async () => {
+    const fullName = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.getElementById("role").value;
+    const kycFront = document.getElementById("kycFront").files[0];
+    const kycBack = document.getElementById("kycBack").files[0];
+
+    if (!fullName || !email || !password || !role || !kycFront || !kycBack || !selfieBase64) {
+      errorDiv.textContent = "⚠️ Please fill all fields and upload/capture a selfie.";
+      return;
     }
 
-    window.location.href = getRedirectPage(role);
-  } catch (error) {
-    alert("Google sign-in failed: " + error.message);
-  }
-});
+    try {
+      const [frontBase64, backBase64] = await Promise.all([toBase64(kycFront), toBase64(kycBack)]);
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCred.user;
 
-// Redirect helper
-function getRedirectPage(role) {
-  switch (role) {
-    case "seller": return "seller/seller_dashboard.html";
-    case "buyer": return "buyer_dashboard.html";
-    case "broker": return "broker_dashboard.html";
-    case "agent": return "agent_dashboard.html";
-    case "landlord": return "landlord/landlord_dashboard.html";
-    default: return "login.html";
-  }
-}
+      await setDoc(doc(db, "users", user.uid), {
+        fullName,
+        email,
+        role,
+        kycStatus: "pending",
+        kycDocs: { idFront: frontBase64, idBack: backBase64, selfie: selfieBase64 },
+        createdAt: serverTimestamp()
+      });
+
+      alert("✅ Signup complete! Your KYC is pending approval.");
+      window.location.href = "login.html";
+    } catch (error) {
+      errorDiv.textContent = error.message;
+    }
+  });
 </script>
+
 </body>
 </html>

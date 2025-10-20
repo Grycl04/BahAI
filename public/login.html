@@ -14,6 +14,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      overflow: hidden; /* ✅ Hides scrollbar */
     }
     .login-container {
       background: #fff;
@@ -22,6 +23,12 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 400px;
+      max-height: 95vh;
+      overflow-y: auto; /* ✅ Allows scroll inside box if needed */
+      scrollbar-width: none; /* ✅ Hide scrollbar (Firefox) */
+    }
+    .login-container::-webkit-scrollbar {
+      display: none; /* ✅ Hide scrollbar (Chrome, Edge, Safari) */
     }
     .logo h1 {
       text-align: center;
@@ -148,7 +155,7 @@
       setDoc 
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    // Firebase Config
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
       authDomain: "bahai-1b76d.firebaseapp.com",
@@ -164,7 +171,7 @@
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Email/Password Login
+    // ✅ Email/Password Login + KYC Verification
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value.trim();
@@ -176,46 +183,71 @@
         const docSnap = await getDoc(doc(db, "users", user.uid));
 
         if (!docSnap.exists()) {
-          alert("User data not found!");
+          alert("⚠️ User data not found!");
           return;
         }
 
-        const role = docSnap.data().role;
-        window.location.href = getRedirectPage(role);
+        const data = docSnap.data();
+
+        // 🚫 Block login based on KYC status
+        if (data.kycStatus === "pending") {
+          alert("🕒 Your KYC is still pending approval. Please wait for admin verification.");
+          return;
+        } else if (data.kycStatus === "rejected") {
+          alert("❌ Your KYC was rejected. Please contact admin or reapply.");
+          return;
+        }
+
+        // ✅ Approved: redirect by role
+        if (data.kycStatus === "approved") {
+          const role = data.role;
+          window.location.href = getRedirectPage(role);
+        } else {
+          alert("⚠️ Invalid KYC status. Please contact admin.");
+        }
       } catch (error) {
-        alert("Login failed: " + error.message);
+        alert("❌ Login failed: " + error.message);
       }
     });
 
-    // Google Login
+    // ✅ Google Login (Optional: auto-kyc set to pending on first sign-in)
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
-
         const userRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(userRef);
 
-        let role;
+        let data;
         if (!docSnap.exists()) {
-          role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
-          await setDoc(userRef, {
+          const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
+          data = {
             fullname: user.displayName,
             email: user.email,
             role,
             createdAt: new Date(),
-          });
+            kycStatus: "pending", // 🔒 Google users default to pending
+          };
+          await setDoc(userRef, data);
+          alert("🕒 KYC pending. Please wait for admin approval before logging in again.");
+          return;
         } else {
-          role = docSnap.data().role;
+          data = docSnap.data();
         }
 
-        window.location.href = getRedirectPage(role);
+        // 🚫 Block login if not approved
+        if (data.kycStatus !== "approved") {
+          alert("⚠️ KYC not approved yet. Please wait for admin verification.");
+          return;
+        }
+
+        window.location.href = getRedirectPage(data.role);
       } catch (error) {
-        alert("Google sign-in failed: " + error.message);
+        alert("❌ Google sign-in failed: " + error.message);
       }
     });
 
-    // Role-Based Redirect
+    // ✅ Role-Based Redirect
     function getRedirectPage(role) {
       switch (role) {
         case "seller":
@@ -228,6 +260,8 @@
           return "agent_dashboard.html";
         case "landlord":
           return "landlord/landlord_dashboard.html";
+        case "admin":
+          return "approve_users.html";
         default:
           return "login.html";
       }
