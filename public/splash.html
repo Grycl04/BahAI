@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bahay - Choose Role</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: #0a1e3f; /* Solid Navy Blue */
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      animation: logoPop 1.2s ease;
+    }
+
+    .logo img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #d3d3d3;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .role-btn {
+      display: block;
+      width: 100%;
+      background: #ffffff;
+      color: #0a1e3f;
+      border: none;
+      border-radius: 10px;
+      padding: 0.9rem;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .role-btn:hover {
+      background: #e6e6e6;
+      transform: scale(1.02);
+    }
+
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    @keyframes logoPop {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.7rem;
+      }
+      .container {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="logo.png" alt="Bahay Logo" />
+    </div>
+
+    <h1>Welcome to Bahay</h1>
+    <p>Select your role to continue</p>
+
+    <!-- Role Buttons -->
+    <button class="role-btn" onclick="goTo('signup_broker.html')">Broker</button>
+    <button class="role-btn" onclick="goTo('signup_agent.html')">Agent</button>
+    <button class="role-btn" onclick="goTo('signup_seller_landlord.html')">Seller / Landlord</button>
+
+    <p class="footer">© 2025 Bahay Real Estate Platform</p>
+  </div>
+
+  <script>
+    function goTo(page) {
+      window.location.href = page;
+    }
+  </script>
+</body>
+</html>

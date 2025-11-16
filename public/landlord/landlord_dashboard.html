@@ -200,15 +200,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// Firebase Config
+// 🔹 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
   authDomain: "bahai-1b76d.firebaseapp.com",
   projectId: "bahai-1b76d",
-  storageBucket: "bahai-1b76d.firebasestorage.app",
+  storageBucket: "bahai-1b76d.appspot.com",
   messagingSenderId: "646878644941",
-  appId: "1:646878644941:web:5b4ccc3412250337587784",
-  measurementId: "G-PDW1PRZTM9"
+  appId: "1:646878644941:web:5b4ccc3412250337587784"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -218,41 +217,189 @@ const db = getFirestore(app);
 const propertyContainer = document.getElementById("properties");
 
 // ===== Auth Check =====
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "../login.html";
   } else {
-    loadProperties(user.uid);
+    loadApprovedProperties(user.uid);
   }
 });
 
-// ===== Fetch & Listen to Firestore =====
-function loadProperties(userId) {
-  const q = query(collection(db, "listings"), where("user_id", "==", userId));
+// ===== Load Approved Properties =====
+function loadApprovedProperties(userId) {
+  const q = query(
+    collection(db, "properties"),
+    where("userId", "==", userId),
+    where("status", "==", "approved")
+  );
+
   onSnapshot(q, (snapshot) => {
     propertyContainer.innerHTML = "";
     if (snapshot.empty) {
-      propertyContainer.innerHTML = "<p class='message'>No properties found.</p>";
+      propertyContainer.innerHTML = "<p class='message'>No approved properties yet. Waiting for admin approval.</p>";
       return;
     }
-    snapshot.forEach(doc => {
+
+    snapshot.forEach((doc) => {
       const data = doc.data();
-      const imgSrc = data.images && data.images.length > 0
-        ? data.images[0].data
-        : "placeholder.jpg";
-      const propertyCard = `
-        <div class="property-card">
-          <img src="${imgSrc}" alt="Property">
-          <div class="property-info">
-            <h3>${data.title}</h3>
-            <p>${data.property_type} • ${data.bedrooms} BR • ${data.bathrooms} BA</p>
-            <p>₱${parseFloat(data.price).toLocaleString()}</p>
-          </div>
+      const imgSrc =
+        data.imageBase64Array && data.imageBase64Array.length > 0
+          ? data.imageBase64Array[0]
+          : "https://via.placeholder.com/400x250?text=No+Image";
+
+      const propertyCard = document.createElement("div");
+      propertyCard.classList.add("property-card");
+      propertyCard.innerHTML = `
+        <img src="${imgSrc}" alt="Property Image">
+        <div class="property-info">
+          <h3>${data.title || "Untitled Property"}</h3>
+          <p>${data.propertyType || "Type not set"}</p>
+          <p>₱${data.monthlyRent ? parseFloat(data.monthlyRent).toLocaleString() : "0"}</p>
         </div>
       `;
-      propertyContainer.innerHTML += propertyCard;
+
+      // 🏠 Show modal on click
+      propertyCard.addEventListener("click", () => showModal(data));
+      propertyContainer.appendChild(propertyCard);
     });
   });
+}
+
+// ===== Modal Function =====
+function showModal(data) {
+  let modal = document.getElementById("propertyModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "propertyModal";
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.width = "100%";
+    modal.style.height = "100%";
+    modal.style.background = "rgba(0,0,0,0.6)";
+    modal.style.display = "flex";
+    modal.style.alignItems = "center";
+    modal.style.justifyContent = "center";
+    modal.style.zIndex = "9999";
+    modal.innerHTML = `
+      <div id="modalContent" style="background:white; padding:20px; border-radius:10px; max-width:650px; width:90%; position:relative; overflow-y:auto; max-height:90vh;">
+        <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:22px;">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p><strong>Date Posted:</strong> <span id="modalDate"></span></p>
+        <p><strong>Property Type:</strong> <span id="modalType"></span></p>
+        <p><strong>Monthly Rent:</strong> ₱<span id="modalRent"></span></p>
+        <p><strong>Deposit:</strong> ₱<span id="modalDeposit"></span></p>
+        <p><strong>Minimum Stay:</strong> <span id="modalMinStay"></span> months</p>
+        <p><strong>Description:</strong></p>
+        <p id="modalDescription"></p>
+        <div id="modalVideo" style="margin-top:15px;"></div>
+        <h3 style="margin-top:20px;">Images</h3>
+        <div id="modalImages" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Close button
+    document.getElementById("closeModal").addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    // Click outside to close
+    modal.addEventListener("click", (e) => {
+      const modalContent = document.getElementById("modalContent");
+      if (!modalContent.contains(e.target)) {
+        modal.style.display = "none";
+      }
+    });
+  }
+
+  // Populate details
+  document.getElementById("modalTitle").textContent = data.title || "Property Details";
+  document.getElementById("modalType").textContent = data.propertyType || "-";
+  document.getElementById("modalRent").textContent = data.monthlyRent ? parseFloat(data.monthlyRent).toLocaleString() : "0";
+  document.getElementById("modalDeposit").textContent = data.deposit ? parseFloat(data.deposit).toLocaleString() : "0";
+  document.getElementById("modalMinStay").textContent = data.minStay || "-";
+  document.getElementById("modalDescription").textContent = data.description || "No description available.";
+
+  // 📅 Date Posted
+  const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
+  const formattedDate = createdAt ? new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+  document.getElementById("modalDate").textContent = formattedDate;
+
+  // 🎥 YouTube Video Preview
+  const videoContainer = document.getElementById("modalVideo");
+  videoContainer.innerHTML = "";
+  if (data.videoUrl) {
+    const match = data.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (match) {
+      const videoId = match[1];
+      videoContainer.innerHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    }
+  }
+
+  // 🖼 Display Images
+  const imageContainer = document.getElementById("modalImages");
+  imageContainer.innerHTML = "";
+  if (data.imageBase64Array && data.imageBase64Array.length > 0) {
+    data.imageBase64Array.forEach((img) => {
+      const image = document.createElement("img");
+      image.src = img;
+      image.style.width = "120px";
+      image.style.height = "100px";
+      image.style.objectFit = "cover";
+      image.style.borderRadius = "6px";
+      image.style.cursor = "pointer";
+      image.addEventListener("click", (e) => {
+        e.stopPropagation(); // prevent modal from closing
+        zoomImage(img);
+      });
+      imageContainer.appendChild(image);
+    });
+  } else {
+    imageContainer.innerHTML = "<p>No images available.</p>";
+  }
+
+  modal.style.display = "flex";
+}
+
+// 🔍 Zoomed Image View
+function zoomImage(imgSrc) {
+  let zoomModal = document.getElementById("zoomModal");
+  if (!zoomModal) {
+    zoomModal = document.createElement("div");
+    zoomModal.id = "zoomModal";
+    zoomModal.style.position = "fixed";
+    zoomModal.style.top = "0";
+    zoomModal.style.left = "0";
+    zoomModal.style.width = "100%";
+    zoomModal.style.height = "100%";
+    zoomModal.style.background = "rgba(0,0,0,0.8)";
+    zoomModal.style.display = "flex";
+    zoomModal.style.alignItems = "center";
+    zoomModal.style.justifyContent = "center";
+    zoomModal.style.zIndex = "10000";
+    zoomModal.innerHTML = `
+      <img id="zoomedImage" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
+      <span id="closeZoom" style="position:absolute; top:20px; right:30px; color:white; font-size:30px; cursor:pointer;">&times;</span>
+    `;
+    document.body.appendChild(zoomModal);
+
+    // Close button
+    document.getElementById("closeZoom").addEventListener("click", () => {
+      zoomModal.style.display = "none";
+    });
+
+    // Click outside to close
+    zoomModal.addEventListener("click", (e) => {
+      const zoomedImg = document.getElementById("zoomedImage");
+      if (!zoomedImg.contains(e.target)) {
+        zoomModal.style.display = "none";
+      }
+    });
+  }
+
+  document.getElementById("zoomedImage").src = imgSrc;
+  zoomModal.style.display = "flex";
 }
 
 // ===== Logout =====
@@ -268,5 +415,6 @@ function toggleMenu(el) {
 }
 window.toggleMenu = toggleMenu;
 </script>
+
 </body>
 </html>

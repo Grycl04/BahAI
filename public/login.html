@@ -14,7 +14,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      overflow: hidden; /* ✅ Hides scrollbar */
+      overflow: hidden;
     }
     .login-container {
       background: #fff;
@@ -24,11 +24,11 @@
       width: 100%;
       max-width: 400px;
       max-height: 95vh;
-      overflow-y: auto; /* ✅ Allows scroll inside box if needed */
-      scrollbar-width: none; /* ✅ Hide scrollbar (Firefox) */
+      overflow-y: auto;
+      scrollbar-width: none;
     }
     .login-container::-webkit-scrollbar {
-      display: none; /* ✅ Hide scrollbar (Chrome, Edge, Safari) */
+      display: none;
     }
     .logo h1 {
       text-align: center;
@@ -135,40 +135,25 @@
     </form>
 
     <p class="signup-link">
-      Don’t have an account? <a href="signup.html">Sign up here</a>
+      Don't have an account? <a href="signup.html">Sign up here</a>
     </p>
   </div>
 
   <!-- Firebase + Role Redirect Script -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { auth, db } from './firebase-common.js';
     import { 
-      getAuth, 
       signInWithEmailAndPassword, 
       signInWithPopup, 
       GoogleAuthProvider 
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { 
-      getFirestore, 
       doc, 
       getDoc, 
-      setDoc 
+      setDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    // ✅ Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-      authDomain: "bahai-1b76d.firebaseapp.com",
-      projectId: "bahai-1b76d",
-      storageBucket: "bahai-1b76d.firebasestorage.app",
-      messagingSenderId: "646878644941",
-      appId: "1:646878644941:web:5b4ccc3412250337587784",
-      measurementId: "G-PDW1PRZTM9",
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
     // ✅ Email/Password Login + KYC Verification
@@ -189,28 +174,23 @@
 
         const data = docSnap.data();
 
-        // 🚫 Block login based on KYC status
+        // 🚫 Only block login if status is pending (waiting for approval)
         if (data.kycStatus === "pending") {
-          alert("🕒 Your KYC is still pending approval. Please wait for admin verification.");
-          return;
-        } else if (data.kycStatus === "rejected") {
-          alert("❌ Your KYC was rejected. Please contact admin or reapply.");
+          alert("🕒 Your KYC is still pending approval. Please wait for verification to complete.");
           return;
         }
 
-        // ✅ Approved: redirect by role
-        if (data.kycStatus === "approved") {
-          const role = data.role;
-          window.location.href = getRedirectPage(role);
-        } else {
-          alert("⚠️ Invalid KYC status. Please contact admin.");
-        }
+        // ✅ Allow login for: approved, not_submitted, and rejected
+        // They can access dashboard, but posting will be blocked for non-approved users
+        const role = data.role;
+        window.location.href = getRedirectPage(role);
+
       } catch (error) {
         alert("❌ Login failed: " + error.message);
       }
     });
 
-    // ✅ Google Login (Optional: auto-kyc set to pending on first sign-in)
+    // ✅ Google Login
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, googleProvider);
@@ -222,26 +202,28 @@
         if (!docSnap.exists()) {
           const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
           data = {
-            fullname: user.displayName,
+            fullName: user.displayName,
             email: user.email,
             role,
-            createdAt: new Date(),
-            kycStatus: "pending", // 🔒 Google users default to pending
+            kycStatus: "not_submitted",
+            createdAt: serverTimestamp()
           };
           await setDoc(userRef, data);
-          alert("🕒 KYC pending. Please wait for admin approval before logging in again.");
+          alert("✅ Account created! Please complete KYC verification to post properties.");
+          window.location.href = getRedirectPage(role);
           return;
         } else {
           data = docSnap.data();
         }
 
-        // 🚫 Block login if not approved
-        if (data.kycStatus !== "approved") {
-          alert("⚠️ KYC not approved yet. Please wait for admin verification.");
-          return;
+        // 🚫 Only block if pending
+        if (data.kycStatus === "pending") {
+          alert("🕒 Your KYC is still pending approval. You can access your dashboard but cannot post properties yet.");
         }
 
+        // ✅ Allow login regardless of KYC status
         window.location.href = getRedirectPage(data.role);
+
       } catch (error) {
         alert("❌ Google sign-in failed: " + error.message);
       }

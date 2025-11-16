@@ -1,275 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sign Up with KYC</title>
-
-<style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #eef2f6;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    padding: 15px;
-  }
-
-  .signup-box {
-    background: #fff;
-    padding: 25px 28px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 400px;
-    max-height: 95vh;
-    overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-
-  .signup-box::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
-  }
-
-  h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #222;
-  }
-
-  label {
-    display: block;
-    font-weight: 600;
-    margin-top: 10px;
-    margin-bottom: 4px;
-    color: #333;
-  }
-
-  input, select, button {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-bottom: 12px;
-    transition: border-color 0.2s ease;
-  }
-
-  input:focus, select:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-
-  button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  button:hover {
-    background-color: #0056b3;
-  }
-
-  video, canvas, img {
-    width: 100%;
-    border-radius: 8px;
-    margin: 8px 0;
-    display: none;
-  }
-
-  .divider {
-    text-align: center;
-    color: #888;
-    font-size: 14px;
-    margin: 6px 0;
-  }
-
-  .error {
-    color: red;
-    text-align: center;
-    font-size: 13px;
-    margin-top: 5px;
-  }
-
-  h3 {
-    text-align: center;
-    font-size: 16px;
-    margin: 15px 0 8px;
-  }
-
-  @media (max-width: 420px) {
-    .signup-box {
-      padding: 18px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bahay - Sign Up</title>
+  <style>
+    :root { --navy: #0A1E3F; --white: #fff; }
+    body {
+      font-family: Poppins, system-ui;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--navy);
+      color: var(--white);
     }
-  }
-</style>
+    .card {
+      background: var(--white);
+      color: #0a1e3f;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    label { display: block; margin-top: 10px; font-weight: 600; }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 6px;
+    }
+    button {
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { opacity: 0.9; }
+    .muted { font-size: 0.9rem; color: #666; margin-top: 10px; }
+    #error { color: #b00020; margin-top: 10px; }
+    #passwordStrength { font-size: 0.8rem; margin-top: 5px; color: #666; }
+    .login-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .login-link a {
+      color: var(--navy);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+  <div class="card">
+    <h2 style="text-align: center;">Create Your Account</h2>
+    <p style="text-align: center; color: #666;">Enter your details to get started.</p>
 
-<main class="signup-box">
-  <h2>Sign Up (KYC Verification)</h2>
+    <label>Full Name</label>
+    <input id="fullName" type="text" placeholder="Enter your full name" />
 
-  <form id="signupForm" novalidate>
-    <label for="fullName">Full Name</label>
-    <input type="text" id="fullName" placeholder="Enter your full name" required />
+    <label>Email</label>
+    <input id="email" type="email" placeholder="Enter your email" />
 
-    <label for="email">Email</label>
-    <input type="email" id="email" placeholder="Enter your email" required />
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Create a strong password" />
+    <div id="passwordStrength"></div>
 
-    <label for="password">Password</label>
-    <input type="password" id="password" placeholder="Enter password" required />
+    <label>Phone Number</label>
+    <input id="phone" type="tel" placeholder="Enter your phone number" />
 
-    <label for="role">Select Role</label>
-    <select id="role" required>
-      <option value="">Choose a role</option>
-      <option value="buyer">Buyer</option>
-      <option value="landlord">Landlord</option>
-      <option value="admin">Admin</option>
+    <label>Role</label>
+    <select id="role">
+      <option value="">Select role</option>
+      <option value="broker">Broker (Licensed Real Estate Broker)</option>
+      <option value="agent">Agent (Property Agent under Broker)</option>
+      <option value="seller">Seller (Property Owner)</option>
+      <option value="landlord">Landlord (Property Lessor)</option>
     </select>
+    <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+      Note: You'll need to complete KYC verification after signup to post properties.
+    </p>
 
-    <label for="kycFront">KYC Document (ID Front)</label>
-    <input type="file" id="kycFront" accept="image/*,application/pdf" required />
+    <button id="signupBtn">Sign Up</button>
+    <p id="error"></p>
+    <p class="muted">After signup, you'll be redirected to your dashboard. KYC is required to post listings.</p>
+    
+    <p class="login-link">
+      Already have an account? <a href="login.html">Login here</a>
+    </p>
+  </div>
 
-    <label for="kycBack">KYC Document (ID Back)</label>
-    <input type="file" id="kycBack" accept="image/*,application/pdf" required />
+  <script type="module">
+    import { auth, db } from './firebase-common.js';
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    <h3>Selfie with ID</h3>
-    <button type="button" id="openCameraBtn">📸 Open Camera</button>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas"></canvas>
-    <button type="button" id="captureBtn" style="display:none;">📷 Capture Selfie</button>
+    const el = id => document.getElementById(id);
 
-    <div class="divider">— OR —</div>
+    // Password validation function
+    function validatePassword(password) {
+      const minLength = 8;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-    <label for="selfieUpload">Upload Selfie from Gallery</label>
-    <input type="file" id="selfieUpload" accept="image/*" />
-    <img id="selfiePreview" alt="Selfie Preview" />
-
-    <button type="button" id="signupBtn">Sign Up</button>
-    <p id="error" class="error"></p>
-  </form>
-</main>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-    authDomain: "bahai-1b76d.firebaseapp.com",
-    projectId: "bahai-1b76d",
-    storageBucket: "bahai-1b76d.appspot.com",
-    messagingSenderId: "646878644941",
-    appId: "1:646878644941:web:5b4ccc3412250337587784"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const openCameraBtn = document.getElementById("openCameraBtn");
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
-  const captureBtn = document.getElementById("captureBtn");
-  const selfieUpload = document.getElementById("selfieUpload");
-  const selfiePreview = document.getElementById("selfiePreview");
-  const signupBtn = document.getElementById("signupBtn");
-  const errorDiv = document.getElementById("error");
-
-  let selfieBase64 = "";
-  let stream = null;
-
-  openCameraBtn.addEventListener("click", async () => {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
-      video.style.display = "block";
-      captureBtn.style.display = "block";
-      openCameraBtn.style.display = "none";
-    } catch {
-      alert("Camera access denied. Please upload a selfie instead.");
-    }
-  });
-
-  captureBtn.addEventListener("click", () => {
-    const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-    selfieBase64 = canvas.toDataURL("image/jpeg");
-    selfiePreview.src = selfieBase64;
-    selfiePreview.style.display = "block";
-    captureBtn.style.display = "none";
-    video.style.display = "none";
-    openCameraBtn.style.display = "block";
-    if (stream) stream.getTracks().forEach((t) => t.stop());
-  });
-
-  selfieUpload.addEventListener("change", () => {
-    const file = selfieUpload.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        selfieBase64 = e.target.result;
-        selfiePreview.src = selfieBase64;
-        selfiePreview.style.display = "block";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  const toBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  signupBtn.addEventListener("click", async () => {
-    const fullName = document.getElementById("fullName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const role = document.getElementById("role").value;
-    const kycFront = document.getElementById("kycFront").files[0];
-    const kycBack = document.getElementById("kycBack").files[0];
-
-    if (!fullName || !email || !password || !role || !kycFront || !kycBack || !selfieBase64) {
-      errorDiv.textContent = "⚠️ Please fill all fields and upload/capture a selfie.";
-      return;
+      if (password.length < minLength) return 'Password must be at least 8 characters long.';
+      if (!hasUpper) return 'Password must include at least one uppercase letter.';
+      if (!hasLower) return 'Password must include at least one lowercase letter.';
+      if (!hasNumber) return 'Password must include at least one number.';
+      if (!hasSpecial) return 'Password must include at least one special character (e.g., !@#$).';
+      return null; // Valid
     }
 
-    try {
-      const [frontBase64, backBase64] = await Promise.all([toBase64(kycFront), toBase64(kycBack)]);
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
+    // Real-time password strength feedback
+    el('password').addEventListener('input', () => {
+      const password = el('password').value;
+      const error = validatePassword(password);
+      el('passwordStrength').textContent = error ? `Weak: ${error}` : 'Strong password!';
+      el('passwordStrength').style.color = error ? '#b00020' : '#28a745';
+    });
 
-      await setDoc(doc(db, "users", user.uid), {
-        fullName,
-        email,
-        role,
-        kycStatus: "pending",
-        kycDocs: { idFront: frontBase64, idBack: backBase64, selfie: selfieBase64 },
-        createdAt: serverTimestamp()
-      });
+    el('signupBtn').addEventListener('click', async () => {
+      el('error').textContent = '';
+      const fullName = el('fullName').value.trim();
+      const email = el('email').value.trim();
+      const password = el('password').value;
+      const phone = el('phone').value.trim();
+      const role = el('role').value;
 
-      alert("✅ Signup complete! Your KYC is pending approval.");
-      window.location.href = "login.html";
-    } catch (error) {
-      errorDiv.textContent = error.message;
-    }
-  });
-</script>
+      // Validate password
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        el('error').textContent = passwordError;
+        return;
+      }
 
+      if (!fullName || !email || !phone || !role) {
+        el('error').textContent = 'Please fill all fields, including selecting a role.';
+        return;
+      }
+
+      try {
+        el('signupBtn').disabled = true;
+        el('signupBtn').textContent = 'Creating account...';
+        
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+
+        await setDoc(doc(db, 'users', uid), {
+          fullName, email, phone, role,
+          kycStatus: "not_submitted",
+          createdAt: serverTimestamp()
+        });
+
+        // Redirect to role-specific dashboard
+        const dashboardMap = {
+          broker: 'dashboard_broker.html',
+          agent: 'dashboard_agent.html',
+          seller: 'dashboard_seller.html',
+          landlord: 'landlord/landlord_dashboard_.html'
+        };
+        window.location.href = dashboardMap[role] || 'dashboard_seller.html';
+      } catch (err) {
+        el('error').textContent = err.message || 'Sign up failed.';
+        el('signupBtn').disabled = false;
+        el('signupBtn').textContent = 'Sign Up';
+      }
+    });
+  </script>
 </body>
 </html>

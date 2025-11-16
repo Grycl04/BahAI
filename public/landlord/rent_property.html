@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Post Rental Property</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
     header { background: #2c3e50; padding: 10px 20px; position: relative; }
@@ -15,183 +15,518 @@
     .dropdown { position: relative; }
     .dropdown-content { display: none; position: absolute; background: white; min-width: 220px; box-shadow: 0px 4px 8px rgba(0,0,0,0.2); z-index: 10; }
     .dropdown:hover > .dropdown-content { display: block; }
-    .dropdown-sub { position: relative; }
-    .dropdown-sub-content { display: none; position: absolute; top: 0; left: 100%; min-width: 220px; background: white; box-shadow: 0px 4px 8px rgba(0,0,0,0.2); z-index: 11; }
-    .dropdown-sub:hover > .dropdown-sub-content { display: block; }
-    .dropdown-content a, .dropdown-sub-content a { color: black; padding: 8px 12px; text-decoration: none; display: block; }
-    .dropdown-content a:hover, .dropdown-sub-content a:hover { background: #f1f1f1; }
+    .dropdown-content a { color: black; padding: 8px 12px; text-decoration: none; display: block; }
+    .dropdown-content a:hover { background: #f1f1f1; }
     .hamburger { display: none; flex-direction: column; justify-content: space-between; width: 25px; height: 20px; background: none; border: none; cursor: pointer; margin-right: 10px; }
     .hamburger span { display: block; height: 3px; width: 100%; background: white; border-radius: 2px; transition: 0.3s; }
-    .hamburger.open span:nth-child(1){ transform: rotate(45deg) translate(5px,5px); }
-    .hamburger.open span:nth-child(2){ opacity: 0; }
-    .hamburger.open span:nth-child(3){ transform: rotate(-45deg) translate(5px,-5px); }
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
     @media(max-width:768px){
-      nav{ position:absolute; top:60px; left:0; width:100%; background:#2c3e50; flex-direction:column; align-items:flex-start; padding:10px 0; display:none; }
-      nav.active{ display:flex; }
-      .nav-left, .nav-right{ flex-direction:column; width:100%; gap:0; }
-      nav a{ width:100%; padding:12px 20px; }
-      .hamburger{ display:flex; position:absolute; right:20px; top:15px; }
+      nav { position: absolute; top: 60px; left: 0; width: 100%; background: #2c3e50; flex-direction: column; align-items: flex-start; padding: 10px 0; display: none; }
+      nav.active { display: flex; }
+      .nav-left, .nav-right { flex-direction: column; width: 100%; gap: 0; }
+      nav a { width: 100%; padding: 12px 20px; }
+      .hamburger { display: flex; position: absolute; right: 20px; top: 15px; }
     }
-    form { background:white; padding:20px; border-radius:8px; max-width:600px; margin:80px auto 20px; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
-    label { font-weight:bold; display:block; margin-top:10px; }
-    input, textarea, select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
-    button { background:navy; color:white; padding:10px 15px; border:none; border-radius:4px; margin-top:15px; cursor:pointer; }
-    button:disabled { background:#999; cursor:not-allowed; }
-    .message { text-align:center; font-weight:bold; margin:15px; color:red; }
-    .preview-container { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .preview-container img { width:100px; height:100px; object-fit:cover; border-radius:6px; border:1px solid #ccc; }
+    
+    .container { max-width: 700px; margin: 80px auto 20px; padding: 20px; }
+    
+    .kyc-warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .kyc-warning h2 { 
+      color: #856404; 
+      margin-top: 0; 
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+    .kyc-warning p { 
+      color: #856404; 
+      margin: 10px 0; 
+      line-height: 1.6;
+    }
+    .kyc-warning .status-text {
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 10px;
+      background: rgba(255, 193, 7, 0.2);
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+    .kyc-warning a {
+      display: inline-block;
+      background: #ffc107;
+      color: #000;
+      padding: 12px 25px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+    .kyc-warning a:hover { background: #e0a800; }
+    
+    form { 
+      background: white; 
+      padding: 25px; 
+      border-radius: 8px; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+    }
+    form.disabled { 
+      opacity: 0.5; 
+      pointer-events: none; 
+      filter: blur(2px);
+    }
+    
+    label { 
+      font-weight: bold; 
+      display: block; 
+      margin-top: 15px; 
+      color: #333;
+    }
+    .required::after {
+      content: " *";
+      color: red;
+    }
+    input, textarea, select { 
+      width: 100%; 
+      padding: 10px; 
+      margin-top: 5px; 
+      border: 1px solid #ccc; 
+      border-radius: 4px; 
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    button { 
+      background: navy; 
+      color: white; 
+      padding: 12px 15px; 
+      border: none; 
+      border-radius: 4px; 
+      margin-top: 20px; 
+      cursor: pointer; 
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    button:hover { background: #000080; }
+    button:disabled { background: #999; cursor: not-allowed; }
+    
+    .message { 
+      text-align: center; 
+      font-weight: bold; 
+      padding: 12px; 
+      border-radius: 6px; 
+      margin-bottom: 15px;
+    }
+    .message.success { background: #d4edda; color: #155724; }
+    .message.error { background: #f8d7da; color: #721c24; }
+    .message.warning { background: #fff3cd; color: #856404; }
+    
+    .preview-container { 
+      display: flex; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      margin-top: 10px; 
+    }
+    .preview-container img { 
+      width: 120px; 
+      height: 120px; 
+      object-fit: cover; 
+      border-radius: 6px; 
+      border: 2px solid #ccc; 
+    }
+    .video-preview { 
+      margin-top: 10px; 
+      text-align: center; 
+    }
+    .video-preview iframe { 
+      width: 100%; 
+      max-width: 100%; 
+      height: 315px; 
+      border-radius: 8px; 
+      border: none;
+    }
+    
+    .char-count {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 3px;
+    }
+    .char-count.error {
+      color: #dc3545;
+      font-weight: bold;
+    }
+    .char-count.success {
+      color: #28a745;
+    }
+    
+    .help-text {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 3px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <button class="hamburger" onclick="toggleMenu(this)"><span></span><span></span><span></span></button>
+  <button class="hamburger" onclick="toggleMenu(this)">
+    <span></span><span></span><span></span>
+  </button>
   <nav>
     <div class="nav-left">
       <a href="landlord_dashboard.html">Home</a>
       <div class="dropdown">
-        <a href="#">Properties <span class="arrow">▾</span></a>
+        <a href="#">Properties ▾</a>
         <div class="dropdown-content">
           <a href="#">Rent</a>
           <a href="#">Lease</a>
           <a href="#">For Sale</a>
         </div>
       </div>
-      <a href="post_rental.html">Post Rental</a>
+      <a href="rent_property.html">Post Rental</a>
     </div>
     <div class="nav-right">
+      <a href="../kyc.html">KYC Verification</a>
       <a href="#" id="logoutBtn">Logout</a>
     </div>
   </nav>
 </header>
 
-<div class="message" id="messageBox"></div>
+<div class="container">
+  <!-- KYC Warning Box -->
+  <div id="kycWarning" class="kyc-warning" style="display: none;">
+    <h2>⚠️ KYC Verification Required</h2>
+    <p class="status-text" id="kycStatusText"></p>
+    <p id="kycMessage"></p>
+    <a href="../kyc.html">
+      <i class="bi bi-shield-check"></i> Complete KYC Verification Now
+    </a>
+  </div>
 
-<form id="rentalForm">
-  <label for="title">Property Title</label>
-  <input type="text" id="title" title="Property Title" placeholder="Enter property title" required>
+  <div id="messageBox" class="message" style="display: none;"></div>
 
-  <label for="propertyType">Property Type</label>
-  <select id="propertyType" title="Select property type" required>
-    <option value="">-- Select --</option>
-    <option value="apartment">Apartment</option>
-    <option value="house">House</option>
-    <option value="studio">Studio</option>
-    <option value="room">Room / Shared</option>
-  </select>
+  <form id="rentalForm" class="disabled">
+    <h2 style="margin-top: 0; color: #2c3e50;">Post Rental Property</h2>
+    
+    <label for="title" class="required">Property Title</label>
+    <input type="text" id="title" placeholder="Enter property title (e.g., 'Cozy 2BR Apartment in Makati')" required minlength="10" maxlength="100">
+    <div class="char-count" id="titleCount">0 / 10 characters minimum</div>
 
-  <label for="description">Description</label>
-  <textarea id="description" title="Description" placeholder="Describe the property" rows="4"></textarea>
+    <label for="propertyType" class="required">Property Type</label>
+    <select id="propertyType" required>
+      <option value="">-- Select Property Type --</option>
+      <option value="apartment">Apartment</option>
+      <option value="house">House</option>
+      <option value="studio">Studio</option>
+      <option value="room">Room / Shared</option>
+      <option value="boarding_house">Boarding House</option>
+      <option value="bedspace">Bedspace</option>
+      <option value="condo">Condominium</option>
+      <option value="townhouse">Townhouse</option>
+    </select>
 
-  <label for="monthlyRent">Monthly Rent (₱)</label>
-  <input type="number" id="monthlyRent" title="Monthly Rent" placeholder="e.g., 15000" step="0.01" required>
+    <label for="description" class="required">Description</label>
+    <textarea id="description" placeholder="Describe the property in detail: amenities, nearby places, features, etc. (minimum 50 characters)" rows="6" required minlength="50"></textarea>
+    <div class="char-count" id="descCount">0 / 50 characters minimum</div>
 
-  <label for="deposit">Deposit (₱)</label>
-  <input type="number" id="deposit" title="Deposit" placeholder="Optional" step="0.01">
+    <label for="location" class="required">Location / Address</label>
+    <input type="text" id="location" placeholder="Enter full address (e.g., '123 Main St, Makati City, Metro Manila')" required>
 
-  <label for="minStay">Minimum Stay (months)</label>
-  <input type="number" id="minStay" title="Minimum Stay" placeholder="e.g., 6" value="1" min="1">
+    <label for="monthlyRent" class="required">Monthly Rent (₱)</label>
+    <input type="number" id="monthlyRent" placeholder="e.g., 15000" step="0.01" required min="1000">
+    <div class="help-text">Minimum: ₱1,000</div>
 
-  <label for="images">Upload Images</label>
-  <input type="file" id="images" title="Upload property images" accept="image/*" multiple>
-  <div class="preview-container" id="preview"></div>
+    <label for="deposit">Deposit (₱)</label>
+    <input type="number" id="deposit" placeholder="Optional (e.g., 30000)" step="0.01" min="0">
 
-  <button type="submit">Post Rental</button>
-</form>
+    <label for="minStay" class="required">Minimum Stay (months)</label>
+    <input type="number" id="minStay" placeholder="e.g., 6" value="1" min="1" max="24" required>
 
-<!-- Firebase SDK -->
+    <label for="videoUrl">YouTube Video URL (Optional)</label>
+    <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=example">
+    <div class="help-text">Add a video tour of your property (optional)</div>
+    <div class="video-preview" id="videoPreview"></div>
+
+    <label for="images" class="required">Upload Property Images</label>
+    <input type="file" id="images" accept="image/*" multiple required>
+    <div class="help-text">Upload at least 1 image (max 5MB per image, recommended: 3-5 images)</div>
+    <div class="preview-container" id="preview"></div>
+
+    <button type="submit" id="submitBtn">Post Rental Property</button>
+  </form>
+</div>
+
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-  import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-    authDomain: "bahai-1b76d.firebaseapp.com",
-    projectId: "bahai-1b76d",
-    storageBucket: "bahai-1b76d.firebasestorage.app",
-    messagingSenderId: "646878644941",
-    appId: "1:646878644941:web:5b4ccc3412250337587784"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
+  import { auth, db } from '../firebase-common.js';
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { addDoc, collection, getDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
   const form = document.getElementById("rentalForm");
   const preview = document.getElementById("preview");
   const messageBox = document.getElementById("messageBox");
+  const kycWarning = document.getElementById("kycWarning");
+  const kycStatusText = document.getElementById("kycStatusText");
+  const kycMessage = document.getElementById("kycMessage");
+  const videoUrlInput = document.getElementById("videoUrl");
+  const videoPreview = document.getElementById("videoPreview");
+  const submitBtn = document.getElementById("submitBtn");
 
-  // Image preview
+  let currentUser = null;
+  let kycStatus = null;
+
+  // Character counters
+  const titleInput = document.getElementById("title");
+  const descInput = document.getElementById("description");
+  const titleCount = document.getElementById("titleCount");
+  const descCount = document.getElementById("descCount");
+
+  titleInput.addEventListener("input", () => {
+    const len = titleInput.value.length;
+    titleCount.textContent = `${len} / 10 characters minimum`;
+    if (len < 10) {
+      titleCount.classList.add("error");
+      titleCount.classList.remove("success");
+    } else {
+      titleCount.classList.remove("error");
+      titleCount.classList.add("success");
+    }
+  });
+
+  descInput.addEventListener("input", () => {
+    const len = descInput.value.length;
+    descCount.textContent = `${len} / 50 characters minimum`;
+    if (len < 50) {
+      descCount.classList.add("error");
+      descCount.classList.remove("success");
+    } else {
+      descCount.classList.remove("error");
+      descCount.classList.add("success");
+    }
+  });
+
+  // Image Preview
   document.getElementById("images").addEventListener("change", (e) => {
     preview.innerHTML = "";
-    Array.from(e.target.files).forEach(file => {
+    const files = Array.from(e.target.files);
+    
+    if (files.length === 0) {
+      preview.innerHTML = "<p style='color: red;'>⚠️ At least 1 image is required</p>";
+      return;
+    }
+    
+    files.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        showMessage("⚠️ Each image file should not exceed 5MB", "warning");
+        return;
+      }
       const img = document.createElement("img");
       img.src = URL.createObjectURL(file);
-      img.alt = "Property preview image";
       preview.appendChild(img);
     });
   });
 
-  // Authentication check
-  let currentUser = null;
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      alert("⚠️ Please log in first.");
-      window.location.href = "../login.html";
+  // Video Preview
+  videoUrlInput.addEventListener("input", () => {
+    const url = videoUrlInput.value.trim();
+    const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (match) {
+      const videoId = match[1];
+      videoPreview.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
     } else {
-      currentUser = user;
+      videoPreview.innerHTML = "";
     }
   });
 
-  // Submit property
+  // Check KYC Status on page load
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      alert("⚠ Please log in first.");
+      window.location.href = "../login.html";
+      return;
+    }
+
+    currentUser = user;
+    
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      
+      if (!userDoc.exists()) {
+        showMessage("⚠️ User profile not found.", "error");
+        return;
+      }
+
+      const userData = userDoc.data();
+      kycStatus = userData.kycStatus || "not_submitted";
+
+      // Check KYC status and show appropriate message
+      if (kycStatus === "not_submitted") {
+        kycWarning.style.display = "block";
+        kycStatusText.textContent = "Status: KYC Not Submitted";
+        kycMessage.textContent = "You must upload your valid IDs and complete KYC verification before you can post properties. This ensures trust and safety for all users.";
+        form.classList.add("disabled");
+        
+      } else if (kycStatus === "pending") {
+        kycWarning.style.display = "block";
+        kycStatusText.textContent = "Status: KYC Pending Approval";
+        kycMessage.textContent = "Your KYC documents are currently under review by our admin team. Please wait for approval before posting properties. This usually takes 1-2 business days.";
+        form.classList.add("disabled");
+        
+      } else if (kycStatus === "rejected") {
+        kycWarning.style.display = "block";
+        kycStatusText.textContent = "Status: KYC Rejected";
+        kycMessage.textContent = "Your KYC documents were rejected. Please resubmit valid and clear documents to verify your account.";
+        form.classList.add("disabled");
+        
+      } else if (kycStatus === "approved") {
+        kycWarning.style.display = "none";
+        form.classList.remove("disabled");
+      }
+      
+    } catch (error) {
+      console.error("Error checking KYC:", error);
+      showMessage("⚠️ Error checking verification status.", "error");
+    }
+  });
+
+  // Validation function
+  function validateForm() {
+    const title = document.getElementById("title").value.trim();
+    const type = document.getElementById("propertyType").value;
+    const description = document.getElementById("description").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const monthlyRent = parseFloat(document.getElementById("monthlyRent").value);
+    const files = document.getElementById("images").files;
+
+    if (title.length < 10) {
+      showMessage("❌ Property title must be at least 10 characters.", "error");
+      return false;
+    }
+
+    if (!type) {
+      showMessage("❌ Please select a property type.", "error");
+      return false;
+    }
+
+    if (description.length < 50) {
+      showMessage("❌ Description must be at least 50 characters.", "error");
+      return false;
+    }
+
+    if (!location || location.length < 10) {
+      showMessage("❌ Please provide a complete location/address (minimum 10 characters).", "error");
+      return false;
+    }
+
+    if (!monthlyRent || monthlyRent < 1000) {
+      showMessage("❌ Monthly rent must be at least ₱1,000.", "error");
+      return false;
+    }
+
+    if (files.length === 0) {
+      showMessage("❌ At least 1 property image is required.", "error");
+      return false;
+    }
+
+    return true;
+  }
+
+  // Form submission
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!currentUser) return alert("Not logged in.");
+    
+    if (!currentUser) {
+      showMessage("❌ Not logged in.", "error");
+      return;
+    }
 
-    const title = document.getElementById("title").value;
+    // Double-check KYC status
+    if (kycStatus !== "approved") {
+      showMessage("❌ KYC verification required. Please complete KYC verification before posting properties.", "error");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!validateForm()) return;
+
+    const title = document.getElementById("title").value.trim();
     const type = document.getElementById("propertyType").value;
-    const description = document.getElementById("description").value;
+    const description = document.getElementById("description").value.trim();
+    const location = document.getElementById("location").value.trim();
     const monthlyRent = parseFloat(document.getElementById("monthlyRent").value);
     const deposit = parseFloat(document.getElementById("deposit").value) || 0;
     const minStay = parseInt(document.getElementById("minStay").value);
+    const videoUrl = document.getElementById("videoUrl").value.trim();
     const files = document.getElementById("images").files;
 
     try {
-      const imageUrls = [];
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Uploading property...";
+
+      const imageBase64Array = [];
       for (const file of files) {
-        const storageRef = ref(storage, `properties/${currentUser.uid}/${file.name}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        imageUrls.push(url);
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        imageBase64Array.push(base64);
       }
 
       await addDoc(collection(db, "properties"), {
-        landlordId: currentUser.uid,
+        userId: currentUser.uid,
         title,
-        type,
+        propertyType: type,
         description,
+        location,
         monthlyRent,
         deposit,
         minStay,
-        imageUrls,
-        createdAt: new Date()
+        videoUrl,
+        imageBase64Array,
+        createdAt: serverTimestamp()
       });
 
-      messageBox.style.color = "green";
-      messageBox.textContent = "✅ Property posted successfully!";
-      setTimeout(() => window.location.href = "landlord_dashboard.html", 2000);
+      showMessage("✅ Property posted successfully!", "success");
       
+      setTimeout(() => {
+        window.location.href = "landlord_dashboard.html";
+      }, 2000);
+
       form.reset();
       preview.innerHTML = "";
+      videoPreview.innerHTML = "";
+
     } catch (err) {
       console.error(err);
-      messageBox.style.color = "red";
-      messageBox.textContent = "❌ Failed to post property.";
+      showMessage("❌ Failed to post property. Please try again.", "error");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Post Rental Property";
     }
   });
+
+  function showMessage(text, type) {
+    messageBox.textContent = text;
+    messageBox.className = `message ${type}`;
+    messageBox.style.display = "block";
+    
+    setTimeout(() => {
+      messageBox.style.display = "none";
+    }, 5000);
+  }
 
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -199,7 +534,6 @@
     window.location.href = "../login.html";
   });
 
-  // Hamburger menu
   window.toggleMenu = (el) => {
     el.classList.toggle("open");
     document.querySelector("nav").classList.toggle("active");
