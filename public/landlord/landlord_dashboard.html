@@ -8,413 +8,520 @@
 <style>
 /* ======== General Styles ======== */
 body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f4f4f4;
+font-family: Arial, sans-serif;
+margin: 0;
+background: #f4f4f4;
 }
 header {
-  background: #2c3e50;
-  padding: 10px 20px;
-  position: relative;
+background: #2c3e50;
+padding: 10px 20px;
+position: relative;
 }
 nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+display: flex;
+justify-content: space-between;
+align-items: center;
 }
 .nav-left, .nav-right {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+display: flex;
+align-items: center;
+gap: 15px;
 }
 nav a {
-  color: white;
-  text-decoration: none;
-  padding: 10px 15px;
-  display: block;
+color: white;
+text-decoration: none;
+padding: 10px 15px;
+display: block;
 }
 nav a:hover {
-  background: #34495e;
-  border-radius: 4px;
+background: #34495e;
+border-radius: 4px;
 }
 .dropdown {
-  position: relative;
+position: relative;
 }
 .dropdown-content {
-  display: none;
-  position: absolute;
-  background: white;
-  min-width: 220px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  z-index: 10;
+display: none;
+position: absolute;
+background: white;
+min-width: 220px;
+box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+z-index: 10;
 }
 .dropdown:hover > .dropdown-content {
-  display: block;
+display: block;
 }
 .dropdown-sub {
-  position: relative;
+position: relative;
 }
 .dropdown-sub-content {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 100%;
-  min-width: 220px;
-  background: white;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  z-index: 11;
+display: none;
+position: absolute;
+top: 0;
+left: 100%;
+min-width: 220px;
+background: white;
+box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+z-index: 11;
 }
 .dropdown-sub:hover > .dropdown-sub-content {
-  display: block;
+display: block;
 }
 .dropdown-content a, .dropdown-sub-content a {
-  color: black;
-  padding: 8px 12px;
-  text-decoration: none;
-  display: block;
+color: black;
+padding: 8px 12px;
+text-decoration: none;
+display: block;
 }
 .dropdown-content a:hover, .dropdown-sub-content a:hover {
-  background: #f1f1f1;
+background: #f1f1f1;
 }
+
 .hamburger {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 25px;
-  height: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-right: 10px;
+display: none;
+flex-direction: column;
+justify-content: space-between;
+width: 25px;
+height: 20px;
+background: none;
+border: none;
+cursor: pointer;
+margin-right: 10px;
 }
 .hamburger span {
-  display: block;
-  height: 3px;
-  width: 100%;
-  background: white;
-  border-radius: 2px;
-  transition: 0.3s;
+display: block;
+height: 3px;
+width: 100%;
+background: white;
+border-radius: 2px;
+transition: 0.3s;
 }
 .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
 .hamburger.open span:nth-child(2) { opacity: 0; }
 .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
 @media (max-width: 768px) {
-  nav { position: absolute; top: 60px; left: 0; width: 100%; background: #2c3e50; flex-direction: column; align-items: flex-start; padding: 10px 0; display: none; }
-  nav.active { display: flex; }
-  .nav-left, .nav-right { flex-direction: column; width: 100%; gap: 0; }
-  nav a { width: 100%; padding: 12px 20px; }
-  .hamburger { display: flex; position: absolute; right: 20px; top: 15px; }
+nav { position: absolute; top: 60px; left: 0; width: 100%; background: #2c3e50; flex-direction: column; align-items: flex-start; padding: 10px 0; display: none; }
+nav.active { display: flex; }
+.nav-left, .nav-right { flex-direction: column; width: 100%; gap: 0; }
+nav a { width: 100%; padding: 12px 20px; }
+.hamburger { display: flex; position: absolute; right: 20px; top: 15px; }
 }
 .welcome {
-  text-align: center;
-  padding: 50px;
-  background: #ecf0f1;
+text-align: center;
+padding: 50px;
+background: #ecf0f1;
 }
 .properties {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 20px;
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+gap: 20px;
+padding: 20px;
 }
 .property-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s;
+background: white;
+border-radius: 8px;
+box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+overflow: hidden;
+cursor: pointer;
+transition: transform 0.2s;
 }
 .property-card:hover {
-  transform: scale(1.03);
+transform: scale(1.03);
 }
 .property-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
+width: 100%;
+height: 200px;
+object-fit: cover;
 }
 .property-info {
-  padding: 15px;
+padding: 15px;
 }
 .message {
-  text-align: center;
-  font-weight: bold;
-  margin: 15px;
-  color: red;
+text-align: center;
+font-weight: bold;
+margin: 15px;
+color: red;
+}
+/* Map specific styles */
+.map-thumbnail {
+position: relative;
+width: 100%;
+height: 200px;
+overflow: hidden;
+}
+.map-overlay {
+position: absolute;
+bottom: 10px;
+right: 10px;
+background: rgba(255,255,255,0.9);
+padding: 5px 10px;
+border-radius: 4px;
+font-size: 12px;
+font-weight: bold;
+color: #333;
 }
 </style>
 </head>
 <body>
-
 <header>
-  <button class="hamburger" onclick="toggleMenu(this)"><span></span><span></span><span></span></button>
-  <nav>
-    <div class="nav-left">
-      <a href="landlord_dashboard.html">Home</a>
-      <div class="dropdown">
-        <a href="#">Properties <span class="arrow">▾</span></a>
-        <div class="dropdown-content">
-          <div class="dropdown-sub">
-            <a href="#">Rent <span class="arrow">▸</span></a>
-            <div class="dropdown-sub-content">
-              <a href="#">Apartments</a>
-              <a href="#">Boarding Houses</a>
-              <a href="#">Bedspaces</a>
-              <a href="#">Transient / Short-term</a>
-            </div>
-          </div>
-          <div class="dropdown-sub">
-            <a href="#">Leasing <span class="arrow">▸</span></a>
-            <div class="dropdown-sub-content">
-              <a href="#">Commercial Spaces</a>
-            </div>
-          </div>
-          <div class="dropdown-sub">
-            <a href="#">For Sale <span class="arrow">▸</span></a>
-            <div class="dropdown-sub-content">
-              <a href="#">Apartments</a>
-              <a href="#">Commercial</a>
-              <a href="#">Land / Lots</a>
-              <a href="#">Houses / Townhouses</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <a href="rent_property.html">Post Rental</a>
-    </div>
-    <div class="nav-right">
-      <a href="../profile.html">Profile</a>
-      <a href="#" id="logoutBtn">Logout</a>
-    </div>
-  </nav>
-</header>
-
-<div class="welcome">
-  <h1>Welcome to your Landlord Dashboard</h1>
-  <p>Manage all your properties and post new rentals here.</p>
+<button class="hamburger" onclick="toggleMenu(this)"><span></span><span></span><span></span></button>
+<nav>
+<div class="nav-left">
+<a href="landlord_dashboard.html">Home</a>
+<div class="dropdown">
+<a href="#">Properties <span class="arrow">▾</span></a>
+<div class="dropdown-content">
+<div class="dropdown-sub">
+<a href="#">Rent <span class="arrow">▸</span></a>
+<div class="dropdown-sub-content">
+<a href="#">Apartments</a>
+<a href="#">Boarding Houses</a>
+<a href="#">Bedspaces</a>
+<a href="#">Transient / Short-term</a>
 </div>
-
+</div>
+<div class="dropdown-sub">
+<a href="#">Leasing <span class="arrow">▸</span></a>
+<div class="dropdown-sub-content">
+<a href="#">Commercial Spaces</a>
+</div>
+</div>
+<div class="dropdown-sub">
+<a href="#">For Sale <span class="arrow">▸</span></a>
+<div class="dropdown-sub-content">
+<a href="#">Apartments</a>
+<a href="#">Commercial</a>
+<a href="#">Land / Lots</a>
+<a href="#">Houses / Townhouses</a>
+</div>
+</div>
+</div>
+</div>
+<a href="rent_property.html">Post Rental</a>
+</div>
+<div class="nav-right">
+<a href="../profile.html">Profile</a>
+<a href="#" id="logoutBtn">Logout</a>
+</div>
+</nav>
+</header>
+<div class="welcome">
+<h1>Welcome to your Landlord Dashboard</h1>
+<p>Manage all your properties and post new rentals here.</p>
+</div>
 <div id="properties" class="properties"></div>
+
+<!-- Load Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk" async defer></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-// 🔹 Firebase Config
+//🔹 Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "bahai-1b76d.firebaseapp.com",
-  projectId: "bahai-1b76d",
-  storageBucket: "bahai-1b76d.appspot.com",
-  messagingSenderId: "646878644941",
-  appId: "1:646878644941:web:5b4ccc3412250337587784"
+apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+authDomain: "bahai-1b76d.firebaseapp.com",
+projectId: "bahai-1b76d",
+storageBucket: "bahai-1b76d.appspot.com",
+messagingSenderId: "646878644941",
+appId: "1:646878644941:web:5b4ccc3412250337587784"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 const propertyContainer = document.getElementById("properties");
+
+// Replace with your Google Maps API Key
+const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
 
 // ===== Auth Check =====
 onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "../login.html";
-  } else {
-    loadApprovedProperties(user.uid);
-  }
+if (!user) {
+window.location.href = "../login.html";
+} else {
+loadProperties(user.uid);
+}
 });
 
-// ===== Load Approved Properties =====
-function loadApprovedProperties(userId) {
-  const q = query(
-    collection(db, "properties"),
-    where("userId", "==", userId),
-    where("status", "==", "approved")
-  );
+// ===== Load Properties (No Status Filter) =====
+function loadProperties(userId) {
+const q = query(
+collection(db, "properties"),
+where("userId", "==", userId)
+);
+onSnapshot(q, (snapshot) => {
+propertyContainer.innerHTML = "";
+if (snapshot.empty) {
+propertyContainer.innerHTML = "<p class='message'>No properties yet. Post your first rental!</p>";
+return;
+}
+snapshot.forEach((doc) => {
+const data = doc.data();
+// Skip properties that are still uploading
+if (data.status === "uploading") {
+return;
+}
+const propertyCard = createPropertyCard(data);
+propertyContainer.appendChild(propertyCard);
+});
 
-  onSnapshot(q, (snapshot) => {
-    propertyContainer.innerHTML = "";
-    if (snapshot.empty) {
-      propertyContainer.innerHTML = "<p class='message'>No approved properties yet. Waiting for admin approval.</p>";
-      return;
-    }
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      const imgSrc =
-        data.imageBase64Array && data.imageBase64Array.length > 0
-          ? data.imageBase64Array[0]
-          : "https://via.placeholder.com/400x250?text=No+Image";
-
-      const propertyCard = document.createElement("div");
-      propertyCard.classList.add("property-card");
-      propertyCard.innerHTML = `
-        <img src="${imgSrc}" alt="Property Image">
-        <div class="property-info">
-          <h3>${data.title || "Untitled Property"}</h3>
-          <p>${data.propertyType || "Type not set"}</p>
-          <p>₱${data.monthlyRent ? parseFloat(data.monthlyRent).toLocaleString() : "0"}</p>
-        </div>
-      `;
-
-      // 🏠 Show modal on click
-      propertyCard.addEventListener("click", () => showModal(data));
-      propertyContainer.appendChild(propertyCard);
-    });
-  });
+// Check if all properties were filtered out
+if (propertyContainer.children.length === 0) {
+propertyContainer.innerHTML = "<p class='message'>No properties yet. Post your first rental!</p>";
+}
+});
 }
 
-// ===== Modal Function =====
+// ===== Create Property Card with Map or Image =====
+function createPropertyCard(data) {
+const propertyCard = document.createElement("div");
+propertyCard.classList.add("property-card");
+
+// Determine image source (Priority: Property Image > Map > Placeholder)
+let imgSrc;
+let showMapOverlay = false;
+
+// Check for Firebase Storage URLs first
+if (data.imageUrls && data.imageUrls.length > 0) {
+imgSrc = data.imageUrls[0]; // First image from Storage
+} 
+// Fallback to base64 if exists (for backward compatibility)
+else if (data.imageBase64Array && data.imageBase64Array.length > 0) {
+imgSrc = data.imageBase64Array[0];
+} 
+// Show map if coordinates exist but no images
+else if (data.latitude && data.longitude) {
+imgSrc = `https://maps.googleapis.com/maps/api/staticmap?center=${data.latitude},${data.longitude}&zoom=15&size=400x200&markers=color:red%7C${data.latitude},${data.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+showMapOverlay = true;
+} 
+// Final fallback
+else {
+imgSrc = "https://via.placeholder.com/400x250?text=No+Image";
+}
+
+propertyCard.innerHTML = `
+<div class="map-thumbnail">
+<img src="${imgSrc}" alt="Property Image">
+${showMapOverlay ? '<div class="map-overlay">📍 View Location</div>' : ''}
+</div>
+<div class="property-info">
+<h3>${data.title || "Untitled Property"}</h3>
+<p><strong>${data.propertyType || "Type not set"}</strong></p>
+<p style="color: #666; font-size: 14px;">📍 ${data.location || "Location not specified"}</p>
+<p style="color: #2c3e50; font-size: 20px; font-weight: bold;">₱${data.monthlyRent ? parseFloat(data.monthlyRent).toLocaleString() : "0"}/month</p>
+</div>
+`;
+
+//🏠 Show modal on click
+propertyCard.addEventListener("click", () => showModal(data));
+return propertyCard;
+}
+
+// ===== Modal Function with Interactive Map =====
 function showModal(data) {
-  let modal = document.getElementById("propertyModal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "propertyModal";
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100%";
-    modal.style.height = "100%";
-    modal.style.background = "rgba(0,0,0,0.6)";
-    modal.style.display = "flex";
-    modal.style.alignItems = "center";
-    modal.style.justifyContent = "center";
-    modal.style.zIndex = "9999";
-    modal.innerHTML = `
-      <div id="modalContent" style="background:white; padding:20px; border-radius:10px; max-width:650px; width:90%; position:relative; overflow-y:auto; max-height:90vh;">
-        <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:22px;">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <p><strong>Date Posted:</strong> <span id="modalDate"></span></p>
-        <p><strong>Property Type:</strong> <span id="modalType"></span></p>
-        <p><strong>Monthly Rent:</strong> ₱<span id="modalRent"></span></p>
-        <p><strong>Deposit:</strong> ₱<span id="modalDeposit"></span></p>
-        <p><strong>Minimum Stay:</strong> <span id="modalMinStay"></span> months</p>
-        <p><strong>Description:</strong></p>
-        <p id="modalDescription"></p>
-        <div id="modalVideo" style="margin-top:15px;"></div>
-        <h3 style="margin-top:20px;">Images</h3>
-        <div id="modalImages" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;"></div>
-      </div>
-    `;
-    document.body.appendChild(modal);
+let modal = document.getElementById("propertyModal");
+if (!modal) {
+modal = document.createElement("div");
+modal.id = "propertyModal";
+modal.style.position = "fixed";
+modal.style.top = "0";
+modal.style.left = "0";
+modal.style.width = "100%";
+modal.style.height = "100%";
+modal.style.background = "rgba(0,0,0,0.6)";
+modal.style.display = "flex";
+modal.style.alignItems = "center";
+modal.style.justifyContent = "center";
+modal.style.zIndex = "9999";
+modal.innerHTML = `
+<div id="modalContent" style="background:white; padding:20px; border-radius:10px; max-width:750px; width:90%; position:relative; overflow-y:auto; max-height:90vh;">
+<span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:22px;">&times;</span>
+<h2 id="modalTitle"></h2>
+<p><strong>Date Posted:</strong> <span id="modalDate"></span></p>
+<p><strong>Property Type:</strong> <span id="modalType"></span></p>
+<p><strong>Location:</strong> <span id="modalLocation"></span></p>
+<p><strong>Monthly Rent:</strong> ₱<span id="modalRent"></span></p>
+<p><strong>Deposit:</strong> ₱<span id="modalDeposit"></span></p>
+<p><strong>Minimum Stay:</strong> <span id="modalMinStay"></span> months</p>
+<p><strong>Description:</strong></p>
+<p id="modalDescription"></p>
+<div id="modalVideo" style="margin-top:15px;"></div>
+<div id="modalMapContainer" style="margin-top:20px;"></div>
+<h3 style="margin-top:20px;">Images</h3>
+<div id="modalImages" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;"></div>
+</div>
+`;
+document.body.appendChild(modal);
 
-    // Close button
-    document.getElementById("closeModal").addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+// Close button
+document.getElementById("closeModal").addEventListener("click", () => {
+modal.style.display = "none";
+});
 
-    // Click outside to close
-    modal.addEventListener("click", (e) => {
-      const modalContent = document.getElementById("modalContent");
-      if (!modalContent.contains(e.target)) {
-        modal.style.display = "none";
-      }
-    });
-  }
-
-  // Populate details
-  document.getElementById("modalTitle").textContent = data.title || "Property Details";
-  document.getElementById("modalType").textContent = data.propertyType || "-";
-  document.getElementById("modalRent").textContent = data.monthlyRent ? parseFloat(data.monthlyRent).toLocaleString() : "0";
-  document.getElementById("modalDeposit").textContent = data.deposit ? parseFloat(data.deposit).toLocaleString() : "0";
-  document.getElementById("modalMinStay").textContent = data.minStay || "-";
-  document.getElementById("modalDescription").textContent = data.description || "No description available.";
-
-  // 📅 Date Posted
-  const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
-  const formattedDate = createdAt ? new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
-  document.getElementById("modalDate").textContent = formattedDate;
-
-  // 🎥 YouTube Video Preview
-  const videoContainer = document.getElementById("modalVideo");
-  videoContainer.innerHTML = "";
-  if (data.videoUrl) {
-    const match = data.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (match) {
-      const videoId = match[1];
-      videoContainer.innerHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-    }
-  }
-
-  // 🖼 Display Images
-  const imageContainer = document.getElementById("modalImages");
-  imageContainer.innerHTML = "";
-  if (data.imageBase64Array && data.imageBase64Array.length > 0) {
-    data.imageBase64Array.forEach((img) => {
-      const image = document.createElement("img");
-      image.src = img;
-      image.style.width = "120px";
-      image.style.height = "100px";
-      image.style.objectFit = "cover";
-      image.style.borderRadius = "6px";
-      image.style.cursor = "pointer";
-      image.addEventListener("click", (e) => {
-        e.stopPropagation(); // prevent modal from closing
-        zoomImage(img);
-      });
-      imageContainer.appendChild(image);
-    });
-  } else {
-    imageContainer.innerHTML = "<p>No images available.</p>";
-  }
-
-  modal.style.display = "flex";
+// Click outside to close
+modal.addEventListener("click", (e) => {
+const modalContent = document.getElementById("modalContent");
+if (!modalContent.contains(e.target)) {
+modal.style.display = "none";
+}
+});
 }
 
-// 🔍 Zoomed Image View
+// Populate details
+document.getElementById("modalTitle").textContent = data.title || "Property Details";
+document.getElementById("modalType").textContent = data.propertyType || "-";
+document.getElementById("modalLocation").textContent = data.location || "Location not specified";
+document.getElementById("modalRent").textContent = data.monthlyRent ? parseFloat(data.monthlyRent).toLocaleString() : "0";
+document.getElementById("modalDeposit").textContent = data.deposit ? parseFloat(data.deposit).toLocaleString() : "0";
+document.getElementById("modalMinStay").textContent = data.minStay || "-";
+document.getElementById("modalDescription").textContent = data.description || "No description available.";
+
+//📅 Date Posted
+const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
+const formattedDate = createdAt ? new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
+document.getElementById("modalDate").textContent = formattedDate;
+
+//🎥 YouTube Video Preview
+const videoContainer = document.getElementById("modalVideo");
+videoContainer.innerHTML = "";
+if (data.videoUrl) {
+const match = data.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+if (match) {
+const videoId = match[1];
+videoContainer.innerHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+}
+}
+
+// 🗺️ Interactive Google Map
+const mapContainer = document.getElementById("modalMapContainer");
+mapContainer.innerHTML = "";
+if (data.latitude && data.longitude) {
+mapContainer.innerHTML = `
+<h3 style="margin-top:20px;">📍 Property Location</h3>
+<div id="propertyMap" style="width:100%; height:400px; border-radius:8px; margin-top:10px;"></div>
+<a href="https://www.google.com/maps/dir/?api=1&destination=${data.latitude},${data.longitude}" 
+   target="_blank" 
+   style="display:inline-block; margin-top:10px; padding:10px 20px; background:#4285f4; color:white; text-decoration:none; border-radius:5px; font-weight:bold;">
+   🧭 Get Directions
+</a>
+`;
+
+// Initialize map after a short delay to ensure element is rendered
+setTimeout(() => {
+if (window.google && window.google.maps) {
+initPropertyMap(data.latitude, data.longitude, data.title);
+}
+}, 100);
+}
+
+// 🖼 Display Images (Firebase Storage URLs or Base64)
+const imageContainer = document.getElementById("modalImages");
+imageContainer.innerHTML = "";
+
+// Check for Firebase Storage URLs first
+const images = data.imageUrls || data.imageBase64Array || [];
+
+if (images.length > 0) {
+images.forEach((img) => {
+const image = document.createElement("img");
+image.src = img;
+image.style.width = "120px";
+image.style.height = "100px";
+image.style.objectFit = "cover";
+image.style.borderRadius = "6px";
+image.style.cursor = "pointer";
+image.addEventListener("click", (e) => {
+e.stopPropagation();
+zoomImage(img);
+});
+imageContainer.appendChild(image);
+});
+} else {
+imageContainer.innerHTML = "<p>No images available.</p>";
+}
+
+modal.style.display = "flex";
+}
+
+// Initialize Google Map in Modal
+function initPropertyMap(lat, lng, title) {
+const mapElement = document.getElementById("propertyMap");
+if (!mapElement) return;
+
+const map = new google.maps.Map(mapElement, {
+center: { lat: lat, lng: lng },
+zoom: 16,
+mapTypeControl: true,
+streetViewControl: true
+});
+
+const marker = new google.maps.Marker({
+position: { lat: lat, lng: lng },
+map: map,
+title: title,
+animation: google.maps.Animation.DROP
+});
+
+const infoWindow = new google.maps.InfoWindow({
+content: `<div style="padding:10px;"><strong>${title}</strong></div>`
+});
+
+marker.addListener("click", () => {
+infoWindow.open(map, marker);
+});
+}
+
+//🔍 Zoomed Image View
 function zoomImage(imgSrc) {
-  let zoomModal = document.getElementById("zoomModal");
-  if (!zoomModal) {
-    zoomModal = document.createElement("div");
-    zoomModal.id = "zoomModal";
-    zoomModal.style.position = "fixed";
-    zoomModal.style.top = "0";
-    zoomModal.style.left = "0";
-    zoomModal.style.width = "100%";
-    zoomModal.style.height = "100%";
-    zoomModal.style.background = "rgba(0,0,0,0.8)";
-    zoomModal.style.display = "flex";
-    zoomModal.style.alignItems = "center";
-    zoomModal.style.justifyContent = "center";
-    zoomModal.style.zIndex = "10000";
-    zoomModal.innerHTML = `
-      <img id="zoomedImage" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
-      <span id="closeZoom" style="position:absolute; top:20px; right:30px; color:white; font-size:30px; cursor:pointer;">&times;</span>
-    `;
-    document.body.appendChild(zoomModal);
+let zoomModal = document.getElementById("zoomModal");
+if (!zoomModal) {
+zoomModal = document.createElement("div");
+zoomModal.id = "zoomModal";
+zoomModal.style.position = "fixed";
+zoomModal.style.top = "0";
+zoomModal.style.left = "0";
+zoomModal.style.width = "100%";
+zoomModal.style.height = "100%";
+zoomModal.style.background = "rgba(0,0,0,0.8)";
+zoomModal.style.display = "flex";
+zoomModal.style.alignItems = "center";
+zoomModal.style.justifyContent = "center";
+zoomModal.style.zIndex = "10000";
+zoomModal.innerHTML = `
+<img id="zoomedImage" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
+<span id="closeZoom" style="position:absolute; top:20px; right:30px; color:white; font-size:30px; cursor:pointer;">&times;</span>
+`;
+document.body.appendChild(zoomModal);
 
-    // Close button
-    document.getElementById("closeZoom").addEventListener("click", () => {
-      zoomModal.style.display = "none";
-    });
+document.getElementById("closeZoom").addEventListener("click", () => {
+zoomModal.style.display = "none";
+});
 
-    // Click outside to close
-    zoomModal.addEventListener("click", (e) => {
-      const zoomedImg = document.getElementById("zoomedImage");
-      if (!zoomedImg.contains(e.target)) {
-        zoomModal.style.display = "none";
-      }
-    });
-  }
-
-  document.getElementById("zoomedImage").src = imgSrc;
-  zoomModal.style.display = "flex";
+zoomModal.addEventListener("click", (e) => {
+const zoomedImg = document.getElementById("zoomedImage");
+if (!zoomedImg.contains(e.target)) {
+zoomModal.style.display = "none";
+}
+});
+}
+document.getElementById("zoomedImage").src = imgSrc;
+zoomModal.style.display = "flex";
 }
 
 // ===== Logout =====
 document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "../login.html";
+await signOut(auth);
+window.location.href = "../login.html";
 });
 
 // ===== Hamburger =====
 function toggleMenu(el) {
-  el.classList.toggle("open");
-  document.querySelector("nav").classList.toggle("active");
+el.classList.toggle("open");
+document.querySelector("nav").classList.toggle("active");
 }
 window.toggleMenu = toggleMenu;
 </script>
-
 </body>
 </html>
