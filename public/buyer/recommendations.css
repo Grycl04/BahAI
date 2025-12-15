@@ -1,0 +1,441 @@
+/* Recommendations Section */
+.recommendations-section {
+    margin-bottom: 40px;
+    padding: 25px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.recommendations-section .section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#recommendedListingsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    margin-top: 1rem;
+}
+
+/* Property Card Styles */
+.property-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.property-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.property-card.recommended {
+    border: 2px solid var(--secondary);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.property-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.property-card:hover .property-image img {
+    transform: scale(1.05);
+}
+
+.recommendation-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, var(--secondary), #42a5f5);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.score-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #10b981;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    z-index: 2;
+}
+
+/* Save Button for Recommendations */
+.save-btn {
+    position: absolute !important;
+    bottom: 12px !important;
+    right: 12px !important;
+    background: var(--bg-light) !important;
+    color: var(--text-dark) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    z-index: 2 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important;
+}
+
+.save-btn:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+.save-btn.saved {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* Pulse animation when saved */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.save-btn.just-saved {
+    animation: pulse 0.5s ease;
+}
+
+.property-details {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.property-details h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.property-type {
+    display: inline-block;
+    background: var(--bg-light);
+    color: var(--secondary);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    align-self: flex-start;
+}
+
+.property-location {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.property-location::before {
+    content: "📍";
+    font-size: 12px;
+}
+
+.property-price {
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 8px 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.property-price::before {
+    content: "💰 ";
+    font-size: 16px;
+}
+
+.property-specs {
+    display: flex;
+    gap: 15px;
+    color: var(--text-light);
+    font-size: 14px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.view-details-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--secondary), #1565c0);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.view-details-btn:hover {
+    background: linear-gradient(135deg, #1565c0, var(--secondary));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.view-details-btn::before {
+    content: "👀 ";
+}
+
+/* Loading and Empty States */
+.loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.loading::before {
+    content: "";
+    display: block;
+    border: 4px solid var(--bg-light);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.no-recommendations {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+}
+
+.no-recommendations h3 {
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.no-recommendations::before {
+    content: "🔍";
+    font-size: 48px;
+    display: block;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* Animation for spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Refresh Button */
+.refresh-recommendations-btn {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow);
+}
+
+.refresh-recommendations-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.refresh-recommendations-btn::before {
+    content: "🔄";
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    #recommendedListingsContainer {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .recommendations-section {
+        padding: 20px;
+    }
+    
+    .refresh-recommendations-btn {
+        position: static;
+        margin-bottom: 20px;
+        align-self: flex-start;
+    }
+    
+    .recommendations-section .section-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .save-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #recommendedListingsContainer {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .recommendations-section {
+        padding: 15px;
+    }
+    
+    .recommendations-section .section-title {
+        font-size: 20px;
+    }
+    
+    .property-card {
+        border-radius: 10px;
+    }
+    
+    .property-details {
+        padding: 15px;
+    }
+    
+    .property-details h3 {
+        font-size: 16px;
+    }
+    
+    .property-price {
+        font-size: 18px;
+    }
+    
+    .property-image {
+        height: 180px;
+    }
+    
+    .save-btn {
+        width: 34px !important;
+        height: 34px !important;
+        bottom: 10px !important;
+        right: 10px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .recommendations-section {
+        padding: 12px;
+    }
+    
+    .property-image {
+        height: 160px;
+    }
+    
+    .property-details {
+        padding: 12px;
+    }
+    
+    .property-type {
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+    
+    .property-location {
+        font-size: 13px;
+    }
+    
+    .property-price {
+        font-size: 16px;
+    }
+    
+    .view-details-btn {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .save-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* These will apply to the save buttons in the main listings */
+.save-property-btn {
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.save-property-btn:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+.save-property-btn.just-saved {
+    animation: pulse 0.5s ease;
+}

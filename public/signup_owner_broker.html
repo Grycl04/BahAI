@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bahay - Sign Up</title>
+  <style>
+    :root { --navy: #0A1E3F; --white: #fff; }
+    body {
+      font-family: Poppins, system-ui;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--navy);
+      color: var(--white);
+    }
+    .card {
+      background: var(--white);
+      color: #0a1e3f;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    label { display: block; margin-top: 10px; font-weight: 600; }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 6px;
+    }
+    button {
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { opacity: 0.9; }
+    .muted { font-size: 0.9rem; color: #666; margin-top: 10px; }
+    #error { color: #b00020; margin-top: 10px; }
+    #passwordStrength { font-size: 0.8rem; margin-top: 5px; color: #666; }
+    .login-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .login-link a {
+      color: var(--navy);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="text-align: center;">Create Your Account</h2>
+    <p style="text-align: center; color: #666;">Enter your details to get started.</p>
+
+    <label>Full Name</label>
+    <input id="fullName" type="text" placeholder="Enter your full name" />
+
+    <label>Email</label>
+    <input id="email" type="email" placeholder="Enter your email" />
+
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Create a strong password" />
+    <div id="passwordStrength"></div>
+
+    <label>Phone Number</label>
+    <input id="phone" type="tel" placeholder="Enter your phone number" />
+
+    <label>Role</label>
+    <select id="role">
+      <option value="">Select role</option>
+      <option value="broker">Broker (Licensed Real Estate Broker)</option>
+      <option value="landlord">Landlord (Property Lessor)</option>
+    </select>
+    <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+      Note: You'll need to complete KYC verification after signup to post properties.
+    </p>
+
+    <button id="signupBtn">Sign Up</button>
+    <p id="error"></p>
+    <p class="muted">After signup, you'll be redirected to your dashboard. KYC is required to post listings.</p>
+    
+    <p class="login-link">
+      Already have an account? <a href="login.html">Login here</a>
+    </p>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase-common.js';
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+    const el = id => document.getElementById(id);
+
+    // Password validation function
+    function validatePassword(password) {
+      const minLength = 8;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+      if (password.length < minLength) return 'Password must be at least 8 characters long.';
+      if (!hasUpper) return 'Password must include at least one uppercase letter.';
+      if (!hasLower) return 'Password must include at least one lowercase letter.';
+      if (!hasNumber) return 'Password must include at least one number.';
+      if (!hasSpecial) return 'Password must include at least one special character (e.g., !@#$).';
+      return null; // Valid
+    }
+
+    // Real-time password strength feedback
+    el('password').addEventListener('input', () => {
+      const password = el('password').value;
+      const error = validatePassword(password);
+      el('passwordStrength').textContent = error ? `Weak: ${error}` : 'Strong password!';
+      el('passwordStrength').style.color = error ? '#b00020' : '#28a745';
+    });
+
+    el('signupBtn').addEventListener('click', async () => {
+      el('error').textContent = '';
+      const fullName = el('fullName').value.trim();
+      const email = el('email').value.trim();
+      const password = el('password').value;
+      const phone = el('phone').value.trim();
+      const role = el('role').value;
+
+      // Validate password
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        el('error').textContent = passwordError;
+        return;
+      }
+
+      if (!fullName || !email || !phone || !role) {
+        el('error').textContent = 'Please fill all fields, including selecting a role.';
+        return;
+      }
+
+      try {
+        el('signupBtn').disabled = true;
+        el('signupBtn').textContent = 'Creating account...';
+        
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+
+        await setDoc(doc(db, 'users', uid), {
+          fullName, email, phone, role,
+          kycStatus: "not_submitted",
+          createdAt: serverTimestamp()
+        });
+
+        // Redirect to role-specific dashboard
+        const dashboardMap = {
+          broker: 'dashboard_broker.html',
+          landlord: 'landlord/landlord_dashboard_.html'
+        };
+        window.location.href = dashboardMap[role] || 'dashboard_seller.html';
+      } catch (err) {
+        el('error').textContent = err.message || 'Sign up failed.';
+        el('signupBtn').disabled = false;
+        el('signupBtn').textContent = 'Sign Up';
+      }
+    });
+  </script>
+</body>
+</html>

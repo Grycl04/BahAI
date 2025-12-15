@@ -11,10 +11,6 @@ firebase-debug.*.log*
 .firebase/
 
 # Firebase config
-
-# Uncomment this if you'd like others to create their own Firebase project.
-# For a team working on the same Firebase project(s), it is recommended to leave
-# it commented so all members can deploy to the same project(s) in .firebaserc.
 # .firebaserc
 
 # Runtime data
@@ -32,16 +28,16 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
+# Grunt intermediate storage
 .grunt
 
-# Bower dependency directory (https://bower.io/)
+# Bower dependency directory
 bower_components
 
-# node-waf configuration
+# Node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (http://nodejs.org/api/addons.html)
+# Compiled binary addons
 build/Release
 
 # Dependency directories
@@ -67,3 +63,13 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Sensitive files
+serviceAccountKey.json
+
+# Python virtual environment
+venv/
+
+# Python cache
+*.pyc
+__pycache__/
