@@ -833,6 +833,8 @@
   <div class="topbar">
     <div class="page-header">
       <h1>Landlord Dashboard</h1>
+      <div id="welcomeMessage" style="font-size:16px; color:var(--text-dark); font-weight:500; margin-bottom:8px;"></div>
+
       <p>View all active property listings from different brokers</p>
     </div>
     <a href="rent_property.html" class="add-button">
@@ -924,7 +926,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -935,7 +937,7 @@ const firebaseConfig = {
   messagingSenderId: "646878644941",
   appId: "1:646878644941:web:5b4ccc3412250337587784"
 };
-
+const REQUIRED_ROLE = "landlord"; 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -999,7 +1001,7 @@ async function loadAllListings() {
   const container = document.getElementById('listingsContainer');
   
   try {
-    console.log('🚀 Starting to load all listings...');
+    console.log('🚀 Loading all active listings for dashboard...');
     
     const listingsQuery = query(
       collection(db, "properties"),
@@ -1017,12 +1019,17 @@ async function loadAllListings() {
       };
       allListings.push(listing);
       
+      // Collect user IDs for user data lookup
       if (listing.userId) {
         userIds.add(listing.userId);
+      } else if (listing.ownerId) {
+        userIds.add(listing.ownerId);
       }
     });
 
+    console.log(`📊 Found ${allListings.length} active listings`);
     console.log('👥 User IDs to fetch:', Array.from(userIds));
+    
     await loadAllUserData(userIds);
     
     if (allListings.length === 0) {
@@ -1035,10 +1042,15 @@ async function loadAllListings() {
     
   } catch (error) {
     console.error("❌ Error loading listings:", error);
-    displayError(error);
+    
+    // If permission denied, show specific error
+    if (error.code === 'permission-denied') {
+      displayError(new Error('Permission denied. Please contact administrator.'));
+    } else {
+      displayError(error);
+    }
   }
 }
-
 async function loadAllUserData(userIds) {
   userMap.clear();
   
@@ -1060,6 +1072,7 @@ async function loadUserData(userId) {
   try {
     console.log(`📋 Loading data for user: ${userId}`);
     
+    // First try users collection
     const userDoc = await getDoc(doc(db, "users", userId));
     
     if (userDoc.exists()) {
@@ -1081,6 +1094,7 @@ async function loadUserData(userId) {
       return;
     }
     
+    // Try brokers collection
     console.log(`🔄 User not found in 'users' collection, trying 'brokers'...`);
     const brokerDoc = await getDoc(doc(db, "brokers", userId));
     
@@ -1101,6 +1115,7 @@ async function loadUserData(userId) {
       return;
     }
     
+    // If not found anywhere
     console.log(`❌ User ${userId} not found in any collection`);
     userMap.set(userId, {
       displayName: `User ${userId.substring(0, 8)}`,
@@ -1120,7 +1135,6 @@ async function loadUserData(userId) {
     });
   }
 }
-
 function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
   
@@ -1611,14 +1625,49 @@ window.addEventListener('resize', function() {
   }
 });
 
-onAuthStateChanged(auth, (user) => {
+
+onAuthStateChanged(auth, async (user) => {
+  const loginPage = "../login.html";
+
   if (!user) {
-    window.location.href = "login.html";
-  } else {
-    console.log('👤 Logged in user UID:', user.uid);
-    loadAllListings();
+    window.location.href = loginPage;
+    return;
+  }
+
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await signOut(auth);
+      window.location.href = loginPage;
+      return;
+    }
+
+    const userData = userSnap.data();
+
+    // Check if user is landlord
+    if (userData.role !== REQUIRED_ROLE) {
+      await signOut(auth);
+      alert("Unauthorized access. You have been logged out.");
+      window.location.href = loginPage;
+      return;
+    }
+
+    console.log("👤 Authorized user:", user.uid, userData.role);
+    const welcomeEl = document.getElementById('welcomeMessage');
+    welcomeEl.textContent = `Welcome, ${userData.fullName || userData.email.split('@')[0]}`;
+
+    // ✅ Load ALL active listings (for landlord dashboard)
+    await loadAllListings();
+
+  } catch (err) {
+    console.error("Auth guard error:", err);
+    await signOut(auth);
+    window.location.href = loginPage;
   }
 });
+
 </script>
 
 </body>

@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Properties - Landlord Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        .sidebar nav ul { list-style: none; }
+        .sidebar nav ul li { margin-bottom: 15px; }
+        .sidebar nav ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar nav ul li a:hover,
+        .sidebar nav ul li a.active {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .logout-btn {
+            margin-top: 30px;
+            width: 100%;
+            padding: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .logout-btn:hover { background: #c0392b; }
+        .content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px 40px;
+        }
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 32px; color: #2c3e50; margin-bottom: 10px; }
+        .header p { color: #7f8c8d; font-size: 16px; }
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #ecf0f1;
+        }
+        .property-info { padding: 20px; }
+        .property-info h3 { font-size: 20px; color: #2c3e50; margin-bottom: 10px; }
+        .property-info .location { color: #7f8c8d; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .property-info .price { font-size: 24px; color: #27ae60; font-weight: bold; margin-bottom: 10px; }
+        .property-info .details { display: flex; gap: 15px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1; }
+        .detail-item { font-size: 14px; color: #7f8c8d; }
+        .property-actions { 
+            display: flex; 
+            gap: 10px; 
+            padding: 0 20px 20px 20px; 
+        }
+        .property-actions button {
+            flex: 1; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: bold; 
+            font-size: 14px; 
+            transition: all 0.3s;
+        }
+        .edit-btn { background: #3498db; color: white; }
+        .edit-btn:hover { background: #2980b9; }
+        .delete-btn { background: #e74c3c; color: white; }
+        .delete-btn:hover { background: #c0392b; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+        .empty-state h3 { font-size: 24px; margin-bottom: 10px; }
+        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .status-badge { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            margin-top: 8px; 
+        }
+        .status-available { background: #d4edda; color: #155724; }
+        .status-rented { background: #fff3cd; color: #856404; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 16px 16px 0 0;
+        }
+        .modal-header h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .modal-subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: 0.3s;
+        }
+        .close-modal:hover {
+            color: #e74c3c;
+        }
+        .modal-body {
+            padding: 25px;
+        }
+        .modal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .detail-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .detail-section h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .modal-description {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .modal-description h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .contact-btn {
+            background: #3498db;
+            color: white;
+        }
+        .contact-btn:hover {
+            background: #2980b9;
+        }
+        .close-btn {
+            background: #95a5a6;
+            color: white;
+        }
+        .close-btn:hover {
+            background: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 200px; }
+            .content { margin-left: 200px; padding: 20px; }
+            .properties-grid { grid-template-columns: 1fr; }
+            .modal-details { grid-template-columns: 1fr; }
+            .modal-content { max-width: 95%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>🏠 PropManager</h2>
+        <nav>
+            <ul>
+                <li><a href="landlord_dashboard.html">📊 Dashboard</a></li>
+                <li><a href="my_properties.html" class="active">🏘️ My Properties</a></li>
+                <li><a href="rent_property.html">➕ Add Property</a></li>
+                <li><a href="tenants.html">👥 Tenants</a></li>
+                <li><a href="maintenance.html">🔧 Maintenance</a></li>
+                <li><a href="payments.html">💰 Payments</a></li>
+                <li><a href="settings.html">⚙️ Settings</a></li>
+            </ul>
+        </nav>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <h1>Welcome, <span id="userName">Landlord</span></h1>
+            <p>Manage your rental properties</p>
+        </div>
+
+        <div id="propertiesContainer">
+            <div class="loading">Loading your properties...</div>
+        </div>
+    </div>
+
+    <!-- Property Details Modal -->
+    <div class="modal-overlay" id="propertyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Property Details</h2>
+                <div class="modal-subtitle">
+                    <span>📍</span>
+                    <span id="modalLocation">Loading location...</span>
+                </div>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE v8 (COMPATIBILITY VERSION) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+            authDomain: "bahai-1b76d.firebaseapp.com",
+            projectId: "bahai-1b76d",
+            storageBucket: "bahai-1b76d.firebasestorage.app",
+            messagingSenderId: "646878644941",
+            appId: "1:646878644941:web:5b4ccc3412250337587784"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const REQUIRED_ROLE = "landlord";
+        
+        // Store current properties
+        let currentProperties = [];
+
+        // -------------------- Logout Button --------------------
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                auth.signOut().then(function() {
+                    window.location.href = 'login.html';
+                }).catch(function(error) {
+                    console.error('Logout error:', error);
+                    alert('Failed to logout: ' + error.message);
+                });
+            }
+        });
+
+        // -------------------- Modal Functions --------------------
+        function showPropertyModal(propertyId) {
+            const property = currentProperties.find(p => p.id === propertyId);
+            if (!property) {
+                alert('Property not found!');
+                return;
+            }
+            
+            // Update modal content
+            document.getElementById('modalTitle').textContent = property.title || 'Untitled Property';
+            document.getElementById('modalLocation').textContent = property.location || 'Location not specified';
+            
+            // Format price
+            let priceText = '';
+            if (property.monthlyRent) {
+                priceText = `₱${property.monthlyRent.toLocaleString()}/month`;
+            } else if (property.rent) {
+                priceText = `₱${property.rent.toLocaleString()}/month`;
+            } else if (property.price) {
+                priceText = `₱${property.price.toLocaleString()}`;
+            } else {
+                priceText = 'Price not specified';
+            }
+            
+            // Format details
+            const detailsHtml = `
+                <div class="modal-details">
+                    <div class="detail-section">
+                        <h3>Property Information</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value">${property.propertyType || 'Not specified'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Bedrooms:</span>
+                            <span class="detail-value">${property.bedrooms || property.beds || 0}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Bathrooms:</span>
+                            <span class="detail-value">${property.bathrooms || property.baths || 0}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">${property.squareFootage || property.area || property.sqft || property.size || 'Not specified'} sqft</span>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Price Details</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Price:</span>
+                            <span class="detail-value" style="color: #27ae60;">${priceText}</span>
+                        </div>
+                        ${property.deposit ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Deposit:</span>
+                            <span class="detail-value">₱${property.deposit.toLocaleString()}</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">
+                                <span class="status-badge ${property.status === 'available' ? 'status-available' : 'status-rented'}">
+                                    ${property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+                                </span>
+                            </span>
+                        </div>
+                        ${property.minStay ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Minimum Stay:</span>
+                            <span class="detail-value">${property.minStay} months</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${property.description ? `
+                <div class="modal-description">
+                    <h3>Description</h3>
+                    <p>${property.description}</p>
+                </div>
+                ` : ''}
+                
+                ${property.amenities && property.amenities.length > 0 ? `
+                <div class="detail-section">
+                    <h3>Amenities</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                        ${property.amenities.map(amenity => 
+                            `<span style="background: white; padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; font-size: 14px;">
+                                ${amenity}
+                            </span>`
+                        ).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="modal-actions">
+                    <button class="modal-btn contact-btn" onclick="editProperty('${property.id}')">
+                        ✏️ Edit Property
+                    </button>
+                    <button class="modal-btn close-btn" onclick="closeModal()">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = detailsHtml;
+            
+            // Show modal
+            document.getElementById('propertyModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('propertyModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal when clicking outside or on X
+        document.getElementById('propertyModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // -------------------- Property Functions --------------------
+        function editProperty(propertyId) {
+            window.location.href = `edit_property.html?id=${propertyId}`;
+        }
+        
+        function deleteProperty(propertyId, propertyTitle) {
+            const safeTitle = propertyTitle.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+            
+            if (confirm(`Are you sure you want to delete "${safeTitle}"?\n\nThis action cannot be undone.`)) {
+                db.collection("properties").doc(propertyId).delete()
+                    .then(function() {
+                        alert('Property deleted successfully!');
+                        // Reload current user's properties
+                        const user = auth.currentUser;
+                        if (user) {
+                            loadProperties(user.uid);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error("Error deleting property:", error);
+                        alert('Failed to delete property. Error: ' + error.message);
+                    });
+            }
+        }
+
+        // -------------------- Auth Check --------------------
+        auth.onAuthStateChanged(function(user) {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+            
+            console.log("User authenticated:", user.uid);
+            
+            // Get user data
+            db.collection("users").doc(user.uid).get().then(function(userDoc) {
+                if (!userDoc.exists) {
+                    auth.signOut();
+                    window.location.href = "login.html";
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                console.log("User role:", userData.role);
+                
+                // Check if user is landlord
+                if (userData.role !== REQUIRED_ROLE) {
+                    auth.signOut();
+                    alert("Unauthorized access. You must be a landlord.");
+                    window.location.href = "login.html";
+                    return;
+                }
+                
+                // Update UI
+                document.getElementById("userName").textContent = 
+                    userData.fullName || userData.name || "Landlord";
+                
+                // Load properties
+                loadProperties(user.uid);
+                
+            }).catch(function(error) {
+                console.error("Error getting user data:", error);
+                document.getElementById('propertiesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error Loading User Data</h3>
+                        <p>${error.message}</p>
+                    </div>`;
+            });
+        });
+
+        // -------------------- Load Properties --------------------
+        function loadProperties(uid) {
+            const container = document.getElementById('propertiesContainer');
+            
+            console.log("Loading properties for user:", uid);
+            
+            // First, try to get properties with ownerId
+            db.collection("properties").where("ownerId", "==", uid).get()
+                .then(function(querySnapshot) {
+                    console.log("Found with ownerId:", querySnapshot.size);
+                    
+                    if (querySnapshot.size === 0) {
+                        // If no properties with ownerId, try userId
+                        return db.collection("properties").where("userId", "==", uid).get();
+                    }
+                    return querySnapshot;
+                })
+                .then(function(querySnapshot) {
+                    if (querySnapshot.size === 0) {
+                        // If still no properties, try user_id
+                        return db.collection("properties").where("user_id", "==", uid).get();
+                    }
+                    return querySnapshot;
+                })
+                .then(function(querySnapshot) {
+                    console.log("Total properties found:", querySnapshot.size);
+                    
+                    // Reset current properties
+                    currentProperties = [];
+                    
+                    if (querySnapshot.size === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <h3>No Properties Found</h3>
+                                <p>You haven't added any properties yet.</p>
+                                <p>Click "Add Property" in the sidebar to get started.</p>
+                            </div>`;
+                        return;
+                    }
+                    
+                    // Store properties
+                    querySnapshot.forEach(function(doc) {
+                        currentProperties.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    
+                    // Create grid
+                    const grid = document.createElement('div');
+                    grid.className = 'properties-grid';
+                    
+                    currentProperties.forEach(function(property) {
+                        grid.appendChild(createPropertyCard(property));
+                    });
+                    
+                    container.innerHTML = '';
+                    container.appendChild(grid);
+                    
+                })
+                .catch(function(error) {
+                    console.error("Error loading properties:", error);
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Error Loading Properties</h3>
+                            <p>${error.message}</p>
+                            <p>Please check your internet connection and try again.</p>
+                        </div>`;
+                });
+        }
+
+        // -------------------- Property Card --------------------
+        function createPropertyCard(property) {
+            const card = document.createElement('div');
+            card.className = 'property-card';
+            
+            // Safe title for onclick
+            const safeTitle = property.title ? 
+                property.title.replace(/'/g, "\\'").replace(/"/g, '&quot;') : 
+                'Untitled Property';
+            
+            const title = property.title || property.propertyTitle || property.name || 'Untitled Property';
+            const location = property.location || property.address || property.city || 'Location not specified';
+            let price = property.monthlyRent || property.rent || property.price || 0;
+            const isMonthly = property.monthlyRent || property.rent ? true : false;
+            
+            // Handle images
+            let image = 'https://via.placeholder.com/400x200?text=Property+Image';
+            if (property.photos && property.photos.length > 0) {
+                image = property.photos[0];
+            } else if (property.imageUrls && property.imageUrls.length > 0) {
+                image = property.imageUrls[0];
+            } else if (property.image) {
+                image = property.image;
+            } else if (property.photo) {
+                image = property.photo;
+            }
+            
+            const bedrooms = property.bedrooms || property.beds || 0;
+            const bathrooms = property.bathrooms || property.baths || 0;
+            const sqft = property.squareFootage || property.area || property.sqft || property.size || 0;
+            const status = property.status || 'available';
+            const statusClass = status === 'available' ? 'status-available' : 'status-rented';
+            const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            // Create card HTML
+            card.innerHTML = `
+                <img src="${image}" alt="${title}" class="property-image" 
+                     onerror="this.src='https://via.placeholder.com/400x200?text=Property+Image'">
+                <div class="property-info">
+                    <h3>${title}</h3>
+                    <div class="location">📍 ${location}</div>
+                    <div class="price">₱${price.toLocaleString()}${isMonthly ? '/month' : ''}</div>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    <div class="details">
+                        <span class="detail-item">🛏️ ${bedrooms} ${bedrooms === 1 ? 'Bed' : 'Beds'}</span>
+                        <span class="detail-item">🚿 ${bathrooms} ${bathrooms === 1 ? 'Bath' : 'Baths'}</span>
+                        ${sqft > 0 ? `<span class="detail-item">📏 ${sqft.toLocaleString()} sqft</span>` : ''}
+                    </div>
+                </div>
+                <div class="property-actions">
+                    <button class="edit-btn" onclick="event.stopPropagation(); editProperty('${property.id}')">
+                        ✏️ Edit
+                    </button>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteProperty('${property.id}', '${safeTitle}')">
+                        🗑️ Delete
+                    </button>
+                </div>
+            `;
+            
+            // Add click event for modal
+            card.addEventListener('click', function() {
+                showPropertyModal(property.id);
+            });
+            
+            return card;
+        }
+
+        // Make functions globally available
+        window.editProperty = editProperty;
+        window.deleteProperty = deleteProperty;
+        window.closeModal = closeModal;
+        
+        console.log("My Properties page initialized");
+    </script>
+</body>
+</html>
