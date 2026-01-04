@@ -34,16 +34,15 @@ const auth = getAuth(app);
 // ---------------------
 // Event Logging Functions
 // ---------------------
-async function logEvent(userId, propertyId, eventType, metadata = {}) {
+async function logEvent(userId, eventType, metadata = {}) {
   try {
     await addDoc(collection(db, "events"), {
       userId: userId,
-      propertyId: propertyId,
       eventType: eventType,
       metadata: metadata,
       timestamp: serverTimestamp()
     });
-    console.log(`✅ Logged ${eventType} event for property ${propertyId}`);
+    console.log(`✅ Logged ${eventType} event for user ${userId}`);
     return true;
   } catch (error) {
     console.error("❌ Failed to log event:", error);
@@ -51,20 +50,38 @@ async function logEvent(userId, propertyId, eventType, metadata = {}) {
   }
 }
 
+// Helper function to clean object (remove undefined values)
+function cleanObject(obj) {
+  const cleaned = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined && value !== null && value !== '') {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+}
+
 export async function logViewEvent(userId, propertyId) {
-  return await logEvent(userId, propertyId, 'view');
+  return await logEvent(userId, 'view', { propertyId: propertyId });
 }
 
 export async function logSaveEvent(userId, propertyId) {
-  return await logEvent(userId, propertyId, 'save');
+  return await logEvent(userId, 'save', { propertyId: propertyId });
 }
 
 export async function logContactEvent(userId, propertyId) {
-  return await logEvent(userId, propertyId, 'contact');
+  return await logEvent(userId, 'contact', { propertyId: propertyId });
 }
 
 export async function logSearchEvent(userId, filters) {
-  return await logEvent(userId, 'search', 'search', { filters });
+  // Clean the filters object to remove undefined/null/empty values
+  const cleanedFilters = cleanObject(filters);
+  
+  // Only log if there are actual filters
+  if (Object.keys(cleanedFilters).length > 0) {
+    return await logEvent(userId, 'search', { filters: cleanedFilters });
+  }
+  return true; // Return success if no filters to log
 }
 
 // ---------------------

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sidebar</title>
+    <title>Sidebar - Buyer</title>
     <style>
         :root {
             --primary: #0b2e52;
@@ -18,6 +18,8 @@
             --border: #e2e8f0;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --danger: #ef4444;
+            --success: #10b981;
         }
 
         .sidebar {
@@ -30,6 +32,8 @@
             height: 100vh;
             z-index: 100;
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .logo {
@@ -42,17 +46,22 @@
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .logo p {
             font-size: 12px;
             opacity: 0.8;
+            margin-left: 34px;
         }
 
         .sidebar ul {
             list-style: none;
             padding: 0;
             margin: 0;
+            flex: 1;
         }
 
         .sidebar li {
@@ -70,11 +79,13 @@
             border-radius: 8px;
             transition: all 0.3s ease;
             width: 100%;
+            position: relative;
         }
 
         .sidebar a:hover {
             background: rgba(255, 255, 255, 0.1);
             color: white;
+            transform: translateX(5px);
         }
 
         .sidebar a.active {
@@ -83,12 +94,96 @@
             font-weight: 600;
         }
 
+        .sidebar a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+        }
+
         .sidebar a i {
             margin-right: 12px;
             font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* User Profile Section */
+        .user-profile {
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 16px;
+        }
+
+        .user-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        /* Badge styling */
+        .sidebar-badge {
+            background: var(--danger);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: auto;
+            min-width: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         /* Logout button styling */
+        .sidebar-footer {
+            padding: 0 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            margin-top: auto;
+        }
+
         .logout-btn {
             display: flex;
             align-items: center;
@@ -99,17 +194,16 @@
             border-radius: 8px;
             transition: all 0.3s ease;
             width: 100%;
-            background: #b00020;
+            background: rgba(255, 255, 255, 0.1);
             border: none;
             cursor: pointer;
-            margin-top: 20px;
             font-family: inherit;
             font-size: 14px;
         }
 
         .logout-btn:hover {
-            background: #9a001b;
-            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
         }
 
         .logout-btn i {
@@ -117,34 +211,243 @@
             font-size: 18px;
         }
 
+        /* Mobile Menu Toggle */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .sidebar {
-                width: 240px;
+                width: 260px;
             }
         }
 
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
+                width: 280px;
             }
+            
             .sidebar.active {
                 transform: translateX(0);
+                box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
             }
+            
+            .mobile-toggle {
+                display: flex;
+            }
+        }
+
+        /* Pulse animation for liked count */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .sidebar-badge.pulse {
+            animation: pulse 0.5s ease;
+        }
+
+        /* Tooltip for AI badge */
+        .sidebar a:hover .ai-badge {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-toggle" id="mobileToggle">☰</button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
         <div class="logo">
-            <h1>BahAI</h1>
-            <p>Real Estate Platform</p>
+            <h1>
+                <span>🤖</span>
+                BahAI
+            </h1>
+            <p>Smart Real Estate Platform</p>
         </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="avatar" id="userAvatar">BU</div>
+            <div class="user-info">
+                <h3 id="userName">Buyer Name</h3>
+                <p id="userEmail">user@example.com</p>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
         <ul>
-            <li><a href="buyer_dashboard.html" class="sidebar-link"><i>🏠︎</i> Dashboard</a></li>
-            <li><a href="settings.html" class="sidebar-link"><i>⚙️</i> Settings</a></li>
-            <li><button id="logoutBtn" class="logout-btn"><i>🚪</i> Logout</button></li>
+            <li>
+                <a href="buyer_dashboard.html" class="sidebar-link" id="dashboardLink">
+                    <i>🏠</i> Dashboard
+                    <span class="ai-badge">🤖 AI</span>
+                </a>
+            </li>
+            <li>
+                <a href="liked_properties.html" class="sidebar-link" id="likedLink">
+                    <i>❤️</i> Liked Properties
+                    <span class="sidebar-badge" id="likedCountBadge">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="profile.html" class="sidebar-link" id="profileLink">
+                    <i>👤</i> Profile
+                </a>
+            </li>
+            <li>
+                <a href="settings.html" class="sidebar-link" id="settingsLink">
+                    <i>⚙️</i> Settings
+                </a>
+            </li>
         </ul>
+
+        <!-- Logout Button -->
+        <div class="sidebar-footer">
+            <button id="logoutBtn" class="logout-btn">
+                <i>🚪</i> Logout
+            </button>
+        </div>
     </div>
+
+    <script>
+        // Mobile Toggle
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside (mobile)
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const mobileToggle = document.getElementById('mobileToggle');
+            
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !mobileToggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+
+        // Highlight current page
+        function highlightCurrentPage() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const links = document.querySelectorAll('.sidebar-link');
+            
+            links.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Update user info (placeholder - you can integrate with Firebase later)
+        function updateUserInfo() {
+            // This should be replaced with actual user data
+            const user = {
+                name: 'Buyer Name',
+                email: 'user@example.com',
+                initials: 'BU'
+            };
+            
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userAvatar').textContent = user.initials;
+            
+            // Update liked count badge
+            updateLikedCount();
+        }
+
+        // Update liked properties count
+        function updateLikedCount() {
+            // Try to get count from localStorage or use default
+            const likedCount = localStorage.getItem('likedPropertiesCount') || 0;
+            const badge = document.getElementById('likedCountBadge');
+            
+            if (badge) {
+                badge.textContent = likedCount;
+                // Only show badge if there are liked properties
+                if (parseInt(likedCount) > 0) {
+                    badge.style.display = 'flex';
+                    badge.classList.add('pulse');
+                    
+                    // Remove pulse animation class after animation completes
+                    setTimeout(() => {
+                        badge.classList.remove('pulse');
+                    }, 500);
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear local storage
+                localStorage.clear();
+                
+                // Redirect to login page
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Initialize sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            highlightCurrentPage();
+            updateUserInfo();
+            
+            // Auto-close sidebar on mobile when clicking a link
+            const links = document.querySelectorAll('.sidebar-link');
+            links.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('sidebar').classList.remove('active');
+                    }
+                });
+            });
+            
+            // Simulate liked count update (replace with real Firebase data)
+            setTimeout(() => {
+                // Example: update count after 1 second
+                const randomCount = Math.floor(Math.random() * 5);
+                localStorage.setItem('likedPropertiesCount', randomCount);
+                updateLikedCount();
+            }, 1000);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Export function to update liked count from other pages
+        window.updateSidebarLikedCount = function(count) {
+            localStorage.setItem('likedPropertiesCount', count);
+            updateLikedCount();
+        };
+    </script>
 </body>
 </html>

@@ -21,6 +21,7 @@
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
       --rent-color: #10b981;
       --sale-color: #3b82f6;
+      --lease-color: #8e44ad;
     }
    
     * {
@@ -159,6 +160,10 @@
       color: #10b981;
     }
 
+    .trend-down {
+      color: #ef4444;
+    }
+
     .filters-section {
       background: var(--bg-white);
       padding: 25px;
@@ -219,10 +224,183 @@
       box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
     }
 
+    .filter-select[multiple] {
+      height: 120px;
+      padding: 10px;
+    }
+
+    /* AMENITIES STYLES - UPDATED */
+    .amenities-group {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .amenities-container {
+      background: var(--bg-white);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .amenities-container:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+    }
+
+    .amenities-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .amenity-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--bg-light);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      user-select: none;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .amenity-option:hover {
+      border-color: var(--primary-light);
+      background: rgba(11, 46, 82, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .amenity-option input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .amenity-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--text-light);
+      border-radius: 6px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .amenity-checkbox::after {
+      content: '✓';
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s ease;
+    }
+
+    .amenity-option input[type="checkbox"]:checked ~ .amenity-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .amenity-option input[type="checkbox"]:checked ~ .amenity-checkbox::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .amenity-option input[type="checkbox"]:checked ~ .amenity-label {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .amenity-option input[type="checkbox"]:checked ~ .amenity-label .amenity-icon {
+      transform: scale(1.1);
+    }
+
+    .amenity-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-dark);
+      transition: color 0.2s ease;
+    }
+
+    .amenity-icon {
+      font-size: 18px;
+      transition: transform 0.2s ease;
+    }
+
+    .amenities-counter {
+      text-align: center;
+      padding: 10px;
+      background: var(--bg-light);
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: var(--text-dark);
+      border: 1px solid var(--border);
+    }
+
+    .amenities-counter #selectedCount {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 16px;
+    }
+
+    .amenities-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .amenity-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .select-all {
+      background: var(--primary);
+      color: white;
+    }
+
+    .select-all:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .clear-all {
+      background: var(--bg-white);
+      color: var(--text-dark);
+      border: 2px solid var(--border);
+    }
+
+    .clear-all:hover {
+      background: var(--bg-light);
+      border-color: var(--text-light);
+    }
+
     .filter-actions {
       display: flex;
       gap: 12px;
       align-items: end;
+      grid-column: 1 / -1;
     }
 
     .apply-filters, .reset-filters {
@@ -319,6 +497,10 @@
       color: var(--sale-color);
     }
 
+    .price-lease {
+      color: var(--lease-color);
+    }
+
     .listing-location {
       color: var(--text-light);
       font-size: 14px;
@@ -411,6 +593,16 @@
       color: #92400e;
     }
 
+    .status-sold {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .status-inactive {
+      background: #fca5a5;
+      color: #7f1d1d;
+    }
+
     .listing-type-badge {
       position: absolute;
       top: 12px;
@@ -429,6 +621,10 @@
 
     .type-sale {
       background: var(--sale-color);
+    }
+
+    .type-lease {
+      background: var(--lease-color);
     }
 
     .listing-actions {
@@ -632,6 +828,7 @@
       color: #ef4444;
     }
 
+    /* Responsive Design */
     @media (max-width: 1024px) {
       .container {
         margin-left: 0;
@@ -716,6 +913,18 @@
         width: 100%;
       }
      
+      .amenities-grid {
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+      }
+     
+      .amenity-option {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px;
+        min-width: 140px;
+      }
+     
       .listings-grid {
         grid-template-columns: 1fr;
         gap: 15px;
@@ -771,6 +980,14 @@
      
       .filters-section {
         padding: 15px;
+      }
+     
+      .amenities-grid {
+        grid-template-columns: 1fr;
+      }
+     
+      .amenity-option {
+        min-width: 100%;
       }
      
       .listing-content {
@@ -834,8 +1051,7 @@
     <div class="page-header">
       <h1>Landlord Dashboard</h1>
       <div id="welcomeMessage" style="font-size:16px; color:var(--text-dark); font-weight:500; margin-bottom:8px;"></div>
-
-      <p>View all active property listings from different brokers</p>
+      <p>Manage and view all your property listings (Sale, Rent, and Lease)</p>
     </div>
     <a href="rent_property.html" class="add-button">
       <span>➕</span> Add New Property
@@ -849,67 +1065,251 @@
       <div class="stat-trend trend-up">↑ All properties</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="totalBrokers">0</div>
-      <div class="stat-label">Active Brokers</div>
-      <div class="stat-trend trend-up">↑ Across platform</div>
+      <div class="stat-value" id="forSaleCount">0</div>
+      <div class="stat-label">For Sale</div>
+      <div class="stat-trend trend-up">↑ Properties for sale</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="averagePrice">₱0</div>
-      <div class="stat-label">Average Price</div>
-      <div class="stat-trend trend-up">↑ Market average</div>
+      <div class="stat-value" id="forRentCount">0</div>
+      <div class="stat-label">For Rent</div>
+      <div class="stat-trend trend-up">↑ Properties for rent</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="newToday">0</div>
-      <div class="stat-label">New Today</div>
-      <div class="stat-trend trend-up">↑ Recent listings</div>
+      <div class="stat-value" id="forLeaseCount">0</div>
+      <div class="stat-label">For Lease</div>
+      <div class="stat-trend trend-up">↑ Properties for lease</div>
     </div>
   </div>
 
+  <!-- Enhanced Filters Section -->
   <div class="filters-section">
     <div class="filters-title">
       Filter Properties
       <span class="filter-count" id="filterCount">Showing all properties</span>
     </div>
     <div class="filters-grid">
+      <!-- Property Status -->
       <div class="filter-group">
-        <label class="filter-label">Property Type</label>
-        <select class="filter-select" id="filterType">
-          <option value="">All Types</option>
-          <option value="Condo">Condo</option>
-          <option value="House">House</option>
-          <option value="Lot">Lot</option>
-          <option value="Apartment">Apartment</option>
-          <option value="Villa">Villa</option>
+        <label class="filter-label">Property Status</label>
+        <select class="filter-select" id="filterStatus">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="sold">Sold/Leased</option>
+          <option value="inactive">Inactive</option>
         </select>
       </div>
+
+      <!-- Listing Type (Sale/Rent/Lease) -->
       <div class="filter-group">
         <label class="filter-label">Listing Type</label>
         <select class="filter-select" id="filterListingType">
           <option value="">All Listings</option>
-          <option value="rent">For Rent</option>
           <option value="sale">For Sale</option>
+          <option value="rent">For Rent</option>
+          <option value="lease">For Lease</option>
         </select>
       </div>
+
+      <!-- Property Category -->
+      <div class="filter-group">
+        <label class="filter-label">Property Category</label>
+        <select class="filter-select" id="filterCategory">
+          <option value="">All Categories</option>
+          <option value="residential">Residential</option>
+          <option value="commercial">Commercial</option>
+          <option value="land">Land/Lot</option>
+          <option value="industrial">Industrial/Storage</option>
+          <option value="special">Special Purpose</option>
+        </select>
+      </div>
+
+      <!-- Property Type (Dynamic based on Category) -->
+      <div class="filter-group">
+        <label class="filter-label">Property Type</label>
+        <select class="filter-select" id="filterType">
+          <option value="">All Types</option>
+          <!-- Options will be populated by JavaScript -->
+        </select>
+      </div>
+
+      <!-- Price Range -->
       <div class="filter-group">
         <label class="filter-label">Price Range</label>
-        <select class="filter-select" id="filterPrice">
-          <option value="">Any Price</option>
-          <option value="0-50000">Under ₱50K</option>
-          <option value="50000-100000">₱50K - ₱100K</option>
-          <option value="100000-500000">₱100K - ₱500K</option>
-          <option value="500000-1000000">₱500K - ₱1M</option>
-          <option value="1000000-5000000">₱1M - ₱5M</option>
-          <option value="5000000-10000000">₱5M - ₱10M</option>
-          <option value="10000000-999999999">Over ₱10M</option>
+        <div class="price-range-inputs" style="display: flex; gap: 10px;">
+          <input type="number" class="filter-input" id="priceMin" placeholder="Min ₱" style="flex: 1;" min="0">
+          <input type="number" class="filter-input" id="priceMax" placeholder="Max ₱" style="flex: 1;" min="0">
+        </div>
+      </div>
+
+      <!-- Bedrooms -->
+      <div class="filter-group">
+        <label class="filter-label">Bedrooms</label>
+        <select class="filter-select" id="filterBedrooms">
+          <option value="">Any</option>
+          <option value="studio">Studio</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5+</option>
         </select>
       </div>
+
+      <!-- Bathrooms -->
+      <div class="filter-group">
+        <label class="filter-label">Bathrooms</label>
+        <select class="filter-select" id="filterBathrooms">
+          <option value="">Any</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4+</option>
+        </select>
+      </div>
+
+      <!-- Floor Area -->
+      <div class="filter-group">
+        <label class="filter-label">Floor Area (sqm)</label>
+        <div class="area-range-inputs" style="display: flex; gap: 10px;">
+          <input type="number" class="filter-input" id="areaMin" placeholder="Min sqm" style="flex: 1;" min="0">
+          <input type="number" class="filter-input" id="areaMax" placeholder="Max sqm" style="flex: 1;" min="0">
+        </div>
+      </div>
+
+      <!-- Location -->
       <div class="filter-group">
         <label class="filter-label">Location</label>
-        <input type="text" class="filter-input" id="filterLocation" placeholder="Enter location...">
+        <input type="text" class="filter-input" id="filterLocation" placeholder="City, Province, or Address">
       </div>
+
+      <!-- Sort By -->
+      <div class="filter-group">
+        <label class="filter-label">Sort By</label>
+        <select class="filter-select" id="filterSort">
+          <option value="newest">Newest First</option>
+          <option value="price_low">Price: Low to High</option>
+          <option value="price_high">Price: High to Low</option>
+          <option value="area_large">Largest Area</option>
+          <option value="area_small">Smallest Area</option>
+        </select>
+      </div>
+
+      <!-- AMENITIES - UPDATED POSITION -->
+      <div class="amenities-group">
+        <label class="filter-label">Amenities</label>
+        <div class="amenities-container">
+          <div class="amenities-grid">
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="parking">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">🚗</span>
+                Parking
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="wifi">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">📶</span>
+                WiFi
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="ac">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">❄️</span>
+                Air Conditioning
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="furnished">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">🛋️</span>
+                Furnished
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="security">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">👮</span>
+                24/7 Security
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="pool">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">🏊</span>
+                Swimming Pool
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="gym">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">💪</span>
+                Gym
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="elevator">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">🛗</span>
+                Elevator
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="laundry">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">🧺</span>
+                Laundry
+              </span>
+            </label>
+            
+            <label class="amenity-option">
+              <input type="checkbox" name="amenities" value="kitchen">
+              <span class="amenity-checkbox"></span>
+              <span class="amenity-label">
+                <span class="amenity-icon">🍳</span>
+                Kitchen
+              </span>
+            </label>
+          </div>
+
+          <div class="amenities-counter">
+            <span id="selectedCount">0</span> amenities selected
+          </div>
+          
+          <div class="amenities-actions">
+            <button type="button" class="amenity-btn select-all" id="selectAllAmenities">
+              Select All
+            </button>
+            <button type="button" class="amenity-btn clear-all" id="clearAllAmenities">
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Actions -->
       <div class="filter-actions">
-        <button class="apply-filters" id="applyFilters">🔍 Search</button>
-        <button class="reset-filters" id="resetFilters">🔄 Reset</button>
+        <button class="apply-filters" id="applyFilters">🔍 Apply Filters</button>
+        <button class="reset-filters" id="resetFilters">🔄 Reset All</button>
       </div>
     </div>
   </div>
@@ -943,6 +1343,69 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
+// Property type mapping based on your categories
+const propertyTypesByCategory = {
+    sale: {
+        residential: [
+            { value: "house", label: "House" },
+            { value: "townhouse", label: "Townhouse" },
+            { value: "condo", label: "Condominium" },
+            { value: "apartment", label: "Apartment" }
+        ],
+        commercial: [
+            { value: "office_space", label: "Office Space" },
+            { value: "retail_space", label: "Retail Space / Shop" },
+            { value: "building", label: "Building" }
+        ],
+        land: [
+            { value: "residential_lot", label: "Residential Lot" },
+            { value: "commercial_lot", label: "Commercial Lot" },
+            { value: "agricultural_lot", label: "Agricultural Lot" }
+        ]
+    },
+    rent: {
+        residential: [
+            { value: "apartment_unit", label: "Apartment Unit" },
+            { value: "boarding_house", label: "Boarding House" },
+            { value: "condo_unit", label: "Condominium Unit" },
+            { value: "room", label: "Room / Bedspace" },
+            { value: "house", label: "House" }
+        ],
+        commercial: [
+            { value: "office_unit", label: "Office Unit" },
+            { value: "retail_space_rent", label: "Retail Space" },
+            { value: "food_stall", label: "Food Stall / Kiosk" }
+        ],
+        industrial: [
+            { value: "warehouse", label: "Warehouse" },
+            { value: "storage_unit", label: "Storage Unit" },
+            { value: "factory", label: "Factory" },
+            { value: "workshop", label: "Workshop" }
+        ]
+    },
+    lease: {
+        commercial: [
+            { value: "office_floor", label: "Office Floor" },
+            { value: "retail_space_lease", label: "Retail Space" },
+            { value: "building_lease", label: "Building Lease" },
+            { value: "commercial_unit", label: "Commercial Unit" }
+        ],
+        land: [
+            { value: "commercial_lot_lease", label: "Commercial Lot" },
+            { value: "agricultural_land", label: "Agricultural Land" },
+            { value: "development_land", label: "Development Land" },
+            { value: "vacant_lot", label: "Vacant Lot" }
+        ],
+        special: [
+            { value: "resort_property", label: "Resort Property" },
+            { value: "event_venue", label: "Event Venue" },
+            { value: "parking_area", label: "Parking Area" },
+            { value: "school_property", label: "School Property" },
+            { value: "sports_facility", label: "Sports Facility" }
+        ]
+    }
+};
+
 let allListings = [];
 let userMap = new Map();
 
@@ -957,55 +1420,430 @@ function getRoleDisplayText(role) {
   return roleMap[role] || 'Posted by';
 }
 
+// Enhanced listing type detection
 function getListingType(listing) {
+  // Check explicit listing type first
+  if (listing.listingType === 'sale' || listing.type === 'sale') {
+    return 'sale';
+  }
+  
+  if (listing.listingType === 'lease' || listing.type === 'lease') {
+    return 'lease';
+  }
+  
+  // Check for rent indicators
   if (listing.monthlyRent !== undefined && listing.monthlyRent !== null && listing.monthlyRent > 0) {
     return 'rent';
   }
+  
+  // Check for lease indicators (annual rent)
+  if (listing.annualRent !== undefined && listing.annualRent !== null && listing.annualRent > 0) {
+    return 'lease';
+  }
+  
+  // Default to sale if no type specified
   return 'sale';
 }
 
 function getDisplayPrice(listing) {
   const type = getListingType(listing);
-  if (type === 'rent') {
-    return `₱${(listing.monthlyRent || 0).toLocaleString()}/month`;
-  } else {
-    return `₱${(listing.pricing || 0).toLocaleString()}`;
+  
+  switch (type) {
+    case 'rent':
+      return `₱${(listing.monthlyRent || 0).toLocaleString()}/month`;
+    
+    case 'lease':
+      const annualRent = listing.annualRent || 0;
+      return `₱${annualRent.toLocaleString()}/year`;
+    
+    case 'sale':
+    default:
+      return `₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}`;
   }
 }
 
 function getNumericPrice(listing) {
   const type = getListingType(listing);
-  if (type === 'rent') {
-    return listing.monthlyRent || 0;
-  } else {
-    return listing.pricing || 0;
+  
+  switch (type) {
+    case 'rent':
+      return listing.monthlyRent || 0;
+    
+    case 'lease':
+      return listing.annualRent || 0;
+    
+    case 'sale':
+    default:
+      return listing.pricing || listing.salePrice || 0;
   }
 }
 
 function getPriceClass(listing) {
   const type = getListingType(listing);
-  return type === 'rent' ? 'price-rent' : 'price-sale';
+  
+  switch (type) {
+    case 'rent':
+      return 'price-rent';
+    
+    case 'lease':
+      return 'price-lease';
+    
+    case 'sale':
+    default:
+      return 'price-sale';
+  }
 }
 
 function getTypeBadgeClass(listing) {
   const type = getListingType(listing);
-  return type === 'rent' ? 'type-rent' : 'type-sale';
+  
+  switch (type) {
+    case 'rent':
+      return 'type-rent';
+    
+    case 'lease':
+      return 'type-lease';
+    
+    case 'sale':
+    default:
+      return 'type-sale';
+  }
 }
 
 function getTypeBadgeText(listing) {
   const type = getListingType(listing);
-  return type === 'rent' ? 'FOR RENT' : 'FOR SALE';
+  
+  switch (type) {
+    case 'rent':
+      return 'FOR RENT';
+    
+    case 'lease':
+      return 'FOR LEASE';
+    
+    case 'sale':
+    default:
+      return 'FOR SALE';
+  }
+}
+
+// Initialize amenities counter and buttons
+function initializeAmenities() {
+  const amenitiesCheckboxes = document.querySelectorAll('input[name="amenities"]');
+  const selectedCount = document.getElementById('selectedCount');
+  const selectAllBtn = document.getElementById('selectAllAmenities');
+  const clearAllBtn = document.getElementById('clearAllAmenities');
+  
+  // Update counter
+  function updateCounter() {
+    const checkedCount = document.querySelectorAll('input[name="amenities"]:checked').length;
+    selectedCount.textContent = checkedCount;
+  }
+  
+  // Add event listeners to checkboxes
+  amenitiesCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateCounter);
+  });
+  
+  // Select All functionality
+  selectAllBtn.addEventListener('click', function() {
+    amenitiesCheckboxes.forEach(checkbox => {
+      checkbox.checked = true;
+    });
+    updateCounter();
+  });
+  
+  // Clear All functionality
+  clearAllBtn.addEventListener('click', function() {
+    amenitiesCheckboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    updateCounter();
+  });
+  
+  // Initialize counter
+  updateCounter();
+}
+
+// Initialize filter functionality
+function initializeFilters() {
+  // Update property types when category changes
+  document.getElementById('filterCategory').addEventListener('change', updatePropertyTypeOptions);
+  document.getElementById('filterListingType').addEventListener('change', updatePropertyTypeOptions);
+  
+  // Apply filters button
+  document.getElementById('applyFilters').addEventListener('click', applyEnhancedFilters);
+  
+  // Reset filters button
+  document.getElementById('resetFilters').addEventListener('click', resetEnhancedFilters);
+  
+  // Initialize amenities functionality
+  initializeAmenities();
+  
+  // Initialize property type options
+  updatePropertyTypeOptions();
+}
+
+function updatePropertyTypeOptions() {
+  const listingType = document.getElementById('filterListingType').value;
+  const category = document.getElementById('filterCategory').value;
+  const typeSelect = document.getElementById('filterType');
+  
+  // Clear existing options
+  typeSelect.innerHTML = '<option value="">All Types</option>';
+  
+  // If no listing type or category selected, show all types
+  if (!listingType && !category) {
+    // Show all property types
+    const allTypes = new Set();
+    Object.values(propertyTypesByCategory).forEach(listingTypes => {
+      Object.values(listingTypes).forEach(types => {
+        types.forEach(type => {
+          allTypes.add(JSON.stringify({ value: type.value, label: type.label }));
+        });
+      });
+    });
+    
+    Array.from(allTypes).forEach(typeStr => {
+      const type = JSON.parse(typeStr);
+      const option = document.createElement('option');
+      option.value = type.value;
+      option.textContent = type.label;
+      typeSelect.appendChild(option);
+    });
+    return;
+  }
+  
+  // If listing type selected but no category
+  if (listingType && !category && propertyTypesByCategory[listingType]) {
+    const categories = propertyTypesByCategory[listingType] || {};
+    const allTypes = [];
+    Object.values(categories).forEach(types => {
+      allTypes.push(...types);
+    });
+    
+    allTypes.forEach(type => {
+      const option = document.createElement('option');
+      option.value = type.value;
+      option.textContent = type.label;
+      typeSelect.appendChild(option);
+    });
+    return;
+  }
+  
+  // If both listing type and category selected
+  if (listingType && category && propertyTypesByCategory[listingType]?.[category]) {
+    propertyTypesByCategory[listingType][category].forEach(type => {
+      const option = document.createElement('option');
+      option.value = type.value;
+      option.textContent = type.label;
+      typeSelect.appendChild(option);
+    });
+  }
+}
+
+function applyEnhancedFilters() {
+  const statusFilter = document.getElementById('filterStatus').value;
+  const listingTypeFilter = document.getElementById('filterListingType').value;
+  const categoryFilter = document.getElementById('filterCategory').value;
+  const typeFilter = document.getElementById('filterType').value;
+  const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
+  const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
+  const bedroomsFilter = document.getElementById('filterBedrooms').value;
+  const bathroomsFilter = document.getElementById('filterBathrooms').value;
+  const areaMin = parseFloat(document.getElementById('areaMin').value) || 0;
+  const areaMax = parseFloat(document.getElementById('areaMax').value) || Infinity;
+  const locationFilter = document.getElementById('filterLocation').value.toLowerCase().trim();
+  const sortBy = document.getElementById('filterSort').value;
+
+  // Get selected amenities from checkboxes
+  const amenitiesFilter = [];
+  document.querySelectorAll('input[name="amenities"]:checked').forEach(checkbox => {
+    amenitiesFilter.push(checkbox.value);
+  });
+
+  console.log('🔍 Applying enhanced filters:', {
+    statusFilter,
+    listingTypeFilter,
+    categoryFilter,
+    typeFilter,
+    priceRange: `${priceMin}-${priceMax}`,
+    bedroomsFilter,
+    bathroomsFilter,
+    areaRange: `${areaMin}-${areaMax}`,
+    locationFilter,
+    amenitiesFilter,
+    sortBy
+  });
+
+  let filtered = allListings.filter(listing => {
+    // Status Filter
+    if (statusFilter && listing.status !== statusFilter) {
+      return false;
+    }
+    
+    // Listing Type Filter
+    if (listingTypeFilter) {
+      const actualType = getListingType(listing);
+      if (actualType !== listingTypeFilter) {
+        return false;
+      }
+    }
+    
+    // Category Filter
+    if (categoryFilter && listing.propertyCategory !== categoryFilter) {
+      return false;
+    }
+    
+    // Property Type Filter
+    if (typeFilter && listing.propertyType !== typeFilter) {
+      return false;
+    }
+    
+    // Price Range Filter
+    const price = getNumericPrice(listing);
+    if (price < priceMin || price > priceMax) {
+      return false;
+    }
+    
+    // Bedrooms Filter
+    if (bedroomsFilter) {
+      const listingBedrooms = listing.bedrooms?.toString() || '0';
+      if (bedroomsFilter === 'studio') {
+        if (listing.propertyType !== 'studio' && listingBedrooms !== '0') {
+          return false;
+        }
+      } else if (bedroomsFilter === '5' && parseInt(listingBedrooms) < 5) {
+        return false;
+      } else if (listingBedrooms !== bedroomsFilter) {
+        return false;
+      }
+    }
+    
+    // Bathrooms Filter
+    if (bathroomsFilter) {
+      const listingBathrooms = listing.bathrooms?.toString() || '0';
+      if (bathroomsFilter === '4' && parseInt(listingBathrooms) < 4) {
+        return false;
+      } else if (listingBathrooms !== bathroomsFilter) {
+        return false;
+      }
+    }
+    
+    // Area Filter
+    const area = listing.floorArea || listing.totalArea || 0;
+    if (area < areaMin || area > areaMax) {
+      return false;
+    }
+    
+    // Location Filter
+    if (locationFilter) {
+      const listingLocation = (listing.location || '').toLowerCase();
+      const listingCity = (listing.city || '').toLowerCase();
+      const listingProvince = (listing.province || '').toLowerCase();
+      if (!listingLocation.includes(locationFilter) &&
+          !listingCity.includes(locationFilter) &&
+          !listingProvince.includes(locationFilter)) {
+        return false;
+      }
+    }
+    
+    // Amenities Filter
+    if (amenitiesFilter.length > 0 && listing.amenities) {
+      const listingAmenities = Array.isArray(listing.amenities) 
+        ? listing.amenities.map(a => a.toLowerCase())
+        : [];
+      
+      // Check if listing has all selected amenities
+      const hasAllAmenities = amenitiesFilter.every(amenity => 
+        listingAmenities.some(la => la.includes(amenity))
+      );
+      
+      if (!hasAllAmenities) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+
+  // Apply sorting
+  filtered = sortListings(filtered, sortBy);
+
+  console.log(`✅ Filtered results: ${filtered.length} of ${allListings.length}`);
+  updateFilterCount(filtered.length, allListings.length);
+
+  if (filtered.length === 0) {
+    displayNoListings();
+  } else {
+    displayListings(filtered);
+  }
+}
+
+function sortListings(listings, sortBy) {
+  return [...listings].sort((a, b) => {
+    switch (sortBy) {
+      case 'price_low':
+        return getNumericPrice(a) - getNumericPrice(b);
+      
+      case 'price_high':
+        return getNumericPrice(b) - getNumericPrice(a);
+      
+      case 'area_large':
+        return ((b.floorArea || b.totalArea || 0) - (a.floorArea || a.totalArea || 0));
+      
+      case 'area_small':
+        return ((a.floorArea || a.totalArea || 0) - (b.floorArea || b.totalArea || 0));
+      
+      case 'newest':
+      default:
+        const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt?.seconds * 1000) || new Date(0);
+        const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt?.seconds * 1000) || new Date(0);
+        return dateB - dateA;
+    }
+  });
+}
+
+function resetEnhancedFilters() {
+  // Clear all filter inputs
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterListingType').value = '';
+  document.getElementById('filterCategory').value = '';
+  document.getElementById('filterType').value = '';
+  document.getElementById('priceMin').value = '';
+  document.getElementById('priceMax').value = '';
+  document.getElementById('filterBedrooms').value = '';
+  document.getElementById('filterBathrooms').value = '';
+  document.getElementById('areaMin').value = '';
+  document.getElementById('areaMax').value = '';
+  document.getElementById('filterLocation').value = '';
+  document.getElementById('filterSort').value = 'newest';
+  
+  // Clear all amenities checkboxes
+  document.querySelectorAll('input[name="amenities"]').forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  
+  // Update amenities counter
+  document.getElementById('selectedCount').textContent = '0';
+  
+  // Reset property type options
+  updatePropertyTypeOptions();
+  
+  // Show all listings
+  updateFilterCount(allListings.length, allListings.length);
+  displayListings(allListings);
+  
+  console.log('🔄 All filters reset');
 }
 
 async function loadAllListings() {
   const container = document.getElementById('listingsContainer');
   
   try {
-    console.log('🚀 Loading all active listings for dashboard...');
+    console.log('🚀 Loading all listings for landlord dashboard...');
     
     const listingsQuery = query(
-      collection(db, "properties"),
-      where("status", "==", "active")
+      collection(db, "properties")
     );
     const querySnapshot = await getDocs(listingsQuery);
     
@@ -1027,7 +1865,7 @@ async function loadAllListings() {
       }
     });
 
-    console.log(`📊 Found ${allListings.length} active listings`);
+    console.log(`📊 Found ${allListings.length} listings total`);
     console.log('👥 User IDs to fetch:', Array.from(userIds));
     
     await loadAllUserData(userIds);
@@ -1051,6 +1889,7 @@ async function loadAllListings() {
     }
   }
 }
+
 async function loadAllUserData(userIds) {
   userMap.clear();
   
@@ -1135,6 +1974,7 @@ async function loadUserData(userId) {
     });
   }
 }
+
 function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
   
@@ -1171,7 +2011,7 @@ function displayListings(listings) {
     
     const bedrooms = listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0);
     const bathrooms = listing.bathrooms || 0;
-    const squareFootage = listing.squareFootage || 'N/A';
+    const area = listing.floorArea || listing.totalArea || 'N/A';
     
     return `
     <div class="listing-card" onclick="showListingDetails('${listing.id}')">
@@ -1198,11 +2038,11 @@ function displayListings(listings) {
             <span>🚿</span> ${bathrooms} baths
           </div>
           <div class="detail">
-            <span>📐</span> ${squareFootage}
+            <span>📐</span> ${area} sqm
           </div>
-          ${listingType === 'rent' && listing.deposit ? `
+          ${listingType === 'rent' && listing.securityDeposit ? `
             <div class="detail">
-              <span>💰</span> Deposit: ₱${listing.deposit.toLocaleString()}
+              <span>💰</span> Deposit: ₱${listing.securityDeposit.toLocaleString()}
             </div>
           ` : ''}
         </div>
@@ -1240,9 +2080,9 @@ function displayNoListings() {
   container.innerHTML = `
     <div class="empty-state">
       <div class="empty-state-icon">🏠</div>
-      <h3>No Active Properties Found</h3>
-      <p>There are currently no active property listings matching your criteria.</p>
-      <button class="add-button" onclick="resetFilters()" style="margin-top: 20px;">
+      <h3>No Properties Found</h3>
+      <p>There are currently no property listings matching your criteria.</p>
+      <button class="add-button" onclick="resetEnhancedFilters()" style="margin-top: 20px;">
         🔄 Reset Filters
       </button>
     </div>
@@ -1265,102 +2105,28 @@ function displayError(error) {
 
 function updateStats(listings) {
   const total = listings.length;
-  const uniqueUsers = new Set(listings.map(l => l.userId)).size;
   
-  const saleListings = listings.filter(l => getListingType(l) === 'sale');
-  const averagePrice = saleListings.length > 0
-    ? Math.round(saleListings.reduce((sum, l) => sum + (l.pricing || 0), 0) / saleListings.length)
-    : 0;
+  // Count by listing type
+  const forSaleCount = listings.filter(l => getListingType(l) === 'sale').length;
+  const forRentCount = listings.filter(l => getListingType(l) === 'rent').length;
+  const forLeaseCount = listings.filter(l => getListingType(l) === 'lease').length;
+  
+  // Count active listings
+  const activeListings = listings.filter(l => l.status === 'active').length;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const newToday = listings.filter(listing => {
-    if (!listing.createdAt) return false;
-    const listingDate = listing.createdAt.toDate ? listing.createdAt.toDate() : new Date(listing.createdAt.seconds * 1000);
-    return listingDate >= today;
-  }).length;
-
-  document.getElementById('totalListings').textContent = total;
-  document.getElementById('totalBrokers').textContent = uniqueUsers;
-  document.getElementById('averagePrice').textContent = `₱${averagePrice.toLocaleString()}`;
-  document.getElementById('newToday').textContent = newToday;
+  document.getElementById('totalListings').textContent = activeListings;
+  document.getElementById('forSaleCount').textContent = forSaleCount;
+  document.getElementById('forRentCount').textContent = forRentCount;
+  document.getElementById('forLeaseCount').textContent = forLeaseCount;
 }
 
 function updateFilterCount(filtered, total) {
   const countEl = document.getElementById('filterCount');
   if (filtered === total) {
-    countEl.textContent = 'Showing all properties';
+    countEl.textContent = `Showing all ${total} properties`;
   } else {
     countEl.textContent = `Showing ${filtered} of ${total} properties`;
   }
-}
-
-function applyFilters() {
-  const typeFilter = document.getElementById('filterType').value.toLowerCase();
-  const listingTypeFilter = document.getElementById('filterListingType').value;
-  const priceFilter = document.getElementById('filterPrice').value;
-  const locationFilter = document.getElementById('filterLocation').value.toLowerCase().trim();
-
-  console.log('🔍 Applying filters:', { typeFilter, listingTypeFilter, priceFilter, locationFilter });
-
-  const filtered = allListings.filter(listing => {
-    // Property Type Filter
-    if (typeFilter && listing.propertyType && listing.propertyType.toLowerCase() !== typeFilter) {
-      return false;
-    }
-   
-    // Listing Type Filter (Rent vs Sale)
-    if (listingTypeFilter) {
-      const actualType = getListingType(listing);
-      if (actualType !== listingTypeFilter) {
-        return false;
-      }
-    }
-   
-    // Price Range Filter
-    if (priceFilter) {
-      const [min, max] = priceFilter.split('-').map(Number);
-      const price = getNumericPrice(listing);
-      
-      console.log(`💰 Price check for ${listing.title}: ${price} (range: ${min}-${max})`);
-      
-      if (price < min || price > max) {
-        return false;
-      }
-    }
-   
-    // Location Filter
-    if (locationFilter) {
-      const listingLocation = (listing.location || '').toLowerCase();
-      if (!listingLocation.includes(locationFilter)) {
-        return false;
-      }
-    }
-   
-    return true;
-  });
-
-  console.log(`✅ Filtered results: ${filtered.length} of ${allListings.length}`);
-  
-  updateFilterCount(filtered.length, allListings.length);
-
-  if (filtered.length === 0) {
-    displayNoListings();
-  } else {
-    displayListings(filtered);
-  }
-}
-
-function resetFilters() {
-  document.getElementById('filterType').value = '';
-  document.getElementById('filterListingType').value = '';
-  document.getElementById('filterPrice').value = '';
-  document.getElementById('filterLocation').value = '';
-  
-  updateFilterCount(allListings.length, allListings.length);
-  displayListings(allListings);
-  
-  console.log('🔄 Filters reset');
 }
 
 window.showListingDetails = function(id) {
@@ -1403,16 +2169,35 @@ window.showListingDetails = function(id) {
         <span style="color: var(--text-light);">Monthly Rent:</span>
         <span style="font-weight: 600; color: var(--rent-color);">₱${(listing.monthlyRent || 0).toLocaleString()}</span>
       </div>
-      ${listing.deposit ? `
+      ${listing.securityDeposit ? `
       <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
         <span style="color: var(--text-light);">Security Deposit:</span>
-        <span style="font-weight: 600;">₱${listing.deposit.toLocaleString()}</span>
+        <span style="font-weight: 600;">₱${listing.securityDeposit.toLocaleString()}</span>
       </div>
       ` : ''}
-      ${listing.minStay ? `
+      ${listing.minimumStay ? `
       <div style="display: flex; justify-content: space-between; padding: 10px 0;">
         <span style="color: var(--text-light);">Minimum Stay:</span>
-        <span style="font-weight: 600;">${listing.minStay} month(s)</span>
+        <span style="font-weight: 600;">${listing.minimumStay} month(s)</span>
+      </div>
+      ` : ''}
+    `;
+  } else if (listingType === 'lease') {
+    pricingDetails = `
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+        <span style="color: var(--text-light);">Annual Rent:</span>
+        <span style="font-weight: 600; color: var(--lease-color);">₱${(listing.annualRent || 0).toLocaleString()}</span>
+      </div>
+      ${listing.securityBond ? `
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+        <span style="color: var(--text-light);">Security Bond:</span>
+        <span style="font-weight: 600;">₱${listing.securityBond.toLocaleString()}</span>
+      </div>
+      ` : ''}
+      ${listing.leaseDuration ? `
+      <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+        <span style="color: var(--text-light);">Lease Duration:</span>
+        <span style="font-weight: 600;">${listing.leaseDuration} year(s)</span>
       </div>
       ` : ''}
     `;
@@ -1420,7 +2205,7 @@ window.showListingDetails = function(id) {
     pricingDetails = `
       <div style="display: flex; justify-content: space-between; padding: 10px 0;">
         <span style="color: var(--text-light);">Sale Price:</span>
-        <span style="font-weight: 600; color: var(--sale-color);">₱${(listing.pricing || 0).toLocaleString()}</span>
+        <span style="font-weight: 600; color: var(--sale-color);">₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}</span>
       </div>
     `;
   }
@@ -1467,12 +2252,18 @@ window.showListingDetails = function(id) {
           <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
             <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
               <span style="color: var(--text-light);">Listing Type:</span>
-              <span style="font-weight: 600; color: ${listingType === 'rent' ? 'var(--rent-color)' : 'var(--sale-color)'};">${typeBadgeText}</span>
+              <span style="font-weight: 600; color: ${listingType === 'rent' ? 'var(--rent-color)' : listingType === 'lease' ? 'var(--lease-color)' : 'var(--sale-color)'};">${typeBadgeText}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
               <span style="color: var(--text-light);">Property Type:</span>
               <span style="font-weight: 600;">${listing.propertyType || 'N/A'}</span>
             </div>
+            ${listing.propertyCategory ? `
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+              <span style="color: var(--text-light);">Category:</span>
+              <span style="font-weight: 600; text-transform: capitalize;">${listing.propertyCategory}</span>
+            </div>
+            ` : ''}
             <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
               <span style="color: var(--text-light);">Bedrooms:</span>
               <span style="font-weight: 600;">${listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0)}</span>
@@ -1482,8 +2273,8 @@ window.showListingDetails = function(id) {
               <span style="font-weight: 600;">${listing.bathrooms || 0}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-              <span style="color: var(--text-light);">Square Footage:</span>
-              <span style="font-weight: 600;">${listing.squareFootage || 'N/A'}</span>
+              <span style="color: var(--text-light);">Area:</span>
+              <span style="font-weight: 600;">${listing.floorArea || listing.totalArea || 'N/A'} sqm</span>
             </div>
           </div>
           
@@ -1509,6 +2300,28 @@ window.showListingDetails = function(id) {
           <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; line-height: 1.6;">
             ${listing.description || 'No description available.'}
           </div>
+          
+          ${listing.leaseType ? `
+            <h3 style="margin: 20px 0 15px; color: var(--text-dark);">Lease Terms</h3>
+            <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Lease Type:</span>
+                <span style="font-weight: 600; text-transform: capitalize;">${listing.leaseType}</span>
+              </div>
+              ${listing.renewalOption ? `
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Renewal Option:</span>
+                <span style="font-weight: 600;">${listing.renewalOption}</span>
+              </div>
+              ` : ''}
+              ${listing.paymentTerms ? `
+              <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: var(--text-light);">Payment Terms:</span>
+                <span style="font-weight: 600;">${listing.paymentTerms}</span>
+              </div>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -1583,8 +2396,6 @@ window.closeModal = function() {
   document.body.style.overflow = 'auto';
 };
 
-document.getElementById('applyFilters').addEventListener('click', applyFilters);
-document.getElementById('resetFilters').addEventListener('click', resetFilters);
 document.getElementById('closeModal').addEventListener('click', closeModal);
 
 document.getElementById('listingModal').addEventListener('click', function(e) {
@@ -1595,6 +2406,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeModal();
 });
 
+// Mobile menu toggle
 document.getElementById('mobileMenuToggle').addEventListener('click', function() {
   const sidebar = document.querySelector('.sidebar');
   if (sidebar) {
@@ -1603,19 +2415,21 @@ document.getElementById('mobileMenuToggle').addEventListener('click', function()
   }
 });
 
+// Load sidebar
 fetch('sidebar.html')
   .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
-      if (link.getAttribute('href') === 'broker_dashboard.html') {
+      if (link.getAttribute('href') === 'landlord_dashboard.html') {
         link.classList.add('active');
       }
     });
   })
   .catch(error => console.error('Error loading sidebar:', error));
 
+// Window resize handler
 window.addEventListener('resize', function() {
   const sidebar = document.querySelector('.sidebar');
   if (window.innerWidth > 1024 && sidebar) {
@@ -1625,7 +2439,7 @@ window.addEventListener('resize', function() {
   }
 });
 
-
+// Authentication and main initialization
 onAuthStateChanged(auth, async (user) => {
   const loginPage = "../login.html";
 
@@ -1658,7 +2472,8 @@ onAuthStateChanged(auth, async (user) => {
     const welcomeEl = document.getElementById('welcomeMessage');
     welcomeEl.textContent = `Welcome, ${userData.fullName || userData.email.split('@')[0]}`;
 
-    // ✅ Load ALL active listings (for landlord dashboard)
+    // Initialize filters and load listings
+    initializeFilters();
     await loadAllListings();
 
   } catch (err) {
@@ -1667,7 +2482,6 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = loginPage;
   }
 });
-
 </script>
 
 </body>
