@@ -248,7 +248,7 @@ fetch('sidebar.html')
             }
         });
         
-        // Setup logout button
+        // Setup logout button - use a simpler approach
         setupLogoutButton();
     })
     .catch(error => {
@@ -271,6 +271,8 @@ window.addEventListener('resize', function() {
     }
 });
 
+// Simple logout function that redirects to login page
+// The actual Firebase signOut will be handled in the main script
 function setupLogoutButton() {
     const logoutBtn = document.getElementById("logoutBtn");
     if (!logoutBtn) {
@@ -283,18 +285,18 @@ function setupLogoutButton() {
     const newLogoutBtn = logoutBtn.cloneNode(true);
     logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
 
-    // Add new event listener
-    newLogoutBtn.addEventListener("click", async function(e) {
+    // Add new event listener - use a global logout function
+    newLogoutBtn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         if (confirm("Are you sure you want to log out?")) {
-            try {
-                await signOut(auth);
+            // Call the global logout function defined in the module
+            if (typeof window.performLogout === 'function') {
+                window.performLogout();
+            } else {
+                // Fallback: redirect to login page
                 window.location.href = "../login.html";
-            } catch (error) {
-                console.error("Logout error:", error);
-                alert("Error logging out. Please try again.");
             }
         }
     });
@@ -321,6 +323,17 @@ import {
     addDoc,
     deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Make signOut available globally for the logout button
+window.performLogout = async function() {
+    try {
+        await signOut(auth);
+        window.location.href = "../login.html";
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Error logging out. Please try again.");
+    }
+};
 
 // Firebase Config
 const firebaseConfig = {
@@ -1763,7 +1776,7 @@ function showSaveToast(message, isError = false) {
         animation: slideIn 0.3s ease;
     `;
     
-    document.body.appendChild(toft);
+    document.body.appendChild(toast);
     
     setTimeout(() => {
         toast.style.animation = 'slideOut 0.3s ease';

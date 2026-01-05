@@ -139,12 +139,45 @@
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 160px;
         }
 
         .user-info p {
             font-size: 12px;
             opacity: 0.7;
             margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 160px;
+        }
+
+        /* Status badge */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .status-verified {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-pending {
+            background: #fbbf24;
+            color: #000;
+        }
+
+        .status-not-verified {
+            background: #6b7280;
+            color: white;
         }
 
         /* Badge styling */
@@ -209,6 +242,12 @@
         .logout-btn i {
             margin-right: 12px;
             font-size: 18px;
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
         }
 
         /* Mobile Menu Toggle */
@@ -287,10 +326,13 @@
 
         <!-- User Profile -->
         <div class="user-profile">
-            <div class="avatar" id="userAvatar">BU</div>
+            <div class="avatar" id="userAvatar">
+                <span id="userInitials">👤</span>
+            </div>
             <div class="user-info">
-                <h3 id="userName">Buyer Name</h3>
-                <p id="userEmail">user@example.com</p>
+                <h3 id="userName">Loading...</h3>
+                <p id="userEmail">Loading...</p>
+                <div id="userStatus" class="status-badge status-not-verified">Not Verified</div>
             </div>
         </div>
 
@@ -305,7 +347,7 @@
             <li>
                 <a href="liked_properties.html" class="sidebar-link" id="likedLink">
                     <i>❤️</i> Liked Properties
-                    <span class="sidebar-badge" id="likedCountBadge">0</span>
+                    <span class="sidebar-badge" id="likedCountBadge" style="display: none;">0</span>
                 </a>
             </li>
             <li>
@@ -328,17 +370,98 @@
         </div>
     </div>
 
+    <!-- Simple Script for Sidebar Functionality -->
     <script>
-        // Mobile Toggle
-        document.getElementById('mobileToggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
+        console.log('=== Sidebar Script Loading ===');
+        
+        // Get DOM elements
+        const userNameElement = document.getElementById('userName');
+        const userEmailElement = document.getElementById('userEmail');
+        const userInitialsElement = document.getElementById('userInitials');
+        const userStatusElement = document.getElementById('userStatus');
+        const likedCountBadge = document.getElementById('likedCountBadge');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        // Function to get user initials
+        function getInitials(name) {
+            if (!name || name === 'Loading...') return '👤';
+            
+            return name
+                .split(' ')
+                .map(word => word.charAt(0))
+                .join('')
+                .toUpperCase()
+                .substring(0, 2);
+        }
+
+        // Function to update user info from main dashboard
+        function updateUserInfo(userData) {
+            console.log('Sidebar: Updating user info with:', userData);
+            
+            if (userData && userData.fullName) {
+                userNameElement.textContent = userData.fullName;
+                userEmailElement.textContent = userData.email || 'No email';
+                userInitialsElement.textContent = getInitials(userData.fullName);
+                
+                // Update KYC status
+                if (userData.kycStatus) {
+                    updateKYCStatus(userData.kycStatus);
+                }
+            }
+        }
+
+        // Function to update KYC status
+        function updateKYCStatus(kycStatus) {
+            if (!userStatusElement) return;
+            
+            switch(kycStatus) {
+                case 'approved':
+                    userStatusElement.textContent = '✅ Verified';
+                    userStatusElement.className = 'status-badge status-verified';
+                    break;
+                case 'pending':
+                    userStatusElement.textContent = '⏳ Pending';
+                    userStatusElement.className = 'status-badge status-pending';
+                    break;
+                case 'rejected':
+                    userStatusElement.textContent = '❌ Rejected';
+                    userStatusElement.className = 'status-badge status-not-verified';
+                    break;
+                default:
+                    userStatusElement.textContent = '🔒 Not Verified';
+                    userStatusElement.className = 'status-badge status-not-verified';
+                    break;
+            }
+        }
+
+        // Function to update liked count
+        function updateLikedCount(count) {
+            if (!likedCountBadge) return;
+            
+            likedCountBadge.textContent = count;
+            
+            if (count > 0) {
+                likedCountBadge.style.display = 'flex';
+                likedCountBadge.classList.add('pulse');
+                
+                // Remove pulse animation class after animation completes
+                setTimeout(() => {
+                    likedCountBadge.classList.remove('pulse');
+                }, 500);
+            } else {
+                likedCountBadge.style.display = 'none';
+            }
+        }
+
+        // Mobile toggle functionality
+        mobileToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
         });
 
         // Close sidebar when clicking outside (mobile)
         document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('sidebar');
-            const mobileToggle = document.getElementById('mobileToggle');
-            
             if (window.innerWidth <= 768) {
                 if (!sidebar.contains(event.target) && !mobileToggle.contains(event.target)) {
                     sidebar.classList.remove('active');
@@ -360,94 +483,57 @@
             });
         }
 
-        // Update user info (placeholder - you can integrate with Firebase later)
-        function updateUserInfo() {
-            // This should be replaced with actual user data
-            const user = {
-                name: 'Buyer Name',
-                email: 'user@example.com',
-                initials: 'BU'
-            };
-            
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userEmail').textContent = user.email;
-            document.getElementById('userAvatar').textContent = user.initials;
-            
-            // Update liked count badge
-            updateLikedCount();
-        }
-
-        // Update liked properties count
-        function updateLikedCount() {
-            // Try to get count from localStorage or use default
-            const likedCount = localStorage.getItem('likedPropertiesCount') || 0;
-            const badge = document.getElementById('likedCountBadge');
-            
-            if (badge) {
-                badge.textContent = likedCount;
-                // Only show badge if there are liked properties
-                if (parseInt(likedCount) > 0) {
-                    badge.style.display = 'flex';
-                    badge.classList.add('pulse');
-                    
-                    // Remove pulse animation class after animation completes
-                    setTimeout(() => {
-                        badge.classList.remove('pulse');
-                    }, 500);
-                } else {
-                    badge.style.display = 'none';
+        // Auto-close sidebar on mobile when clicking a link
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
                 }
-            }
-        }
-
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            if (confirm('Are you sure you want to logout?')) {
-                // Clear local storage
-                localStorage.clear();
-                
-                // Redirect to login page
-                window.location.href = 'login.html';
-            }
-        });
-
-        // Initialize sidebar
-        document.addEventListener('DOMContentLoaded', function() {
-            highlightCurrentPage();
-            updateUserInfo();
-            
-            // Auto-close sidebar on mobile when clicking a link
-            const links = document.querySelectorAll('.sidebar-link');
-            links.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
-                        document.getElementById('sidebar').classList.remove('active');
-                    }
-                });
             });
-            
-            // Simulate liked count update (replace with real Firebase data)
-            setTimeout(() => {
-                // Example: update count after 1 second
-                const randomCount = Math.floor(Math.random() * 5);
-                localStorage.setItem('likedPropertiesCount', randomCount);
-                updateLikedCount();
-            }, 1000);
         });
 
         // Handle window resize
         window.addEventListener('resize', function() {
-            const sidebar = document.getElementById('sidebar');
             if (window.innerWidth > 768) {
                 sidebar.classList.remove('active');
             }
         });
 
-        // Export function to update liked count from other pages
-        window.updateSidebarLikedCount = function(count) {
-            localStorage.setItem('likedPropertiesCount', count);
-            updateLikedCount();
+        // Logout functionality - will be handled by main dashboard
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // The main dashboard will handle the actual logout
+            if (window.firebaseAuth && window.firebaseSignOut) {
+                // Trigger logout from main page
+                const logoutEvent = new CustomEvent('sidebarLogoutRequest');
+                window.parent.document.dispatchEvent(logoutEvent);
+            } else {
+                alert('Please logout from the main page.');
+            }
+        });
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Sidebar DOM fully loaded');
+            highlightCurrentPage();
+            
+            // Try to get user data from parent window
+            setTimeout(() => {
+                if (window.parent && window.parent.currentUserData) {
+                    updateUserInfo(window.parent.currentUserData);
+                }
+            }, 1000);
+        });
+
+        // Export functions to be called from main dashboard
+        window.sidebarFunctions = {
+            updateUserInfo: updateUserInfo,
+            updateLikedCount: updateLikedCount,
+            updateKYCStatus: updateKYCStatus,
+            getInitials: getInitials
         };
+
+        console.log('=== Sidebar Script Loaded ===');
     </script>
 </body>
 </html>

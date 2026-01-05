@@ -1767,51 +1767,189 @@
   }
 
   // ===== KYC CHECK =====
-  async function checkKYCStatus() {
-    try {
-      const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
-      
-      if (!userDoc.exists) {
-        showMessage('User profile not found', 'error');
-        return;
-      }
-      
-      const userData = userDoc.data();
-      kycStatus = userData.kycStatus || 'not_submitted';
-      
-      const warning = document.getElementById('kycWarning');
-      const statusText = document.getElementById('kycStatusText');
-      const message = document.getElementById('kycMessage');
-      
-      switch(kycStatus) {
-        case 'not_submitted':
-          warning.style.display = 'block';
-          statusText.textContent = 'Status: KYC Not Submitted';
-          message.textContent = 'You must complete KYC verification before posting properties.';
-          break;
-          
-        case 'pending':
-          warning.style.display = 'block';
-          statusText.textContent = 'Status: KYC Pending Approval';
-          message.textContent = 'Your KYC is under review. Please wait for approval.';
-          break;
-          
-        case 'rejected':
-          warning.style.display = 'block';
-          statusText.textContent = 'Status: KYC Rejected';
-          message.textContent = 'Your KYC was rejected. Please resubmit valid documents.';
-          break;
-          
-        case 'approved':
-          warning.style.display = 'none';
-          break;
-      }
-      
-    } catch (error) {
-      console.error('KYC check error:', error);
-      showMessage('Error checking verification status', 'error');
+ async function checkKYCStatus() {
+  try {
+    const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
+    
+    if (!userDoc.exists) {
+      showMessage('User profile not found', 'error');
+      blurForms(); // Blur forms if no user data
+      return;
+    }
+    
+    const userData = userDoc.data();
+    kycStatus = userData.kycStatus || 'not_submitted';
+    
+    const warning = document.getElementById('kycWarning');
+    const statusText = document.getElementById('kycStatusText');
+    const message = document.getElementById('kycMessage');
+    
+    switch(kycStatus) {
+      case 'not_submitted':
+        warning.style.display = 'block';
+        statusText.textContent = 'Status: KYC Not Submitted';
+        message.textContent = 'You must complete KYC verification before posting properties.';
+        blurForms(); // Blur forms
+        break;
+        
+      case 'pending':
+        warning.style.display = 'block';
+        statusText.textContent = 'Status: KYC Pending Approval';
+        message.textContent = 'Your KYC is under review. Please wait for approval.';
+        blurForms(); // Blur forms
+        break;
+        
+      case 'rejected':
+        warning.style.display = 'block';
+        statusText.textContent = 'Status: KYC Rejected';
+        message.textContent = 'Your KYC was rejected. Please resubmit valid documents.';
+        blurForms(); // Blur forms
+        break;
+        
+      case 'approved':
+        warning.style.display = 'none';
+        unblurForms(); // Enable forms
+        break;
+        
+      default:
+        warning.style.display = 'block';
+        statusText.textContent = 'Status: KYC Verification Required';
+        message.textContent = 'Please complete KYC verification to post properties.';
+        blurForms(); // Blur forms
+        break;
+    }
+    
+  } catch (error) {
+    console.error('KYC check error:', error);
+    showMessage('Error checking verification status', 'error');
+    blurForms(); // Blur forms on error
+  }
+}
+function blurForms() {
+  // Blur both rent and lease forms
+  const rentForm = document.getElementById('rentForm');
+  const leaseForm = document.getElementById('leaseForm');
+  const typeCards = document.querySelectorAll('.type-card');
+  const submitButtons = document.querySelectorAll('.btn-primary, .btn-lease');
+  
+  // Add blur overlay to forms
+  if (rentForm) {
+    rentForm.style.position = 'relative';
+    if (!rentForm.querySelector('.blur-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'blur-overlay';
+      overlay.style.position = 'absolute';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+      overlay.style.backdropFilter = 'blur(5px)';
+      overlay.style.zIndex = '100';
+      overlay.style.borderRadius = '20px';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.pointerEvents = 'none';
+      overlay.innerHTML = `
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); pointer-events: auto;">
+          <h3 style="color: #e74c3c; margin-top: 0;">🔒 KYC Verification Required</h3>
+          <p>You need to complete KYC verification to post properties.</p>
+          <a href="../kyc.html" style="display: inline-block; background: #3498db; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+            Go to KYC Verification
+          </a>
+        </div>
+      `;
+      rentForm.appendChild(overlay);
     }
   }
+  
+  if (leaseForm) {
+    leaseForm.style.position = 'relative';
+    if (!leaseForm.querySelector('.blur-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'blur-overlay';
+      overlay.style.position = 'absolute';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+      overlay.style.backdropFilter = 'blur(5px)';
+      overlay.style.zIndex = '100';
+      overlay.style.borderRadius = '20px';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.pointerEvents = 'none';
+      overlay.innerHTML = `
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); pointer-events: auto;">
+          <h3 style="color: #e74c3c; margin-top: 0;">🔒 KYC Verification Required</h3>
+          <p>You need to complete KYC verification to post properties.</p>
+          <a href="../kyc.html" style="display: inline-block; background: #3498db; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+            Go to KYC Verification
+          </a>
+        </div>
+      `;
+      leaseForm.appendChild(overlay);
+    }
+  }
+  
+  // Disable all form inputs
+  const allInputs = document.querySelectorAll('input, select, textarea, button');
+  allInputs.forEach(input => {
+    if (!input.classList.contains('kyc-bypass')) { // Don't disable KYC links
+      input.disabled = true;
+      input.style.opacity = '0.6';
+      input.style.cursor = 'not-allowed';
+    }
+  });
+  
+  // Disable type selection cards
+  typeCards.forEach(card => {
+    card.style.opacity = '0.6';
+    card.style.cursor = 'not-allowed';
+    card.style.pointerEvents = 'none';
+  });
+  
+  // Disable submit buttons
+  submitButtons.forEach(button => {
+    button.disabled = true;
+    button.style.opacity = '0.6';
+    button.style.cursor = 'not-allowed';
+  });
+}
+
+function unblurForms() {
+  // Remove blur overlays
+  const overlays = document.querySelectorAll('.blur-overlay');
+  overlays.forEach(overlay => overlay.remove());
+  
+  // Enable all form inputs
+  const allInputs = document.querySelectorAll('input, select, textarea, button');
+  allInputs.forEach(input => {
+    input.disabled = false;
+    input.style.opacity = '1';
+    input.style.cursor = '';
+  });
+  
+  // Enable type selection cards
+  const typeCards = document.querySelectorAll('.type-card');
+  typeCards.forEach(card => {
+    card.style.opacity = '1';
+    card.style.cursor = 'pointer';
+    card.style.pointerEvents = 'auto';
+  });
+  
+  // Enable submit buttons
+  const submitButtons = document.querySelectorAll('.btn-primary, .btn-lease');
+  submitButtons.forEach(button => {
+    button.disabled = false;
+    button.style.opacity = '1';
+    button.style.cursor = 'pointer';
+  });
+}
+
 
   // ===== RENT FORM SUBMISSION =====
   async function handleRentSubmit(event) {
