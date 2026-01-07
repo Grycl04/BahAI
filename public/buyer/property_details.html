@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Property Details - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle">≡</button>
+
+
+<!-- Include Sidebar -->
+<div id="sidebar-container"></div>
+
+
+<!-- Main -->
+<div class="container">
+<!-- Back Button -->
+<div style="margin-bottom: 30px;">
+    <a href="buyer_dashboard.html" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+</div>
+
+
+<!-- Property Details Container -->
+<div id="propertyDetailsContainer">
+    <!-- Property details will be loaded here -->
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading property details...</p>
+    </div>
+</div>
+</div>
+
+
+<!-- Sidebar Loader -->
+<script>
+// Mobile menu functionality
+document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
+});
+
+
+// Close sidebar when clicking on a link (mobile)
+document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 1024) {
+        if (e.target.closest('.sidebar-link')) {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('active');
+            }
+        }
+    }
+});
+
+
+// Load sidebar
+fetch('sidebar.html')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to load sidebar: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(html => {
+        document.getElementById('sidebar-container').innerHTML = html;
+       
+        // Highlight active link
+        const links = document.querySelectorAll('.sidebar-link');
+        links.forEach(link => {
+            if (link.getAttribute('href') === 'buyer_dashboard.html') {
+                link.classList.add('active');
+            }
+        });
+       
+        // Setup logout button - use a simpler approach
+        setupLogoutButton();
+    })
+    .catch(error => {
+        console.error('Error loading sidebar:', error);
+        document.getElementById('sidebar-container').innerHTML =
+            '<div class="sidebar" style="padding: 20px; background: #f8f9fa; color: #dc3545;">' +
+            '<p>Unable to load navigation. Please refresh the page.</p>' +
+            '</div>';
+    });
+
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    const sidebar = document.querySelector('.sidebar');
+    if (window.innerWidth > 1024 && sidebar) {
+        sidebar.classList.remove('active');
+    }
+});
+
+
+// Simple logout function that redirects to login page
+// The actual Firebase signOut will be handled in the main script
+function setupLogoutButton() {
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (!logoutBtn) {
+        console.warn("Logout button not found, retrying...");
+        setTimeout(setupLogoutButton, 100);
+        return;
+    }
+
+
+    // Remove existing event listeners
+    const newLogoutBtn = logoutBtn.cloneNode(true);
+    logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+
+
+    // Add new event listener - use a global logout function
+    newLogoutBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+
+        if (confirm("Are you sure you want to log out?")) {
+            // Call the global logout function defined in the module
+            if (typeof window.performLogout === 'function') {
+                window.performLogout();
+            } else {
+                // Fallback: redirect to login page
+                window.location.href = "../login.html";
+            }
+        }
+    });
+
+
+    console.log('Logout button initialized successfully');
+}
+</script>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDocs,
+    getDoc,
+    doc,
+    addDoc,
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+
+// Make signOut available globally for the logout button
+window.performLogout = async function() {
+    try {
+        await signOut(auth);
+        window.location.href = "../login.html";
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Error logging out. Please try again.");
+    }
+};
+
+
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+    authDomain: "bahai-1b76d.firebaseapp.com",
+    projectId: "bahai-1b76d",
+    storageBucket: "bahai-1b76d.firebasestorage.app",
+    messagingSenderId: "646878644941",
+    appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
+// Google Maps API Key
+const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+
+
+// Get property ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const propertyId = urlParams.get('id');
+
+
+// --- HELPER FUNCTIONS ---
+
+
+function getRoleDisplayText(role) {
+    const roleMap = {
+        'landlord': 'Property Owner',
+        'seller': 'Property Seller',
+        'broker': 'Licensed Broker',
+        'agent': 'Property Agent',
+        'admin': 'Administrator'
+    };
+    return roleMap[role] || 'Posted by';
+}
+
+
+function getListingType(listing) {
+    if (listing.listingType === 'lease' || listing.type === 'lease') {
+        return 'lease';
+    }
+
+
+    if (listing.listingType === 'rent' || listing.type === 'rent') {
+        return 'rent';
+    }
+
+
+    if (listing.listingType === 'sale' || listing.type === 'sale') {
+        return 'sale';
+    }
+
+
+    if (listing.monthlyRent !== undefined && listing.monthlyRent !== null && listing.monthlyRent > 0) {
+        return 'rent';
+    }
+
+
+    if (listing.annualRent !== undefined && listing.annualRent !== null && listing.annualRent > 0) {
+        return 'lease';
+    }
+
+
+    if ((listing.pricing !== undefined && listing.pricing !== null && listing.pricing > 0) ||
+        (listing.salePrice !== undefined && listing.salePrice !== null && listing.salePrice > 0)) {
+        return 'sale';
+    }
+
+
+    return 'sale';
+}
+
+
+function getDisplayPrice(listing) {
+    const type = getListingType(listing);
+
+
+    switch (type) {
+        case 'rent':
+            return `₱${(listing.monthlyRent || 0).toLocaleString()}/month`;
+        case 'lease':
+            const annualRent = listing.annualRent || 0;
+            return `₱${annualRent.toLocaleString()}/year`;
+        case 'sale':
+        default:
+            return `₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}`;
+    }
+}
+
+
+function getTypeBadgeText(listing) {
+    const type = getListingType(listing);
+
+
+    switch (type) {
+        case 'rent':
+            return 'FOR RENT';
+        case 'lease':
+            return 'FOR LEASE';
+        case 'sale':
+        default:
+            return 'FOR SALE';
+    }
+}
+
+
+// --- GOOGLE MAPS FUNCTIONS ---
+
+
+async function loadGoogleMapsAPI() {
+    return new Promise((resolve, reject) => {
+        // Check if already loaded
+        if (window.google && window.google.maps) {
+            resolve();
+            return;
+        }
+
+
+        // Load the API
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+            if (window.google && window.google.maps) {
+                resolve();
+            } else {
+                reject(new Error("Google Maps API failed to initialize"));
+            }
+        };
+        script.onerror = () => reject(new Error("Failed to load Google Maps script"));
+        document.head.appendChild(script);
+    });
+}
+
+
+function initPropertyMap(lat, lng, title) {
+    const mapElement = document.getElementById("propertyMap");
+    if (!mapElement) {
+        console.error("Map element not found");
+        return;
+    }
+
+
+    try {
+        // Parse coordinates
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+       
+        if (isNaN(latitude) || isNaN(longitude)) {
+            console.error("Invalid coordinates:", lat, lng);
+            showMapPlaceholder(lat, lng);
+            return;
+        }
+
+
+        // Initialize map
+        const map = new google.maps.Map(mapElement, {
+            center: { lat: latitude, lng: longitude },
+            zoom: 16,
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true
+        });
+
+
+        // Add marker
+        new google.maps.Marker({
+            position: { lat: latitude, lng: longitude },
+            map: map,
+            title: title || "Property Location",
+            animation: google.maps.Animation.DROP
+        });
+    } catch (error) {
+        console.error("Error initializing map:", error);
+        showMapPlaceholder(lat, lng);
+    }
+}
+
+
+function showMapPlaceholder(lat, lng) {
+    const mapElement = document.getElementById("propertyMap");
+    if (!mapElement) return;
+   
+    mapElement.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; background: var(--bg-light); border-radius: 12px;">
+            <i class="fas fa-map-marked-alt" style="font-size: 48px; color: var(--text-light); margin-bottom: 15px;"></i>
+            <p style="color: var(--text-light); margin-bottom: 10px;">Map loading...</p>
+            <a href="https://www.google.com/maps?q=${lat},${lng}"
+               target="_blank"
+               style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--primary); color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
+                <i class="fas fa-external-link-alt"></i> Open in Google Maps
+            </a>
+            <a href="https://maps.google.com/maps/dir/?api=1&destination=${lat},${lng}"
+               target="_blank"
+               style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--secondary); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; margin-top: 8px;">
+                <i class="fas fa-directions"></i> Get Directions
+            </a>
+        </div>
+    `;
+}
+
+
+// --- PROPERTY DETAILS FUNCTIONS ---
+
+
+async function loadPropertyDetails() {
+    if (!propertyId) {
+        displayError("No property ID provided");
+        return;
+    }
+
+
+    try {
+        // Load property data
+        const propertyDoc = await getDoc(doc(db, "properties", propertyId));
+       
+        if (!propertyDoc.exists()) {
+            displayError("Property not found");
+            return;
+        }
+
+
+        const listing = {
+            id: propertyDoc.id,
+            ...propertyDoc.data()
+        };
+
+
+        // Load user data
+        let userInfo = {
+            displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
+            email: 'Email not available',
+            phone: 'Phone not available',
+            role: 'user'
+        };
+
+
+        if (listing.userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", listing.userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    userInfo.displayName = userData.fullName ||
+                                        userData.email?.split('@')[0] ||
+                                        `User ${listing.userId.substring(0, 8)}`;
+                    userInfo.email = userData.email || 'Email not available';
+                    userInfo.phone = userData.phone || 'Phone not available';
+                    userInfo.role = userData.role || 'user';
+                } else {
+                    const brokerDoc = await getDoc(doc(db, "brokers", listing.userId));
+                    if (brokerDoc.exists()) {
+                        const brokerData = brokerDoc.data();
+                        userInfo.displayName = brokerData.fullName || `Broker ${listing.userId.substring(0, 8)}`;
+                        userInfo.email = brokerData.email || 'Email not available';
+                        userInfo.phone = brokerData.phone || 'Phone not available';
+                        userInfo.role = 'broker';
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
+        }
+
+
+        // Display property details
+        displayPropertyDetails(listing, userInfo);
+
+
+    } catch (error) {
+        console.error("Error loading property details:", error);
+        displayError("Error loading property details");
+    }
+}
+
+
+function displayPropertyDetails(listing, userInfo) {
+    const container = document.getElementById('propertyDetailsContainer');
+   
+    // Get listing details
+    const listingType = getListingType(listing);
+    const displayPrice = getDisplayPrice(listing);
+    const typeBadgeText = getTypeBadgeText(listing);
+   
+    // Get status color
+    let statusColor = 'var(--sale-color)';
+    if (listingType === 'rent') statusColor = 'var(--rent-color)';
+    if (listingType === 'lease') statusColor = 'var(--lease-color)';
+   
+    // Get all images
+    const images = listing.photos || listing.imageUrls || [];
+    const mainImage = images.length > 0 ? images[0] :
+        'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image+Available';
+   
+    // Pricing details based on listing type
+    let pricingDetails = '';
+    if (listingType === 'rent') {
+        pricingDetails = `
+            <div class="property-detail-item">
+                <span class="detail-label">Monthly Rent:</span>
+                <span class="detail-value" style="color: var(--rent-color); font-weight: 600;">
+                    ₱${(listing.monthlyRent || 0).toLocaleString()}
+                </span>
+            </div>
+            ${listing.securityDeposit ? `
+            <div class="property-detail-item">
+                <span class="detail-label">Security Deposit:</span>
+                <span class="detail-value">₱${listing.securityDeposit.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${listing.minimumStay ? `
+            <div class="property-detail-item">
+                <span class="detail-label">Minimum Stay:</span>
+                <span class="detail-value">${listing.minimumStay} month(s)</span>
+            </div>
+            ` : ''}
+        `;
+    } else if (listingType === 'lease') {
+        pricingDetails = `
+            <div class="property-detail-item">
+                <span class="detail-label">Annual Rent:</span>
+                <span class="detail-value" style="color: var(--lease-color); font-weight: 600;">
+                    ₱${(listing.annualRent || 0).toLocaleString()}
+                </span>
+            </div>
+            ${listing.securityBond ? `
+            <div class="property-detail-item">
+                <span class="detail-label">Security Bond:</span>
+                <span class="detail-value">₱${listing.securityBond.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${listing.leaseDuration ? `
+            <div class="property-detail-item">
+                <span class="detail-label">Lease Duration:</span>
+                <span class="detail-value">${listing.leaseDuration} year(s)</span>
+            </div>
+            ` : ''}
+        `;
+    } else {
+        pricingDetails = `
+            <div class="property-detail-item">
+                <span class="detail-label">Sale Price:</span>
+                <span class="detail-value" style="color: var(--sale-color); font-weight: 600;">
+                    ₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}
+                </span>
+            </div>
+        `;
+    }
+   
+    // Get amenities
+    const amenities = listing.amenities || [];
+   
+    // Create HTML
+    container.innerHTML = `
+<!-- Property Header with Enhanced Design -->
+<div class="property-header" style="margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%); padding: 30px; border-radius: var(--card-radius); color: white;">
+        <div style="flex: 1; min-width: 300px;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                <span style="padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+                    ${typeBadgeText}
+                </span>
+                <span style="padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+                    ${listing.status === 'active' ? 'Available' : (listing.status || 'Available')}
+                </span>
+            </div>
+            
+            <h1 class="property-title" style="color: white; font-size: 36px; margin-bottom: 10px;">
+                ${listing.title || 'Untitled Property'}
+            </h1>
+            
+            <div style="color: rgba(255,255,255,0.9); font-size: 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${listing.location || 'Location not specified'}</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px;">
+                    <i class="fas fa-bed" style="font-size: 20px;"></i>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">Bedrooms</div>
+                        <div style="font-weight: 600; font-size: 18px;">${listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0)}</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px;">
+                    <i class="fas fa-bath" style="font-size: 20px;"></i>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">Bathrooms</div>
+                        <div style="font-weight: 600; font-size: 18px;">${listing.bathrooms || 0}</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px;">
+                    <i class="fas fa-ruler-combined" style="font-size: 20px;"></i>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">Floor Area</div>
+                        <div style="font-weight: 600; font-size: 18px;">${listing.floorArea || listing.totalArea || 'N/A'} sqm</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: right; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 25px; border-radius: 16px; min-width: 250px;">
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">Price</div>
+                <div class="property-price" style="font-size: 42px; font-weight: 700; color: white;">
+                    ${displayPrice}
+                </div>
+            </div>
+            
+            <button class="save-btn-large" id="savePropertyBtn" style="width: 100%; background: white; color: var(--primary); border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                <i class="far fa-heart"></i> Save Property
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Layout for Property Details -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <!-- Main Content Column -->
+    <div>
+        <!-- Image Gallery -->
+        <div class="property-gallery" style="margin-bottom: 30px;">
+            <div class="main-image-container">
+                <img src="${mainImage}" alt="${listing.title}" id="mainPropertyImage" class="main-property-image">
+            </div>
+            ${images.length > 1 ? `
+            <div class="image-thumbnails">
+                ${images.map((img, index) => `
+                <div class="thumbnail ${index === 0 ? 'active' : ''}" data-image="${img}">
+                    <img src="${img}" alt="Thumbnail ${index + 1}">
+                </div>
+                `).join('')}
+            </div>
+            ` : ''}
+        </div>
+
+        <!-- Property Description -->
+        <div class="property-section">
+            <h3 class="section-title" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--primary);">
+                <i class="fas fa-align-left" style="color: var(--primary);"></i>
+                Property Description
+            </h3>
+            <div class="property-description" style="line-height: 1.8; font-size: 16px; color: var(--text-dark);">
+                ${listing.description || 'No description available.'}
+            </div>
+        </div>
+
+        <!-- Property Features -->
+        ${amenities.length > 0 ? `
+        <div class="property-section">
+            <h3 class="section-title" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--primary);">
+                <i class="fas fa-star" style="color: var(--primary);"></i>
+                Features & Amenities
+            </h3>
+            <div class="amenities-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                ${amenities.map(amenity => `
+                <div class="amenity-item" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: var(--bg-light); border-radius: 10px; border-left: 4px solid var(--primary);">
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    <span style="font-weight: 500;">${amenity}</span>
+                </div>
+                `).join('')}
+            </div>
+        </div>
+        ` : ''}
+    </div>
+
+    <!-- Sidebar Column -->
+    <div>
+        <!-- Contact Card -->
+        <div class="property-section" style="position: sticky; top: 20px;">
+            <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); padding: 30px; border-radius: var(--card-radius); color: white;">
+                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-user-circle"></i>
+                    Contact Agent
+                </h3>
+                
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                    <div class="contact-avatar-large" style="background: white; color: var(--primary);">
+                        ${userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </div>
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 5px;">${userInfo.displayName}</h4>
+                        <p style="opacity: 0.9; font-size: 14px;">${getRoleDisplayText(userInfo.role)}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.8;">Email</div>
+                            <div style="font-weight: 500;">${userInfo.email}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.8;">Phone</div>
+                            <div style="font-weight: 500;">${userInfo.phone}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="contact-button" id="contactOwnerBtn" 
+                        style="width: 100%; background: white; color: var(--primary); border: none; padding: 15px; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-comment"></i>
+                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
+                </button>
+            </div>
+        </div>
+
+        <!-- Pricing Details Card -->
+        <div class="property-section" style="margin-top: 30px; background: var(--bg-light); border-radius: var(--card-radius); padding: 25px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text-dark);">
+                <i class="fas fa-money-bill-wave" style="color: var(--primary); margin-right: 10px;"></i>
+                Pricing Details
+            </h3>
+            <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: var(--shadow);">
+                ${pricingDetails}
+            </div>
+        </div>
+
+        <!-- Property Quick Facts -->
+        <div class="property-section" style="margin-top: 30px; background: var(--bg-light); border-radius: var(--card-radius); padding: 25px;">
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text-dark);">
+                <i class="fas fa-info-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                Property Facts
+            </h3>
+            <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: var(--shadow);">
+                <div class="info-item" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text-light);">Type:</span>
+                    <span style="font-weight: 600;">${listing.propertyType || 'N/A'}</span>
+                </div>
+                ${listing.propertyCategory ? `
+                <div class="info-item" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text-light);">Category:</span>
+                    <span style="font-weight: 600;">${listing.propertyCategory}</span>
+                </div>
+                ` : ''}
+                ${listing.lotArea ? `
+                <div class="info-item" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text-light);">Lot Area:</span>
+                    <span style="font-weight: 600;">${listing.lotArea} sqm</span>
+                </div>
+                ` : ''}
+                ${listing.yearBuilt ? `
+                <div class="info-item" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text-light);">Year Built:</span>
+                    <span style="font-weight: 600;">${listing.yearBuilt}</span>
+                </div>
+                ` : ''}
+                <div class="info-item" style="display: flex; justify-content: space-between; padding: 12px 0;">
+                    <span style="color: var(--text-light);">Property ID:</span>
+                    <span style="font-weight: 600;">${listing.id.substring(0, 8)}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map Section -->
+${listing.latitude && listing.longitude ? `
+<div class="property-section" style="margin-top: 40px;">
+    <h3 class="section-title" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--primary);">
+        <i class="fas fa-map-marked-alt" style="color: var(--primary);"></i>
+        Property Location
+    </h3>
+    <div id="propertyMap" style="width: 100%; height: 400px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);"></div>
+    <div style="display: flex; gap: 15px; margin-top: 20px;">
+        <a href="https://www.google.com/maps?q=${listing.latitude},${listing.longitude}"
+           target="_blank"
+           class="map-button">
+            <i class="fas fa-external-link-alt"></i> Open in Google Maps
+        </a>
+        <a href="https://maps.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}"
+           target="_blank"
+           class="map-button directions">
+            <i class="fas fa-directions"></i> Get Directions
+        </a>
+    </div>
+</div>
+` : ''}
+
+<!-- Action Buttons -->
+<div class="property-actions" style="margin-top: 40px; padding-top: 30px; border-top: 2px solid var(--border);">
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <button class="action-btn-large contact-btn" id="contactBtnBottom" 
+                style="padding: 16px 32px; background: var(--secondary); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-phone"></i> Contact Agent
+        </button>
+        <button class="action-btn-large calculator-btn" id="calculatorBtn"
+                style="padding: 16px 32px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-calculator"></i> Mortgage Calculator
+        </button>
+        <button class="action-btn-large save-btn" id="saveBtnBottom"
+                style="padding: 16px 32px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+            <i class="far fa-heart"></i> Save Property
+        </button>
+    </div>
+</div>
+    `;
+   
+    // Setup thumbnail click events
+    if (images.length > 1) {
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                const imageUrl = this.getAttribute('data-image');
+                document.getElementById('mainPropertyImage').src = imageUrl;
+                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    }
+   
+    // Setup button event listeners
+    setupButtonEventListeners(listing, userInfo);
+   
+    // Load Google Maps if coordinates exist
+    if (listing.latitude && listing.longitude) {
+        setTimeout(async () => {
+            try {
+                await loadGoogleMapsAPI();
+                initPropertyMap(listing.latitude, listing.longitude, listing.title);
+            } catch (error) {
+                console.error("Failed to load Google Maps:", error);
+                showMapPlaceholder(listing.latitude, listing.longitude);
+            }
+        }, 100);
+    }
+   
+    // Update save button state
+    updateSaveButtonState();
+}
+
+
+function setupButtonEventListeners(listing, userInfo) {
+    // Contact buttons
+    document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
+            alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
+        });
+    });
+   
+    // Save buttons
+    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
+        btn.addEventListener('click', function() {
+            toggleSaveProperty();
+        });
+    });
+   
+    // Mortgage calculator button
+    const calculatorBtn = document.getElementById('calculatorBtn');
+    if (calculatorBtn) {
+        calculatorBtn.addEventListener('click', function() {
+            showMortgageCalculator(listing);
+        });
+    }
+}
+
+
+async function updateSaveButtonState() {
+    if (!propertyId) return;
+
+
+    const currentUser = auth.currentUser;
+   
+    if (!currentUser) {
+        updateSaveButtonText('Login to Save');
+        return;
+    }
+
+
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef,
+            where('userId', '==', currentUser.uid),
+            where('propertyId', '==', propertyId)
+        );
+        const snapshot = await getDocs(q);
+
+
+        const isSaved = !snapshot.empty;
+       
+        updateSaveButtonText(isSaved ? 'Saved' : 'Save Property', isSaved);
+    } catch (error) {
+        console.error('Error checking saved status:', error);
+        updateSaveButtonText('Error');
+    }
+}
+
+
+function updateSaveButtonText(text, isSaved = false) {
+    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
+        if (isSaved) {
+            btn.innerHTML = '<i class="fas fa-heart"></i> Saved';
+            btn.classList.add('saved');
+        } else {
+            if (text === 'Login to Save') {
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Save';
+            } else {
+                btn.innerHTML = '<i class="far fa-heart"></i> ' + text;
+            }
+            btn.classList.remove('saved');
+        }
+    });
+}
+
+
+async function toggleSaveProperty() {
+    if (!propertyId) return;
+
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        alert('Please login to save properties');
+        return;
+    }
+
+
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef,
+            where('userId', '==', currentUser.uid),
+            where('propertyId', '==', propertyId)
+        );
+        const snapshot = await getDocs(q);
+
+
+        if (!snapshot.empty) {
+            // Remove from saved
+            await deleteDoc(snapshot.docs[0].ref);
+            showSaveToast('Removed from saved', false);
+            updateSaveButtonText('Save Property', false);
+        } else {
+            // Add to saved
+            await addDoc(collection(db, 'savedProperties'), {
+                userId: currentUser.uid,
+                propertyId: propertyId,
+                savedAt: new Date(),
+                createdAt: new Date()
+            });
+           
+            // Log save event
+            await logSaveEvent(currentUser.uid, propertyId);
+           
+            showSaveToast('Property saved!', false);
+            updateSaveButtonText('Saved', true);
+        }
+    } catch (error) {
+        console.error('Error toggling save:', error);
+        showSaveToast('Error saving property', true);
+    }
+}
+
+
+function showMortgageCalculator(listing) {
+    const listingType = getListingType(listing);
+    let propertyPrice = 0;
+   
+    if (listingType === 'sale') {
+        propertyPrice = listing.pricing || listing.salePrice || 0;
+    }
+   
+    // Open mortgage calculator in new window or show alert
+    if (propertyPrice > 0) {
+        alert(`Mortgage Calculator\n\nProperty Price: ₱${propertyPrice.toLocaleString()}\n\nThis feature would open a mortgage calculator to estimate your monthly payments.`);
+    } else {
+        alert('This property is for rent/lease. Mortgage calculator is only available for properties for sale.');
+    }
+}
+
+
+function showSaveToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${isError ? '#ef4444' : '#10b981'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-weight: 500;
+        box-shadow: var(--shadow-lg);
+        animation: slideIn 0.3s ease;
+    `;
+   
+    document.body.appendChild(toast);
+   
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+
+async function logSaveEvent(userId, propertyId) {
+    try {
+        const eventsRef = collection(db, 'events');
+        await addDoc(eventsRef, {
+            userId: userId,
+            eventType: 'save',
+            metadata: { propertyId: propertyId },
+            timestamp: new Date()
+        });
+        console.log(`Logged save event for user ${userId}, property ${propertyId}`);
+        return true;
+    } catch (error) {
+        console.error("Failed to log save event:", error);
+        return false;
+    }
+}
+
+
+function displayError(message) {
+    const container = document.getElementById('propertyDetailsContainer');
+    container.innerHTML = `
+        <div class="error-state">
+            <div class="error-icon">⚠️</div>
+            <h3>${message}</h3>
+            <p>Please try again or go back to the dashboard.</p>
+            <a href="buyer_dashboard.html" class="search-button" style="margin-top: 20px;">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    `;
+}
+
+
+// --- INITIALIZATION ---
+
+
+// Check authentication and load property details
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = "../login.html";
+        return;
+    }
+
+
+    // Load property details
+    loadPropertyDetails();
+});
+
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+
+</body>
+</html>

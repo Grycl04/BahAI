@@ -487,6 +487,11 @@ body {
     color: #92400e;
 }
 
+/* ===== TYPE BADGES - ALWAYS VISIBLE ===== */
+.listing-card-image-container {
+    position: relative;
+}
+
 .listing-type-badge {
     position: absolute;
     top: 12px;
@@ -497,6 +502,10 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     color: white;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 2;
+    display: block !important;
 }
 
 .type-rent {
@@ -509,6 +518,92 @@ body {
 
 .type-lease {
     background: var(--lease-color);
+}
+
+/* ===== AI RECOMMENDATION BADGES ===== */
+.listing-ai-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--secondary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    opacity: 1 !important;
+    visibility: visible !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.listing-match-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 2;
+    opacity: 1 !important;
+    visibility: visible !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* When both match badge and type badge exist, adjust positioning */
+.listing-match-badge + .listing-type-badge {
+    top: 45px;
+}
+
+/* ===== SAVE BUTTON ===== */
+.save-property-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--bg-white);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.save-property-btn:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+}
+
+.save-icon {
+    font-size: 18px;
+}
+
+/* Adjust when AI badges are present */
+.listing-ai-badge + .save-property-btn {
+    top: 45px;
+}
+
+.listing-match-badge + .save-property-btn {
+    right: 12px;
+    top: 12px;
+}
+
+/* When all badges are present */
+.listing-match-badge + .listing-type-badge + .listing-ai-badge + .save-property-btn {
+    top: 78px;
 }
 
 .listing-actions {
@@ -632,7 +727,7 @@ body {
     animation: pulse 0.5s ease;
 }
 
-/* ===== MODAL STYLES (UPDATED FOR NEW LAYOUT) ===== */
+/* ===== MODAL STYLES ===== */
 .modal {
     position: fixed;
     top: 0;
@@ -963,6 +1058,17 @@ body {
     transform: translateY(-2px);
 }
 
+.calculator-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.calculator-btn:hover {
+    background: linear-gradient(135deg, #d97706, #b45309) !important;
+    transform: translateY(-2px);
+}
+
 .save-btn {
     background: var(--bg-light);
     color: var(--text-dark);
@@ -1003,10 +1109,254 @@ body {
     background: var(--lease-color);
 }
 
+/* ===== MORTGAGE CALCULATOR STYLES ===== */
+#mortgageCalculatorModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.calculator-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 10001;
+}
+
+.calculator-modal {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    z-index: 10002;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.calculator-modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #0b2e52, #1e3a8a);
+    color: white;
+    border-radius: 16px 16px 0 0;
+}
+
+.calculator-modal-body {
+    padding: 24px;
+}
+
+.calculator-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.calculator-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.calculator-input-group {
+    margin-bottom: 20px;
+}
+
+.calculator-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.calculator-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    background: var(--bg-white);
+}
+
+.calculator-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+}
+
+.calculator-input-group .input-with-icon {
+    position: relative;
+}
+
+.calculator-input-group .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.calculator-input-group .input-with-icon input {
+    padding-left: 45px;
+}
+
+.calculator-slider {
+    width: 100%;
+    margin: 15px 0;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+}
+
+.calculator-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.calculator-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.downpayment-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.downpayment-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.calculator-results {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+    border-left: 4px solid var(--primary);
+}
+
+.calculator-result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.calculator-result-item:last-child {
+    border-bottom: none;
+}
+
+.calculator-result-label {
+    color: var(--text-light);
+}
+
+.calculator-result-value {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.calculator-action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.calculator-action-buttons button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.calculator-action-buttons .calculate-btn {
+    background: var(--primary);
+    color: white;
+}
+
+.calculator-action-buttons .calculate-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.calculator-action-buttons .reset-btn {
+    background: var(--bg-light);
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.calculator-action-buttons .reset-btn:hover {
+    background: var(--border);
+    transform: translateY(-2px);
+}
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -1016,7 +1366,7 @@ body {
     .container {
         margin-left: 240px;
     }
-    
+   
     .listings-grid,
     .recommendations-grid {
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1029,83 +1379,93 @@ body {
         margin-left: 0;
         padding: 25px;
     }
-    
+   
     .mobile-menu-toggle {
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    
+   
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+   
     .listings-grid,
     .recommendations-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
     }
-    
+   
     /* Responsive Modal */
     .modal-content {
         width: 95%;
         max-height: 95vh;
     }
-    
+   
     .modal-header {
         padding: 20px 30px;
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
     }
-    
+   
     .modal-header > div:last-child {
         text-align: left !important;
     }
-    
+   
     .modal-body {
         padding: 25px 30px;
     }
-    
+   
     .modal-body > div > div {
         grid-template-columns: 1fr !important;
         gap: 20px !important;
     }
-    
+   
     .modal-main-image {
         height: 300px;
     }
-    
+   
     .modal-price {
         font-size: 24px;
     }
-    
+   
     .modal-basic-info {
         grid-template-columns: 1fr 1fr;
     }
-    
+   
     .modal-amenities {
         grid-template-columns: 1fr;
     }
-    
+   
     .modal-additional-info {
         grid-template-columns: 1fr;
     }
-    
+   
     .modal-contact {
         flex-direction: column;
         text-align: center;
         align-items: center;
     }
-    
+   
     .contact-avatar {
         margin: 0 auto;
     }
-    
+   
     .modal-footer {
         flex-direction: column;
         gap: 10px;
         padding: 20px 30px;
+    }
+   
+    /* Calculator Responsive */
+    .calculator-modal {
+        width: 95%;
+        max-height: 80vh;
+    }
+   
+    .calculator-action-buttons {
+        flex-direction: column;
     }
 }
 
@@ -1114,7 +1474,7 @@ body {
     .container {
         padding: 20px;
     }
-    
+   
     .mobile-menu-toggle {
         top: 15px;
         left: 15px;
@@ -1122,66 +1482,71 @@ body {
         height: 45px;
         font-size: 20px;
     }
-    
+   
     .hero-section {
         padding: 30px 25px;
     }
-    
+   
     .hero-section h1 {
         font-size: 28px;
     }
-    
+   
     .hero-section p {
         font-size: 16px;
     }
-    
+   
     .search-section {
         padding: 25px 20px;
     }
-    
+   
     .search-grid {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+   
     .search-actions {
         flex-direction: column;
         align-items: stretch;
     }
-    
+   
     .search-button, .reset-button {
         width: 100%;
     }
-    
+   
     .categories-grid {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+   
     .category-card {
         padding: 20px 15px;
     }
-    
+   
     .listings-grid,
     .recommendations-grid {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+   
     .listing-content {
         padding: 15px;
     }
-    
+   
     .modal-main-image {
         height: 250px;
     }
-    
+   
     .modal-header h2 {
         font-size: 20px;
     }
-    
+   
     .modal-body {
         padding: 20px;
+    }
+   
+    .modal-btn {
+        padding: 12px 15px;
+        font-size: 14px;
     }
 }
 
@@ -1190,7 +1555,7 @@ body {
     .container {
         padding: 15px;
     }
-    
+   
     .mobile-menu-toggle {
         top: 10px;
         left: 10px;
@@ -1198,53 +1563,757 @@ body {
         height: 40px;
         font-size: 18px;
     }
-    
+   
     .hero-section {
         padding: 25px 20px;
     }
-    
+   
     .hero-section h1 {
         font-size: 24px;
     }
-    
+   
     .section-title {
         font-size: 20px;
     }
-    
+   
     .search-section {
         padding: 20px 15px;
     }
-    
+   
     .categories-grid {
         grid-template-columns: 1fr;
     }
-    
+   
     .listing-content {
         padding: 12px;
     }
-    
+   
     .listing-title {
         font-size: 16px;
     }
-    
+   
     .listing-price {
         font-size: 16px;
     }
-    
+   
     .modal-main-image {
         height: 200px;
     }
-    
+   
     .modal-basic-info {
         grid-template-columns: 1fr;
     }
-    
+   
     .modal-footer {
         padding: 15px 20px;
     }
-    
+   
     .modal-btn {
         padding: 12px 15px;
         font-size: 14px;
     }
+   
+    .calculator-modal-header {
+        padding: 20px;
+    }
+   
+    .calculator-modal-body {
+        padding: 20px;
+    }
+   
+    .calculator-input {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+   
+    .calculator-action-buttons button {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+/* ===== BACK BUTTON ===== */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--bg-white);
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: var(--bg-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+/* ===== PROPERTY DETAILS PAGE STYLES ===== */
+
+/* Property Header */
+.property-header {
+    background: var(--bg-white);
+    padding: 30px;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.property-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.property-price {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Property Gallery */
+.property-gallery {
+    background: var(--bg-white);
+    padding: 30px;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 30px;
+}
+
+.main-image-container {
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: var(--bg-light);
+}
+
+.main-property-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-thumbnails {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.image-thumbnails .thumbnail {
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.image-thumbnails .thumbnail.active {
+    border-color: var(--primary);
+}
+
+.image-thumbnails .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Property Section */
+.property-section {
+    background: var(--bg-white);
+    padding: 25px;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 30px;
+}
+
+.property-section h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.property-section h3 i {
+    color: var(--primary);
+}
+
+/* Property Description */
+.property-description {
+    line-height: 1.6;
+    color: var(--text-dark);
+    white-space: pre-line;
+    font-size: 16px;
+}
+
+/* Property Details Grid */
+.property-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.property-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.property-detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.detail-value {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* Pricing Details */
+.pricing-details {
+    background: var(--bg-light);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+/* Amenities Grid */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.amenity-item i {
+    color: var(--primary);
+}
+
+/* Contact Card */
+.contact-card {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: var(--bg-light);
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.contact-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-info h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+}
+
+.contact-role {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.contact-details {
+    margin-bottom: 20px;
+}
+
+.contact-details p {
+    margin-bottom: 8px;
+    color: var(--text-dark);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contact-details i {
+    color: var(--primary);
+    width: 20px;
+}
+
+.contact-button {
+    padding: 12px 24px;
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contact-button:hover {
+    background: #1565c0;
+    transform: translateY(-2px);
+}
+
+/* Additional Information */
+.additional-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.info-value {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* Map Buttons */
+.map-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.map-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.map-button.directions {
+    background: var(--secondary);
+}
+
+.map-button.directions:hover {
+    background: #1565c0;
+}
+
+/* Action Buttons */
+.property-actions {
+    padding: 30px;
+    background: var(--bg-white);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.action-btn-large {
+    padding: 16px 32px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: white;
+}
+
+.contact-btn {
+    background: var(--secondary);
+}
+
+.contact-btn:hover {
+    background: #1565c0;
+    transform: translateY(-2px);
+}
+
+.calculator-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.calculator-btn:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-2px);
+}
+
+.save-btn-large, .save-btn {
+    background: var(--bg-light);
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.save-btn-large:hover, .save-btn:hover {
+    background: var(--border);
+    transform: translateY(-2px);
+}
+
+.save-btn-large.saved, .save-btn.saved {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Listing Title Link */
+.listing-title-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.listing-title-link:hover h3 {
+    color: var(--primary);
+}
+
+/* ===== RESPONSIVE DESIGN FOR PROPERTY DETAILS ===== */
+
+@media (max-width: 1024px) {
+    .property-header {
+        flex-direction: column;
+        text-align: center;
+    }
+   
+    .property-title {
+        font-size: 28px;
+    }
+   
+    .property-price {
+        font-size: 28px;
+    }
+   
+    .main-image-container {
+        height: 400px;
+    }
+   
+    .property-details-grid {
+        grid-template-columns: 1fr;
+    }
+   
+    .additional-info {
+        grid-template-columns: 1fr;
+    }
+   
+    .action-btn-large {
+        padding: 14px 24px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .property-header > div {
+        flex-direction: column;
+        text-align: center;
+    }
+   
+    .property-title {
+        font-size: 24px;
+    }
+   
+    .property-price {
+        font-size: 24px;
+    }
+   
+    .main-image-container {
+        height: 300px;
+    }
+   
+    .property-section h3 {
+        font-size: 18px;
+    }
+   
+    .contact-card {
+        flex-direction: column;
+        text-align: center;
+    }
+   
+    .amenities-grid {
+        grid-template-columns: 1fr;
+    }
+   
+    .property-actions > div {
+        flex-direction: column;
+    }
+   
+    .action-btn-large {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .property-title {
+        font-size: 20px;
+    }
+   
+    .property-price {
+        font-size: 20px;
+    }
+   
+    .main-image-container {
+        height: 250px;
+    }
+   
+    .property-section {
+        padding: 20px;
+    }
+}
+
+/* Responsive improvements for property details */
+@media (max-width: 1024px) {
+    .property-header > div {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .property-header .property-title {
+        font-size: 28px;
+    }
+    
+    .property-header .property-price {
+        font-size: 32px;
+    }
+    
+    /* Two column layout becomes single column on tablet */
+    .property-details-grid-layout {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .property-header {
+        padding: 20px !important;
+    }
+    
+    .property-header .property-title {
+        font-size: 24px;
+    }
+    
+    .property-header .property-price {
+        font-size: 28px;
+    }
+    
+    .property-feature-item {
+        padding: 8px 15px !important;
+    }
+    
+    .amenities-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .action-btn-large {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .property-header {
+        padding: 15px !important;
+    }
+    
+    .property-header .property-title {
+        font-size: 20px;
+    }
+    
+    .property-header .property-price {
+        font-size: 24px;
+    }
+    
+    .main-image-container {
+        height: 250px !important;
+    }
+    
+    .contact-card {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+}
+
+/* AI Recommendation specific styles */
+.listing-match-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 2;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.listing-ai-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--secondary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.listing-similarity {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+/* Make sure AI recommendation cards use the same clickable styles */
+#recommendedListingsContainer .listing-card-wrapper,
+#recommendedListingsContainer .listing-card-link,
+#recommendedListingsContainer .listing-card {
+    height: 100%;
+}
+
+#recommendedListingsContainer .listing-card-image-container {
+    height: 200px;
+}
+
+#recommendedListingsContainer .listing-image {
+    height: 100%;
+}
+
+#recommendedListingsContainer .listing-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#recommendedListingsContainer .listing-details {
+    margin-top: auto;
+}
+
+/* Ensure AI recommendation cards are responsive */
+@media (max-width: 768px) {
+    .listing-match-badge,
+    .listing-ai-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .listing-match-badge,
+    .listing-ai-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}
+
+/* ===== FIXES FOR VISIBILITY ===== */
+/* Ensure all badges are always visible on all property cards */
+#listingsContainer .listing-type-badge,
+#recommendedListingsContainer .listing-type-badge,
+.listings-grid .listing-type-badge,
+.recommendations-grid .listing-type-badge {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+/* Remove any hover effects that might hide badges */
+.listing-card:hover .listing-type-badge,
+.listing-card:hover .listing-ai-badge,
+.listing-card:hover .listing-match-badge {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hide the small "Recent Properties" label next to the title */
+.recommendations-section h2 span,
+.recommendations-section h2 small,
+.recommendations-section .section-title span,
+.recommendations-section .section-title small,
+.recommendations-section h2:after,
+.recommendations-section .section-title:after {
+    display: none !important;
+}
+
+/* Specifically target the subtitle text */
+.recommendations-section .section-title + p {
+    color: var(--text-light) !important;
+    font-size: 15px !important;
+    margin-top: 5px !important;
+    margin-bottom: 25px !important;
+}
+
+/* This will hide the small "(Based on your saved properties and search history)" label */
+.recommendations-section .section-title + p br + span,
+.recommendations-section .section-title + p span,
+.recommendations-section .section-title + p small {
+    display: none !important;
+}
+
+/* Ensure save button is always visible */
+.save-property-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
 }

@@ -169,42 +169,6 @@
         </div>
     </div>
 </div>
-
-<!-- Property Details Modal (Updated Layout) -->
-<div id="propertyModal" class="modal" style="display: none;">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-        <div class="modal-header">
-            <div style="flex: 1;">
-                <h2 id="modalTitle">Property Details</h2>
-                <div style="color: var(--text-light); font-size: 14px; display: flex; align-items: center; gap: 5px; margin-top: 5px;">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span id="modalLocation">Loading location...</span>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <div id="modalPrice" style="font-size: 28px; font-weight: 700; color: var(--primary);"></div>
-                <span id="modalStatus" style="display: inline-block; margin-top: 5px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; color: white;"></span>
-            </div>
-            <button class="modal-close" id="modalCloseBtn">&times;</button>
-        </div>
-        
-        <div class="modal-body" id="modalBody">
-            <!-- Modal content will be loaded here -->
-        </div>
-        
-        <div class="modal-footer">
-            <button class="modal-btn contact-btn" id="modalContactBtn">
-                <i class="fas fa-phone"></i> Contact Owner
-            </button>
-            <button class="modal-btn save-btn" id="modalSaveBtn">
-                <i class="far fa-heart"></i> Save Property
-            </button>
-            <button class="modal-btn close-btn" id="modalCloseBtn2">
-                <i class="fas fa-times"></i> Close
-            </button>
-        </div>
-    </div>
 </div>
 
 <!-- Sidebar Loader -->
@@ -321,7 +285,9 @@ import {
     getDoc,
     doc,
     addDoc,
-    deleteDoc
+    deleteDoc,
+    orderBy,
+    limit
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 // Make signOut available globally for the logout button
@@ -354,8 +320,6 @@ const db = getFirestore(app);
 let allListings = [];
 let userMap = new Map();
 let selectedCategory = '';
-let currentModalListingId = null;
-let currentModalListing = null;
 
 // Welcome text element
 const welcomeText = document.getElementById("welcomeText");
@@ -421,8 +385,11 @@ const BATANGAS_PROPERTY_CATEGORIES = [
     }
 ];
 
-// Google Maps API Key (same as in the landlord dashboard)
+// Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+
+// Python Backend URL - Fixed with correct endpoint
+const PYTHON_API_URL = "https://us-central1-bahai-1b76d.cloudfunctions.net/personalized_recommendations";
 
 // --- HELPER FUNCTIONS ---
 
@@ -537,127 +504,6 @@ function getTypeBadgeText(listing) {
     }
 }
 
-// --- GOOGLE MAPS FUNCTIONS ---
-
-function initPropertyMap(lat, lng, title) {
-  const mapElement = document.getElementById("propertyMap");
-  if (!mapElement) {
-    console.error("Map element not found");
-    return;
-  }
-
-  try {
-    // Check if Google Maps is loaded
-    if (!window.google || !window.google.maps) {
-      console.error("Google Maps API not loaded");
-      showMapPlaceholder(lat, lng);
-      return;
-    }
-
-    // Parse coordinates
-    const latitude = parseFloat(lat);
-    const longitude = parseFloat(lng);
-    
-    if (isNaN(latitude) || isNaN(longitude)) {
-      console.error("Invalid coordinates:", lat, lng);
-      showMapPlaceholder(lat, lng);
-      return;
-    }
-
-    // Initialize map
-    const map = new google.maps.Map(mapElement, {
-      center: { lat: latitude, lng: longitude },
-      zoom: 16,
-      mapTypeControl: true,
-      streetViewControl: true,
-      fullscreenControl: true
-    });
-
-    // Add marker
-    new google.maps.Marker({
-      position: { lat: latitude, lng: longitude },
-      map: map,
-      title: title || "Property Location",
-      animation: google.maps.Animation.DROP
-    });
-  } catch (error) {
-    console.error("Error initializing map:", error);
-    showMapPlaceholder(lat, lng);
-  }
-}
-
-function showMapPlaceholder(lat, lng) {
-    const mapElement = document.getElementById("propertyMap");
-    if (!mapElement) return;
-    
-    mapElement.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; background: var(--bg-light); border-radius: 12px;">
-            <i class="fas fa-map-marked-alt" style="font-size: 48px; color: var(--text-light); margin-bottom: 15px;"></i>
-            <p style="color: var(--text-light); margin-bottom: 10px;">Map loading...</p>
-            <a href="https://www.google.com/maps?q=${lat},${lng}" 
-               target="_blank" 
-               style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--primary); color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
-                <i class="fas fa-external-link-alt"></i> Open in Google Maps
-            </a>
-            <a href="https://maps.google.com/maps/dir/?api=1&destination=${lat},${lng}" 
-               target="_blank" 
-               style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--secondary); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; margin-top: 8px;">
-                <i class="fas fa-directions"></i> Get Directions
-            </a>
-        </div>
-    `;
-}
-
-let googleMapsLoaded = false;
-
-async function loadGoogleMapsAPI() {
-  if (googleMapsLoaded && window.google && window.google.maps) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    // Check if already loaded
-    if (window.google && window.google.maps) {
-      googleMapsLoaded = true;
-      resolve();
-      return;
-    }
-
-    // Check if script is being loaded
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript) {
-      const checkInterval = setInterval(() => {
-        if (window.google && window.google.maps) {
-          clearInterval(checkInterval);
-          googleMapsLoaded = true;
-          resolve();
-        }
-      }, 100);
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        reject(new Error("Google Maps API loading timeout"));
-      }, 10000);
-      return;
-    }
-
-    // Load the API - CRITICAL: Use correct key format
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (window.google && window.google.maps) {
-        googleMapsLoaded = true;
-        resolve();
-      } else {
-        reject(new Error("Google Maps API failed to initialize"));
-      }
-    };
-    script.onerror = () => reject(new Error("Failed to load Google Maps script"));
-    document.head.appendChild(script);
-  });
-}
-
 // --- CATEGORY DROPDOWN FUNCTIONS ---
 
 // Update category dropdown based on selected transaction type
@@ -694,6 +540,31 @@ function updateCategoryDropdown() {
     
     updateTypeDropdown();
 }
+// Force all type badges to be visible on page load and after any updates
+function forceBadgeVisibility() {
+    document.querySelectorAll('.listing-type-badge').forEach(badge => {
+        badge.style.opacity = '1';
+        badge.style.visibility = 'visible';
+        badge.style.display = 'block';
+    });
+    
+    document.querySelectorAll('.listing-ai-badge, .listing-match-badge').forEach(badge => {
+        badge.style.opacity = '1';
+        badge.style.visibility = 'visible';
+        badge.style.display = 'block';
+    });
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', forceBadgeVisibility);
+
+// Run after any dynamic content loads
+setTimeout(forceBadgeVisibility, 1000);
+setTimeout(forceBadgeVisibility, 3000);
+
+// Also run after loading listings and recommendations
+window.addEventListener('load', forceBadgeVisibility);
+
 
 // Update type dropdown based on selected category
 function updateTypeDropdown() {
@@ -734,11 +605,11 @@ async function applyFilters() {
     if (propertyType) filters.propertyType = propertyType;
     if (searchTerm) filters.searchTerm = searchTerm;
 
-    // FIX: Log search event for recommendations BEFORE redirect
+    // Log search event for recommendations
     try {
         const currentUser = auth.currentUser;
         if (currentUser && Object.keys(filters).length > 0) {
-            const { logSearchEvent } = await import('./recommendations.js');
+            // Create a simple log search event function
             await logSearchEvent(currentUser.uid, filters);
             console.log('✅ Search event logged for AI recommendations');
         }
@@ -752,6 +623,42 @@ async function applyFilters() {
         : '';
 
     window.location.href = `search_results.html${queryString}`;
+}
+
+// Simple logSearchEvent function
+async function logSearchEvent(userId, filters) {
+    try {
+        const eventsRef = collection(db, 'events');
+        await addDoc(eventsRef, {
+            userId: userId,
+            eventType: 'search',
+            metadata: { filters: filters },
+            timestamp: new Date()
+        });
+        console.log(`Logged search event for user ${userId}`);
+        return true;
+    } catch (error) {
+        console.error("Failed to log search event:", error);
+        return false;
+    }
+}
+
+// Simple logSaveEvent function
+async function logSaveEvent(userId, propertyId) {
+    try {
+        const eventsRef = collection(db, 'events');
+        await addDoc(eventsRef, {
+            userId: userId,
+            eventType: 'save',
+            metadata: { propertyId: propertyId },
+            timestamp: new Date()
+        });
+        console.log(`Logged save event for user ${userId}, property ${propertyId}`);
+        return true;
+    } catch (error) {
+        console.error("Failed to log save event:", error);
+        return false;
+    }
 }
 
 // Reset filters function
@@ -919,22 +826,21 @@ async function loadCategories() {
 async function filterByCategory(categoryName) {
     // Create filters object with the selected category
     const filters = { propertyCategory: categoryName };
-    
-    // FIX: Log category click as a search event for recommendations
+
+    // Log category click as a search event for recommendations
     try {
         const currentUser = auth.currentUser;
         if (currentUser) {
-            const { logSearchEvent } = await import('./recommendations.js');
             await logSearchEvent(currentUser.uid, filters);
-            console.log('✅ Category search event logged for AI recommendations');
+            console.log('✔️ Category search event logged for AI recommendations');
         }
     } catch (error) {
-        console.log('Could not log category search event:', error.message);
+        console.log('Could not log category search event.', error.message);
     }
-    
+
     // Store in localStorage for search results page
     localStorage.setItem('categoryFilter', categoryName);
-    
+
     // Redirect to search results page with category filter
     const queryString = `?filters=${encodeURIComponent(JSON.stringify(filters))}`;
     window.location.href = `search_results.html${queryString}`;
@@ -1212,67 +1118,75 @@ async function displayListings(listings) {
         const squareFootage = listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A';
         
         return `
-            <div class="listing-card" data-listing-id="${listing.id}">
-                <div style="position: relative;">
-                    <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
-                    <div class="listing-type-badge ${typeBadgeClass}" style="position: absolute; top: 12px; left: 12px;">${typeBadgeText}</div>
-                    
-                    <!-- Save Button -->
-                    <button class="save-property-btn"
-                        data-property-id="${listing.id}"
-                        style="position: absolute; bottom: 12px; right: 12px;
-                               background: ${isSaved ? 'var(--primary)' : 'var(--bg-light)'};
-                               color: ${isSaved ? 'white' : 'var(--text-dark)'};
-                               border: ${isSaved ? 'none' : '1px solid var(--border)'};
-                               border-radius: 50%;
-                               width: 40px; height: 40px; display: flex;
-                               align-items: center; justify-content: center;
-                               cursor: pointer; font-size: 18px; z-index: 2;
-                               transition: all 0.3s ease;
-                               box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        ${isSaved ? '❤️' : '🤍'}
-                    </button>
-                </div>
-                
-                <div class="listing-content">
-                    <div class="listing-header">
-                        <div>
-                            <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
-                            <div class="listing-location">
-                                <span>📍</span> ${listing.location || 'Batangas, Philippines'}
+            <div class="listing-card-wrapper">
+                <a href="property_details.html?id=${listing.id}" class="listing-card-link">
+                    <div class="listing-card">
+                        <div class="listing-card-image-container">
+                            <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
+                            <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
+                            
+                            <!-- Save Button - will be positioned above the clickable area -->
+                            <button class="save-property-btn"
+                                data-property-id="${listing.id}"
+                                data-is-saved="${isSaved}"
+                                aria-label="${isSaved ? 'Remove from saved' : 'Save property'}">
+                                <span class="save-icon">${isSaved ? '❤️' : '🤍'}</span>
+                            </button>
+                        </div>
+                        
+                        <div class="listing-content">
+                            <div class="listing-header">
+                                <div>
+                                    <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
+                                    <div class="listing-location">
+                                        <span class="location-icon">📍</span>
+                                        <span class="location-text">${listing.location || 'Batangas, Philippines'}</span>
+                                    </div>
+                                </div>
+                                <div class="listing-price ${priceClass}">${displayPrice}</div>
+                            </div>
+                            
+                            <div class="listing-details">
+                                <div class="detail">
+                                    <span class="detail-icon">🛏️</span>
+                                    <span class="detail-text">${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
+                                </div>
+                                <div class="detail">
+                                    <span class="detail-icon">🚿</span>
+                                    <span class="detail-text">${bathrooms} baths</span>
+                                </div>
+                                <div class="detail">
+                                    <span class="detail-icon">📐</span>
+                                    <span class="detail-text">${squareFootage} ${listing.floorArea || listing.totalArea ? 'sqm' : ''}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="listing-broker">
+                                <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
+                                <div class="broker-info">
+                                    <div class="broker-name" title="${userInfo.displayName}">${userInfo.displayName}</div>
+                                    <div class="broker-contact">
+                                        ${getRoleDisplayText(userInfo.role)} • ${listing.propertyType || 'Property'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="listing-actions">
+                                <button class="action-btn contact-btn" 
+                                        data-user-id="${listing.userId}"
+                                        data-user-name="${userInfo.displayName}"
+                                        aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
+                                    <span class="contact-icon">📞</span>
+                                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
+                                </button>
+                                <span class="action-btn view-btn" aria-label="View property details">
+                                    <span class="view-icon">👁️</span>
+                                    View Details
+                                </span>
                             </div>
                         </div>
-                        <div class="listing-price ${priceClass}">${displayPrice}</div>
                     </div>
-                    <div class="listing-details">
-                        <div class="detail">
-                            <span>🛏</span> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}
-                        </div>
-                        <div class="detail">
-                            <span>🚿</span> ${bathrooms} baths
-                        </div>
-                        <div class="detail">
-                            <span>📐</span> ${squareFootage} ${listing.floorArea || listing.totalArea ? 'sqm' : ''}
-                        </div>
-                    </div>
-                    <div class="listing-broker">
-                        <div class="broker-avatar">${userInitials}</div>
-                        <div class="broker-info">
-                            <div class="broker-name">${userInfo.displayName}</div>
-                            <div class="broker-contact">
-                                ${getRoleDisplayText(userInfo.role)} • ${listing.propertyType || 'Property'}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="listing-actions">
-                        <button class="action-btn contact-btn" data-user-id="${listing.userId}">
-                            Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-                        </button>
-                        <button class="action-btn view-btn" data-listing-id="${listing.id}">
-                            <i class="fas fa-eye"></i> View Details
-                        </button>
-                    </div>
-                </div>
+                </a>
             </div>
         `;
     }).join('');
@@ -1323,387 +1237,6 @@ function displayError(error) {
     }
 }
 
-// --- MODAL FUNCTIONS ---
-
-function contactFromModal() {
-    if (currentModalListing && currentModalListing.userId) {
-        contactBroker(currentModalListing.userId);
-    } else {
-        alert('Contact information not available.');
-    }
-}
-
-async function updateModalSaveButton() {
-    if (!currentModalListingId) return;
-
-    const saveBtn = document.getElementById('modalSaveBtn');
-    if (!saveBtn) {
-        console.error('Save button not found in modal');
-        return;
-    }
-
-    const currentUser = auth.currentUser;
-    
-    if (!currentUser) {
-        saveBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Save';
-        saveBtn.onclick = function() {
-            alert('Please login to save properties');
-        };
-        return;
-    }
-
-    try {
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef,
-            where('userId', '==', currentUser.uid),
-            where('propertyId', '==', currentModalListingId)
-        );
-        const snapshot = await getDocs(q);
-
-        const isSaved = !snapshot.empty;
-
-        if (isSaved) {
-            saveBtn.innerHTML = '<i class="fas fa-heart"></i> Saved';
-            saveBtn.classList.add('saved');
-        } else {
-            saveBtn.innerHTML = '<i class="far fa-heart"></i> Save Property';
-            saveBtn.classList.remove('saved');
-        }
-        
-        // Set click handler
-        saveBtn.onclick = function() {
-            toggleModalSaveProperty();
-        };
-    } catch (error) {
-        console.error('Error checking saved status:', error);
-        saveBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
-    }
-}
-
-async function toggleModalSaveProperty() {
-    const saveBtn = document.getElementById('modalSaveBtn');
-    if (!saveBtn || !currentModalListingId) return;
-
-    try {
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            alert('Please login to save properties');
-            return;
-        }
-
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef,
-            where('userId', '==', currentUser.uid),
-            where('propertyId', '==', currentModalListingId)
-        );
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-            // Remove from saved
-            await deleteDoc(snapshot.docs[0].ref);
-            saveBtn.innerHTML = '<i class="far fa-heart"></i> Save Property';
-            saveBtn.classList.remove('saved');
-            showSaveToast('Removed from saved', false);
-        } else {
-            // Add to saved
-            await addDoc(collection(db, 'savedProperties'), {
-                userId: currentUser.uid,
-                propertyId: currentModalListingId,
-                savedAt: new Date(),
-                createdAt: new Date()
-            });
-            saveBtn.innerHTML = '<i class="fas fa-heart"></i> Saved';
-            saveBtn.classList.add('saved');
-            showSaveToast('Property saved!', false);
-        }
-    } catch (error) {
-        console.error('Error toggling save:', error);
-        showSaveToast('Error saving property', true);
-    }
-}
-
-async function showListingDetails(propertyId) {
-    try {
-        currentModalListingId = propertyId;
-
-        // Find the listing from allListings
-        const listing = allListings.find(l => l.id === propertyId);
-        if (!listing) {
-            alert('Property details not found.');
-            return;
-        }
-        currentModalListing = listing;
-
-        // Get user info
-        const userInfo = userMap.get(listing.userId) || {
-            displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
-            email: 'N/A',
-            phone: 'N/A',
-            role: 'user'
-        };
-
-        // Get listing details
-        const listingType = getListingType(listing);
-        const displayPrice = getDisplayPrice(listing);
-        const typeBadgeClass = getTypeBadgeClass(listing);
-        const typeBadgeText = getTypeBadgeText(listing);
-
-        // Update modal header
-        document.getElementById('modalTitle').textContent = listing.title || 'Property Details';
-        document.getElementById('modalLocation').textContent = listing.location || 'Location not specified';
-        document.getElementById('modalPrice').textContent = displayPrice;
-        document.getElementById('modalStatus').textContent = typeBadgeText;
-        document.getElementById('modalStatus').className = typeBadgeClass === 'type-rent' ? 'status-rent' : 
-                                                        typeBadgeClass === 'type-sale' ? 'status-sale' : 
-                                                        'status-lease';
-
-        // Get all images
-        const images = listing.photos || listing.imageUrls || [];
-        const mainImage = images.length > 0 ? images[0] : 
-            'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image+Available';
-
-        // Pricing details based on listing type
-        let pricingDetails = '';
-        if (listingType === 'rent') {
-            pricingDetails = `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                    <span style="color: var(--text-light);">Monthly Rent:</span>
-                    <span style="font-weight: 600; color: var(--rent-color);">₱${(listing.monthlyRent || 0).toLocaleString()}</span>
-                </div>
-                ${listing.securityDeposit ? `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                    <span style="color: var(--text-light);">Security Deposit:</span>
-                    <span style="font-weight: 600;">₱${listing.securityDeposit.toLocaleString()}</span>
-                </div>
-                ` : ''}
-                ${listing.minimumStay ? `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                    <span style="color: var(--text-light);">Minimum Stay:</span>
-                    <span style="font-weight: 600;">${listing.minimumStay} month(s)</span>
-                </div>
-                ` : ''}
-            `;
-        } else if (listingType === 'lease') {
-            pricingDetails = `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                    <span style="color: var(--text-light);">Annual Rent:</span>
-                    <span style="font-weight: 600; color: var(--lease-color);">₱${(listing.annualRent || 0).toLocaleString()}</span>
-                </div>
-                ${listing.securityBond ? `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                    <span style="color: var(--text-light);">Security Bond:</span>
-                    <span style="font-weight: 600;">₱${listing.securityBond.toLocaleString()}</span>
-                </div>
-                ` : ''}
-                ${listing.leaseDuration ? `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                    <span style="color: var(--text-light);">Lease Duration:</span>
-                    <span style="font-weight: 600;">${listing.leaseDuration} year(s)</span>
-                </div>
-                ` : ''}
-            `;
-        } else {
-            pricingDetails = `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                    <span style="color: var(--text-light);">Sale Price:</span>
-                    <span style="font-weight: 600; color: var(--sale-color);">₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}</span>
-                </div>
-            `;
-        }
-
-        // Get amenities
-        const amenities = listing.amenities || [];
-
-        // Set modal content
-        const modalBody = document.getElementById('modalBody');
-        modalBody.innerHTML = `
-            <div style="margin-bottom: 30px;">
-                <!-- Main Image with Thumbnails -->
-                <div class="modal-gallery">
-                    <div class="modal-main-image">
-                        <img src="${mainImage}" alt="${listing.title}" id="modalCurrentImage">
-                    </div>
-                    ${images.length > 1 ? `
-                    <div class="modal-thumbnails" id="modalThumbnails">
-                        ${images.map((img, index) => `
-                            <div class="thumbnail ${index === 0 ? 'active' : ''}" data-image="${img}">
-                                <img src="${img}" alt="Thumbnail ${index + 1}">
-                            </div>
-                        `).join('')}
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
-                <!-- Left Column: Property Details -->
-                <div>
-                    <div class="modal-section">
-                        <h4>Property Details</h4>
-                        <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
-                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                                <span style="color: var(--text-light);">Property Type:</span>
-                                <span style="font-weight: 600;">${listing.propertyType || 'N/A'}</span>
-                            </div>
-                            ${listing.propertyCategory ? `
-                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                                <span style="color: var(--text-light);">Category:</span>
-                                <span style="font-weight: 600; text-transform: capitalize;">${listing.propertyCategory}</span>
-                            </div>
-                            ` : ''}
-                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                                <span style="color: var(--text-light);">Bedrooms:</span>
-                                <span style="font-weight: 600;">${listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                                <span style="color: var(--text-light);">Bathrooms:</span>
-                                <span style="font-weight: 600;">${listing.bathrooms || 0}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                                <span style="color: var(--text-light);">Area:</span>
-                                <span style="font-weight: 600;">${listing.floorArea || listing.totalArea || 'N/A'} sqm</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-section">
-                        <h4>Pricing Details</h4>
-                        <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
-                            ${pricingDetails}
-                        </div>
-                    </div>
-
-                    ${amenities.length > 0 ? `
-                    <div class="modal-section">
-                        <h4>Amenities & Features</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            ${amenities.map(amenity => `
-                                <span style="background: white; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); font-size: 14px;">
-                                    ${amenity}
-                                </span>
-                            `).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
-                </div>
-
-                <!-- Right Column: Description & Contact -->
-                <div>
-                    <div class="modal-section">
-                        <h4>Description</h4>
-                        <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; line-height: 1.6; white-space: pre-line;">
-                            ${listing.description || 'No description available.'}
-                        </div>
-                    </div>
-
-                    <div class="modal-section">
-                        <h4>Contact Information</h4>
-                        <div class="modal-contact">
-                            <div class="contact-avatar">
-                                ${userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                            </div>
-                            <div class="contact-info">
-                                <h5>${userInfo.displayName}</h5>
-                                <p>${getRoleDisplayText(userInfo.role)}</p>
-                                <p><strong>Email:</strong> ${userInfo.email}</p>
-                                <p><strong>Phone:</strong> ${userInfo.phone}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-section">
-                        <h4>Additional Information</h4>
-                        <div class="modal-additional-info">
-                            <div class="info-row">
-                                <span class="info-label">Transaction Type:</span>
-                                <span>${typeBadgeText}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Property Status:</span>
-                                <span>${listing.status === 'active' ? 'Available' : (listing.status || 'Available')}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Posted Date:</span>
-                                <span>${listing.createdAt ? new Date(listing.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Last Updated:</span>
-                                <span>${listing.updatedAt ? new Date(listing.updatedAt.seconds * 1000).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            ${listing.latitude && listing.longitude ? `
-            <div class="modal-section">
-                <h4>Property Location</h4>
-                <div id="propertyMap" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 15px; background: var(--bg-light);"></div>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <a href="https://www.google.com/maps?q=${listing.latitude},${listing.longitude}" 
-                       target="_blank" 
-                       style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--primary); color: white; border-radius: 8px; text-decoration: none; font-weight: 500;">
-                        <i class="fas fa-external-link-alt"></i> Open in Google Maps
-                    </a>
-                    <a href="https://maps.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}" 
-                       target="_blank" 
-                       style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--secondary); color: white; border-radius: 8px; text-decoration: none; font-weight: 500;">
-                        <i class="fas fa-directions"></i> Get Directions
-                    </a>
-                </div>
-            </div>
-            ` : ''}
-        `;
-
-        // Set up thumbnail click events
-        if (images.length > 1) {
-            document.querySelectorAll('.thumbnail').forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    const imageUrl = this.getAttribute('data-image');
-                    document.getElementById('modalCurrentImage').src = imageUrl;
-                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
-
-        // Set up modal button events
-        document.getElementById('modalContactBtn').onclick = contactFromModal;
-        document.getElementById('modalCloseBtn2').onclick = closeModal;
-
-        // Update save button state
-        await updateModalSaveButton();
-
-        // Show modal
-        document.getElementById('propertyModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-
-        // Initialize map if coordinates exist
-if (listing.latitude && listing.longitude) {
-  setTimeout(async () => {
-    try {
-      await loadGoogleMapsAPI();
-      initPropertyMap(listing.latitude, listing.longitude, listing.title);
-    } catch (error) {
-      console.error("Failed to load Google Maps:", error);
-      showMapPlaceholder(listing.latitude, listing.longitude);
-    }
-  }, 100);
-}
-
-    } catch (error) {
-        console.error('Error showing property details:', error);
-        alert('Error loading property details. Please try again.');
-    }
-}
-
-function closeModal() {
-    document.getElementById('propertyModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    currentModalListingId = null;
-    currentModalListing = null;
-}
-
 // --- EVENT HANDLERS ---
 
 async function toggleSaveProperty(propertyId, buttonElement) {
@@ -1741,16 +1274,15 @@ async function toggleSaveProperty(propertyId, buttonElement) {
                 savedAt: new Date(),
                 createdAt: new Date()
             });
+            
+            // Log save event
+            await logSaveEvent(currentUser.uid, propertyId);
+            
             buttonElement.innerHTML = '❤️';
             buttonElement.style.background = 'var(--primary)';
             buttonElement.style.color = 'white';
             console.log(`Property ${propertyId} saved`);
             showSaveToast('Property saved!', false);
-        }
-
-        // Update modal save button if modal is open
-        if (currentModalListingId === propertyId) {
-            await updateModalSaveButton();
         }
 
     } catch (error) {
@@ -1809,30 +1341,11 @@ function setupEventListeners() {
         resetFiltersBtn.addEventListener('click', resetFilters);
     }
     
-    // Modal close buttons
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', closeModal);
-    }
-    
-    const modalCloseBtn2 = document.getElementById('modalCloseBtn2');
-    if (modalCloseBtn2) {
-        modalCloseBtn2.addEventListener('click', closeModal);
-    }
-    
-    // Modal contact button
-    const modalContactBtn = document.getElementById('modalContactBtn');
-    if (modalContactBtn) {
-        modalContactBtn.addEventListener('click', contactFromModal);
-    }
-    
     // Refresh recommendations button
     const refreshRecoBtn = document.getElementById('refreshRecommendationsBtn');
     if (refreshRecoBtn) {
         refreshRecoBtn.addEventListener('click', async function() {
             try {
-                const { loadRecommendations } = await import('./recommendations.js');
-                
                 // Show loading state
                 const recoContainer = document.getElementById('recommendedListingsContainer');
                 if (recoContainer) {
@@ -1847,52 +1360,21 @@ function setupEventListeners() {
                     `;
                 }
                 
-                await loadRecommendations();
+                await loadRecommendationsFromPython();
             } catch (error) {
                 console.log("Could not refresh recommendations:", error);
             }
         });
     }
-    
-    // Close modal when clicking outside
-    document.addEventListener('click', function(e) {
-        const modal = document.getElementById('propertyModal');
-        const modalContent = document.querySelector('.modal-content');
-        
-        if (modal && modalContent && modal.style.display === 'flex') {
-            if (!modalContent.contains(e.target) && !e.target.closest('.listing-card')) {
-                closeModal();
-            }
-        }
-    });
-    
-    // Close modal with Escape key
-    document.addEventListener('keydown', function(e) {
-        const modal = document.getElementById('propertyModal');
-        if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
-            closeModal();
-        }
-    });
 }
 
 function setupListingEventListeners() {
-    // Listing card click
-    document.querySelectorAll('.listing-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Don't trigger if clicking on a button inside the card
-            if (!e.target.closest('button')) {
-                const listingId = this.getAttribute('data-listing-id');
-                if (listingId) {
-                    showListingDetails(listingId);
-                }
-            }
-        });
-    });
-    
     // Save property buttons
     document.querySelectorAll('.save-property-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             const propertyId = this.getAttribute('data-property-id');
             if (propertyId) {
                 toggleSaveProperty(propertyId, this);
@@ -1900,25 +1382,279 @@ function setupListingEventListeners() {
         });
     });
     
-    // Contact buttons
+    // Contact buttons - prevent card click when clicking contact button
     document.querySelectorAll('.action-btn.contact-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             const userId = this.getAttribute('data-user-id');
             if (userId) {
                 contactBroker(userId);
             }
         });
     });
-    
-    // View details buttons
-    document.querySelectorAll('.action-btn.view-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const listingId = this.getAttribute('data-listing-id');
-            if (listingId) {
-                showListingDetails(listingId);
+}
+
+// --- RECOMMENDATIONS FUNCTIONS (USING PYTHON BACKEND) ---
+
+async function loadRecommendationsFromPython() {
+    try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            console.log('User not authenticated, skipping recommendations');
+            showRecentPropertiesFallback();
+            return;
+        }
+
+        const userId = currentUser.uid;
+        console.log('Loading recommendations from Python API for user:', userId);
+
+        // Show loading state
+        const recoContainer = document.getElementById('recommendedListingsContainer');
+        if (recoContainer) {
+            recoContainer.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+                    <div class="spinner" style="border: 4px solid var(--bg-light); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                    <p style="color: var(--text-light);">Finding properties you'll love...</p>
+                </div>
+            `;
+        }
+
+        // Call Python backend API with better error handling
+        let response;
+        let data;
+        
+        try {
+            response = await fetch(`${PYTHON_API_URL}?user_id=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
             }
+            
+            // Get response as text first to check if it's valid JSON
+            const responseText = await response.text();
+            console.log('API Response:', responseText.substring(0, 500));
+            
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse JSON response:', parseError);
+                console.error('Response text:', responseText);
+                showRecentPropertiesFallback();
+                return;
+            }
+            
+        } catch (fetchError) {
+            console.error('Fetch error:', fetchError);
+            showRecentPropertiesFallback();
+            return;
+        }
+
+        if (data && data.has_history && data.recommendations && data.recommendations.length > 0) {
+            // Display the recommendations
+            displayRecommendedListingsPython(data.recommendations, 'personalized');
+        } else if (data && !data.has_history) {
+            // User has no history, show recent properties instead
+            showRecentPropertiesFallback();
+        } else {
+            // No recommendations available
+            showRecentPropertiesFallback();
+        }
+
+    } catch (error) {
+        console.error('Error loading recommendations:', error);
+        showRecentPropertiesFallback();
+    }
+}
+
+// Fallback function for recent listings
+async function showRecentPropertiesFallback() {
+    try {
+        console.log('Showing recent properties as fallback');
+
+        // Get recent active properties
+        const activeListings = allListings.filter(listing => 
+            listing.status === 'active' ||
+            listing.status === 'available' ||
+            listing.status === 'Active' ||
+            (listing.status === undefined && listing.isActive !== false)
+        );
+
+        // Take up to 6 recent listings
+        const recentListings = activeListings.slice(0, 6);
+        
+        if (recentListings.length > 0) {
+            displayRecommendedListingsPython(recentListings, 'recent');
+        } else {
+            // If no recent listings, show a message
+            const recoContainer = document.getElementById('recommendedListingsContainer');
+            if (recoContainer) {
+                recoContainer.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🏠</div>
+                        <h3 style="color: var(--text-dark); margin-bottom: 10px;">No Properties Available</h3>
+                        <p style="color: var(--text-light); max-width: 500px; margin: 0 auto;">
+                            There are currently no properties available. Check back soon!
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+    } catch (error) {
+        console.error('Error loading recent listings:', error);
+        const recoContainer = document.getElementById('recommendedListingsContainer');
+        if (recoContainer) {
+            recoContainer.innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                    <h3 style="color: var(--text-dark); margin-bottom: 10px;">Unable to Load Recommendations</h3>
+                    <p style="color: var(--text-light); max-width: 500px; margin: 0 auto;">
+                        Please try again later or refresh the page.
+                    </p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Function to display recommendations from Python
+function displayRecommendedListingsPython(recommendations, type = 'personalized') {
+    const recoSection = document.getElementById('recommendedSection');
+    if (!recoSection) return;
+
+    const header = recoSection.querySelector('h2');
+    if (header) {
+        if (type === 'personalized') {
+            header.innerHTML = '<i class="fas fa-robot"></i> AI Recommendations For You';
+        } else if (type === 'recent') {
+            header.innerHTML = '<i class="fas fa-clock"></i> Recent Properties';
+        }
+    }
+
+    const recoContainer = document.getElementById('recommendedListingsContainer');
+    if (!recoContainer) return;
+
+    if (!recommendations || recommendations.length === 0) {
+        recoContainer.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">💬</div>
+                <h3 style="color: var(--text-dark); margin-bottom: 10px;">Start Building Your Preferences</h3>
+                <p style="color: var(--text-light); max-width: 500px; margin: 0 auto;">
+                    Save properties you like or search for properties to get personalized recommendations!
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    recoContainer.innerHTML = recommendations.map(property => {
+        const price = property.monthlyRent || property.pricing || property.salePrice || property.price || 0;
+        const isForRent = !!property.monthlyRent;
+        const isForLease = !!property.annualRent;
+        const photo = property.photos?.[0] || property.imageUrls?.[0] || `https://via.placeholder.com/400x200/0b2e52/white?text=${encodeURIComponent(property.title || 'Property')}`;
+        const matchScore = property.recoScore ? Math.round(property.recoScore * 100) : null;
+
+        return `
+            <div class="listing-card-wrapper">
+                <a href="property_details.html?id=${property.id}" class="listing-card-link">
+                    <div class="listing-card">
+                        <div class="listing-card-image-container">
+                            <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
+                            
+                            ${matchScore && matchScore > 50 ? `
+                                <div class="listing-match-badge">
+                                    ${matchScore}% Match
+                                </div>
+                            ` : ''}
+                            
+                            ${type === 'personalized' ? `
+                                <div class="listing-ai-badge">
+                                    For You
+                                </div>
+                            ` : ''}
+                            
+                            <div class="listing-type-badge ${isForRent ? 'type-rent' : isForLease ? 'type-lease' : 'type-sale'}">
+                                ${isForRent ? 'FOR RENT' : isForLease ? 'FOR LEASE' : 'FOR SALE'}
+                            </div>
+                        </div>
+                        
+                        <div class="listing-content">
+                            <div class="listing-header">
+                                <div>
+                                    <h3 class="listing-title">${property.title || 'Untitled Property'}</h3>
+                                    <div class="listing-location">
+                                        <span class="location-icon">📍</span>
+                                        <span class="location-text">${property.location || 'Location not specified'}</span>
+                                    </div>
+                                </div>
+                                <div class="listing-price ${isForRent ? 'price-rent' : isForLease ? 'price-lease' : 'price-sale'}">
+                                    ₱${price.toLocaleString()}${isForRent ? '/month' : isForLease ? '/year' : ''}
+                                </div>
+                            </div>
+                            
+                            <div class="listing-details">
+                                ${property.bedrooms ? `
+                                    <div class="detail">
+                                        <span class="detail-icon">🛏️</span>
+                                        <span class="detail-text">${property.bedrooms} ${property.bedrooms === 'Studio' ? '' : 'beds'}</span>
+                                    </div>
+                                ` : ''}
+                                
+                                ${property.bathrooms ? `
+                                    <div class="detail">
+                                        <span class="detail-icon">🚿</span>
+                                        <span class="detail-text">${property.bathrooms} baths</span>
+                                    </div>
+                                ` : ''}
+                                
+                                ${property.floorArea || property.totalArea ? `
+                                    <div class="detail">
+                                        <span class="detail-icon">📐</span>
+                                        <span class="detail-text">${property.floorArea || property.totalArea} sqm</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            ${property.similarity_score ? `
+                                <div class="listing-similarity">
+                                    <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-light); background: var(--bg-light); padding: 4px 8px; border-radius: 4px;">
+                                        <span>🤝</span>
+                                        Similar to: ${property.similar_to || 'your saved properties'}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="listing-actions">
+                                <span class="action-btn view-btn" aria-label="View property details">
+                                    <span class="view-icon">👁️</span>
+                                    View Details
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `;
+    }).join('');
+    
+    // Setup event listeners for AI recommendation cards
+    setupAIRecommendationListeners();
+}
+
+// Setup event listeners for AI recommendation cards
+function setupAIRecommendationListeners() {
+    // View buttons are now non-clickable (for visual only since whole card is clickable)
+    document.querySelectorAll('#recommendedListingsContainer .action-btn.view-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
         });
     });
 }
@@ -1969,31 +1705,15 @@ onAuthStateChanged(auth, async (user) => {
     // Load listings and categories
     loadAllListings();
     
-     loadGoogleMapsAPI().catch(error => {
-      console.warn("Google Maps failed to load:", error);
-    });
-
-    // Load listings and categories
-    loadAllListings();
-
-    // Load recommendations
-    try {
-        const { loadRecommendations } = await import('./recommendations.js');
-        
-        // Load recommendations with a small delay to ensure DOM is ready
-        setTimeout(() => {
-            loadRecommendations().catch(error => {
-                console.log("Recommendations failed to load:", error);
-            });
-        }, 1000);
-
-    } catch (error) {
-        console.log("Recommendations module not available:", error.message);
-    }
+    // Load recommendations from Python backend
+    setTimeout(() => {
+        loadRecommendationsFromPython().catch(error => {
+            console.log("Python recommendations failed to load:", error);
+        });
+    }, 1000);
 
     // Setup event listeners
     setupEventListeners();
-
 });
 
 // Add CSS animations
@@ -2021,15 +1741,13 @@ document.head.appendChild(style);
 // ================================ WINDOW FUNCTIONS (for backward compatibility) =============================
 
 // These are kept for backward compatibility with inline onclick handlers
-// but should be replaced with proper event listeners
 window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
-window.showListingDetails = showListingDetails;
 window.toggleSaveProperty = toggleSaveProperty;
 window.contactBroker = contactBroker;
-window.closeModal = closeModal;
 window.loadAllListings = loadAllListings;
 window.filterByCategory = filterByCategory;
+window.loadRecommendationsFromPython = loadRecommendationsFromPython;
 </script>
 
 </body>
