@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Agents - BahAI Real Estate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0b2e52;
+            --primary-dark: #001F3F;
+            --primary-light: #002f3f;
+            --secondary: #1976d2;
+            --accent: #ff9800;
+            --text-dark: #1a202c;
+            --text-light: #718096;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .container {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .add-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trend-up {
+            color: #10b981;
+        }
+
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .table-container {
+            background: var(--bg-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-header {
+            padding: 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .table-subtitle {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+        }
+
+        .refresh-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .refresh-btn:hover {
+            background: var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 20px 25px;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: var(--bg-light);
+        }
+
+        .agent-cell {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .agent-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .agent-title {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-white);
+            color: var(--text-dark);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .action-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        .spinner {
+            border: 4px solid var(--bg-light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-white);
+        }
+
+        .pagination-info {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-white);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--bg-light);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                margin-left: 0;
+                padding: 25px;
+            }
+            
+            .mobile-menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .add-button {
+                align-self: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .table-controls {
+                width: 100%;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .pagination {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <div class="container">
+        <div class="topbar">
+            <div class="page-header">
+                <h1>My Agents</h1>
+                <p>Manage your brokerage team members and their performance</p>
+            </div>
+            <a href="agent.html" class="add-button">
+                <span>👤</span> Add New Agent
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalAgents">0</div>
+                <div class="stat-label">Total Agents</div>
+                <div class="stat-trend trend-up">↑ All team members</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeAgents">0</div>
+                <div class="stat-label">Active Agents</div>
+                <div class="stat-trend trend-up">↑ Currently active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingAgents">0</div>
+                <div class="stat-label">Pending Invitations</div>
+                <div class="stat-trend trend-up">↑ Awaiting response</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="inactiveAgents">0</div>
+                <div class="stat-label">Inactive Agents</div>
+                <div class="stat-trend trend-up">↑ Archived members</div>
+            </div>
+        </div>
+
+        <!-- Agents Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <div>
+                    <div class="table-title">Agent List</div>
+                    <div class="table-subtitle" id="agentCount">0 agents found</div>
+                </div>
+                <div class="table-controls">
+                    <input type="text" 
+                           class="search-box" 
+                           id="searchInput" 
+                           placeholder="Search by name, email, or phone...">
+                    <button class="refresh-btn" id="refreshBtn">
+                        <span>🔄</span> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading agents...</p>
+            </div>
+
+            <div id="tableContent" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Experience</th>
+                            <th>Specializations</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agentsList">
+                        <!-- Agents will be loaded here -->
+                    </tbody>
+                </table>
+
+                <div class="pagination" id="pagination" style="display: none;">
+                    <div class="pagination-info" id="paginationInfo">
+                        Showing 0 of 0 agents
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevBtn">← Previous</button>
+                        <div id="pageNumbers"></div>
+                        <button class="page-btn" id="nextBtn">Next →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu functionality
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
+                    'translateX(-100%)' : 'translateX(0px)';
+            }
+        });
+
+        // Load sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                const links = document.querySelectorAll('.sidebar-link');
+                links.forEach(link => {
+                    if (link.getAttribute('href') === 'list_agent.html' || link.getAttribute('href') === 'agents.html') {
+                        link.classList.add('active');
+                    }
+                });
+            })
+            .catch(error => console.error('Error loading sidebar:', error));
+    </script>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            where, 
+            getDocs,
+            doc,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+            authDomain: "bahai-1b76d.firebaseapp.com",
+            projectId: "bahai-1b76d",
+            storageBucket: "bahai-1b76d.appspot.com",
+            messagingSenderId: "646878644941",
+            appId: "1:646878644941:web:5b4ccc3412250337587784"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let allAgents = [];
+        let filteredAgents = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            } else {
+                currentUser = user;
+                await loadAgents();
+            }
+        });
+
+        async function loadAgents() {
+            try {
+                const loadingEl = document.getElementById('loading');
+                loadingEl.style.display = 'block';
+                document.getElementById('tableContent').style.display = 'none';
+                document.getElementById('pagination').style.display = 'none';
+
+                // Query agents where brokerId matches current user
+                const agentsQuery = query(
+                    collection(db, "agents"),
+                    where("brokerId", "==", currentUser.uid)
+                );
+                
+                const querySnapshot = await getDocs(agentsQuery);
+                allAgents = [];
+                
+                querySnapshot.forEach((docSnap) => {
+                    const agentData = docSnap.data();
+                    allAgents.push({
+                        id: docSnap.id,
+                        ...agentData,
+                        // Create searchable text
+                        searchText: `${agentData.firstName || ''} ${agentData.lastName || ''} ${agentData.email || ''} ${agentData.phone || ''} ${agentData.title || ''}`.toLowerCase()
+                    });
+                });
+                
+                // Sort agents: active first, then pending, then by date
+                allAgents.sort((a, b) => {
+                    if (a.status === 'active' && b.status !== 'active') return -1;
+                    if (a.status !== 'active' && b.status === 'active') return 1;
+                    if (a.status === 'pending' && b.status === 'inactive') return -1;
+                    if (a.status === 'inactive' && b.status === 'pending') return 1;
+                    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                });
+                
+                filteredAgents = [...allAgents];
+                updateStats();
+                applySearch();
+                
+            } catch (error) {
+                console.error("Error loading agents:", error);
+                document.getElementById('loading').innerHTML = `
+                    <div class="error-icon">⚠️</div>
+                    <h3>Error Loading Agents</h3>
+                    <p>There was an error loading your agent list.</p>
+                    <button onclick="window.location.reload()" class="action-btn primary" style="margin-top: 20px;">
+                        🔄 Try Again
+                    </button>
+                `;
+            }
+        }
+
+        function updateStats() {
+            const total = allAgents.length;
+            const active = allAgents.filter(a => a.status === 'active').length;
+            const pending = allAgents.filter(a => a.status === 'pending').length;
+            const inactive = allAgents.filter(a => a.status === 'inactive').length;
+            
+            document.getElementById('totalAgents').textContent = total;
+            document.getElementById('activeAgents').textContent = active;
+            document.getElementById('pendingAgents').textContent = pending;
+            document.getElementById('inactiveAgents').textContent = inactive;
+        }
+
+        function renderAgents() {
+            const tbody = document.getElementById('agentsList');
+            tbody.innerHTML = '';
+            
+            if (filteredAgents.length === 0) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tableContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <h3>No Agents Found</h3>
+                        <p>No agents match your search criteria.</p>
+                    </div>
+                `;
+                document.getElementById('tableContent').style.display = 'block';
+                return;
+            }
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageAgents = filteredAgents.slice(startIndex, endIndex);
+            
+            pageAgents.forEach(agent => {
+                const row = document.createElement('tr');
+                
+                // Get initials for avatar
+                const initials = `${agent.firstName?.[0] || ''}${agent.lastName?.[0] || ''}`.toUpperCase() || 'AA';
+                
+                // Format date
+                const joinedDate = agent.profileCompletedAt || agent.createdAt;
+                const formattedDate = joinedDate ? new Date(joinedDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                }) : 'Pending';
+                
+                // Status badge
+                let statusClass = 'status-pending';
+                let statusText = 'Pending';
+                
+                if (agent.status === 'active') {
+                    statusClass = 'status-active';
+                    statusText = 'Active';
+                } else if (agent.status === 'inactive') {
+                    statusClass = 'status-inactive';
+                    statusText = 'Inactive';
+                }
+                
+                // Experience display
+                let experienceText = 'Not specified';
+                if (agent.experience === '0-2') experienceText = '0-2 years (Beginner)';
+                else if (agent.experience === '3-5') experienceText = '3-5 years (Intermediate)';
+                else if (agent.experience === '6-10') experienceText = '6-10 years (Experienced)';
+                else if (agent.experience === '10+') experienceText = '10+ years (Expert)';
+                
+                // Specializations
+                const specialties = agent.specialties || [];
+                const specialtiesText = specialties.length > 0 
+                    ? specialties.slice(0, 2).join(', ') + (specialties.length > 2 ? '...' : '')
+                    : 'None';
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="agent-cell">
+                            <div class="agent-avatar">${initials}</div>
+                            <div class="agent-info">
+                                <div class="agent-name">${agent.firstName || ''} ${agent.lastName || ''}</div>
+                                <div class="agent-title">${agent.title || 'Real Estate Agent'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="margin-bottom: 4px;">${agent.email || 'Email not provided'}</div>
+                        <div style="color: var(--text-light); font-size: 14px;">${agent.phone || 'Phone not provided'}</div>
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td>${experienceText}</td>
+                    <td>${specialtiesText}</td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            ${agent.status === 'pending' ? 
+                                `<button class="action-btn" onclick="resendInvitation('${agent.id}', '${agent.email}')">
+                                    <span>📧</span> Resend
+                                </button>` : 
+                                `<button class="action-btn" onclick="viewAgent('${agent.id}')">
+                                    <span>👁️</span> View
+                                </button>`
+                            }
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // Update loading state
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('tableContent').style.display = 'block';
+            document.getElementById('agentCount').textContent = `${filteredAgents.length} agents found`;
+            
+            // Update pagination
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
+            
+            if (totalPages <= 1) {
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('pagination').style.display = 'flex';
+            
+            // Update pagination info
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, filteredAgents.length);
+            document.getElementById('paginationInfo').textContent = 
+                `Showing ${startIndex}-${endIndex} of ${filteredAgents.length} agents`;
+            
+            // Update page buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const pageNumbers = document.getElementById('pageNumbers');
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            
+            // Generate page numbers
+            pageNumbers.innerHTML = '';
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+            
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-btn';
+                if (i === currentPage) {
+                    pageBtn.classList.add('active');
+                }
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    renderAgents();
+                };
+                pageNumbers.appendChild(pageBtn);
+            }
+        }
+
+        // Search functionality
+        function applySearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm.trim() === '') {
+                filteredAgents = [...allAgents];
+            } else {
+                filteredAgents = allAgents.filter(agent => 
+                    agent.searchText.includes(searchTerm)
+                );
+            }
+            
+            currentPage = 1;
+            renderAgents();
+        }
+
+        // Event Listeners
+        document.getElementById('searchInput').addEventListener('input', applySearch);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadAgents();
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderAgents();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderAgents();
+            }
+        });
+
+        // Action functions
+        window.resendInvitation = async function(agentId, agentEmail) {
+            if (confirm(`Resend invitation to ${agentEmail}?`)) {
+                try {
+                    // Show loading
+                    const btn = event.target.closest('button');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<span>⏳</span> Sending...';
+                    btn.disabled = true;
+                    
+                    // Update the invitation date
+                    const agentRef = doc(db, "agents", agentId);
+                    await updateDoc(agentRef, {
+                        lastInvitationSent: new Date().toISOString()
+                    });
+                    
+                    // You could also trigger an email here
+                    alert(`✅ Invitation resent to ${agentEmail}`);
+                    
+                    // Refresh the list
+                    await loadAgents();
+                    
+                } catch (error) {
+                    console.error("Error resending invitation:", error);
+                    alert("❌ Error: " + error.message);
+                }
+            }
+        };
+
+        window.viewAgent = function(agentId) {
+            window.location.href = `agent-details.html?id=${agentId}`;
+        };
+    </script>
+</body>
+</html>

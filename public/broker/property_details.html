@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Property Details - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+      --primary: #0b2e52;
+      --primary-dark: #001F3F;
+      --primary-light: #002f3f;
+      --secondary: #1976d2;
+      --accent: #ff9800;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: var(--text-dark);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .container {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Back Button */
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    }
+
+    /* Property Header */
+    .property-header {
+      background: var(--bg-white);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .property-badges {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .property-badge {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-sale {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-rent {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-lease {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .property-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      line-height: 1.3;
+    }
+
+    .property-location {
+      color: var(--text-light);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .property-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-light);
+      padding: 12px 20px;
+      border-radius: 12px;
+      min-width: 150px;
+    }
+
+    .stat-icon {
+      font-size: 20px;
+      color: var(--primary);
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .price-section {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 25px;
+      border-radius: 16px;
+      margin-top: 20px;
+    }
+
+    .price-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+
+    .price-value {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .action-button {
+      width: 100%;
+      background: white;
+      color: var(--primary);
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Two Column Layout */
+    .two-column-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    /* Image Gallery */
+    .property-gallery {
+      background: var(--bg-white);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .main-image-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .main-property-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .image-navigation {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      transform: translateY(-50%);
+    }
+    
+    .image-nav-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      color: var(--text-dark);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      box-shadow: var(--shadow);
+    }
+    
+    .image-nav-btn:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+    
+    .image-nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .image-counter {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .image-thumbnails {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+    
+    .thumbnail {
+      width: 100px;
+      height: 70px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    
+    .thumbnail:hover {
+      opacity: 0.9;
+    }
+    
+    .thumbnail.active {
+      opacity: 1;
+      border: 3px solid var(--primary);
+    }
+    
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Property Section */
+    .property-section {
+      background: var(--bg-white);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 25px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .property-description {
+      line-height: 1.8;
+      font-size: 16px;
+      color: var(--text-dark);
+    }
+
+    /* Amenities Grid */
+    .amenities-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+
+    .amenity-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 15px;
+      background: var(--bg-light);
+      border-radius: 10px;
+      border-left: 4px solid var(--primary);
+    }
+
+    /* Contact Card */
+    .contact-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .contact-header {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .contact-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .contact-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: white;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+    }
+
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .contact-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .contact-role {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .contact-methods {
+      margin-bottom: 25px;
+    }
+
+    .contact-method {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .method-label {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .method-value {
+      font-weight: 500;
+    }
+
+    /* Pricing Card */
+    .pricing-card {
+      background: var(--bg-light);
+      border-radius: 16px;
+      padding: 25px;
+    }
+
+    .pricing-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pricing-details {
+      background: var(--bg-white);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .pricing-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pricing-item:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-label {
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .pricing-value {
+      color: var(--text-dark);
+      font-weight: 600;
+    }
+
+    /* Map Section */
+    #propertyMap {
+      width: 100%;
+      height: 400px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    /* Action Buttons */
+    .property-actions {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding-top: 30px;
+      border-top: 2px solid var(--border);
+    }
+
+    .action-btn-large {
+      padding: 16px 32px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .action-btn-large:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .contact-btn {
+      background: var(--secondary);
+      color: white;
+    }
+
+    .calculator-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .save-btn {
+      background: var(--bg-white);
+      color: var(--text-dark);
+      border: 1px solid var(--border);
+    }
+
+    /* Mortgage Calculator Modal - Updated to match dashboard style */
+    .mortgage-calculator-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(5px);
+        padding: 20px;
+    }
+    
+    .mortgage-calculator-content {
+        background: var(--bg-white);
+        width: 90%;
+        max-width: 500px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .calculator-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: white;
+        padding: 25px;
+        text-align: center;
+        position: relative;
+    }
+    
+    .calculator-header h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    .calculator-header p {
+        margin: 8px 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    
+    .calculator-body {
+        padding: 25px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .calculator-section {
+        margin-bottom: 25px;
+    }
+    
+    .calculator-section h4 {
+        color: var(--primary);
+        margin: 0 0 15px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .price-display {
+        background: var(--bg-light);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    
+    .price-display .label {
+        display: block;
+        color: var(--text-light);
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .price-display .amount {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    
+    .price-display .currency {
+        display: block;
+        color: var(--text-light);
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .option-btn {
+        padding: 12px;
+        background: var(--bg-light);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+    
+    .option-btn:hover {
+        background: var(--border);
+    }
+    
+    .option-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .option-btn.custom-option {
+        background: #fef3c7;
+        border-color: #fbbf24;
+        color: #92400e;
+    }
+    
+    .custom-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-size: 16px;
+        text-align: center;
+        margin-top: 10px;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .result-section {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+    
+    .result-label {
+        display: block;
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 8px;
+    }
+    
+    .result-amount {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .result-currency {
+        display: block;
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 20px;
+    }
+    
+    .result-note {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-top: 10px;
+        line-height: 1.4;
+        font-style: italic;
+    }
+    
+    .loan-breakdown {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .breakdown-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .breakdown-label {
+        display: block;
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 5px;
+    }
+    
+    .breakdown-value {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .calculator-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
+    
+    .btn-primary {
+        flex: 1;
+        padding: 15px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        flex: 1;
+        padding: 15px;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-secondary:hover {
+        background: var(--border);
+        transform: translateY(-1px);
+    }
+    
+    .close-calculator {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .email-section {
+        background: var(--bg-light);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid var(--border);
+    }
+    
+    .email-section h4 {
+        color: var(--primary);
+        margin: 0 0 10px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .email-section p {
+        color: var(--text-light);
+        font-size: 14px;
+        margin: 0 0 15px;
+        line-height: 1.5;
+    }
+    
+    .email-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-email {
+        width: 100%;
+        padding: 15px;
+        background: #f59e0b;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-email:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+    }
+
+    /* Loading State */
+    .loading-state {
+        text-align: center;
+        padding: 100px 20px;
+        background: var(--bg-white);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+    
+    .spinner {
+        border: 4px solid var(--bg-light);
+        border-top: 4px solid var(--primary);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Error State */
+    .error-state {
+        text-align: center;
+        padding: 100px 20px;
+        background: var(--bg-white);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .error-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #ef4444;
+    }
+
+    /* Toast Styles */
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .container {
+        margin-left: 0;
+        padding: 25px;
+      }
+      
+      .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .two-column-layout {
+        grid-template-columns: 1fr;
+      }
+      
+      .property-stats {
+        flex-direction: column;
+      }
+      
+      .stat-item {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+      
+      .property-title {
+        font-size: 24px;
+      }
+      
+      .property-actions {
+        flex-direction: column;
+      }
+      
+      .action-btn-large {
+        width: 100%;
+      }
+      
+      .main-image-container {
+        height: 300px;
+      }
+    }
+</style>
+</head>
+
+<body>
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+<!-- Include Sidebar -->
+<div id="sidebar-container"></div>
+
+<!-- Mortgage Calculator Modal -->
+<div id="mortgageCalculatorModal" class="mortgage-calculator-modal">
+    <div class="mortgage-calculator-content">
+        <div class="calculator-header">
+            <button class="close-calculator" id="closeCalculator">&times;</button>
+            <h3>Mortgage Calculator</h3>
+            <p>Calculate your mortgage credit and organize the purchase of your home.*</p>
+        </div>
+        
+        <div class="calculator-body">
+            <!-- Property Price Section -->
+            <div class="calculator-section">
+                <h4>Property Price</h4>
+                <div class="price-display">
+                    <span class="label">Total Property Value</span>
+                    <div class="amount" id="propertyPriceDisplay">0</div>
+                    <span class="currency">PHP</span>
+                </div>
+            </div>
+            
+            <!-- Deposit Section -->
+            <div class="calculator-section">
+                <h4>Deposit</h4>
+                <div class="options-grid" id="depositOptions">
+                    <div class="option-btn" data-value="10">10%</div>
+                    <div class="option-btn active" data-value="20">20%</div>
+                    <div class="option-btn" data-value="30">30%</div>
+                    <div class="option-btn" data-value="40">40%</div>
+                    <div class="option-btn" data-value="50">50%</div>
+                    <div class="option-btn custom-option" data-value="custom">Custom</div>
+                </div>
+                <input type="number" id="customDeposit" class="custom-input" placeholder="Enter custom %" style="display: none;">
+            </div>
+            
+            <!-- Loan Term Section -->
+            <div class="calculator-section">
+                <h4>Loan Term (years)</h4>
+                <div class="options-grid" id="loanTermOptions">
+                    <div class="option-btn" data-value="5">5</div>
+                    <div class="option-btn active" data-value="9">9</div>
+                    <div class="option-btn" data-value="13">13</div>
+                    <div class="option-btn" data-value="17">17</div>
+                    <div class="option-btn" data-value="21">21</div>
+                    <div class="option-btn" data-value="25">25</div>
+                </div>
+            </div>
+            
+            <!-- Interest Rate Section -->
+            <div class="calculator-section">
+                <h4>Interest Rate</h4>
+                <div class="options-grid" id="interestRateOptions">
+                    <div class="option-btn" data-value="0">0%</div>
+                    <div class="option-btn" data-value="8">8%</div>
+                    <div class="option-btn active" data-value="16">16%</div>
+                    <div class="option-btn" data-value="24">24%</div>
+                    <div class="option-btn" data-value="32">32%</div>
+                    <div class="option-btn custom-option" data-value="custom">Custom</div>
+                </div>
+                <input type="number" id="customInterest" class="custom-input" placeholder="Enter custom %" style="display: none;">
+            </div>
+            
+            <!-- Results Section -->
+            <div class="result-section">
+                <span class="result-label">Estimated Repayment (monthly)</span>
+                <div class="result-amount" id="monthlyPayment">0</div>
+                <span class="result-currency">PHP</span>
+                
+                <div class="loan-breakdown">
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Legal expenses</span>
+                        <div class="breakdown-value" id="legalExpenses">0</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Deposit</span>
+                        <div class="breakdown-value" id="depositAmount">0</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Mortgage amount</span>
+                        <div class="breakdown-value" id="mortgageAmount">0</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Interest</span>
+                        <div class="breakdown-value" id="totalInterest">0</div>
+                    </div>
+                </div>
+                
+                <div class="result-note">
+                    *The calculation is approximate, the final amount may vary depending on the financial institution chosen and other conditions not considered in this simulation.
+                </div>
+            </div>
+            
+            <!-- Email Section -->
+            <div class="email-section">
+                <h4>Get Detailed Report</h4>
+                <p>Find out how much you will pay month by month and all the expenses in your email.</p>
+                <input type="email" id="userEmail" class="email-input" placeholder="Enter your email address">
+                <button class="btn-email" id="sendEmailBtn">
+                    <i class="fas fa-envelope"></i> Get Pre-qualified
+                </button>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="calculator-actions">
+                <button class="btn-primary" id="recalculateBtn">Recalculate</button>
+                <button class="btn-secondary" id="closeCalculatorBtn">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- Back Button -->
+    <div>
+        <a href="profile.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+        </a>
+    </div>
+
+    <!-- Property Details Container -->
+    <div id="propertyDetailsContainer">
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading property details...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar Loader Script -->
+<script>
+// Mobile menu functionality
+document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
+            'translateX(-100%)' : 'translateX(0px)';
+    }
+});
+
+// Simple logout function
+function setupLogoutButton() {
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (!logoutBtn) {
+        console.warn("Logout button not found, retrying...");
+        setTimeout(setupLogoutButton, 100);
+        return;
+    }
+
+    // Remove existing event listeners
+    const newLogoutBtn = logoutBtn.cloneNode(true);
+    logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+
+    // Add new event listener
+    newLogoutBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (confirm("Are you sure you want to log out?")) {
+            // Check if performLogout function exists (from main script)
+            if (typeof window.performLogout === 'function') {
+                window.performLogout();
+            } else {
+                // Fallback to simple redirect
+                window.location.href = "login.html";
+            }
+        }
+    });
+
+    console.log('Logout button initialized successfully');
+}
+
+// Load sidebar
+fetch('sidebar.html')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to load sidebar: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(html => {
+        document.getElementById('sidebar-container').innerHTML = html;
+        // Highlight active link
+        const links = document.querySelectorAll('.sidebar-link');
+        links.forEach(link => {
+            if (link.getAttribute('href') === 'profile.html') {
+                link.classList.add('active');
+            }
+        });
+        // Setup logout button
+        setupLogoutButton();
+    })
+    .catch(error => {
+        console.error('Error loading sidebar:', error);
+        document.getElementById('sidebar-container').innerHTML = 
+            '<div class="sidebar" style="padding: 20px; background: var(--bg-light); color: #ef4444;">' +
+            '<p>Unable to load navigation. Please refresh the page.</p>' +
+            '</div>';
+    });
+</script>
+
+<!-- Main Application Script -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDocs,
+    getDoc,
+    doc,
+    addDoc,
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+    authDomain: "bahai-1b76d.firebaseapp.com",
+    projectId: "bahai-1b76d",
+    storageBucket: "bahai-1b76d.firebasestorage.app",
+    messagingSenderId: "646878644941",
+    appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Google Maps API Key
+const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+
+// Make signOut available globally for the logout button
+window.performLogout = async function() {
+    try {
+        await signOut(auth);
+        window.location.href = "login.html";
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Error logging out. Please try again.");
+    }
+};
+
+// Get property ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const propertyId = urlParams.get('id');
+
+// Global variables
+let propertyPrice = 0;
+let depositPercentage = 20;
+let loanTermYears = 9;
+let interestRate = 16;
+let currentImageIndex = 0;
+let imageUrls = [];
+let currentListing = null;
+
+// --- HELPER FUNCTIONS ---
+
+function getRoleDisplayText(role) {
+    const roleMap = {
+        'landlord': 'Property Owner',
+        'seller': 'Property Seller',
+        'broker': 'Licensed Broker',
+        'agent': 'Property Agent',
+        'admin': 'Administrator'
+    };
+    return roleMap[role] || 'Posted by';
+}
+
+function getListingType(listing) {
+    if (listing.listingType === 'lease' || listing.type === 'lease') {
+        return 'lease';
+    }
+    if (listing.listingType === 'rent' || listing.type === 'rent') {
+        return 'rent';
+    }
+    if (listing.listingType === 'sale' || listing.type === 'sale') {
+        return 'sale';
+    }
+    if (listing.monthlyRent !== undefined && listing.monthlyRent !== null && listing.monthlyRent > 0) {
+        return 'rent';
+    }
+    if (listing.annualRent !== undefined && listing.annualRent !== null && listing.annualRent > 0) {
+        return 'lease';
+    }
+    if ((listing.pricing !== undefined && listing.pricing !== null && listing.pricing > 0) ||
+        (listing.salePrice !== undefined && listing.salePrice !== null && listing.salePrice > 0)) {
+        return 'sale';
+    }
+    return 'sale';
+}
+
+function getDisplayPrice(listing) {
+    const type = getListingType(listing);
+    switch (type) {
+        case 'rent':
+            return '₱' + (listing.monthlyRent || 0).toLocaleString() + '/month';
+        case 'lease':
+            const annualRent = listing.annualRent || 0;
+            return '₱' + annualRent.toLocaleString() + '/year';
+        case 'sale':
+        default:
+            return '₱' + (listing.pricing || listing.salePrice || 0).toLocaleString();
+    }
+}
+
+function getTypeBadgeText(listing) {
+    const type = getListingType(listing);
+    switch (type) {
+        case 'rent':
+            return 'FOR RENT';
+        case 'lease':
+            return 'FOR LEASE';
+        case 'sale':
+        default:
+            return 'FOR SALE';
+    }
+}
+
+function getCompleteAddress(listing) {
+    if (listing.address && (listing.address.includes('.') || listing.address.length > 20)) {
+        return listing.address;
+    }
+    
+    const addressParts = [];
+    
+    if (listing.location) {
+        addressParts.push(listing.location);
+    } else if (listing.address) {
+        addressParts.push(listing.address);
+    }
+    
+    if (listing.city) {
+        addressParts.push(listing.city);
+    }
+    
+    if (listing.province && listing.province.toLowerCase() !== 'calabarzon') {
+        addressParts.push(listing.province);
+    }
+    
+    if (listing.city && (!listing.province || listing.province.toLowerCase() === 'calabarzon')) {
+        addressParts.push('Philippines');
+    }
+    
+    if (addressParts.length === 0) {
+        return 'Location not specified';
+    }
+    
+    return addressParts.join('. ');
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+// --- MORTGAGE CALCULATOR FUNCTIONS ---
+
+function showMortgageCalculatorModal(listing) {
+    // Get the actual property price based on listing type
+    const listingType = getListingType(listing);
+    
+    if (listingType === 'sale') {
+        // For sale properties, use the sale price
+        propertyPrice = listing.pricing || listing.salePrice || 0;
+    } else if (listingType === 'rent') {
+        // For rent properties, you might want to use a different calculation
+        // For example, calculate based on 10 years of rent
+        const monthlyRent = listing.monthlyRent || 0;
+        propertyPrice = monthlyRent * 12 * 10; // 10 years of rent
+    } else if (listingType === 'lease') {
+        // For lease properties
+        const annualRent = listing.annualRent || 0;
+        propertyPrice = annualRent * 10; // 10 years lease
+    }
+    
+    // Update the calculator with the actual property price
+    document.getElementById('propertyPriceDisplay').textContent = propertyPrice.toLocaleString();
+    
+    // Reset calculator options to defaults
+    depositPercentage = 20;
+    loanTermYears = 9;
+    interestRate = 16;
+    
+    // Update UI to show active options
+    document.querySelectorAll('#depositOptions .option-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.value === '20') {
+            btn.classList.add('active');
+        }
+    });
+    
+    document.querySelectorAll('#loanTermOptions .option-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.value === '9') {
+            btn.classList.add('active');
+        }
+    });
+    
+    document.querySelectorAll('#interestRateOptions .option-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.value === '16') {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Hide custom inputs
+    document.getElementById('customDeposit').style.display = 'none';
+    document.getElementById('customInterest').style.display = 'none';
+    
+    // Calculate initial values
+    calculateMortgage();
+    
+    // Show modal
+    document.getElementById('mortgageCalculatorModal').style.display = 'flex';
+    
+    // Setup calculator event listeners
+    setupCalculatorEventListeners();
+}
+
+function setupCalculatorEventListeners() {
+    // Deposit options
+    const depositBtns = document.querySelectorAll('#depositOptions .option-btn');
+    depositBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            depositBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            if (this.dataset.value === 'custom') {
+                document.getElementById('customDeposit').style.display = 'block';
+                document.getElementById('customDeposit').focus();
+                depositPercentage = parseFloat(document.getElementById('customDeposit').value) || 20;
+            } else {
+                document.getElementById('customDeposit').style.display = 'none';
+                depositPercentage = parseFloat(this.dataset.value);
+            }
+            
+            calculateMortgage();
+        });
+    });
+    
+    // Loan term options
+    const loanTermBtns = document.querySelectorAll('#loanTermOptions .option-btn');
+    loanTermBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            loanTermBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            loanTermYears = parseFloat(this.dataset.value);
+            calculateMortgage();
+        });
+    });
+    
+    // Interest rate options
+    const interestBtns = document.querySelectorAll('#interestRateOptions .option-btn');
+    interestBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            interestBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            if (this.dataset.value === 'custom') {
+                document.getElementById('customInterest').style.display = 'block';
+                document.getElementById('customInterest').focus();
+                interestRate = parseFloat(document.getElementById('customInterest').value) || 16;
+            } else {
+                document.getElementById('customInterest').style.display = 'none';
+                interestRate = parseFloat(this.dataset.value);
+            }
+            
+            calculateMortgage();
+        });
+    });
+    
+    // Custom deposit input
+    document.getElementById('customDeposit').addEventListener('input', function() {
+        depositPercentage = parseFloat(this.value) || 20;
+        calculateMortgage();
+    });
+    
+    // Custom interest input
+    document.getElementById('customInterest').addEventListener('input', function() {
+        interestRate = parseFloat(this.value) || 16;
+        calculateMortgage();
+    });
+    
+    // Recalculate button
+    document.getElementById('recalculateBtn').addEventListener('click', calculateMortgage);
+    
+    // Close buttons
+    document.getElementById('closeCalculator').addEventListener('click', closeCalculatorModal);
+    document.getElementById('closeCalculatorBtn').addEventListener('click', closeCalculatorModal);
+    
+    // Email button
+    document.getElementById('sendEmailBtn').addEventListener('click', function() {
+        const email = document.getElementById('userEmail').value;
+        if (email && validateEmail(email)) {
+            alert('Mortgage calculation report has been sent to ' + email);
+            closeCalculatorModal();
+        } else {
+            alert('Please enter a valid email address');
+        }
+    });
+    
+    // Close modal when clicking outside
+    document.getElementById('mortgageCalculatorModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCalculatorModal();
+        }
+    });
+}
+
+function calculateMortgage() {
+    // Calculate deposit amount
+    const depositAmount = (propertyPrice * depositPercentage) / 100;
+    const mortgageAmount = propertyPrice - depositAmount;
+    
+    // Calculate monthly payment using mortgage formula
+    const monthlyInterestRate = (interestRate / 100) / 12;
+    const numberOfPayments = loanTermYears * 12;
+    
+    let monthlyPayment = 0;
+    if (monthlyInterestRate > 0) {
+        monthlyPayment = mortgageAmount * 
+            (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfPayments)) / 
+            (Math.pow(1 + monthlyInterestRate, numberOfPayments) - 1);
+    } else {
+        monthlyPayment = mortgageAmount / numberOfPayments;
+    }
+    
+    // Calculate total interest
+    const totalPayment = monthlyPayment * numberOfPayments;
+    const totalInterest = totalPayment - mortgageAmount;
+    
+    // Calculate legal expenses (5% of property price as example)
+    const legalExpenses = propertyPrice * 0.05;
+    
+    // Update display with formatted numbers
+    document.getElementById('depositAmount').textContent = 
+        Math.round(depositAmount).toLocaleString();
+    document.getElementById('mortgageAmount').textContent = 
+        Math.round(mortgageAmount).toLocaleString();
+    document.getElementById('totalInterest').textContent = 
+        Math.round(totalInterest).toLocaleString();
+    document.getElementById('legalExpenses').textContent = 
+        Math.round(legalExpenses).toLocaleString();
+    document.getElementById('monthlyPayment').textContent = 
+        monthlyPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function closeCalculatorModal() {
+    document.getElementById('mortgageCalculatorModal').style.display = 'none';
+}
+
+// --- GOOGLE MAPS FUNCTIONS ---
+
+async function loadGoogleMapsAPI() {
+    return new Promise((resolve, reject) => {
+        if (window.google && window.google.maps) {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+            if (window.google && window.google.maps) {
+                resolve();
+            } else {
+                reject(new Error("Google Maps API failed to initialize"));
+            }
+        };
+        script.onerror = () => reject(new Error("Failed to load Google Maps script"));
+        document.head.appendChild(script);
+    });
+}
+
+function initPropertyMap(lat, lng, title) {
+    const mapElement = document.getElementById("propertyMap");
+    if (!mapElement) {
+        console.error("Map element not found");
+        return;
+    }
+
+    try {
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+
+        if (isNaN(latitude) || isNaN(longitude)) {
+            console.error("Invalid coordinates:", lat, lng);
+            showMapPlaceholder(lat, lng);
+            return;
+        }
+
+        const map = new google.maps.Map(mapElement, {
+            center: { lat: latitude, lng: longitude },
+            zoom: 16,
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true
+        });
+
+        // Add marker
+        new google.maps.Marker({
+            position: { lat: latitude, lng: longitude },
+            map: map,
+            title: title || "Property Location",
+            animation: google.maps.Animation.DROP
+        });
+    } catch (error) {
+        console.error("Error initializing map:", error);
+        showMapPlaceholder(lat, lng);
+    }
+}
+
+function showMapPlaceholder(lat, lng) {
+    const mapElement = document.getElementById("propertyMap");
+    if (!mapElement) return;
+
+    mapElement.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; background: var(--bg-light); border-radius: 12px;">
+        <i class="fas fa-map-marked-alt" style="font-size: 48px; color: var(--text-light); margin-bottom: 15px;"></i>
+        <p style="color: var(--text-light); margin-bottom: 10px;">Map could not be loaded</p>
+        <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--secondary); color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
+            <i class="fas fa-external-link-alt"></i> Open in Google Maps
+        </a>
+    </div>`;
+}
+
+// --- IMAGE NAVIGATION FUNCTIONS ---
+
+function initializeImageNavigation(images) {
+    imageUrls = images;
+    currentImageIndex = 0;
+
+    if (images.length <= 1) {
+        const nav = document.querySelector('.image-navigation');
+        const counter = document.querySelector('.image-counter');
+        if (nav) nav.style.display = 'none';
+        if (counter) counter.style.display = 'none';
+        return;
+    }
+
+    const nav = document.querySelector('.image-navigation');
+    const counter = document.querySelector('.image-counter');
+    if (nav) nav.style.display = 'flex';
+    if (counter) counter.style.display = 'block';
+
+    updateImageCounter();
+
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => navigateImage(-1));
+        prevBtn.disabled = currentImageIndex === 0;
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => navigateImage(1));
+        nextBtn.disabled = currentImageIndex === imageUrls.length - 1;
+    }
+
+    document.addEventListener('keydown', handleKeyboardNavigation);
+
+    document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+        thumb.addEventListener('click', () => goToImage(index));
+    });
+
+    function navigateImage(direction) {
+        const newIndex = currentImageIndex + direction;
+        if (newIndex >= 0 && newIndex < imageUrls.length) {
+            goToImage(newIndex);
+        }
+    }
+
+    function goToImage(index) {
+        if (index < 0 || index >= imageUrls.length) return;
+
+        currentImageIndex = index;
+        const mainImage = document.getElementById('mainPropertyImage');
+        if (mainImage) {
+            mainImage.src = imageUrls[index];
+        }
+
+        document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+            if (i === index) {
+                thumb.classList.add('active');
+                thumb.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+
+        if (prevBtn) prevBtn.disabled = index === 0;
+        if (nextBtn) nextBtn.disabled = index === imageUrls.length - 1;
+
+        updateImageCounter();
+    }
+
+    function updateImageCounter() {
+        const counter = document.querySelector('.image-counter');
+        if (counter) {
+            counter.textContent = `${currentImageIndex + 1} / ${imageUrls.length}`;
+        }
+    }
+
+    function handleKeyboardNavigation(e) {
+        if (e.key === 'ArrowLeft') {
+            navigateImage(-1);
+        } else if (e.key === 'ArrowRight') {
+            navigateImage(1);
+        }
+    }
+}
+
+// --- PROPERTY DETAILS FUNCTIONS ---
+
+async function loadPropertyDetails() {
+    if (!propertyId) {
+        displayError("No property ID provided");
+        return;
+    }
+
+    try {
+        const propertyDoc = await getDoc(doc(db, "properties", propertyId));
+        if (!propertyDoc.exists()) {
+            displayError("Property not found");
+            return;
+        }
+        
+        currentListing = {
+            id: propertyDoc.id,
+            ...propertyDoc.data()
+        };
+
+        let userInfo = {
+            displayName: 'User ' + (currentListing.userId ? currentListing.userId.substring(0, 8) : 'Unknown'),
+            email: 'Email not available',
+            phone: 'Phone not available',
+            role: 'user'
+        };
+
+        if (currentListing.userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentListing.userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    userInfo.displayName = userData.fullName || userData.email?.split('@')[0] || 'User ' + currentListing.userId.substring(0, 8);
+                    userInfo.email = userData.email || 'Email not available';
+                    userInfo.phone = userData.phone || 'Phone not available';
+                    userInfo.role = userData.role || 'user';
+                } else {
+                    const brokerDoc = await getDoc(doc(db, "brokers", currentListing.userId));
+                    if (brokerDoc.exists()) {
+                        const brokerData = brokerDoc.data();
+                        userInfo.displayName = brokerData.fullName || 'Broker ' + currentListing.userId.substring(0, 8);
+                        userInfo.email = brokerData.email || 'Email not available';
+                        userInfo.phone = brokerData.phone || 'Phone not available';
+                        userInfo.role = 'broker';
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
+        }
+
+        displayPropertyDetails(currentListing, userInfo);
+    } catch (error) {
+        console.error("Error loading property details:", error);
+        displayError("Error loading property details");
+    }
+}
+
+function displayPropertyDetails(listing, userInfo) {
+    const container = document.getElementById('propertyDetailsContainer');
+    
+    // Get listing details
+    const listingType = getListingType(listing);
+    const displayPrice = getDisplayPrice(listing);
+    const typeBadgeText = getTypeBadgeText(listing);
+    const completeAddress = getCompleteAddress(listing);
+    
+    // Get badge class
+    let badgeClass = 'badge-sale';
+    if (listingType === 'rent') badgeClass = 'badge-rent';
+    if (listingType === 'lease') badgeClass = 'badge-lease';
+    if (listing.status === 'active') badgeClass = 'badge-active';
+    if (listing.status === 'pending') badgeClass = 'badge-pending';
+    
+    // Get the actual property price for mortgage calculator
+    let actualPropertyPrice = 0;
+    if (listingType === 'sale') {
+        actualPropertyPrice = listing.pricing || listing.salePrice || 0;
+    } else if (listingType === 'rent') {
+        const monthlyRent = listing.monthlyRent || 0;
+        actualPropertyPrice = monthlyRent * 12 * 10; // 10 years of rent
+    } else if (listingType === 'lease') {
+        const annualRent = listing.annualRent || 0;
+        actualPropertyPrice = annualRent * 10; // 10 years lease
+    }
+    
+    // Get images
+    const images = listing.photos || listing.imageUrls || [];
+    const mainImage = images.length > 0 ? images[0] : 'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image+Available';
+    
+    // Pricing details
+    let pricingDetails = "";
+    if (listingType === 'rent') {
+        pricingDetails = `
+        <div class="pricing-item">
+            <span class="pricing-label">Monthly Rent:</span>
+            <span class="pricing-value" style="color: #10b981; font-weight: 600;">
+                ₱${(listing.monthlyRent || 0).toLocaleString()}
+            </span>
+        </div>
+        ${listing.securityDeposit ? `
+        <div class="pricing-item">
+            <span class="pricing-label">Security Deposit:</span>
+            <span class="pricing-value">${listing.securityDeposit.toLocaleString()}</span>
+        </div>
+        ` : ''}
+        ${listing.minimumStay ? `
+        <div class="pricing-item">
+            <span class="pricing-label">Minimum Stay:</span>
+            <span class="pricing-value">${listing.minimumStay} month(s)</span>
+        </div>
+        ` : ''}`;
+    } else if (listingType === 'lease') {
+        pricingDetails = `
+        <div class="pricing-item">
+            <span class="pricing-label">Annual Rent:</span>
+            <span class="pricing-value" style="color: #f59e0b; font-weight: 600;">
+                ₱${(listing.annualRent || 0).toLocaleString()}
+            </span>
+        </div>
+        ${listing.securityBond ? `
+        <div class="pricing-item">
+            <span class="pricing-label">Security Bond:</span>
+            <span class="pricing-value">${listing.securityBond.toLocaleString()}</span>
+        </div>
+        ` : ''}
+        ${listing.leaseDuration ? `
+        <div class="pricing-item">
+            <span class="pricing-label">Lease Duration:</span>
+            <span class="pricing-value">${listing.leaseDuration} year(s)</span>
+        </div>
+        ` : ''}`;
+    } else {
+        pricingDetails = `
+        <div class="pricing-item">
+            <span class="pricing-label">Sale Price:</span>
+            <span class="pricing-value" style="color: var(--secondary); font-weight: 600;">
+                ₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}
+            </span>
+        </div>`;
+    }
+    
+    // Get amenities
+    const amenities = listing.amenities || [];
+    const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
+    
+    // Build HTML
+    let html = `
+    <!-- Property Header -->
+    <div class="property-header">
+        <div class="property-badges">
+            <span class="property-badge ${badgeClass}">${typeBadgeText}</span>
+            <span class="property-badge badge-active">${listing.status === 'active' ? 'Available' : (listing.status || 'Available')}</span>
+        </div>
+        
+        <h1 class="property-title">${listing.title || 'Untitled Property'}</h1>
+        
+        <div class="property-location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>${completeAddress}</span>
+        </div>
+        
+        <div class="property-stats">
+            <div class="stat-item">
+                <i class="fas fa-bed stat-icon"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Bedrooms</span>
+                    <span class="stat-value">${listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0)}</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-bath stat-icon"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Bathrooms</span>
+                    <span class="stat-value">${listing.bathrooms || 0}</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-ruler-combined stat-icon"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Floor Area</span>
+                    <span class="stat-value">${listing.floorArea || listing.totalArea || 'N/A'} sqm</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="price-section">
+            <div class="price-label">Price</div>
+            <div class="price-value">${displayPrice}</div>
+            <button id="savePropertyBtn" class="action-button">
+                <i class="far fa-heart"></i> Save Property
+            </button>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="two-column-layout">
+        <!-- Main Content Column -->
+        <div>
+            <!-- Image Gallery -->
+            <div class="property-gallery">
+                <div class="main-image-container">
+                    <img src="${mainImage}" alt="${listing.title}" id="mainPropertyImage" class="main-property-image">
+                    <div class="image-navigation">
+                        <button class="image-nav-btn prev-btn" ${images.length <= 1 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="image-nav-btn next-btn" ${images.length <= 1 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="image-counter">
+                        ${images.length > 0 ? '1 / ' + images.length : 'No images'}
+                    </div>
+                </div>
+                ${images.length > 1 ? `
+                <div class="image-thumbnails">
+                    ${images.map((img, index) => `
+                    <div class="thumbnail ${index === 0 ? 'active' : ''}" data-image="${img}" data-index="${index}">
+                        <img src="${img}" alt="Thumbnail ${index + 1}">
+                    </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+            </div>
+
+            <!-- Property Description -->
+            <div class="property-section">
+                <h3 class="section-title">
+                    <i class="fas fa-align-left"></i>
+                    Property Description
+                </h3>
+                <div class="property-description">
+                    ${listing.description || 'No description available.'}
+                </div>
+            </div>
+
+            <!-- Property Features -->
+            ${amenities.length > 0 ? `
+            <div class="property-section">
+                <h3 class="section-title">
+                    <i class="fas fa-star"></i>
+                    Features & Amenities
+                </h3>
+                <div class="amenities-grid">
+                    ${amenities.map(amenity => `
+                    <div class="amenity-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${amenity}</span>
+                    </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+        </div>
+
+        <!-- Sidebar Column -->
+        <div>
+            <!-- Contact Card -->
+            <div class="contact-card">
+                <h3 class="contact-header">
+                    <i class="fas fa-user-circle"></i>
+                    Contact Agent
+                </h3>
+                <div class="contact-info">
+                    <div class="contact-avatar">
+                        ${userInitials}
+                    </div>
+                    <div class="contact-details">
+                        <h4 class="contact-name">${userInfo.displayName}</h4>
+                        <p class="contact-role">${getRoleDisplayText(userInfo.role)}</p>
+                    </div>
+                </div>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <div class="method-label">Email</div>
+                            <div class="method-value">${userInfo.email}</div>
+                        </div>
+                    </div>
+                    <div class="contact-method">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <div class="method-label">Phone</div>
+                            <div class="method-value">${userInfo.phone}</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="action-button" id="contactOwnerBtn">
+                    <i class="fas fa-comment"></i>
+                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
+                </button>
+            </div>
+
+            <!-- Pricing Card -->
+            <div class="pricing-card">
+                <h3 class="pricing-title">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Pricing Details
+                </h3>
+                <div class="pricing-details">
+                    ${pricingDetails}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    ${listing.latitude && listing.longitude ? `
+    <div class="property-section">
+        <h3 class="section-title">
+            <i class="fas fa-map-marked-alt"></i>
+            Property Location
+        </h3>
+        <div id="propertyMap"></div>
+    </div>
+    ` : ''}
+
+    <!-- Action Buttons -->
+    <div class="property-actions">
+        <button class="action-btn-large contact-btn" id="contactBtnBottom">
+            <i class="fas fa-phone"></i> Contact Agent
+        </button>
+        <button class="action-btn-large calculator-btn" id="calculatorBtn">
+            <i class="fas fa-calculator"></i> Mortgage Calculator
+        </button>
+        <button class="action-btn-large save-btn" id="saveBtnBottom">
+            <i class="far fa-heart"></i> Save Property
+        </button>
+    </div>`;
+    
+    container.innerHTML = html;
+    
+    // Initialize components
+    initializeImageNavigation(images);
+    setupButtonEventListeners(listing, userInfo);
+    updateSaveButtonState();
+    
+    // Load Google Maps
+    if (listing.latitude && listing.longitude) {
+        setTimeout(async () => {
+            try {
+                await loadGoogleMapsAPI();
+                initPropertyMap(listing.latitude, listing.longitude, listing.title);
+            } catch (error) {
+                console.error("Failed to load Google Maps:", error);
+                showMapPlaceholder(listing.latitude, listing.longitude);
+            }
+        }, 500);
+    }
+}
+
+function setupButtonEventListeners(listing, userInfo) {
+    // Contact buttons
+    document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
+            alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
+        });
+    });
+
+    // Save buttons
+    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
+        btn.addEventListener('click', function() {
+            toggleSaveProperty();
+        });
+    });
+
+    // Mortgage calculator button
+    const calculatorBtn = document.getElementById('calculatorBtn');
+    if (calculatorBtn) {
+        calculatorBtn.addEventListener('click', function() {
+            showMortgageCalculatorModal(listing);
+        });
+    }
+}
+
+async function updateSaveButtonState() {
+    if (!propertyId) return;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        updateSaveButtonText('Login to Save');
+        return;
+    }
+    
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef,
+            where('userId', '==', currentUser.uid),
+            where('propertyId', '==', propertyId)
+        );
+        const snapshot = await getDocs(q);
+        const isSaved = !snapshot.empty;
+        updateSaveButtonText(isSaved ? 'Saved' : 'Save Property', isSaved);
+    } catch (error) {
+        console.error('Error checking saved status:', error);
+        updateSaveButtonText('Error');
+    }
+}
+
+function updateSaveButtonText(text, isSaved = false) {
+    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
+        if (isSaved) {
+            btn.innerHTML = '<i class="fas fa-heart"></i> Saved';
+            btn.style.background = '#10b981';
+            btn.style.color = 'white';
+        } else {
+            if (text === 'Login to Save') {
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Save';
+            } else {
+                btn.innerHTML = '<i class="far fa-heart"></i> ' + text;
+            }
+            btn.style.background = '';
+            btn.style.color = '';
+        }
+    });
+}
+
+async function toggleSaveProperty() {
+    if (!propertyId) return;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        alert('Please login to save properties');
+        return;
+    }
+
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef,
+            where('userId', '==', currentUser.uid),
+            where('propertyId', '==', propertyId)
+        );
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+            await deleteDoc(snapshot.docs[0].ref);
+            showSaveToast('Removed from saved', false);
+            updateSaveButtonText('Save Property', false);
+        } else {
+            await addDoc(collection(db, 'savedProperties'), {
+                userId: currentUser.uid,
+                propertyId: propertyId,
+                savedAt: new Date(),
+                createdAt: new Date()
+            });
+            showSaveToast('Property saved!', false);
+            updateSaveButtonText('Saved', true);
+        }
+    } catch (error) {
+        console.error('Error toggling save:', error);
+        showSaveToast('Error saving property', true);
+    }
+}
+
+function showSaveToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${isError ? '#ef4444' : '#10b981'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-weight: 500;
+        box-shadow: var(--shadow-lg);
+        animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function displayError(message) {
+    const container = document.getElementById('propertyDetailsContainer');
+    container.innerHTML = `
+    <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h3 style="color: #ef4444; margin-bottom: 15px;">${message}</h3>
+        <p style="color: var(--text-light); margin-bottom: 30px;">Please try again or go back to the dashboard.</p>
+        <a href="profile.html" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </div>`;
+}
+
+// --- INITIALIZATION ---
+
+// Check authentication and load property details
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = "login.html";
+        return;
+    }
+    
+    try {
+        await loadPropertyDetails();
+    } catch (error) {
+        console.error("Error in initialization:", error);
+        displayError("Failed to load property details. Please refresh the page.");
+    }
+});
+
+// Export for global use if needed
+window.closeCalculatorModal = closeCalculatorModal;
+window.showMortgageCalculatorModal = showMortgageCalculatorModal;
+</script>
+
+</body>
+</html>

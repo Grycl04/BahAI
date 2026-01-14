@@ -7,9 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     :root {
-      --primary: #2e7d32;
-      --primary-dark: #1b5e20;
-      --primary-light: #4caf50;
+      --primary: #0b2e52;
+      --primary-dark: #001F3F;
+      --primary-light: #002f3f;
       --secondary: #1976d2;
       --accent: #ff9800;
       --text-dark: #1a202c;
@@ -943,7 +943,38 @@ async function loadListings() {
   }
 }
 
+// Event delegation for delete buttons
+document.addEventListener('click', async function(e) {
+  // Check if delete button was clicked
+  if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const button = e.target.classList.contains('delete-btn') ? e.target : e.target.closest('.delete-btn');
+    const card = button.closest('.listing-card');
+    const listingId = card ? card.getAttribute('data-listing-id') : null;
+    
+    if (listingId) {
+      await deleteListing(listingId, e);
+    }
+  }
+  
+  // Check if edit button was clicked
+  if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const button = e.target.classList.contains('edit-btn') ? e.target : e.target.closest('.edit-btn');
+    const card = button.closest('.listing-card');
+    const listingId = card ? card.getAttribute('data-listing-id') : null;
+    
+    if (listingId) {
+      editListing(listingId);
+    }
+  }
+});
 
+// Update your displayListings function to include data attributes:
 function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
  
@@ -961,9 +992,31 @@ function displayListings(listings) {
     return;
   }
 
-
-  container.innerHTML = listings.map(listing => `
-    <div class="listing-card" onclick="showListingDetails('${listing.id}')">
+  container.innerHTML = listings.map(listing => {
+    // Determine the correct price field based on listing type
+    let price = 0;
+    let priceLabel = '';
+    
+    if (listing.type === 'sale') {
+      price = listing.salePrice || 0;
+      priceLabel = '₱' + price.toLocaleString();
+    } else if (listing.type === 'lease') {
+      price = listing.annualRent || 0;
+      priceLabel = '₱' + price.toLocaleString() + '/year';
+    } else {
+      // Fallback for old listings
+      price = listing.price || listing.pricing || 0;
+      priceLabel = '₱' + price.toLocaleString();
+    }
+    
+    // Get the correct location field
+    const location = listing.address || listing.location || 'Location not specified';
+    
+    // Get square footage/area
+    const area = listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A';
+    
+    return `
+    <div class="listing-card" data-listing-id="${listing.id}" onclick="showListingDetails('${listing.id}')">
       <img src="${listing.photos && listing.photos.length > 0 ? listing.photos[0] : 'https://via.placeholder.com/400x200?text=No+Image'}"
            alt="${listing.title}" class="listing-image">
       <div class="listing-content">
@@ -971,10 +1024,10 @@ function displayListings(listings) {
           <div>
             <h3 class="listing-title">${listing.title}</h3>
             <div class="listing-location">
-              <span>📍</span> ${listing.location}
+              <span>📍</span> ${location}
             </div>
           </div>
-          <div class="listing-price">₱${listing.pricing?.toLocaleString() || '0'}</div>
+          <div class="listing-price">${priceLabel}</div>
         </div>
        
         <div class="listing-details">
@@ -985,7 +1038,10 @@ function displayListings(listings) {
             <span>🚿</span> ${listing.bathrooms || 0} baths
           </div>
           <div class="detail">
-            <span>📐</span> ${listing.squareFootage || 'N/A'}
+            <span>📐</span> ${area} sqm
+          </div>
+          <div class="detail">
+            <span>🏷️</span> ${listing.type === 'lease' ? 'Lease' : 'Sale'}
           </div>
         </div>
        
@@ -994,16 +1050,17 @@ function displayListings(listings) {
         </div>
        
         <div class="listing-actions">
-          <button class="action-btn edit-btn" onclick="event.stopPropagation(); editListing('${listing.id}')">
+          <button class="action-btn edit-btn">
             ✏️ Edit
           </button>
-          <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteListing('${listing.id}')">
+          <button class="action-btn delete-btn">
             🗑️ Delete
           </button>
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 
@@ -1028,18 +1085,50 @@ window.editListing = function(id) {
 };
 
 
-window.deleteListing = async function(id) {
-  if (!confirm('Are you sure you want to delete this listing?')) return;
+window.deleteListing = async function(id, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  
+  if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+    return;
+  }
+ 
+  // Show loading state
+  const deleteBtn = event ? (event.target.classList.contains('delete-btn') ? event.target : event.target.closest('.delete-btn')) : null;
+  if (deleteBtn) {
+    const originalText = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = '⏳ Deleting...';
+    deleteBtn.disabled = true;
+  }
  
   try {
     await deleteDoc(doc(db, "properties", id));
-    loadListings(); // Reload listings
+    
+    // Remove from local array
+    currentListings = currentListings.filter(listing => listing.id !== id);
+    
+    // Update UI
+    displayListings(currentListings);
+    updateStats(currentListings);
+    
+    // Show success message
+    console.log('Listing deleted successfully');
+    
   } catch (error) {
     console.error("Error deleting listing:", error);
-    alert('Error deleting listing');
+    
+    // Show error to user
+    alert('Error deleting listing: ' + error.message);
+    
+    // Reset button state
+    if (deleteBtn) {
+      deleteBtn.innerHTML = '🗑️ Delete';
+      deleteBtn.disabled = false;
+    }
   }
 };
-
 
 window.showListingDetails = function(id) {
   const listing = currentListings.find(l => l.id === id);

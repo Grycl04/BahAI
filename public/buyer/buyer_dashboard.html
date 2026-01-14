@@ -6,7 +6,7 @@
 <title>Dashboard - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="recommendations.css">
+<!-- REMOVED: recommendations.css since it doesn't exist -->
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -116,7 +116,7 @@
                 <i class="fas fa-robot"></i>
                 AI Recommendations For You
             </h2>
-            <p style="color: var(--text-light); font-size: 15px; margin-top: 5px;">
+            <p style="color: var(--text-light); font-size: 15px; margin-top: 5px;" id="recommendationsSubtitle">
                 Based on your saved properties and search history
             </p>
         </div>
@@ -212,7 +212,7 @@ fetch('sidebar.html')
             }
         });
         
-        // Setup logout button - use a simpler approach
+        // Setup logout button
         setupLogoutButton();
     })
     .catch(error => {
@@ -235,12 +235,10 @@ window.addEventListener('resize', function() {
     }
 });
 
-// Simple logout function that redirects to login page
-// The actual Firebase signOut will be handled in the main script
+// Simple logout function
 function setupLogoutButton() {
     const logoutBtn = document.getElementById("logoutBtn");
     if (!logoutBtn) {
-        console.warn("Logout button not found, retrying...");
         setTimeout(setupLogoutButton, 100);
         return;
     }
@@ -249,23 +247,19 @@ function setupLogoutButton() {
     const newLogoutBtn = logoutBtn.cloneNode(true);
     logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
 
-    // Add new event listener - use a global logout function
+    // Add new event listener
     newLogoutBtn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         if (confirm("Are you sure you want to log out?")) {
-            // Call the global logout function defined in the module
             if (typeof window.performLogout === 'function') {
                 window.performLogout();
             } else {
-                // Fallback: redirect to login page
                 window.location.href = "../login.html";
             }
         }
     });
-
-    console.log('Logout button initialized successfully');
 }
 </script>
 
@@ -388,7 +382,7 @@ const BATANGAS_PROPERTY_CATEGORIES = [
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
-// Python Backend URL - Fixed with correct endpoint
+// Python Backend URL
 const PYTHON_API_URL = "https://us-central1-bahai-1b76d.cloudfunctions.net/personalized_recommendations";
 
 // --- HELPER FUNCTIONS ---
@@ -504,6 +498,26 @@ function getTypeBadgeText(listing) {
     }
 }
 
+function getCompleteAddress(listing) {
+    const primaryAddress = listing.address || listing.location || listing.title || '';
+    
+    let fullAddress = primaryAddress;
+    
+    if (listing.city) {
+        fullAddress += ', ' + listing.city;
+    }
+    
+    if (listing.province && listing.province !== 'Calabarzon') {
+        fullAddress += ', ' + listing.province;
+    }
+    
+    if (!listing.province && listing.city) {
+        fullAddress += ', Philippines';
+    }
+    
+    return fullAddress || 'Batangas, Philippines';
+}
+
 // --- CATEGORY DROPDOWN FUNCTIONS ---
 
 // Update category dropdown based on selected transaction type
@@ -540,31 +554,6 @@ function updateCategoryDropdown() {
     
     updateTypeDropdown();
 }
-// Force all type badges to be visible on page load and after any updates
-function forceBadgeVisibility() {
-    document.querySelectorAll('.listing-type-badge').forEach(badge => {
-        badge.style.opacity = '1';
-        badge.style.visibility = 'visible';
-        badge.style.display = 'block';
-    });
-    
-    document.querySelectorAll('.listing-ai-badge, .listing-match-badge').forEach(badge => {
-        badge.style.opacity = '1';
-        badge.style.visibility = 'visible';
-        badge.style.display = 'block';
-    });
-}
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', forceBadgeVisibility);
-
-// Run after any dynamic content loads
-setTimeout(forceBadgeVisibility, 1000);
-setTimeout(forceBadgeVisibility, 3000);
-
-// Also run after loading listings and recommendations
-window.addEventListener('load', forceBadgeVisibility);
-
 
 // Update type dropdown based on selected category
 function updateTypeDropdown() {
@@ -589,9 +578,8 @@ function updateTypeDropdown() {
 
 // --- FILTER FUNCTIONS ---
 
-// Apply filters - NOW REDIRECTS TO SEARCH RESULTS PAGE
+// Apply filters - redirects to search results page
 async function applyFilters() {
-    // Collect filter values
     const filters = {};
     const location = document.getElementById('filterLocation').value;
     const transactionType = document.getElementById('filterListingType').value;
@@ -609,9 +597,7 @@ async function applyFilters() {
     try {
         const currentUser = auth.currentUser;
         if (currentUser && Object.keys(filters).length > 0) {
-            // Create a simple log search event function
             await logSearchEvent(currentUser.uid, filters);
-            console.log('✅ Search event logged for AI recommendations');
         }
     } catch (error) {
         console.log('Could not log search event:', error.message);
@@ -635,7 +621,6 @@ async function logSearchEvent(userId, filters) {
             metadata: { filters: filters },
             timestamp: new Date()
         });
-        console.log(`Logged search event for user ${userId}`);
         return true;
     } catch (error) {
         console.error("Failed to log search event:", error);
@@ -653,7 +638,6 @@ async function logSaveEvent(userId, propertyId) {
             metadata: { propertyId: propertyId },
             timestamp: new Date()
         });
-        console.log(`Logged save event for user ${userId}, property ${propertyId}`);
         return true;
     } catch (error) {
         console.error("Failed to log save event:", error);
@@ -693,8 +677,6 @@ async function loadCategories() {
             listing.status === 'Active' ||
             (listing.status === undefined && listing.isActive !== false)
         );
-
-        console.log(`📊 Found ${activeListings.length} active listings`);
 
         // Create categories with calculated counts
         const categories = BATANGAS_PROPERTY_CATEGORIES.map((category, index) => {
@@ -780,9 +762,6 @@ async function loadCategories() {
                 }
             });
 
-            // Log for debugging
-            console.log(`   📍 Category "${category.name}" has ${count} properties`);
-
             return {
                 ...category,
                 count: count,
@@ -824,7 +803,6 @@ async function loadCategories() {
 
 // Filter by category function
 async function filterByCategory(categoryName) {
-    // Create filters object with the selected category
     const filters = { propertyCategory: categoryName };
 
     // Log category click as a search event for recommendations
@@ -832,7 +810,6 @@ async function filterByCategory(categoryName) {
         const currentUser = auth.currentUser;
         if (currentUser) {
             await logSearchEvent(currentUser.uid, filters);
-            console.log('✔️ Category search event logged for AI recommendations');
         }
     } catch (error) {
         console.log('Could not log category search event.', error.message);
@@ -905,12 +882,7 @@ async function loadAllListings() {
 async function loadAllUserData(userIds) {
     userMap.clear();
     
-    if (userIds.size === 0) {
-        console.log('   No user IDs found to load');
-        return;
-    }
-    
-    console.log(`   Loading user data for ${userIds.size} users...`);
+    if (userIds.size === 0) return;
     
     for (const userId of userIds) {
         await loadUserData(userId);
@@ -919,40 +891,49 @@ async function loadAllUserData(userIds) {
 
 async function loadUserData(userId) {
     try {
+        console.log(`🔍 Attempting to load user: ${userId}`);
+        
+        // Only check users collection (both landlords and brokers are in users collection)
         const userDoc = await getDoc(doc(db, "users", userId));
         
         if (userDoc.exists()) {
             const userData = userDoc.data();
+            console.log(`✅ Found user ${userId} in database. Data:`, {
+                fullName: userData.fullName,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                email: userData.email,
+                role: userData.role
+            });
             
-            const fullName = userData.fullName || 
-                            userData.email?.split('@')[0] || 
-                            `User ${userId.substring(0, 8)}`;
+            // Extract fullName with proper fallback
+            let fullName = userData.fullName || '';
             
-            userMap.set(userId, {
-                displayName: fullName,
+            // If no fullName, try to construct from firstName and lastName
+            if (!fullName && (userData.firstName || userData.lastName)) {
+                fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+            }
+            
+            // If still no name, use email or default
+            if (!fullName) {
+                fullName = userData.email?.split('@')[0] || `User ${userId.substring(0, 8)}`;
+            }
+            
+            const userInfo = {
+                displayName: fullName.trim(),
                 email: userData.email || 'Email not available',
                 phone: userData.phone || 'Phone not available',
                 role: userData.role || 'user'
-            });
+            };
+            
+            userMap.set(userId, userInfo);
+            
+            console.log(`✅ Loaded user ${userId}: "${userInfo.displayName}" (${userInfo.role})`);
             return;
         }
         
-        const brokerDoc = await getDoc(doc(db, "brokers", userId));
-        
-        if (brokerDoc.exists()) {
-            const brokerData = brokerDoc.data();
-            
-            const fullName = brokerData.fullName || `Broker ${userId.substring(0, 8)}`;
-            
-            userMap.set(userId, {
-                displayName: fullName,
-                email: brokerData.email || 'Email not available',
-                phone: brokerData.phone || 'Phone not available',
-                role: 'broker'
-            });
-            return;
-        }
-        
+        // Default fallback if user not found
+        console.warn(`❌ User ${userId} not found in users collection`);
         userMap.set(userId, {
             displayName: `User ${userId.substring(0, 8)}`,
             email: 'Email not available',
@@ -961,8 +942,7 @@ async function loadUserData(userId) {
         });
         
     } catch (error) {
-        console.error(`Error loading user ${userId}:`, error);
-        
+        console.error(`❌ Error loading user ${userId}:`, error);
         userMap.set(userId, {
             displayName: `User ${userId.substring(0, 8)}`,
             email: 'Email not available',
@@ -1081,118 +1061,129 @@ function displayFilteredListings() {
 }
 
 async function displayListings(listings) {
-    const container = document.getElementById('listingsContainer');
+  const container = document.getElementById('listingsContainer');
+  
+  // Check which properties are already saved
+  const savedMap = await checkSavedStatus(listings);
+  
+  container.innerHTML = listings.map(listing => {
+    const isSaved = savedMap.has(listing.id);
+    const userInfo = userMap.get(listing.userId) || {
+      displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
+      email: 'N/A',
+      phone: 'N/A',
+      role: 'user'
+    };
     
-    // Check which properties are already saved
-    const savedMap = await checkSavedStatus(listings);
+    const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
+    const listingType = getListingType(listing);
+    const displayPrice = getDisplayPrice(listing);
+    const priceClass = getPriceClass(listing);
+    const typeBadgeClass = getTypeBadgeClass(listing);
+    const typeBadgeText = getTypeBadgeText(listing);
     
-    container.innerHTML = listings.map(listing => {
-        const isSaved = savedMap.has(listing.id);
-        const userInfo = userMap.get(listing.userId) || {
-            displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
-            email: 'N/A',
-            phone: 'N/A',
-            role: 'user'
-        };
-        const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
-        const listingType = getListingType(listing);
-        const displayPrice = getDisplayPrice(listing);
-        const priceClass = getPriceClass(listing);
-        const typeBadgeClass = getTypeBadgeClass(listing);
-        const typeBadgeText = getTypeBadgeText(listing);
-        
-        let mainPhoto;
-        if (listing.photos && listing.photos.length > 0) {
-            mainPhoto = listing.photos[0];
-        } else if (listing.imageUrls && listing.imageUrls.length > 0) {
-            mainPhoto = listing.imageUrls[0];
-        } else if (listing.latitude && listing.longitude) {
-            // Use Google Static Maps API for properties with coordinates
-            mainPhoto = `https://maps.googleapis.com/maps/api/staticmap?center=${listing.latitude},${listing.longitude}&zoom=15&size=400x200&markers=color:red%7C${listing.latitude},${listing.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
-        } else {
-            mainPhoto = 'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
-        }
-        
-        const bedrooms = listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0);
-        const bathrooms = listing.bathrooms || 0;
-        const squareFootage = listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A';
-        
-        return `
-            <div class="listing-card-wrapper">
-                <a href="property_details.html?id=${listing.id}" class="listing-card-link">
-                    <div class="listing-card">
-                        <div class="listing-card-image-container">
-                            <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
-                            <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
-                            
-                            <!-- Save Button - will be positioned above the clickable area -->
-                            <button class="save-property-btn"
-                                data-property-id="${listing.id}"
-                                data-is-saved="${isSaved}"
-                                aria-label="${isSaved ? 'Remove from saved' : 'Save property'}">
-                                <span class="save-icon">${isSaved ? '❤️' : '🤍'}</span>
-                            </button>
-                        </div>
-                        
-                        <div class="listing-content">
-                            <div class="listing-header">
-                                <div>
-                                    <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
-                                    <div class="listing-location">
-                                        <span class="location-icon">📍</span>
-                                        <span class="location-text">${listing.location || 'Batangas, Philippines'}</span>
-                                    </div>
-                                </div>
-                                <div class="listing-price ${priceClass}">${displayPrice}</div>
-                            </div>
-                            
-                            <div class="listing-details">
-                                <div class="detail">
-                                    <span class="detail-icon">🛏️</span>
-                                    <span class="detail-text">${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
-                                </div>
-                                <div class="detail">
-                                    <span class="detail-icon">🚿</span>
-                                    <span class="detail-text">${bathrooms} baths</span>
-                                </div>
-                                <div class="detail">
-                                    <span class="detail-icon">📐</span>
-                                    <span class="detail-text">${squareFootage} ${listing.floorArea || listing.totalArea ? 'sqm' : ''}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="listing-broker">
-                                <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
-                                <div class="broker-info">
-                                    <div class="broker-name" title="${userInfo.displayName}">${userInfo.displayName}</div>
-                                    <div class="broker-contact">
-                                        ${getRoleDisplayText(userInfo.role)} • ${listing.propertyType || 'Property'}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="listing-actions">
-                                <button class="action-btn contact-btn" 
-                                        data-user-id="${listing.userId}"
-                                        data-user-name="${userInfo.displayName}"
-                                        aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
-                                    <span class="contact-icon">📞</span>
-                                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-                                </button>
-                                <span class="action-btn view-btn" aria-label="View property details">
-                                    <span class="view-icon">👁️</span>
-                                    View Details
-                                </span>
-                            </div>
+    let mainPhoto;
+    if (listing.photos && listing.photos.length > 0) {
+      mainPhoto = listing.photos[0];
+    } else if (listing.imageUrls && listing.imageUrls.length > 0) {
+      mainPhoto = listing.imageUrls[0];
+    } else if (listing.latitude && listing.longitude) {
+      mainPhoto = `https://maps.googleapis.com/maps/api/staticmap?center=${listing.latitude},${listing.longitude}&zoom=15&size=400x200&markers=color:red%7C${listing.latitude},${listing.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+    } else {
+      mainPhoto = 'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
+    }
+    
+    const bedrooms = listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0);
+    const bathrooms = listing.bathrooms || 0;
+    const area = listing.floorArea || listing.totalArea || 'N/A';
+    
+    return `
+<div class="listing-card-wrapper">
+    <a href="property_details.html?id=${listing.id}" class="listing-card-link">
+        <div class="listing-card">
+            <div class="listing-card-image-container">
+                <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
+                <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
+                
+                <!-- Save Button - Heart icon for saving properties -->
+                <button class="save-property-btn"
+                    data-property-id="${listing.id}"
+                    data-is-saved="${isSaved}"
+                    aria-label="${isSaved ? 'Remove from saved' : 'Save property'}">
+                    <span class="save-icon">${isSaved ? '❤️' : '🤍'}</span>
+                </button>
+            </div>
+            <div class="listing-content">
+                <div class="listing-header">
+                    <div>
+                        <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
+                        <div class="listing-location">
+                            <span class="location-icon">📍</span>
+                            <span class="location-text">${getCompleteAddress(listing)}</span>
                         </div>
                     </div>
-                </a>
+                    <div class="listing-price ${priceClass}">${displayPrice}</div>
+                </div>
+
+                <div class="listing-details">
+                    <div class="detail">
+                        <span class="detail-icon">🛏️</span>
+                        <span class="detail-text">${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
+                    </div>
+                    <div class="detail">
+                        <span class="detail-icon">🚿</span>
+                        <span class="detail-text">${bathrooms} baths</span>
+                    </div>
+                    <div class="detail">
+                        <span class="detail-icon">📐</span>
+                        <span class="detail-text">${area} sqm</span>
+                    </div>
+                    ${listingType === 'rent' && listing.securityDeposit ? `
+                    <div class="detail">
+                        <span class="detail-icon">💰</span>
+                        <span class="detail-text">Deposit: ₱${listing.securityDeposit.toLocaleString()}</span>
+                    </div>` : ''}
+                </div>
+
+                <div class="listing-broker">
+                    <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
+                    <div class="broker-info">
+                        <div class="broker-name" title="${userInfo.displayName}">${userInfo.displayName}</div>
+                        <div class="broker-contact">
+                            ${getRoleDisplayText(userInfo.role)} • ${listing.propertyType || 'Property'}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="listing-status status-${listing.status || 'active'}">
+                    ${listing.status || 'active'}
+                </div>
+
+                <div class="listing-actions">
+                    <button class="action-btn contact-btn" 
+                            onclick="event.stopPropagation(); contactBroker('${listing.userId}')"
+                            data-user-id="${listing.userId}"
+                            aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
+                        <span class="contact-icon">📞</span>
+                        Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
+                    </button>
+                    <span class="action-btn view-btn" aria-label="View property details">
+                        <span class="view-icon">👁️</span>
+                        View Details
+                    </span>
+                </div>
             </div>
-        `;
-    }).join('');
-    
-    // Add event listeners to the newly created elements
-    setupListingEventListeners();
+        </div>
+    </a>
+</div>
+    `;
+  }).join('');
+  
+  // Setup event listeners for save buttons and contact buttons
+  setTimeout(setupListingEventListeners, 100);
+  
+  // Force badges to be visible
+  setTimeout(forceBadgeVisibility, 100);
 }
 
 function displayNoListings() {
@@ -1247,7 +1238,7 @@ async function toggleSaveProperty(propertyId, buttonElement) {
             return;
         }
         
-        const isSaved = buttonElement.textContent.includes('❤️');
+        const isSaved = buttonElement.querySelector('.save-icon').textContent.includes('❤️');
         
         if (isSaved) {
             // Remove from saved
@@ -1260,9 +1251,9 @@ async function toggleSaveProperty(propertyId, buttonElement) {
             
             if (!snapshot.empty) {
                 await deleteDoc(snapshot.docs[0].ref);
-                buttonElement.innerHTML = '🤍';
-                buttonElement.style.background = 'var(--bg-light)';
-                buttonElement.style.color = 'var(--text-dark)';
+                buttonElement.innerHTML = '<span class="save-icon">🤍</span>';
+                buttonElement.setAttribute('data-is-saved', 'false');
+                buttonElement.setAttribute('aria-label', 'Save property');
                 console.log(`Property ${propertyId} removed from saved`);
                 showSaveToast('Removed from saved', false);
             }
@@ -1278,9 +1269,9 @@ async function toggleSaveProperty(propertyId, buttonElement) {
             // Log save event
             await logSaveEvent(currentUser.uid, propertyId);
             
-            buttonElement.innerHTML = '❤️';
-            buttonElement.style.background = 'var(--primary)';
-            buttonElement.style.color = 'white';
+            buttonElement.innerHTML = '<span class="save-icon">❤️</span>';
+            buttonElement.setAttribute('data-is-saved', 'true');
+            buttonElement.setAttribute('aria-label', 'Remove from saved');
             console.log(`Property ${propertyId} saved`);
             showSaveToast('Property saved!', false);
         }
@@ -1324,6 +1315,21 @@ function contactBroker(userId) {
     } else {
         alert('Contact information not available.');
     }
+}
+
+// Force all type badges to be visible
+function forceBadgeVisibility() {
+    document.querySelectorAll('.listing-type-badge').forEach(badge => {
+        badge.style.opacity = '1';
+        badge.style.visibility = 'visible';
+        badge.style.display = 'block';
+    });
+    
+    document.querySelectorAll('.listing-ai-badge, .listing-match-badge').forEach(badge => {
+        badge.style.opacity = '1';
+        badge.style.visibility = 'visible';
+        badge.style.display = 'block';
+    });
 }
 
 // --- EVENT LISTENER SETUP ---
@@ -1370,8 +1376,13 @@ function setupEventListeners() {
 
 function setupListingEventListeners() {
     // Save property buttons
-    document.querySelectorAll('.save-property-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    document.querySelectorAll('#listingsContainer .save-property-btn').forEach(btn => {
+        // Remove existing event listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        // Add new event listener
+        newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -1383,8 +1394,11 @@ function setupListingEventListeners() {
     });
     
     // Contact buttons - prevent card click when clicking contact button
-    document.querySelectorAll('.action-btn.contact-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    document.querySelectorAll('#listingsContainer .action-btn.contact-btn').forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -1421,10 +1435,8 @@ async function loadRecommendationsFromPython() {
             `;
         }
 
-        // Call Python backend API with better error handling
+        // Call Python backend API
         let response;
-        let data;
-        
         try {
             response = await fetch(`${PYTHON_API_URL}?user_id=${userId}`, {
                 method: 'GET',
@@ -1432,15 +1444,23 @@ async function loadRecommendationsFromPython() {
                     'Accept': 'application/json',
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`API request failed with status ${response.status}`);
             }
-            
-            // Get response as text first to check if it's valid JSON
+
             const responseText = await response.text();
-            console.log('API Response:', responseText.substring(0, 500));
-            
+            console.log('API Response status:', response.status);
+            console.log('API Response text (first 500 chars):', responseText.substring(0, 500));
+
+            // Check if response is empty
+            if (!responseText || responseText.trim() === '') {
+                console.log('Empty response from API, showing fallback');
+                showRecentPropertiesFallback();
+                return;
+            }
+
+            let data;
             try {
                 data = JSON.parse(responseText);
             } catch (parseError) {
@@ -1449,22 +1469,126 @@ async function loadRecommendationsFromPython() {
                 showRecentPropertiesFallback();
                 return;
             }
-            
+
+            // Debug the response structure
+            console.log('Parsed API data:', {
+                success: data.success,
+                has_history: data.has_history,
+                saved_count: data.saved_count,
+                recommendation_type: data.recommendation_type,
+                recommendations_count: data.recommendations ? data.recommendations.length : 0,
+                message: data.message,
+                user_message: data.user_message
+            });
+
+            // Update the subtitle based on response
+            const subtitle = document.getElementById('recommendationsSubtitle');
+            if (subtitle) {
+                if (data.user_message) {
+                    subtitle.textContent = data.user_message;
+                } else if (data.message) {
+                    subtitle.textContent = data.message;
+                }
+            }
+
+            // Check if we have AI recommendations
+            if (data.recommendation_type === 'ai' && data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+                console.log(`Received ${data.recommendations.length} AI recommendations`);
+                
+                // Map recommendations to actual listings
+                const recommendedListings = data.recommendations
+                    .map(rec => {
+                        // Find the matching listing - check both id and property_id
+                        const listing = allListings.find(l => l.id === rec.id || l.id === rec.property_id);
+                        if (listing) {
+                            return {
+                                ...listing,
+                                recoScore: rec.match_score || rec.similarity_score || 0,
+                                similarity_score: rec.similarity_score || rec.match_score || 0,
+                                similar_to: rec.match_reason || "Similar to your preferences"
+                            };
+                        }
+                        console.log('Could not find listing for recommendation:', rec.id || rec.property_id);
+                        return null;
+                    })
+                    .filter(l => l !== null)
+                    .slice(0, 5); // Take top 5
+
+                if (recommendedListings.length > 0) {
+                    console.log(`Mapped ${recommendedListings.length} recommendations to listings`);
+                    displayRecommendedListingsPython(recommendedListings, 'personalized');
+                } else {
+                    console.log('No listings matched the recommendations, showing fallback');
+                    showRecentPropertiesFallback();
+                }
+            } else if (data.recommendation_type === 'partial' && data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+                // User has some history but not enough for full AI
+                console.log(`Received ${data.recommendations.length} partial recommendations`);
+                
+                // Map recommendations to actual listings
+                const recommendedListings = data.recommendations
+                    .map(rec => {
+                        // Find the matching listing - check both id and property_id
+                        const listing = allListings.find(l => l.id === rec.id || l.id === rec.property_id);
+                        if (listing) {
+                            return {
+                                ...listing,
+                                recoScore: rec.match_score || rec.similarity_score || 0,
+                                similarity_score: rec.similarity_score || rec.match_score || 0,
+                                similar_to: rec.match_reason || `You've saved ${data.saved_count} properties. Save ${3 - data.saved_count} more for AI recommendations!`
+                            };
+                        }
+                        return null;
+                    })
+                    .filter(l => l !== null)
+                    .slice(0, 5);
+
+                if (recommendedListings.length > 0) {
+                    displayRecommendedListingsPython(recommendedListings, 'partial');
+                    
+                    // Add a progress message
+                    setTimeout(() => {
+                        const section = document.getElementById('recommendedSection');
+                        if (section) {
+                            let progressDiv = section.querySelector('.progress-prompt');
+                            if (!progressDiv && data.saved_count < 3) {
+                                progressDiv = document.createElement('div');
+                                progressDiv.className = 'progress-prompt';
+                                progressDiv.style.cssText = `
+                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    color: white;
+                                    padding: 15px 20px;
+                                    border-radius: 8px;
+                                    margin-top: 20px;
+                                    text-align: center;
+                                    animation: fadeIn 0.5s ease;
+                                `;
+                                progressDiv.innerHTML = `
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                                        <div style="flex: 1; max-width: 600px;">
+                                            <strong>💡 Get AI Recommendations!</strong>
+                                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
+                                                You've saved ${data.saved_count} properties. Save ${3 - data.saved_count} more to receive personalized AI recommendations based on your preferences.
+                                            </p>
+                                        </div>
+                                    </div>
+                                `;
+                                section.appendChild(progressDiv);
+                            }
+                        }
+                    }, 100);
+                } else {
+                    showRecentPropertiesFallback();
+                }
+            } else {
+                console.log('No recommendations in response, showing fallback. Reason:', data.message);
+                showRecentPropertiesFallback();
+            }
+
         } catch (fetchError) {
             console.error('Fetch error:', fetchError);
             showRecentPropertiesFallback();
             return;
-        }
-
-        if (data && data.has_history && data.recommendations && data.recommendations.length > 0) {
-            // Display the recommendations
-            displayRecommendedListingsPython(data.recommendations, 'personalized');
-        } else if (data && !data.has_history) {
-            // User has no history, show recent properties instead
-            showRecentPropertiesFallback();
-        } else {
-            // No recommendations available
-            showRecentPropertiesFallback();
         }
 
     } catch (error) {
@@ -1475,245 +1599,366 @@ async function loadRecommendationsFromPython() {
 
 // Fallback function for recent listings
 async function showRecentPropertiesFallback() {
-    try {
-        console.log('Showing recent properties as fallback');
-
-        // Get recent active properties
-        const activeListings = allListings.filter(listing => 
-            listing.status === 'active' ||
-            listing.status === 'available' ||
-            listing.status === 'Active' ||
-            (listing.status === undefined && listing.isActive !== false)
-        );
-
-        // Take up to 6 recent listings
-        const recentListings = activeListings.slice(0, 6);
-        
-        if (recentListings.length > 0) {
-            displayRecommendedListingsPython(recentListings, 'recent');
-        } else {
-            // If no recent listings, show a message
-            const recoContainer = document.getElementById('recommendedListingsContainer');
-            if (recoContainer) {
-                recoContainer.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">🏠</div>
-                        <h3 style="color: var(--text-dark); margin-bottom: 10px;">No Properties Available</h3>
-                        <p style="color: var(--text-light); max-width: 500px; margin: 0 auto;">
-                            There are currently no properties available. Check back soon!
-                        </p>
-                    </div>
-                `;
-            }
-        }
-
-    } catch (error) {
-        console.error('Error loading recent listings:', error);
-        const recoContainer = document.getElementById('recommendedListingsContainer');
-        if (recoContainer) {
-            recoContainer.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-                    <h3 style="color: var(--text-dark); margin-bottom: 10px;">Unable to Load Recommendations</h3>
-                    <p style="color: var(--text-light); max-width: 500px; margin: 0 auto;">
-                        Please try again later or refresh the page.
-                    </p>
-                </div>
+  try {
+    console.log('Showing recent properties as fallback');
+    
+    // Get recent active properties (sorted by creation date if available)
+    const activeListings = allListings.filter(listing => 
+      listing.status === 'active' ||
+      listing.status === 'available' ||
+      listing.status === 'Active' ||
+      (listing.status === undefined && listing.isActive !== false)
+    );
+    
+    // Sort by date if available, otherwise take first 5
+    const recentListings = activeListings
+      .sort((a, b) => {
+        const dateA = a.createdAt || a.uploadedAt || 0;
+        const dateB = b.createdAt || b.uploadedAt || 0;
+        return dateB - dateA; // Newest first
+      })
+      .slice(0, 5); // Take only top 5
+    
+if (recentListings.length > 0) {
+    displayRecommendedListingsPython(recentListings, 'recent');
+      
+      // Add a prompt message below the section (without button)
+      setTimeout(() => {
+        const section = document.getElementById('recommendedSection');
+        if (section) {
+          let promptDiv = section.querySelector('.recent-prompt');
+          if (!promptDiv) {
+            promptDiv = document.createElement('div');
+            promptDiv.className = 'recent-prompt';
+            promptDiv.style.cssText = `
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 15px 20px;
+              border-radius: 8px;
+              margin-top: 20px;
+              text-align: center;
+              animation: fadeIn 0.5s ease;
             `;
+            promptDiv.innerHTML = `
+              <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; max-width: 600px;">
+                  <strong>💡 Get AI Recommendations!</strong>
+                  <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
+                    Save 3+ properties you like to receive personalized AI recommendations based on your preferences.
+                  </p>
+                </div>
+              </div>
+            `;
+            section.appendChild(promptDiv);
+          }
         }
+      }, 100);
+    } else {
+      // If no recent listings, show a message
+      const recoContainer = document.getElementById('recommendedListingsContainer');
+      if (recoContainer) {
+        recoContainer.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🏠</div>
+            <h3 style="color: var(--text-dark); margin-bottom: 10px;">Start Your Property Journey</h3>
+            <p style="color: var(--text-light); max-width: 500px; margin: 0 auto 20px;">
+              Browse properties and save your favorites. After saving 3+ properties, 
+              our AI will learn your preferences and show personalized recommendations!
+            </p>
+          </div>
+        `;
+      }
     }
+  } catch (error) {
+    console.error('Error loading recent listings:', error);
+    const recoContainer = document.getElementById('recommendedListingsContainer');
+    if (recoContainer) {
+      recoContainer.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+          <h3 style="color: var(--text-dark); margin-bottom: 10px;">Explore Properties</h3>
+          <p style="color: var(--text-light); max-width: 500px; margin: 0 auto 20px;">
+            Browse through our listings and save properties you're interested in.
+          </p>
+        </div>
+      `;
+    }
+  }
 }
 
 // Function to display recommendations from Python
 function displayRecommendedListingsPython(recommendations, type = 'personalized') {
-    const recoSection = document.getElementById('recommendedSection');
-    if (!recoSection) return;
-
-    const header = recoSection.querySelector('h2');
-    if (header) {
-        if (type === 'personalized') {
-            header.innerHTML = '<i class="fas fa-robot"></i> AI Recommendations For You';
-        } else if (type === 'recent') {
-            header.innerHTML = '<i class="fas fa-clock"></i> Recent Properties';
-        }
+  const recoContainer = document.getElementById('recommendedListingsContainer');
+  const sectionTitle = document.querySelector('#recommendedSection .section-title');
+  const sectionSubtitle = document.querySelector('#recommendationsSubtitle');
+  
+  if (!recoContainer) return;
+  
+  // Update section title based on recommendation type
+  if (sectionTitle) {
+    if (type === 'personalized') {
+      sectionTitle.innerHTML = '<i class="fas fa-robot"></i> AI Recommendations For You';
+      if (sectionSubtitle) {
+        sectionSubtitle.textContent = 'Based on your saved properties and search history';
+      }
+    } else if (type === 'partial') {
+      sectionTitle.innerHTML = '<i class="fas fa-star"></i> Getting Started';
+      if (sectionSubtitle) {
+        sectionSubtitle.textContent = 'Save more properties to unlock AI recommendations';
+      }
+    } else {
+      sectionTitle.innerHTML = '<i class="fas fa-clock"></i> Recent Properties';
+      if (sectionSubtitle) {
+        sectionSubtitle.textContent = 'Browse these recently listed properties. Save some to get AI recommendations!';
+      }
     }
+  }
+  
+  if (!recommendations || recommendations.length === 0) {
+    recoContainer.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">🏠</div>
+        <h3 style="color: var(--text-dark); margin-bottom: 10px;">Start Building Your Preferences</h3>
+        <p style="color: var(--text-light); max-width: 500px; margin: 0 auto 20px;">
+          Save properties you like or search for properties to get personalized AI recommendations!
+        </p>
+      </div>`;
+    return;
+  }
 
-    const recoContainer = document.getElementById('recommendedListingsContainer');
-    if (!recoContainer) return;
-
-    if (!recommendations || recommendations.length === 0) {
-        recoContainer.innerHTML = `
-            <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
-                <div style="font-size: 48px; margin-bottom: 20px;">💬</div>
-                <h3 style="color: var(--text-dark); margin-bottom: 10px;">Start Building Your Preferences</h3>
-                <p style="color: var(--text-light); max-width: 500px; margin: 0 auto;">
-                    Save properties you like or search for properties to get personalized recommendations!
-                </p>
-            </div>
-        `;
-        return;
-    }
-
+  // Check which properties are already saved
+  checkSavedStatus(recommendations).then(savedMap => {
     recoContainer.innerHTML = recommendations.map(property => {
-        const price = property.monthlyRent || property.pricing || property.salePrice || property.price || 0;
-        const isForRent = !!property.monthlyRent;
-        const isForLease = !!property.annualRent;
-        const photo = property.photos?.[0] || property.imageUrls?.[0] || `https://via.placeholder.com/400x200/0b2e52/white?text=${encodeURIComponent(property.title || 'Property')}`;
-        const matchScore = property.recoScore ? Math.round(property.recoScore * 100) : null;
-
-        return `
-            <div class="listing-card-wrapper">
-                <a href="property_details.html?id=${property.id}" class="listing-card-link">
-                    <div class="listing-card">
-                        <div class="listing-card-image-container">
-                            <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
-                            
-                            ${matchScore && matchScore > 50 ? `
-                                <div class="listing-match-badge">
-                                    ${matchScore}% Match
+      const isSaved = savedMap.has(property.id);
+      const userInfo = userMap.get(property.userId) || {
+        displayName: `User ${property.userId ? property.userId.substring(0, 8) : 'Unknown'}`,
+        email: 'N/A',
+        phone: 'N/A',
+        role: 'user'
+      };
+      
+      const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
+      const listingType = getListingType(property);
+      const displayPrice = getDisplayPrice(property);
+      const priceClass = getPriceClass(property);
+      const typeBadgeClass = getTypeBadgeClass(property);
+      const typeBadgeText = getTypeBadgeText(property);
+      
+      const photo = property.photos?.[0] || property.imageUrls?.[0] || `https://via.placeholder.com/400x200/0b2e52/white?text=${encodeURIComponent(property.title || 'Property')}`;
+      const matchScore = property.recoScore ? Math.round(property.recoScore) : null;
+      
+      const bedrooms = property.bedrooms || (listingType === 'rent' && property.propertyType === 'studio' ? 'Studio' : 0);
+      const bathrooms = property.bathrooms || 0;
+      const area = property.floorArea || property.totalArea || 'N/A';
+      
+      // Add different badge for AI vs Recent vs Partial
+      let recommendationBadge = '';
+      if (type === 'personalized') {
+        recommendationBadge = `<div class="listing-ai-badge">✨ AI Pick</div>`;
+      } else if (type === 'partial') {
+        recommendationBadge = `<div class="listing-partial-badge" style="position: absolute; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">SAVE MORE</div>`;
+      } else {
+        recommendationBadge = `<div class="listing-recent-badge" style="position: absolute; top: 10px; right: 10px; background: #6b7280; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">RECENT</div>`;
+      }
+      
+      return `
+        <div class="listing-card-wrapper">
+            <a href="property_details.html?id=${property.id}" class="listing-card-link">
+                <div class="listing-card">
+                    <div class="listing-card-image-container" style="position: relative;">
+                        <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
+                        ${matchScore && matchScore > 50 ? `
+                            <div class="listing-match-badge">
+                                ${matchScore}% Match
+                            </div>
+                        ` : ''}
+                        ${recommendationBadge}
+                        <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
+                        
+                        <!-- Save Button - Heart icon for saving properties -->
+                        <button class="save-property-btn"
+                            data-property-id="${property.id}"
+                            data-is-saved="${isSaved}"
+                            aria-label="${isSaved ? 'Remove from saved' : 'Save property'}">
+                            <span class="save-icon">${isSaved ? '❤️' : '🤍'}</span>
+                        </button>
+                    </div>
+                    <div class="listing-content">
+                        <div class="listing-header">
+                            <div>
+                                <h3 class="listing-title">${property.title || 'Untitled Property'}</h3>
+                                <div class="listing-location">
+                                    <span class="location-icon">📍</span>
+                                    <span class="location-text">${getCompleteAddress(property)}</span>
+                                </div>
+                            </div>
+                            <div class="listing-price ${priceClass}">${displayPrice}</div>
+                        </div>
+                        
+                        <div class="listing-details">
+                            ${bedrooms ? `
+                                <div class="detail">
+                                    <span class="detail-icon">🛏️</span>
+                                    <span class="detail-text">${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
                                 </div>
                             ` : ''}
-                            
-                            ${type === 'personalized' ? `
-                                <div class="listing-ai-badge">
-                                    For You
+                            ${bathrooms ? `
+                                <div class="detail">
+                                    <span class="detail-icon">🚿</span>
+                                    <span class="detail-text">${bathrooms} baths</span>
                                 </div>
                             ` : ''}
-                            
-                            <div class="listing-type-badge ${isForRent ? 'type-rent' : isForLease ? 'type-lease' : 'type-sale'}">
-                                ${isForRent ? 'FOR RENT' : isForLease ? 'FOR LEASE' : 'FOR SALE'}
+                            ${area && area !== 'N/A' ? `
+                                <div class="detail">
+                                    <span class="detail-icon">📐</span>
+                                    <span class="detail-text">${area} sqm</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="listing-broker">
+                            <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
+                            <div class="broker-info">
+                                <div class="broker-name" title="${userInfo.displayName}">${userInfo.displayName}</div>
+                                <div class="broker-contact">
+                                    ${getRoleDisplayText(userInfo.role)} • ${property.propertyType || 'Property'}
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="listing-content">
-                            <div class="listing-header">
-                                <div>
-                                    <h3 class="listing-title">${property.title || 'Untitled Property'}</h3>
-                                    <div class="listing-location">
-                                        <span class="location-icon">📍</span>
-                                        <span class="location-text">${property.location || 'Location not specified'}</span>
-                                    </div>
-                                </div>
-                                <div class="listing-price ${isForRent ? 'price-rent' : isForLease ? 'price-lease' : 'price-sale'}">
-                                    ₱${price.toLocaleString()}${isForRent ? '/month' : isForLease ? '/year' : ''}
-                                </div>
-                            </div>
-                            
-                            <div class="listing-details">
-                                ${property.bedrooms ? `
-                                    <div class="detail">
-                                        <span class="detail-icon">🛏️</span>
-                                        <span class="detail-text">${property.bedrooms} ${property.bedrooms === 'Studio' ? '' : 'beds'}</span>
-                                    </div>
-                                ` : ''}
-                                
-                                ${property.bathrooms ? `
-                                    <div class="detail">
-                                        <span class="detail-icon">🚿</span>
-                                        <span class="detail-text">${property.bathrooms} baths</span>
-                                    </div>
-                                ` : ''}
-                                
-                                ${property.floorArea || property.totalArea ? `
-                                    <div class="detail">
-                                        <span class="detail-icon">📐</span>
-                                        <span class="detail-text">${property.floorArea || property.totalArea} sqm</span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                            
-                            ${property.similarity_score ? `
-                                <div class="listing-similarity">
-                                    <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-light); background: var(--bg-light); padding: 4px 8px; border-radius: 4px;">
-                                        <span>🤝</span>
-                                        Similar to: ${property.similar_to || 'your saved properties'}
-                                    </div>
-                                </div>
-                            ` : ''}
-                            
-                            <div class="listing-actions">
-                                <span class="action-btn view-btn" aria-label="View property details">
-                                    <span class="view-icon">👁️</span>
-                                    View Details
-                                </span>
-                            </div>
+                        <div class="listing-status status-${property.status || 'active'}">
+                            ${property.status || 'active'}
+                        </div>
+                        
+                        <div class="listing-actions">
+                            <button class="action-btn contact-btn" 
+                                    onclick="event.stopPropagation(); contactBroker('${property.userId}')"
+                                    data-user-id="${property.userId}"
+                                    aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
+                                <span class="contact-icon">📞</span>
+                                Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
+                            </button>
+                            <span class="action-btn view-btn" aria-label="View property details">
+                                <span class="view-icon">👁️</span>
+                                View Details
+                            </span>
                         </div>
                     </div>
-                </a>
-            </div>
-        `;
+                </div>
+            </a>
+        </div>
+      `;
     }).join('');
     
-    // Setup event listeners for AI recommendation cards
-    setupAIRecommendationListeners();
+    // Setup event listeners for save buttons and contact buttons in recommendations
+    setTimeout(() => {
+        setupRecommendationsEventListeners();
+    }, 100);
+    
+    // Force badges to be visible
+    setTimeout(forceBadgeVisibility, 100);
+  });
 }
 
-// Setup event listeners for AI recommendation cards
-function setupAIRecommendationListeners() {
-    // View buttons are now non-clickable (for visual only since whole card is clickable)
-    document.querySelectorAll('#recommendedListingsContainer .action-btn.view-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+function setupRecommendationsEventListeners() {
+    // Save property buttons in recommendations
+    const recoContainer = document.getElementById('recommendedListingsContainer');
+    if (recoContainer) {
+        recoContainer.querySelectorAll('.save-property-btn').forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                const propertyId = this.getAttribute('data-property-id');
+                if (propertyId) {
+                    toggleSaveProperty(propertyId, this);
+                }
+            });
         });
-    });
+        
+        // Contact buttons in recommendations
+        recoContainer.querySelectorAll('.action-btn.contact-btn').forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                const userId = this.getAttribute('data-user-id');
+                if (userId) {
+                    contactBroker(userId);
+                }
+            });
+        });
+    }
 }
-
 // --- INITIALIZATION ---
 
-// Initialize dropdowns when page loads
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize dropdowns
+function initializeDropdowns() {
     const transactionTypeSelect = document.getElementById('filterListingType');
     const categorySelect = document.getElementById('filterPropertyCategory');
 
     if (transactionTypeSelect) {
         transactionTypeSelect.addEventListener('change', updateCategoryDropdown);
     }
+    
     if (categorySelect) {
         categorySelect.addEventListener('change', updateTypeDropdown);
     }
-    
+
     // Initialize with current values
-    updateCategoryDropdown();
-});
-
-// Check authentication and load user data
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "../login.html";
-        return;
+    if (transactionTypeSelect && categorySelect) {
+        updateCategoryDropdown();
     }
+}
 
-    try {
-        console.log('👤 Logged in user UID:', user.uid);
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initializeDropdowns();
+    
+    // Check authentication and load user data
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "../login.html";
+            return;
+        }
 
-        // Load user data for welcome message
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
+        try {
+            console.log('👤 Logged in user UID:', user.uid);
 
-        if (userSnap.exists()) {
-            const userData = userSnap.data();
-            welcomeText.textContent = `Welcome back, ${userData.fullName || userData.email || 'User'}!`;
-        } else {
+            // Load user data for welcome message
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                welcomeText.textContent = `Welcome back, ${userData.fullName || userData.email || 'User'}!`;
+            } else {
+                welcomeText.textContent = "Welcome to BahAI Real Estate!";
+            }
+        } catch (error) {
+            console.error("Error loading user:", error);
             welcomeText.textContent = "Welcome to BahAI Real Estate!";
         }
-    } catch (error) {
-        console.error("Error loading user:", error);
-        welcomeText.textContent = "Welcome to BahAI Real Estate!";
-    }
 
-    // Load listings and categories
-    loadAllListings();
-    
-    // Load recommendations from Python backend
-    setTimeout(() => {
-        loadRecommendationsFromPython().catch(error => {
-            console.log("Python recommendations failed to load:", error);
-        });
-    }, 1000);
+        // Load listings and categories
+        loadAllListings();
+        
+        // Load recommendations from Python backend
+        setTimeout(() => {
+            loadRecommendationsFromPython().catch(error => {
+                console.log("Python recommendations failed to load:", error);
+            });
+        }, 1000);
 
-    // Setup event listeners
-    setupEventListeners();
+        // Setup event listeners
+        setupEventListeners();
+    });
 });
 
 // Add CSS animations
@@ -1735,12 +1980,37 @@ style.textContent = `
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    .listing-ai-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        z-index: 2;
+    }
+    
+    .listing-match-badge {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: #10b981;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        z-index: 2;
+    }
 `;
 document.head.appendChild(style);
 
 // ================================ WINDOW FUNCTIONS (for backward compatibility) =============================
 
-// These are kept for backward compatibility with inline onclick handlers
 window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
 window.toggleSaveProperty = toggleSaveProperty;

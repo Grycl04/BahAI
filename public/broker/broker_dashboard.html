@@ -19,10 +19,8 @@
       --border: #e2e8f0;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --rent-color: #10b981;
-      --sale-color: #3b82f6;
     }
-   
+    
     * {
       margin: 0;
       padding: 0;
@@ -299,16 +297,9 @@
     .listing-price {
       font-size: 20px;
       font-weight: 700;
+      color: var(--primary);
       white-space: nowrap;
       flex-shrink: 0;
-    }
-
-    .price-rent {
-      color: var(--rent-color);
-    }
-
-    .price-sale {
-      color: var(--sale-color);
     }
 
     .listing-location {
@@ -403,26 +394,6 @@
       color: #92400e;
     }
 
-    .listing-type-badge {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: white;
-    }
-
-    .type-rent {
-      background: var(--rent-color);
-    }
-
-    .type-sale {
-      background: var(--sale-color);
-    }
-
     .listing-actions {
       display: flex;
       gap: 10px;
@@ -450,6 +421,15 @@
       background: var(--secondary);
       color: white;
     }
+
+    /* For single button layout */
+.listing-actions:has(button:only-child) {
+  justify-content: center;
+}
+
+.listing-actions:has(button:only-child) .action-btn {
+  max-width: 200px;
+}
 
     .contact-btn:hover {
       background: #1565c0;
@@ -530,6 +510,7 @@
     .modal-price {
       font-size: 32px;
       font-weight: 700;
+      color: var(--primary);
     }
 
     .modal-status {
@@ -538,7 +519,6 @@
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
-      color: white;
     }
 
     .close-modal {
@@ -625,179 +605,61 @@
       color: #ef4444;
     }
 
-    /* ===== RESPONSIVE DESIGN ===== */
-   
-    /* Tablet */
+    /* Responsive Design */
     @media (max-width: 1024px) {
       .container {
         margin-left: 0;
         padding: 25px;
       }
-     
+      
       .mobile-menu-toggle {
         display: flex;
         align-items: center;
         justify-content: center;
       }
-     
+      
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-     
+      
       .listings-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
       }
-     
+      
       .topbar {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
       }
-     
+      
       .add-button {
         align-self: flex-start;
       }
     }
 
-    /* Large Mobile */
     @media (max-width: 768px) {
       .container {
         padding: 20px;
       }
-     
-      .mobile-menu-toggle {
-        top: 15px;
-        left: 15px;
-        width: 45px;
-        height: 45px;
-        font-size: 20px;
-      }
-     
-      .page-header h1 {
-        font-size: 24px;
-      }
-     
-      .page-header p {
-        font-size: 14px;
-      }
-     
+      
       .stats-grid {
         grid-template-columns: 1fr;
-        gap: 15px;
       }
-     
-      .stat-card {
-        padding: 20px;
-      }
-     
-      .stat-value {
-        font-size: 32px;
-      }
-     
-      .filters-section {
-        padding: 20px;
-      }
-     
-      .filters-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-     
-      .filter-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-     
-      .apply-filters, .reset-filters {
-        width: 100%;
-      }
-     
+      
       .listings-grid {
         grid-template-columns: 1fr;
         gap: 15px;
       }
-     
-      .listing-content {
-        padding: 15px;
-      }
-     
+      
       .listing-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
       }
-     
-      .listing-price {
-        font-size: 18px;
-      }
-     
-      .listing-details {
-        gap: 12px;
-      }
-     
+      
       .listing-actions {
         flex-direction: column;
-      }
-    }
-
-    /* Small Mobile */
-    @media (max-width: 480px) {
-      .container {
-        padding: 15px;
-      }
-     
-      .mobile-menu-toggle {
-        top: 10px;
-        left: 10px;
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
-     
-      .page-header h1 {
-        font-size: 22px;
-      }
-     
-      .stat-card {
-        padding: 15px;
-      }
-     
-      .stat-value {
-        font-size: 28px;
-      }
-     
-      .filters-section {
-        padding: 15px;
-      }
-     
-      .listing-content {
-        padding: 12px;
-      }
-     
-      .listing-title {
-        font-size: 16px;
-      }
-     
-      .listing-price {
-        font-size: 16px;
-      }
-     
-      .listing-details {
-        gap: 8px;
-      }
-     
-      .detail {
-        font-size: 12px;
-      }
-     
-      .broker-name {
-        font-size: 13px;
-      }
-     
-      .action-btn {
-        padding: 8px 12px;
-        font-size: 13px;
       }
     }
 </style>
@@ -827,7 +689,7 @@
       </div>
       <button class="close-modal" id="closeModal">&times;</button>
     </div>
-   
+    
     <div class="modal-body" id="modalBody">
       <!-- Content will be loaded dynamically -->
     </div>
@@ -838,7 +700,7 @@
 <div class="container">
   <div class="topbar">
     <div class="page-header">
-      <h1>Landlord Dashboard</h1>
+      <h1>Broker Dashboard</h1>
       <p>View all active property listings from different brokers</p>
     </div>
     <a href="add_property.html" class="add-button">
@@ -878,19 +740,20 @@
         <label class="filter-label">Property Type</label>
         <select class="filter-select" id="filterType">
           <option value="">All Types</option>
-          <option value="Condo">Condo</option>
           <option value="House">House</option>
-          <option value="Lot">Lot</option>
+          <option value="Condo">Condo</option>
           <option value="Apartment">Apartment</option>
-          <option value="Villa">Villa</option>
+          <option value="Land">Land</option>
+          <option value="Commercial">Commercial</option>
         </select>
       </div>
       <div class="filter-group">
         <label class="filter-label">Listing Type</label>
         <select class="filter-select" id="filterListingType">
           <option value="">All Listings</option>
-          <option value="rent">For Rent</option>
           <option value="sale">For Sale</option>
+          <option value="rent">For Rent</option>
+          <option value="lease">For Lease</option>
         </select>
       </div>
       <div class="filter-group">
@@ -923,16 +786,49 @@
   </div>
 </div>
 
+<!-- Sidebar Loader -->
+<script>
+// Mobile menu functionality
+document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
+      'translateX(-100%)' : 'translateX(0px)';
+  }
+});
+
+// Load sidebar
+fetch('sidebar.html')
+  .then(response => response.text())
+  .then(html => {
+    document.getElementById('sidebar-container').innerHTML = html;
+    const links = document.querySelectorAll('.sidebar-link');
+    links.forEach(link => {
+      if (link.getAttribute('href') === 'broker_dashboard.html') {
+        link.classList.add('active');
+      }
+    });
+  })
+  .catch(error => console.error('Error loading sidebar:', error));
+</script>
+
 <!-- Load Google Maps API -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk" async defer></script>
 
-<!-- Firebase and Dashboard Script -->
+<!-- Firebase Script -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { 
+  getFirestore, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  getDoc, 
+  doc 
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
   authDomain: "bahai-1b76d.firebaseapp.com",
@@ -942,269 +838,104 @@ const firebaseConfig = {
   appId: "1:646878644941:web:5b4ccc3412250337587784"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
-// Global variables
 let allListings = [];
 let userMap = new Map();
 
-// Helper functions
+// Helper function to get role display text
 function getRoleDisplayText(role) {
   const roleMap = {
     'landlord': 'Property Owner',
     'seller': 'Property Seller', 
     'broker': 'Licensed Broker',
     'agent': 'Property Agent',
-    'admin': 'Administrator'
+    'admin': 'Administrator',
+    'user': 'User'
   };
   return roleMap[role] || 'Posted by';
 }
 
-function getListingType(listing) {
-  if (listing.monthlyRent !== undefined && listing.monthlyRent !== null) {
-    return 'rent';
+// Helper function to get price based on listing type
+function getPriceInfo(listing) {
+  const type = listing.type || listing.listingType || 'rent';
+  let price = 0;
+  let label = '';
+  
+  switch(type.toLowerCase()) {
+    case 'sale':
+      price = listing.salePrice || listing.pricing || listing.price || 0;
+      label = `₱${price.toLocaleString()}`;
+      break;
+    case 'lease':
+      price = listing.annualRent || listing.monthlyRent * 12 || listing.rent || 0;
+      label = `₱${price.toLocaleString()}/year`;
+      break;
+    case 'rent':
+      price = listing.monthlyRent || listing.rent || 0;
+      label = `₱${price.toLocaleString()}/month`;
+      break;
+    default:
+      price = listing.pricing || listing.price || listing.monthlyRent || listing.annualRent || 0;
+      label = `₱${price.toLocaleString()}`;
   }
-  if (listing.pricing !== undefined && listing.pricing !== null) {
-    return 'sale';
-  }
-  return 'sale';
+  
+  return { price, label };
 }
 
-function getDisplayPrice(listing) {
-  const type = getListingType(listing);
-  if (type === 'rent') {
-    return `₱${(listing.monthlyRent || 0).toLocaleString()}/month`;
-  } else {
-    return `₱${(listing.pricing || 0).toLocaleString()}`;
-  }
-}
-
-function getPriceClass(listing) {
-  const type = getListingType(listing);
-  return type === 'rent' ? 'price-rent' : 'price-sale';
-}
-
-function getTypeBadgeClass(listing) {
-  const type = getListingType(listing);
-  return type === 'rent' ? 'type-rent' : 'type-sale';
-}
-
-function getTypeBadgeText(listing) {
-  const type = getListingType(listing);
-  return type === 'rent' ? 'FOR RENT' : 'FOR SALE';
-}
-
-// Debug function to check brokers collection
-async function debugBrokers() {
-  try {
-    console.log('🔍 DEBUG: Checking brokers collection...');
-    const brokersQuery = query(collection(db, "brokers"));
-    const brokersSnapshot = await getDocs(brokersQuery);
-    
-    console.log(`📊 Total brokers in database: ${brokersSnapshot.size}`);
-    
-    if (brokersSnapshot.size === 0) {
-      console.log('❌ No brokers found in the brokers collection!');
-      return;
-    }
-    
-    brokersSnapshot.forEach((doc) => {
-      console.log(`👨‍💼 Broker: ${doc.id} ->`, doc.data());
-    });
-    
-  } catch (error) {
-    console.error('💥 Error debugging brokers:', error);
+// Helper function to get listing type display
+function getListingTypeDisplay(listing) {
+  const type = listing.type || listing.listingType || 'rent';
+  switch(type.toLowerCase()) {
+    case 'sale': return 'For Sale';
+    case 'lease': return 'For Lease';
+    case 'rent': return 'For Rent';
+    default: return 'Property';
   }
 }
 
-// Comprehensive search function
-async function searchAllCollections(userId) {
-  try {
-    console.log(`🔍 Comprehensive search for user: ${userId}`);
-    
-    let foundUser = null;
-    
-    // Search in 'users' collection
-    const usersQuery = query(collection(db, "users"));
-    const usersSnapshot = await getDocs(usersQuery);
-    
-    usersSnapshot.forEach((userDoc) => {
-      const userData = userDoc.data();
-      console.log(`👤 User in DB: ${userDoc.id} -> ${userData.fullName || 'No name'} (${userData.role || 'No role'})`);
-      
-      // Check if this user's document ID matches our userId
-      if (userDoc.id === userId) {
-        foundUser = { id: userDoc.id, ...userData, source: 'users' };
-      }
-    });
-    
-    // Search in 'brokers' collection
-    if (!foundUser) {
-      const brokersQuery = query(collection(db, "brokers"));
-      const brokersSnapshot = await getDocs(brokersQuery);
-      
-      brokersSnapshot.forEach((brokerDoc) => {
-        const brokerData = brokerDoc.data();
-        console.log(`👨‍💼 Broker in DB: ${brokerDoc.id} -> ${brokerData.fullName || 'No name'}`);
-        
-        if (brokerDoc.id === userId) {
-          foundUser = { id: brokerDoc.id, ...brokerData, source: 'brokers', role: 'broker' };
-        }
-      });
-    }
-    
-    if (foundUser) {
-      console.log(`🎉 Found user in collection search:`, foundUser);
-      
-      const fullName = foundUser.fullName || 
-                       foundUser.email?.split('@')[0] || 
-                       `User ${userId.substring(0, 8)}`;
-      
-      userMap.set(userId, {
-        displayName: fullName,
-        email: foundUser.email || 'Email not available',
-        phone: foundUser.phone || 'Phone not available',
-        role: foundUser.role || 'user'
-      });
-    } else {
-      console.log(`❌ User ${userId} not found in any collection`);
-      userMap.set(userId, {
-        displayName: `Broker ${userId.substring(0, 8)}`,
-        email: 'Email not available',
-        phone: 'Phone not available',
-        role: 'broker'
-      });
-    }
-  } catch (error) {
-    console.error('💥 Error in comprehensive search:', error);
-    userMap.set(userId, {
-      displayName: `Broker ${userId.substring(0, 8)}`,
-      email: 'Email not available',
-      phone: 'Phone not available',
-      role: 'broker'
-    });
-  }
-}
-
-// Main user data loading function
-async function loadUserData(userId) {
-  try {
-    console.log(`📋 Loading data for user: ${userId}`);
-    
-    // Try to get user document from 'users' collection first
-    const userDoc = await getDoc(doc(db, "users", userId));
-    
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      console.log(`✅ Found user document for ${userId}:`, userData);
-      
-      // Extract user information - we know both brokers and landlords have fullName
-      const fullName = userData.fullName || 
-                       userData.email?.split('@')[0] || 
-                       `User ${userId.substring(0, 8)}`;
-      
-      const email = userData.email || 'Email not available';
-      const phone = userData.phone || 'Phone not available';
-      const role = userData.role || 'user';
-      
-      userMap.set(userId, {
-        displayName: fullName,
-        email: email,
-        phone: phone,
-        role: role
-      });
-      
-      console.log(`✅ Loaded ${role}: ${fullName}`);
-      return;
-    }
-    
-    // If not found in 'users', try 'brokers' collection
-    console.log(`🔄 User not found in 'users' collection, trying 'brokers'...`);
-    const brokerDoc = await getDoc(doc(db, "brokers", userId));
-    
-    if (brokerDoc.exists()) {
-      const brokerData = brokerDoc.data();
-      console.log(`✅ Found broker document for ${userId}:`, brokerData);
-      
-      const fullName = brokerData.fullName || 
-                       `Broker ${userId.substring(0, 8)}`;
-      
-      userMap.set(userId, {
-        displayName: fullName,
-        email: brokerData.email || 'Email not available',
-        phone: brokerData.phone || 'Phone not available',
-        role: 'broker'
-      });
-      
-      console.log(`✅ Loaded broker: ${fullName}`);
-      return;
-    }
-    
-    // If still not found, do a comprehensive search
-    console.log(`🔍 User not found directly, doing comprehensive search...`);
-    await searchAllCollections(userId);
-    
-  } catch (error) {
-    if (error.code === 'permission-denied' || error.code === 'missing-or-insufficient-permissions') {
-      console.log(`🔐 Permission denied for ${userId}, using fallback`);
-      // Use fallback for brokers we can't access
-      userMap.set(userId, {
-        displayName: `Broker ${userId.substring(0, 8)}`,
-        email: 'Email not available',
-        phone: 'Phone not available',
-        role: 'broker'
-      });
-    } else {
-      console.error(`💥 Error loading user ${userId}:`, error);
-      userMap.set(userId, {
-        displayName: `User ${userId.substring(0, 8)}`,
-        email: 'Email not available',
-        phone: 'Phone not available',
-        role: 'user'
-      });
-    }
-  }
-}
-
-// Main functions
+// Main function to load all listings
 async function loadAllListings() {
   const container = document.getElementById('listingsContainer');
+  container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading properties...</p></div>';
   
   try {
-    console.log('🚀 Starting to load all listings...');
+    console.log('🔍 Fetching all properties...');
     
-    const listingsQuery = query(
-      collection(db, "properties"),
-      where("status", "==", "active")
-    );
-    const querySnapshot = await getDocs(listingsQuery);
+    // Query ALL properties from Firestore
+    const propertiesRef = collection(db, "properties");
+    const snapshot = await getDocs(propertiesRef);
     
     allListings = [];
     const userIds = new Set();
     
-    querySnapshot.forEach((doc) => {
+    snapshot.forEach((doc) => {
+      const data = doc.data();
       const listing = {
         id: doc.id,
-        ...doc.data()
+        ...data
       };
-      allListings.push(listing);
       
-      if (listing.userId) {
-        userIds.add(listing.userId);
+      // Only include listings that are active/available
+      const status = (data.status || '').toLowerCase();
+      if (status === 'active' || status === 'available' || status === 'published' || 
+          !data.status || data.status === true || data.status === 'true') {
+        allListings.push(listing);
+        
+        // Collect user IDs for lookup
+        if (data.userId) userIds.add(data.userId);
+        if (data.ownerId) userIds.add(data.ownerId);
+        if (data.brokerId) userIds.add(data.brokerId);
       }
     });
-
-    console.log('👥 User IDs to fetch:', Array.from(userIds));
     
-    // DEBUG: Check what brokers exist
-    await debugBrokers();
+    console.log(`✅ Loaded ${allListings.length} active properties`);
     
-    await loadAllUserData(userIds);
+    // Load user data for all collected user IDs
+    await loadUserData(Array.from(userIds));
     
     if (allListings.length === 0) {
       displayNoListings();
@@ -1214,29 +945,58 @@ async function loadAllListings() {
     }
     
   } catch (error) {
-    console.error("❌ Error loading listings:", error);
+    console.error('❌ Error loading listings:', error);
     displayError(error);
   }
 }
 
-async function loadAllUserData(userIds) {
+// Load user data for multiple user IDs
+async function loadUserData(userIds) {
   userMap.clear();
   
-  if (userIds.size === 0) {
-    console.log('ℹ️ No user IDs found to load');
+  if (userIds.length === 0) {
+    console.log('ℹ️ No user IDs to load');
     return;
   }
   
-  console.log(`🔍 Loading user data for ${userIds.size} users...`);
+  console.log(`👥 Loading user data for ${userIds.length} users...`);
   
-  // Load each user individually
-  for (const userId of userIds) {
-    await loadUserData(userId);
-  }
+  const userPromises = userIds.map(async (userId) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userMap.set(userId, {
+          displayName: userData.fullName || userData.displayName || userData.name || `User ${userId.substring(0, 8)}`,
+          email: userData.email || 'Email not available',
+          phone: userData.phone || userData.phoneNumber || 'Phone not available',
+          role: userData.role || userData.userType || 'user'
+        });
+      } else {
+        // Fallback if user document doesn't exist
+        userMap.set(userId, {
+          displayName: `User ${userId.substring(0, 8)}`,
+          email: 'Email not available',
+          phone: 'Phone not available',
+          role: 'user'
+        });
+      }
+    } catch (error) {
+      console.error(`Error loading user ${userId}:`, error);
+      userMap.set(userId, {
+        displayName: `User ${userId.substring(0, 8)}`,
+        email: 'Email not available',
+        phone: 'Phone not available',
+        role: 'user'
+      });
+    }
+  });
   
-  console.log('✅ User data loaded:', Array.from(userMap.entries()));
+  await Promise.all(userPromises);
+  console.log(`✅ Loaded ${userMap.size} user profiles`);
 }
 
+// Display listings in the grid
 function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
   
@@ -1246,71 +1006,61 @@ function displayListings(listings) {
   }
   
   container.innerHTML = listings.map(listing => {
-    const userInfo = userMap.get(listing.userId) || {
-      displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
+    // Get user information
+    const userId = listing.userId || listing.ownerId || listing.brokerId || 'unknown';
+    const userInfo = userMap.get(userId) || {
+      displayName: `User ${userId.substring(0, 8)}`,
       email: 'N/A',
       phone: 'N/A',
       role: 'user'
     };
     
-    const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
-    const listingType = getListingType(listing);
-    const displayPrice = getDisplayPrice(listing);
-    const priceClass = getPriceClass(listing);
-    const typeBadgeClass = getTypeBadgeClass(listing);
-    const typeBadgeText = getTypeBadgeText(listing);
+    // Get price information
+    const priceInfo = getPriceInfo(listing);
+    const listingType = getListingTypeDisplay(listing);
     
-    let mainPhoto;
+    // Get property image
+    let imageUrl = 'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
     if (listing.photos && listing.photos.length > 0) {
-      mainPhoto = listing.photos[0];
+      imageUrl = listing.photos[0];
     } else if (listing.imageUrls && listing.imageUrls.length > 0) {
-      mainPhoto = listing.imageUrls[0];
+      imageUrl = listing.imageUrls[0];
     } else if (listing.latitude && listing.longitude) {
-      mainPhoto = `https://maps.googleapis.com/maps/api/staticmap?center=${listing.latitude},${listing.longitude}&zoom=15&size=400x200&markers=color:red%7C${listing.latitude},${listing.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
-    } else {
-      mainPhoto = 'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
+      imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${listing.latitude},${listing.longitude}&zoom=15&size=400x200&markers=color:red%7C${listing.latitude},${listing.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
     }
     
-    const bedrooms = listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0);
-    const bathrooms = listing.bathrooms || 0;
-    const squareFootage = listing.squareFootage || 'N/A';
+    // Get user initials for avatar
+    const initials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'UU';
     
     return `
     <div class="listing-card" onclick="showListingDetails('${listing.id}')">
-      <div style="position: relative;">
-        <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
-        <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
-      </div>
+      <img src="${imageUrl}" alt="${listing.title}" class="listing-image">
       <div class="listing-content">
         <div class="listing-header">
           <div>
             <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
             <div class="listing-location">
-              <span>📍</span> ${listing.location || 'Location not specified'}
+              <span>📍</span> ${listing.address || listing.location || 'Location not specified'}
+              <br><small>${listingType}</small>
             </div>
           </div>
-          <div class="listing-price ${priceClass}">${displayPrice}</div>
+          <div class="listing-price">${priceInfo.label}</div>
         </div>
         
         <div class="listing-details">
           <div class="detail">
-            <span>🛏️</span> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}
+            <span>🛏️</span> ${listing.bedrooms || 0} beds
           </div>
           <div class="detail">
-            <span>🚿</span> ${bathrooms} baths
+            <span>🚿</span> ${listing.bathrooms || 0} baths
           </div>
           <div class="detail">
-            <span>📐</span> ${squareFootage}
+            <span>📐</span> ${listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A'} ${typeof (listing.floorArea || listing.totalArea) === 'number' ? 'sqm' : ''}
           </div>
-          ${listingType === 'rent' && listing.deposit ? `
-            <div class="detail">
-              <span>💰</span> Deposit: ₱${listing.deposit.toLocaleString()}
-            </div>
-          ` : ''}
         </div>
         
         <div class="listing-broker">
-          <div class="broker-avatar">${userInitials}</div>
+          <div class="broker-avatar">${initials}</div>
           <div class="broker-info">
             <div class="broker-name">${userInfo.displayName}</div>
             <div class="broker-contact">
@@ -1324,19 +1074,17 @@ function displayListings(listings) {
         </div>
         
         <div class="listing-actions">
-          <button class="action-btn contact-btn" onclick="event.stopPropagation(); contactBroker('${listing.userId}')">
-            📞 Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-          </button>
-          <button class="action-btn view-btn" onclick="event.stopPropagation(); showListingDetails('${listing.id}')">
-            👀 View Details
-          </button>
-        </div>
+  <button class="action-btn view-btn" onclick="event.stopPropagation(); showListingDetails('${listing.id}')">
+    👀 View Details
+  </button>
+</div>
       </div>
     </div>
     `;
   }).join('');
 }
 
+// Display empty state
 function displayNoListings() {
   const container = document.getElementById('listingsContainer');
   container.innerHTML = `
@@ -1351,6 +1099,7 @@ function displayNoListings() {
   `;
 }
 
+// Display error state
 function displayError(error) {
   const container = document.getElementById('listingsContainer');
   container.innerHTML = `
@@ -1358,6 +1107,9 @@ function displayError(error) {
       <div class="error-icon">⚠️</div>
       <h3>Error Loading Properties</h3>
       <p>There was an error loading the property listings.</p>
+      <p style="margin-top: 10px; font-size: 14px; color: var(--text-light);">
+        ${error.message}
+      </p>
       <button class="add-button" onclick="loadAllListings()" style="margin-top: 20px;">
         🔄 Try Again
       </button>
@@ -1365,54 +1117,87 @@ function displayError(error) {
   `;
 }
 
+// Update dashboard statistics
 function updateStats(listings) {
   const total = listings.length;
-  const uniqueUsers = new Set(listings.map(l => l.userId)).size;
+  const uniqueUsers = new Set(listings.map(l => l.userId || l.ownerId || l.brokerId)).size;
   
-  const saleListings = listings.filter(l => getListingType(l) === 'sale');
-  const averagePrice = saleListings.length > 0
-    ? Math.round(saleListings.reduce((sum, l) => sum + (l.pricing || 0), 0) / saleListings.length)
+  // Calculate average price
+  const prices = listings.map(listing => {
+    const priceInfo = getPriceInfo(listing);
+    return priceInfo.price;
+  }).filter(price => price > 0);
+  
+  const averagePrice = prices.length > 0 
+    ? Math.round(prices.reduce((sum, price) => sum + price, 0) / prices.length)
     : 0;
-
+  
+  // Count new listings from today
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const newToday = listings.filter(listing => {
     if (!listing.createdAt) return false;
-    const listingDate = listing.createdAt.toDate ? listing.createdAt.toDate() : new Date(listing.createdAt.seconds * 1000);
-    return listingDate >= today;
+    
+    try {
+      let listingDate;
+      if (listing.createdAt.toDate) {
+        listingDate = listing.createdAt.toDate();
+      } else if (listing.createdAt.seconds) {
+        listingDate = new Date(listing.createdAt.seconds * 1000);
+      } else if (typeof listing.createdAt === 'string') {
+        listingDate = new Date(listing.createdAt);
+      } else if (typeof listing.createdAt === 'number') {
+        listingDate = new Date(listing.createdAt);
+      } else {
+        return false;
+      }
+      return listingDate >= today;
+    } catch (e) {
+      return false;
+    }
   }).length;
-
+  
   document.getElementById('totalListings').textContent = total;
   document.getElementById('totalBrokers').textContent = uniqueUsers;
   document.getElementById('averagePrice').textContent = `₱${averagePrice.toLocaleString()}`;
   document.getElementById('newToday').textContent = newToday;
 }
 
+// Apply filters to listings
 function applyFilters() {
-  const typeFilter = document.getElementById('filterType').value;
-  const listingTypeFilter = document.getElementById('filterListingType').value;
+  const typeFilter = document.getElementById('filterType').value.toLowerCase();
+  const listingTypeFilter = document.getElementById('filterListingType').value.toLowerCase();
   const priceFilter = document.getElementById('filterPrice').value;
   const locationFilter = document.getElementById('filterLocation').value.toLowerCase();
-
+  
   const filtered = allListings.filter(listing => {
-    if (typeFilter && listing.propertyType !== typeFilter) return false;
-   
-    if (listingTypeFilter) {
-      const actualType = getListingType(listing);
-      if (actualType !== listingTypeFilter) return false;
+    // Property type filter
+    if (typeFilter && listing.propertyType && !listing.propertyType.toLowerCase().includes(typeFilter)) {
+      return false;
     }
-   
+    
+    // Listing type filter
+    if (listingTypeFilter) {
+      const listingType = (listing.type || listing.listingType || '').toLowerCase();
+      if (listingType !== listingTypeFilter) return false;
+    }
+    
+    // Price filter
     if (priceFilter) {
       const [min, max] = priceFilter.split('-').map(Number);
-      const price = listing.pricing || listing.monthlyRent || 0;
-      if (price < min || price > max) return false;
+      const priceInfo = getPriceInfo(listing);
+      if (priceInfo.price < min || priceInfo.price > max) return false;
     }
-   
-    if (locationFilter && !listing.location?.toLowerCase().includes(locationFilter)) return false;
-   
+    
+    // Location filter
+    if (locationFilter) {
+      const location = (listing.address || listing.location || '').toLowerCase();
+      if (!location.includes(locationFilter)) return false;
+    }
+    
     return true;
   });
-
+  
   if (filtered.length === 0) {
     document.getElementById('listingsContainer').innerHTML = `
       <div class="empty-state">
@@ -1426,136 +1211,86 @@ function applyFilters() {
   }
 }
 
-// Global functions for event handlers
-window.showListingDetails = function(id) {
+// Show listing details in modal
+window.showListingDetails = async function(id) {
   const listing = allListings.find(l => l.id === id);
   if (!listing) return;
-
-  const modal = document.getElementById('listingModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalLocation = document.getElementById('modalLocation');
-  const modalPrice = document.getElementById('modalPrice');
-  const modalStatus = document.getElementById('modalStatus');
-  const modalBody = document.getElementById('modalBody');
-
-  const userInfo = userMap.get(listing.userId) || {
-    displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
+  
+  const userId = listing.userId || listing.ownerId || listing.brokerId || 'unknown';
+  const userInfo = userMap.get(userId) || {
+    displayName: `User ${userId.substring(0, 8)}`,
     email: 'N/A',
     phone: 'N/A',
     role: 'user'
   };
-
-  const listingType = getListingType(listing);
-  const displayPrice = getDisplayPrice(listing);
-  const typeBadgeClass = getTypeBadgeClass(listing);
-  const typeBadgeText = getTypeBadgeText(listing);
-
-  modalTitle.textContent = listing.title || 'Untitled Property';
-  modalLocation.textContent = listing.location || 'Location not specified';
-  modalPrice.textContent = displayPrice;
-  modalPrice.className = `modal-price ${getPriceClass(listing)}`;
-  modalStatus.textContent = typeBadgeText;
-  modalStatus.className = `modal-status ${typeBadgeClass}`;
-
-  const photos = listing.photos || listing.imageUrls || [];
-  const mainPhoto = photos.length > 0 ? photos[0] : 'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image';
-
-  let pricingDetails = '';
-  if (listingType === 'rent') {
-    pricingDetails = `
-      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-        <span style="color: var(--text-light);">Monthly Rent:</span>
-        <span style="font-weight: 600; color: var(--rent-color);">₱${(listing.monthlyRent || 0).toLocaleString()}</span>
-      </div>
-      ${listing.deposit ? `
-      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-        <span style="color: var(--text-light);">Security Deposit:</span>
-        <span style="font-weight: 600;">₱${listing.deposit.toLocaleString()}</span>
-      </div>
-      ` : ''}
-      ${listing.minStay ? `
-      <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-        <span style="color: var(--text-light);">Minimum Stay:</span>
-        <span style="font-weight: 600;">${listing.minStay} month(s)</span>
-      </div>
-      ` : ''}
-    `;
-  } else {
-    pricingDetails = `
-      <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-        <span style="color: var(--text-light);">Sale Price:</span>
-        <span style="font-weight: 600; color: var(--sale-color);">₱${(listing.pricing || 0).toLocaleString()}</span>
-      </div>
-    `;
-  }
-
+  
+  const priceInfo = getPriceInfo(listing);
+  const listingType = getListingTypeDisplay(listing);
+  
+  // Get all images
+  const images = listing.photos || listing.imageUrls || [];
+  const mainImage = images.length > 0 ? images[0] : 'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image';
+  
+  // Update modal content
+  document.getElementById('modalTitle').textContent = listing.title || 'Untitled Property';
+  document.getElementById('modalLocation').textContent = listing.address || listing.location || 'Location not specified';
+  document.getElementById('modalPrice').textContent = priceInfo.label;
+  document.getElementById('modalStatus').textContent = listing.status || 'active';
+  document.getElementById('modalStatus').className = `modal-status status-${listing.status || 'active'}`;
+  
+  // Create modal body content
+  const modalBody = document.getElementById('modalBody');
   modalBody.innerHTML = `
     <div style="padding: 30px 40px;">
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 30px;">
-        <div class="main-image">
-          <img src="${mainPhoto}" alt="${listing.title}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px;">
-          ${photos.length > 1 ? `
-            <div style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto;">
-              ${photos.slice(1, 5).map(photo => `
-                <img src="${photo}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer;"
-                     onclick="document.querySelector('.main-image img').src='${photo}'">
-              `).join('')}
-            </div>
-          ` : ''}
-        </div>
-        <div style="background: var(--bg-light); padding: 25px; border-radius: 12px;">
-          <h3 style="margin-bottom: 15px; color: var(--text-dark);">${userInfo.role === 'landlord' ? 'Property Owner' : 'Broker'} Information</h3>
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-            <div class="broker-avatar" style="width: 50px; height: 50px; font-size: 18px;">${userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}</div>
-            <div>
-              <div style="font-weight: 600; color: var(--text-dark);">${userInfo.displayName}</div>
-              <div style="font-size: 14px; color: var(--text-light);">${getRoleDisplayText(userInfo.role)}</div>
-            </div>
+      <!-- Images Gallery -->
+      <div style="margin-bottom: 30px;">
+        <img src="${mainImage}" alt="${listing.title}" style="width: 100%; height: 400px; object-fit: cover; border-radius: 12px;">
+        ${images.length > 1 ? `
+          <div style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto;">
+            ${images.slice(1, 5).map(img => `
+              <img src="${img}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer;" 
+                   onclick="document.querySelector('#modalBody img').src='${img}'">
+            `).join('')}
           </div>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-              <span style="color: var(--text-light);">Email:</span>
-              <span style="font-weight: 600; font-size: 12px;">${userInfo.email}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-              <span style="color: var(--text-light);">Phone:</span>
-              <span style="font-weight: 600;">${userInfo.phone}</span>
-            </div>
-          </div>
-        </div>
+        ` : ''}
       </div>
-
+      
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <!-- Left Column -->
         <div>
-          <h3 style="margin-bottom: 15px; color: var(--text-dark);">Property Details</h3>
+          <h3 style="margin-bottom: 15px; color: var(--text-dark);">Property Information</h3>
           <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
-            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-              <span style="color: var(--text-light);">Listing Type:</span>
-              <span style="font-weight: 600; color: ${listingType === 'rent' ? 'var(--rent-color)' : 'var(--sale-color)'};">${typeBadgeText}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-              <span style="color: var(--text-light);">Property Type:</span>
-              <span style="font-weight: 600;">${listing.propertyType || 'N/A'}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-              <span style="color: var(--text-light);">Bedrooms:</span>
-              <span style="font-weight: 600;">${listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0)}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-              <span style="color: var(--text-light);">Bathrooms:</span>
-              <span style="font-weight: 600;">${listing.bathrooms || 0}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-              <span style="color: var(--text-light);">Square Footage:</span>
-              <span style="font-weight: 600;">${listing.squareFootage || 'N/A'}</span>
+            <div style="display: grid; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Type:</span>
+                <span style="font-weight: 600;">${listing.propertyType || 'N/A'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Listing Type:</span>
+                <span style="font-weight: 600;">${listingType}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Bedrooms:</span>
+                <span style="font-weight: 600;">${listing.bedrooms || 0}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Bathrooms:</span>
+                <span style="font-weight: 600;">${listing.bathrooms || 0}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: var(--text-light);">Area:</span>
+                <span style="font-weight: 600;">${listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A'} sqm</span>
+              </div>
             </div>
           </div>
           
-          <h3 style="margin: 20px 0 15px; color: var(--text-dark);">Pricing Details</h3>
-          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
-            ${pricingDetails}
+          <!-- Description -->
+          <h3 style="margin: 20px 0 15px; color: var(--text-dark);">Description</h3>
+          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; line-height: 1.6;">
+            ${listing.description || 'No description available.'}
           </div>
           
+          <!-- Amenities -->
           ${listing.amenities && listing.amenities.length > 0 ? `
             <h3 style="margin: 20px 0 15px; color: var(--text-dark);">Amenities</h3>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -1568,70 +1303,81 @@ window.showListingDetails = function(id) {
           ` : ''}
         </div>
         
+        <!-- Right Column -->
         <div>
-          <h3 style="margin-bottom: 15px; color: var(--text-dark);">Description</h3>
-          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; line-height: 1.6;">
-            ${listing.description || 'No description available.'}
+          <h3 style="margin-bottom: 15px; color: var(--text-dark);">${userInfo.role === 'landlord' ? 'Property Owner' : 'Broker'} Information</h3>
+          <div style="background: var(--bg-light); padding: 25px; border-radius: 12px;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+              <div class="broker-avatar" style="width: 60px; height: 60px; font-size: 20px;">
+                ${userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 18px; color: var(--text-dark);">${userInfo.displayName}</div>
+                <div style="font-size: 14px; color: var(--text-light);">${getRoleDisplayText(userInfo.role)}</div>
+              </div>
+            </div>
+            
+            <div style="display: grid; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <span style="color: var(--text-light);">Email:</span>
+                <span style="font-weight: 600; font-size: 14px;">${userInfo.email}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: var(--text-light);">Phone:</span>
+                <span style="font-weight: 600;">${userInfo.phone}</span>
+              </div>
+            </div>
           </div>
+          
+          <!-- Map -->
+          ${listing.latitude && listing.longitude ? `
+            <div style="margin-top: 20px;">
+              <h3 style="margin-bottom: 15px; color: var(--text-dark);">📍 Property Location</h3>
+              <div id="propertyMap" style="width: 100%; height: 250px; border-radius: 12px; border: 1px solid var(--border);"></div>
+            </div>
+          ` : ''}
         </div>
       </div>
-
-      ${listing.latitude && listing.longitude ? `
-        <div style="margin-top: 30px;">
-          <h3 style="margin-bottom: 15px; color: var(--text-dark);">📍 Property Location</h3>
-          <div id="propertyMap"></div>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}"
-             target="_blank"
-             class="action-btn contact-btn"
-             style="margin-top: 15px; width: auto; display: inline-flex;">
-             🧭 Get Directions
-          </a>
-        </div>
-      ` : ''}
-
-      <div style="display: flex; gap: 15px; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border);">
-        <button class="action-btn contact-btn" onclick="contactBroker('${listing.userId}')" style="flex: 1;">
-          📞 Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-        </button>
-        <button class="action-btn view-btn" onclick="closeModal()" style="flex: 1;">
-          Close
-        </button>
-      </div>
+      
+      <!-- Actions -->
+<div style="display: flex; gap: 15px; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border);">
+  <button class="action-btn view-btn" onclick="closeModal()" style="flex: 1;">
+    Close
+  </button>
+</div>
     </div>
   `;
-
-  modal.classList.add('show');
+  
+  // Show modal
+  document.getElementById('listingModal').classList.add('show');
   document.body.style.overflow = 'hidden';
-
+  
+  // Initialize map if coordinates exist
   if (listing.latitude && listing.longitude) {
     setTimeout(() => {
       if (window.google && window.google.maps) {
-        initPropertyMap(listing.latitude, listing.longitude, listing.title);
+        const mapElement = document.getElementById("propertyMap");
+        if (mapElement) {
+          const map = new google.maps.Map(mapElement, {
+            center: { lat: listing.latitude, lng: listing.longitude },
+            zoom: 15,
+            mapTypeControl: true,
+            streetViewControl: true
+          });
+          
+          new google.maps.Marker({
+            position: { lat: listing.latitude, lng: listing.longitude },
+            map: map,
+            title: listing.title
+          });
+        }
       }
     }, 100);
   }
 };
 
-function initPropertyMap(lat, lng, title) {
-  const mapElement = document.getElementById("propertyMap");
-  if (!mapElement) return;
-
-  const map = new google.maps.Map(mapElement, {
-    center: { lat: lat, lng: lng },
-    zoom: 16,
-    mapTypeControl: true,
-    streetViewControl: true
-  });
-
-  new google.maps.Marker({
-    position: { lat: lat, lng: lng },
-    map: map,
-    title: title,
-    animation: google.maps.Animation.DROP
-  });
-}
-
-window.contactBroker = function(userId) {
+// Contact user function
+window.contactUser = function(userId) {
   const userInfo = userMap.get(userId);
   if (userInfo) {
     const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
@@ -1641,13 +1387,13 @@ window.contactBroker = function(userId) {
   }
 };
 
+// Close modal function
 window.closeModal = function() {
-  const modal = document.getElementById('listingModal');
-  modal.classList.remove('show');
+  document.getElementById('listingModal').classList.remove('show');
   document.body.style.overflow = 'auto';
 };
 
-// Event listeners
+// Event Listeners
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
 document.getElementById('resetFilters').addEventListener('click', function() {
   document.getElementById('filterType').value = '';
@@ -1666,45 +1412,12 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeModal();
 });
 
-// Sidebar functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
-      'translateX(-100%)' : 'translateX(0px)';
-  }
-});
-
-// Load sidebar
-fetch('sidebar.html')
-  .then(response => response.text())
-  .then(html => {
-    document.getElementById('sidebar-container').innerHTML = html;
-    const links = document.querySelectorAll('.sidebar-link');
-    links.forEach(link => {
-      if (link.getAttribute('href') === 'broker_dashboard.html') {
-        link.classList.add('active');
-      }
-    });
-  })
-  .catch(error => console.error('Error loading sidebar:', error));
-
-// Handle window resize
-window.addEventListener('resize', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (window.innerWidth > 1024 && sidebar) {
-    sidebar.style.transform = 'translateX(0)';
-  } else if (window.innerWidth <= 1024 && sidebar) {
-    sidebar.style.transform = 'translateX(-100%)';
-  }
-});
-
-// Require login and load listings
+// Initialize on page load
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";
   } else {
-    console.log('👤 Logged in user UID:', user.uid);
+    console.log('👤 User authenticated:', user.uid);
     loadAllListings();
   }
 });

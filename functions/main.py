@@ -2,8 +2,9 @@
 from firebase_admin import initialize_app, firestore
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
+import math
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,19 +30,25 @@ class FirestoreEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
-# =========================== PERSONALIZED RECOMMENDATIONS ===========================
+# =========================== ENHANCED AI ALGORITHM ===========================
 
-def get_user_history(db, user_id: str):
-    """Get user's history - saved properties and searches"""
-    history = {
-        "saved_properties": [],  # List of property IDs the user saved
-        "saved_details": [],     # Details of saved properties
-        "search_patterns": [],   # Search filters used
+def get_user_profile(db, user_id: str):
+    """Get comprehensive user profile including saved properties and search history"""
+    profile = {
+        "saved_properties": [],  # Properties the user has saved
+        "search_history": [],    # Search filters used
+        "search_categories": [], # Categories from searches
+        "search_locations": [],  # Locations from searches
+        "search_types": [],      # Property types from searches
+        "transaction_prefs": [], # Transaction types (sale/rent/lease)
+        "search_frequency": {},  # How often user searches for each category/location
+        "saved_count": 0,
+        "search_count": 0,
         "has_history": False
     }
     
     try:
-        # 1. GET SAVED PROPERTIES
+        # 1. GET SAVED PROPERTIES (Primary preference signal)
         saved_ref = db.collection('savedProperties')
         saved_query = saved_ref.where('userId', '==', user_id)
         saved_snapshot = saved_query.get()
@@ -52,153 +59,447 @@ def get_user_history(db, user_id: str):
             property_id = data.get('propertyId')
             if property_id:
                 saved_ids.append(property_id)
-                history["saved_properties"].append(property_id)
+                profile["saved_properties"].append(property_id)
         
         # Get details of saved properties
-        for prop_id in saved_ids:
+        for prop_id in saved_ids[:20]:  # Limit to 20 most recent saves
             prop_doc = db.collection('properties').document(prop_id).get()
             if prop_doc.exists:
                 prop = prop_doc.to_dict()
                 prop['id'] = prop_id
-                history["saved_details"].append(prop)
+                # Add saved timestamp for recency weighting
+                if 'savedAt' in data:
+                    prop['saved_timestamp'] = data['savedAt']
+                elif 'createdAt' in prop:
+                    prop['saved_timestamp'] = prop['createdAt']
+                profile["saved_properties_details"] = profile.get("saved_properties_details", [])
+                profile["saved_properties_details"].append(prop)
         
-        # 2. GET SEARCH HISTORY (last 10 searches)
-        try:
-            events_ref = db.collection('events')
-            search_query = events_ref.where('userId', '==', user_id).where('eventType', '==', 'search')
-            search_snapshot = search_query.get()
-            
-            for doc in search_snapshot:
-                data = doc.to_dict()
-                filters = data.get('metadata', {}).get('filters', {})
-                if filters:
-                    history["search_patterns"].append(filters)
-        except:
-            pass
+        # Sort saved properties by recency (newest first)
+        if "saved_properties_details" in profile:
+            profile["saved_properties_details"].sort(
+                key=lambda x: x.get('saved_timestamp', datetime.min), 
+                reverse=True
+            )
         
-        # Check if user has any history
-        history["has_history"] = len(history["saved_properties"]) > 0 or len(history["search_patterns"]) > 0
+        # 2. GET SEARCH HISTORY (Secondary preference signal)
+        events_ref = db.collection('events')
         
-        logger.info(f"User {user_id} history - Saved: {len(history['saved_properties'])}, Searches: {len(history['search_patterns'])}")
-        return history
+        # Get last 50 search events (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        
+        search_query = (
+            events_ref.where('userId', '==', user_id)
+            .where('eventType', '==', 'search')
+            .where('timestamp', '>=', thirty_days_ago)
+            .order_by('timestamp', direction=firestore.Query.DESCENDING)
+            .limit(50)
+        )
+        
+        search_snapshot = search_query.get()
+        
+        search_patterns = []
+        category_counter = defaultdict(int)
+        location_counter = defaultdict(int)
+        type_counter = defaultdict(int)
+        transaction_counter = defaultdict(int)
+        
+        for doc in search_snapshot:
+            data = doc.to_dict()
+            filters = data.get('metadata', {}).get('filters', {})
+            if filters:
+                search_patterns.append(filters)
+                
+                # Extract and count search patterns
+                if 'propertyCategory' in filters:
+                    category = filters['propertyCategory']
+                    category_counter[category] += 1
+                    if category not in profile["search_categories"]:
+                        profile["search_categories"].append(category)
+                
+                if 'location' in filters:
+                    location = filters['location']
+                    location_counter[location] += 1
+                    if location not in profile["search_locations"]:
+                        profile["search_locations"].append(location)
+                
+                if 'propertyType' in filters:
+                    prop_type = filters['propertyType']
+                    type_counter[prop_type] += 1
+                    if prop_type not in profile["search_types"]:
+                        profile["search_types"].append(prop_type)
+                
+                if 'transactionType' in filters:
+                    trans_type = filters['transactionType']
+                    transaction_counter[trans_type] += 1
+                    if trans_type not in profile["transaction_prefs"]:
+                        profile["transaction_prefs"].append(trans_type)
+        
+        profile["search_history"] = search_patterns
+        profile["search_frequency"] = {
+            "categories": dict(category_counter),
+            "locations": dict(location_counter),
+            "types": dict(type_counter),
+            "transactions": dict(transaction_counter)
+        }
+        
+        # 3. CALCULATE STATISTICS
+        profile["saved_count"] = len(saved_ids)
+        profile["search_count"] = len(search_patterns)
+        profile["has_history"] = profile["saved_count"] > 0 or profile["search_count"] > 0
+        
+        # 4. CALCULATE USER PREFERENCES (Weighted averages)
+        preferences = {
+            "primary_category": None,
+            "primary_location": None,
+            "primary_type": None,
+            "primary_transaction": None,
+            "confidence_score": 0  # 0-100 how confident we are in user preferences
+        }
+        
+        # Find most frequent searches
+        if category_counter:
+            preferences["primary_category"] = max(category_counter, key=category_counter.get)
+        if location_counter:
+            preferences["primary_location"] = max(location_counter, key=location_counter.get)
+        if type_counter:
+            preferences["primary_type"] = max(type_counter, key=type_counter.get)
+        if transaction_counter:
+            preferences["primary_transaction"] = max(transaction_counter, key=transaction_counter.get)
+        
+        # Calculate confidence based on search frequency and saved properties
+        total_searches = sum(category_counter.values())
+        if total_searches > 0:
+            # Higher confidence if user searches consistently
+            max_freq = max(category_counter.values()) if category_counter else 0
+            preferences["confidence_score"] = min(100, int((max_freq / total_searches) * 100 * 0.7))
+        
+        if profile["saved_count"] > 0:
+            # Saved properties increase confidence
+            preferences["confidence_score"] = min(100, preferences["confidence_score"] + (profile["saved_count"] * 10))
+        
+        profile["preferences"] = preferences
+        
+        logger.info(f"User {user_id[:8]}... profile: {profile['saved_count']} saves, {profile['search_count']} searches")
+        logger.info(f"Preferences: {preferences}")
+        
+        return profile
         
     except Exception as e:
-        logger.error(f"Error getting user history: {str(e)}")
-        return history
+        logger.error(f"Error getting user profile: {str(e)}")
+        # Return basic profile on error
+        return {
+            "saved_properties": [],
+            "search_history": [],
+            "search_categories": [],
+            "search_locations": [],
+            "search_types": [],
+            "transaction_prefs": [],
+            "search_frequency": {},
+            "saved_count": 0,
+            "search_count": 0,
+            "has_history": False,
+            "preferences": {
+                "primary_category": None,
+                "primary_location": None,
+                "primary_type": None,
+                "primary_transaction": None,
+                "confidence_score": 0
+            }
+        }
 
-def find_similar_properties(db, user_history, count: int = 5):
-    """Find properties similar to user's history"""
-    try:
-        # Get all active properties
-        properties_ref = db.collection('properties')
-        properties_query = properties_ref.where('status', '==', 'active')
-        properties_snapshot = properties_query.get()
+def calculate_property_score(property_data, user_profile, all_saved_ids):
+    """Calculate comprehensive score for a property based on user profile"""
+    
+    # Initialize scores
+    saved_similarity_score = 0
+    search_match_score = 0
+    preference_match_score = 0
+    match_reasons = []
+    
+    # WEIGHTS (adjustable)
+    WEIGHTS = {
+        "saved_similarity": 0.5,      # Similarity to saved properties (most important)
+        "search_match": 0.3,          # Match with search history
+        "preference_match": 0.2       # Match with identified preferences
+    }
+    
+    # 1. SIMILARITY TO SAVED PROPERTIES (if user has saved properties)
+    if user_profile["saved_count"] > 0 and "saved_properties_details" in user_profile:
+        saved_details = user_profile["saved_properties_details"][:5]  # Compare with 5 most recent saves
         
-        if not properties_snapshot:
-            return []
-        
-        all_properties = []
-        for doc in properties_snapshot:
-            prop = doc.to_dict()
-            prop['id'] = doc.id
-            all_properties.append(prop)
-        
-        # If user has no saved properties, return empty (no recommendations)
-        if not user_history["saved_details"]:
-            logger.info("User has no saved properties - no recommendations")
-            return []
-        
-        # Find similar properties based on saved properties
-        similar_properties = []
-        
-        for saved_prop in user_history["saved_details"]:
-            # Look for properties with similar characteristics
-            for prop in all_properties:
-                # Skip if already in similar list
-                if prop['id'] in [p['id'] for p in similar_properties]:
-                    continue
-                
-                # Skip if user already saved this
-                if prop['id'] in user_history["saved_properties"]:
-                    continue
-                
-                # Check similarity
-                similarity_score = 0
-                
-                # Property type match
-                if saved_prop.get('propertyType') and prop.get('propertyType'):
-                    if saved_prop['propertyType'].lower() == prop['propertyType'].lower():
-                        similarity_score += 3
-                
-                # Location match (partial)
-                if saved_prop.get('location') and prop.get('location'):
-                    saved_loc = saved_prop['location'].lower()
-                    prop_loc = prop['location'].lower()
-                    if saved_loc in prop_loc or prop_loc in saved_loc:
-                        similarity_score += 2
-                
-                # Price range match (within 30%)
-                saved_price = saved_prop.get('monthlyRent') or saved_prop.get('pricing') or saved_prop.get('salePrice') or saved_prop.get('price')
-                prop_price = prop.get('monthlyRent') or prop.get('pricing') or prop.get('salePrice') or prop.get('price')
-                
-                if saved_price and prop_price:
-                    try:
-                        saved_price = float(saved_price)
-                        prop_price = float(prop_price)
-                        if 0.7 * saved_price <= prop_price <= 1.3 * saved_price:
-                            similarity_score += 2
-                    except:
-                        pass
-                
-                # Transaction type match
-                saved_is_rent = bool(saved_prop.get('monthlyRent'))
-                saved_is_lease = bool(saved_prop.get('annualRent'))
-                prop_is_rent = bool(prop.get('monthlyRent'))
-                prop_is_lease = bool(prop.get('annualRent'))
-                
-                if (saved_is_rent and prop_is_rent) or (saved_is_lease and prop_is_lease) or \
-                   (not saved_is_rent and not saved_is_lease and not prop_is_rent and not prop_is_lease):
-                    similarity_score += 1
-                
-                # If similar enough, add to recommendations
-                if similarity_score >= 4:  # Need decent match
-                    prop['similarity_score'] = similarity_score
-                    prop['similar_to'] = saved_prop.get('title', 'your saved property')
-                    similar_properties.append(prop)
-                
-                # Stop if we have enough
-                if len(similar_properties) >= count * 2:
-                    break
+        for saved_prop in saved_details:
+            similarity = 0
             
-            # Stop checking saved properties if we have enough recommendations
-            if len(similar_properties) >= count * 2:
+            # Property type match
+            if property_data.get('propertyType') == saved_prop.get('propertyType'):
+                similarity += 30
+                match_reasons.append(f"Same type as saved {saved_prop.get('propertyType', 'property')}")
+            
+            # Location match
+            prop_location = property_data.get('city') or property_data.get('location') or ''
+            saved_location = saved_prop.get('city') or saved_prop.get('location') or ''
+            if prop_location and saved_location and prop_location.lower() == saved_location.lower():
+                similarity += 25
+                match_reasons.append(f"Same location as saved property in {prop_location}")
+            
+            # Price range match (within 40%)
+            prop_price = property_data.get('monthlyRent') or property_data.get('pricing') or property_data.get('salePrice') or 0
+            saved_price = saved_prop.get('monthlyRent') or saved_prop.get('pricing') or saved_prop.get('salePrice') or 0
+            
+            if prop_price > 0 and saved_price > 0:
+                price_ratio = min(prop_price, saved_price) / max(prop_price, saved_price)
+                if price_ratio >= 0.6:  # Within 40%
+                    similarity += 20
+                    match_reasons.append(f"Similar price to saved properties")
+                elif price_ratio >= 0.3:  # Within 70%
+                    similarity += 10
+            
+            # Bedrooms match
+            if property_data.get('bedrooms') == saved_prop.get('bedrooms'):
+                similarity += 15
+                match_reasons.append(f"Same number of bedrooms as saved property")
+            
+            # Property category match
+            if property_data.get('propertyCategory') == saved_prop.get('propertyCategory'):
+                similarity += 10
+            
+            saved_similarity_score += similarity / len(saved_details)  # Average similarity
+    
+    # 2. MATCH WITH SEARCH HISTORY
+    if user_profile["search_count"] > 0:
+        search_bonus = 0
+        
+        # Category match with search history
+        prop_category = property_data.get('propertyCategory')
+        if prop_category and prop_category in user_profile["search_categories"]:
+            frequency = user_profile["search_frequency"]["categories"].get(prop_category, 0)
+            search_bonus += 30 + (frequency * 5)  # More searches = higher score
+            match_reasons.append(f"Matches your frequently searched category: {prop_category}")
+        
+        # Location match with search history
+        prop_location = property_data.get('city') or property_data.get('location') or ''
+        for loc in user_profile["search_locations"]:
+            if loc and prop_location and loc.lower() in prop_location.lower():
+                frequency = user_profile["search_frequency"]["locations"].get(loc, 0)
+                search_bonus += 25 + (frequency * 5)
+                match_reasons.append(f"Located in {loc} which you've searched for")
                 break
         
-        # Sort by similarity score and return top N
-        similar_properties.sort(key=lambda x: x.get('similarity_score', 0), reverse=True)
+        # Property type match with search history
+        prop_type = property_data.get('propertyType')
+        if prop_type and prop_type in user_profile["search_types"]:
+            frequency = user_profile["search_frequency"]["types"].get(prop_type, 0)
+            search_bonus += 20 + (frequency * 5)
+            match_reasons.append(f"Type matches your searches: {prop_type}")
         
-        # Return only unique properties
-        unique_properties = []
-        seen_ids = set()
-        for prop in similar_properties:
-            if prop['id'] not in seen_ids:
-                unique_properties.append(prop)
-                seen_ids.add(prop['id'])
-            if len(unique_properties) >= count:
+        # Transaction type match
+        # Determine property transaction type
+        prop_transaction = 'sale'
+        if property_data.get('monthlyRent'):
+            prop_transaction = 'rent'
+        elif property_data.get('annualRent'):
+            prop_transaction = 'lease'
+        
+        if prop_transaction in user_profile["transaction_prefs"]:
+            frequency = user_profile["search_frequency"]["transactions"].get(prop_transaction, 0)
+            search_bonus += 15 + (frequency * 5)
+            match_reasons.append(f"Matches your preferred transaction type: {prop_transaction}")
+        
+        search_match_score = min(100, search_bonus)
+    
+    # 3. MATCH WITH IDENTIFIED PREFERENCES
+    preferences = user_profile["preferences"]
+    if preferences["confidence_score"] > 50:  # Only use preferences if confident
+        preference_bonus = 0
+        
+        # Primary category match
+        if preferences["primary_category"] and property_data.get('propertyCategory') == preferences["primary_category"]:
+            preference_bonus += 40
+            match_reasons.append(f"Matches your primary interest: {preferences['primary_category']}")
+        
+        # Primary location match
+        prop_location = property_data.get('city') or property_data.get('location') or ''
+        if preferences["primary_location"] and preferences["primary_location"].lower() in prop_location.lower():
+            preference_bonus += 35
+            match_reasons.append(f"Located in your preferred area: {preferences['primary_location']}")
+        
+        # Primary type match
+        if preferences["primary_type"] and property_data.get('propertyType') == preferences["primary_type"]:
+            preference_bonus += 25
+            match_reasons.append(f"Type matches your preference: {preferences['primary_type']}")
+        
+        preference_match_score = min(100, preference_bonus)
+    
+    # 4. FINAL SCORE CALCULATION
+    final_score = (
+        saved_similarity_score * WEIGHTS["saved_similarity"] +
+        search_match_score * WEIGHTS["search_match"] +
+        preference_match_score * WEIGHTS["preference_match"]
+    )
+    
+    # Boost score if property matches multiple criteria
+    match_count = len(set(match_reasons))
+    if match_count > 1:
+        final_score *= (1 + (match_count * 0.1))  # 10% boost per additional match
+    
+    # Ensure score is between 0-100
+    final_score = min(100, final_score)
+    
+    # Remove duplicate match reasons
+    unique_reasons = list(dict.fromkeys(match_reasons))
+    if not unique_reasons:
+        if user_profile["saved_count"] > 0:
+            unique_reasons = ["Similar to properties you've saved"]
+        else:
+            unique_reasons = ["Based on your search patterns"]
+    
+    return {
+        "score": final_score,
+        "match_reasons": unique_reasons[:3],  # Top 3 reasons
+        "component_scores": {
+            "saved_similarity": saved_similarity_score,
+            "search_match": search_match_score,
+            "preference_match": preference_match_score
+        }
+    }
+
+def find_ai_recommendations(db, user_profile, all_properties, count: int = 5):
+    """Find AI-powered recommendations based on comprehensive user profile"""
+    try:
+        scored_properties = []
+        saved_ids = set(user_profile["saved_properties"])
+        
+        for prop in all_properties:
+            # Skip if user already saved this
+            if prop['id'] in saved_ids:
+                continue
+            
+            # Calculate score
+            score_result = calculate_property_score(prop, user_profile, saved_ids)
+            
+            if score_result["score"] > 20:  # Only include properties with decent score
+                prop['similarity_score'] = score_result["score"]
+                prop['match_score'] = int(score_result["score"])  # 0-100 scale
+                prop['match_reason'] = score_result["match_reasons"][0] if score_result["match_reasons"] else "Recommended for you"
+                prop['match_details'] = score_result["match_reasons"]
+                prop['is_ai_recommended'] = True
+                scored_properties.append(prop)
+        
+        # Sort by score and return top N
+        scored_properties.sort(key=lambda x: x.get('similarity_score', 0), reverse=True)
+        
+        # Apply diversity: don't recommend too many of the same type/location
+        final_recommendations = []
+        seen_categories = defaultdict(int)
+        seen_locations = defaultdict(int)
+        
+        for prop in scored_properties:
+            prop_category = prop.get('propertyCategory', 'unknown')
+            prop_location = prop.get('city') or prop.get('location') or 'unknown'
+            
+            # Limit to 2 of each category and location for diversity
+            if seen_categories[prop_category] < 2 and seen_locations[prop_location] < 2:
+                final_recommendations.append(prop)
+                seen_categories[prop_category] += 1
+                seen_locations[prop_location] += 1
+            
+            if len(final_recommendations) >= count:
                 break
         
-        logger.info(f"Found {len(unique_properties)} similar properties")
-        return unique_properties
+        logger.info(f"Found {len(final_recommendations)} AI recommendations")
+        if final_recommendations:
+            logger.info(f"Top recommendation scores: {[p.get('match_score', 0) for p in final_recommendations[:3]]}")
+            logger.info(f"Top match reasons: {[p.get('match_reason', '') for p in final_recommendations[:3]]}")
+        
+        return final_recommendations
         
     except Exception as e:
-        logger.error(f"Error finding similar properties: {str(e)}")
+        logger.error(f"Error finding AI recommendations: {str(e)}")
         return []
 
-# =========================== CLOUD FUNCTIONS ===========================
+def find_search_based_recommendations(db, user_profile, all_properties, count: int = 5):
+    """Find recommendations based primarily on search history (when few or no saved properties)"""
+    try:
+        scored_properties = []
+        
+        for prop in all_properties:
+            # Focus only on search match score
+            search_bonus = 0
+            match_reasons = []
+            
+            # Category match
+            prop_category = prop.get('propertyCategory')
+            if prop_category and prop_category in user_profile["search_categories"]:
+                frequency = user_profile["search_frequency"]["categories"].get(prop_category, 0)
+                search_bonus += 40 + (frequency * 10)
+                match_reasons.append(f"Category you search often: {prop_category}")
+            
+            # Location match
+            prop_location = prop.get('city') or prop.get('location') or ''
+            for loc in user_profile["search_locations"]:
+                if loc and prop_location and loc.lower() in prop_location.lower():
+                    frequency = user_profile["search_frequency"]["locations"].get(loc, 0)
+                    search_bonus += 35 + (frequency * 10)
+                    match_reasons.append(f"Area you've searched: {loc}")
+                    break
+            
+            # Property type match
+            prop_type = prop.get('propertyType')
+            if prop_type and prop_type in user_profile["search_types"]:
+                frequency = user_profile["search_frequency"]["types"].get(prop_type, 0)
+                search_bonus += 25 + (frequency * 8)
+                match_reasons.append(f"Type you look for: {prop_type}")
+            
+            if search_bonus > 30:
+                prop['similarity_score'] = min(100, search_bonus)
+                prop['match_score'] = int(min(100, search_bonus))
+                prop['match_reason'] = match_reasons[0] if match_reasons else "Based on your searches"
+                prop['match_details'] = match_reasons
+                prop['is_search_based'] = True
+                scored_properties.append(prop)
+        
+        scored_properties.sort(key=lambda x: x.get('similarity_score', 0), reverse=True)
+        return scored_properties[:count]
+        
+    except Exception as e:
+        logger.error(f"Error finding search-based recommendations: {str(e)}")
+        return []
+
+def get_recent_properties(db, count: int = 5):
+    """Get recent properties as fallback"""
+    try:
+        properties_ref = db.collection('properties')
+        
+        # Get active properties, ordered by creation date (newest first)
+        try:
+            query = properties_ref.where('status', 'in', ['active', 'available', 'Active']) \
+                                 .order_by('createdAt', direction=firestore.Query.DESCENDING) \
+                                 .limit(count * 2)
+        except:
+            # Fallback if no createdAt index
+            query = properties_ref.where('status', 'in', ['active', 'available', 'Active']) \
+                                 .limit(count * 2)
+        
+        snapshot = query.get()
+        
+        properties = []
+        for doc in snapshot:
+            prop = doc.to_dict()
+            prop['id'] = doc.id
+            properties.append(prop)
+        
+        return properties[:count]
+        
+    except Exception as e:
+        logger.error(f"Error getting recent properties: {str(e)}")
+        return []
+
+# =========================== CLOUD FUNCTION ===========================
 
 @https_fn.on_request()
 def personalized_recommendations(req: https_fn.Request) -> https_fn.Response:
-    """TRUE personalized recommendations - only for users with history"""
+    """Enhanced AI recommendations considering saved properties AND search history"""
     
     # Handle CORS
     if req.method == "OPTIONS":
@@ -213,63 +514,184 @@ def personalized_recommendations(req: https_fn.Request) -> https_fn.Response:
     
     try:
         # Get user ID
-        if req.method == "POST":
-            data = req.get_json() or {}
-            user_id = data.get('user_id')
-        else:
-            user_id = req.args.get('user_id')
+        user_id = req.args.get('user_id')
         
         if not user_id:
             return https_fn.Response(
-                json.dumps({"success": False, "error": "user_id is required"}),
+                json.dumps({
+                    "success": False, 
+                    "error": "user_id is required",
+                    "message": "User ID is required"
+                }),
                 status=400,
                 headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
             )
         
-        count = int(req.args.get('count', 5) if req.method == "GET" else (req.get_json() or {}).get('count', 5))
+        count = int(req.args.get('count', 5))
         
-        logger.info(f"Getting TRUE personalized recommendations for: {user_id}")
+        logger.info(f"Getting ENHANCED recommendations for user: {user_id[:8]}...")
         
         # Get Firebase
         db = get_firebase()
         
-        # Get user history
-        user_history = get_user_history(db, user_id)
+        # 1. GET USER PROFILE (saved properties + search history)
+        user_profile = get_user_profile(db, user_id)
         
-        # If user has NO history, return empty array
-        if not user_history["has_history"]:
+        # 2. GET ALL ACTIVE PROPERTIES
+        all_active_props = []
+        try:
+            props_ref = db.collection('properties')
+            props_query = props_ref.where('status', 'in', ['active', 'available', 'Active'])
+            props_snapshot = props_query.get()
+            
+            for doc in props_snapshot:
+                prop = doc.to_dict()
+                prop['id'] = doc.id
+                all_active_props.append(prop)
+            
+            logger.info(f"Found {len(all_active_props)} active properties")
+        except Exception as e:
+            logger.error(f"Error getting active properties: {str(e)}")
+            all_active_props = []
+        
+        # 3. DETERMINE RECOMMENDATION STRATEGY BASED ON USER HISTORY
+        
+        # RESPONSE 1: User has NO history at all
+        if not user_profile["has_history"]:
+            recommendations = get_recent_properties(db, count)
+            
             response = {
                 "success": True,
                 "user_id": user_id,
                 "has_history": False,
-                "message": "No saved properties or search history yet. Save properties you like to get personalized recommendations!",
-                "recommendations": [],
-                "count": 0,
+                "recommendation_type": "recent",
+                "message": "Save properties or search for properties to get personalized AI recommendations!",
+                "user_message": "Start by browsing properties and saving ones you're interested in. Save 3+ properties to unlock AI recommendations.",
+                "saved_count": 0,
+                "search_count": 0,
+                "required_for_ai": 3,
+                "recommendations": recommendations,
+                "count": len(recommendations),
+                "profile_summary": {
+                    "confidence": 0,
+                    "primary_interests": "No data yet"
+                },
                 "timestamp": datetime.now().isoformat()
             }
-            return https_fn.Response(
-                json.dumps(response, cls=FirestoreEncoder, indent=2),
-                status=200,
-                headers={
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*"
+            logger.info(f"User {user_id[:8]}... has no history - returning {len(recommendations)} recent properties")
+        
+        # RESPONSE 2: User has SOME history but not enough saved for full AI
+        elif user_profile["saved_count"] < 3:
+            # Use search-based recommendations (since they have search history)
+            if user_profile["search_count"] >= 3:
+                recommendations = find_search_based_recommendations(db, user_profile, all_active_props, count)
+                rec_type = "search_based"
+                message = f"Based on your {user_profile['search_count']} recent searches"
+                user_message = f"Based on your recent searches, here are properties that match what you're looking for. Save ones you like to improve recommendations!"
+            else:
+                # Not enough searches either, show recent properties
+                recommendations = get_recent_properties(db, count)
+                rec_type = "recent"
+                message = f"You've saved {user_profile['saved_count']} properties and made {user_profile['search_count']} searches"
+                user_message = f"Save more properties or search for specific types to get better recommendations!"
+            
+            # Prepare profile summary
+            profile_summary = {
+                "confidence": user_profile["preferences"]["confidence_score"],
+                "primary_interests": []
+            }
+            
+            prefs = user_profile["preferences"]
+            if prefs["primary_category"]:
+                profile_summary["primary_interests"].append(prefs["primary_category"])
+            if prefs["primary_location"]:
+                profile_summary["primary_interests"].append(f"Location: {prefs['primary_location']}")
+            
+            if not profile_summary["primary_interests"]:
+                profile_summary["primary_interests"] = ["Exploring options"]
+            
+            response = {
+                "success": True,
+                "user_id": user_id,
+                "has_history": True,
+                "recommendation_type": rec_type,
+                "message": message,
+                "user_message": user_message,
+                "saved_count": user_profile["saved_count"],
+                "search_count": user_profile["search_count"],
+                "required_for_ai": 3,
+                "progress_percentage": int((user_profile["saved_count"] / 3) * 100),
+                "recommendations": recommendations,
+                "count": len(recommendations),
+                "profile_summary": profile_summary,
+                "timestamp": datetime.now().isoformat()
+            }
+            logger.info(f"User {user_id[:8]}... has {user_profile['saved_count']} saves, {user_profile['search_count']} searches - returning {len(recommendations)} {rec_type} recommendations")
+        
+        # RESPONSE 3: User has ENOUGH saved properties for FULL AI
+        else:
+            # Use comprehensive AI algorithm (saved + search history)
+            recommendations = find_ai_recommendations(db, user_profile, all_active_props, count)
+            
+            # Fallback if AI finds too few recommendations
+            if len(recommendations) < 3:
+                logger.info(f"AI found only {len(recommendations)} recommendations, supplementing with search-based")
+                search_based = find_search_based_recommendations(db, user_profile, all_active_props, count - len(recommendations))
+                
+                # Add unique search-based recommendations
+                existing_ids = {r['id'] for r in recommendations}
+                for rec in search_based:
+                    if rec['id'] not in existing_ids and len(recommendations) < count:
+                        rec['is_supplemental'] = True
+                        recommendations.append(rec)
+            
+            # Final fallback to recent properties if still not enough
+            if len(recommendations) < 3:
+                recent = get_recent_properties(db, count - len(recommendations))
+                existing_ids = {r['id'] for r in recommendations}
+                for rec in recent:
+                    if rec['id'] not in existing_ids and len(recommendations) < count:
+                        rec['is_fallback'] = True
+                        recommendations.append(rec)
+            
+            # Prepare detailed profile summary
+            prefs = user_profile["preferences"]
+            profile_summary = {
+                "confidence": prefs["confidence_score"],
+                "primary_category": prefs["primary_category"],
+                "primary_location": prefs["primary_location"],
+                "primary_type": prefs["primary_type"],
+                "primary_transaction": prefs["primary_transaction"],
+                "search_habits": {
+                    "total_searches": user_profile["search_count"],
+                    "frequent_categories": list(user_profile["search_frequency"]["categories"].keys())[:3],
+                    "frequent_locations": list(user_profile["search_frequency"]["locations"].keys())[:3]
                 }
-            )
-        
-        # Find similar properties
-        recommendations = find_similar_properties(db, user_history, count)
-        
-        response = {
-            "success": True,
-            "user_id": user_id,
-            "has_history": True,
-            "saved_count": len(user_history["saved_properties"]),
-            "search_count": len(user_history["search_patterns"]),
-            "recommendations": recommendations,
-            "count": len(recommendations),
-            "message": f"Found {len(recommendations)} properties similar to what you've saved" if recommendations else "No similar properties found yet",
-            "timestamp": datetime.now().isoformat()
-        }
+            }
+            
+            # Determine primary match strategy for message
+            if user_profile["saved_count"] >= 5:
+                match_strategy = "primarily based on your saved properties"
+            elif user_profile["search_count"] >= 10:
+                match_strategy = "based on your search patterns and saved properties"
+            else:
+                match_strategy = "based on your preferences"
+            
+            response = {
+                "success": True,
+                "user_id": user_id,
+                "has_history": True,
+                "recommendation_type": "ai",
+                "message": f"AI found {len(recommendations)} properties {match_strategy}",
+                "user_message": f"Based on your {user_profile['saved_count']} saved properties and {user_profile['search_count']} searches, here are personalized recommendations",
+                "saved_count": user_profile["saved_count"],
+                "search_count": user_profile["search_count"],
+                "recommendations": recommendations,
+                "count": len(recommendations),
+                "profile_summary": profile_summary,
+                "timestamp": datetime.now().isoformat()
+            }
+            logger.info(f"User {user_id[:8]}... - returning {len(recommendations)} AI recommendations (confidence: {prefs['confidence_score']}%)")
         
         return https_fn.Response(
             json.dumps(response, cls=FirestoreEncoder, indent=2),
@@ -281,16 +703,32 @@ def personalized_recommendations(req: https_fn.Request) -> https_fn.Response:
         )
         
     except Exception as e:
-        logger.error(f"Error in personalized recommendations: {str(e)}")
+        logger.error(f"Error in personalized recommendations: {str(e)}", exc_info=True)
         return https_fn.Response(
-            json.dumps({"success": False, "error": str(e)}),
+            json.dumps({
+                "success": False, 
+                "error": str(e),
+                "recommendation_type": "error",
+                "message": "Unable to generate recommendations. Please try again."
+            }),
             status=500,
             headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
         )
 
 @https_fn.on_request()
-def check_user_history(req: https_fn.Request) -> https_fn.Response:
-    """Check if user has history for recommendations"""
+def user_profile_insights(req: https_fn.Request) -> https_fn.Response:
+    """Get insights about user's preferences based on saved properties and searches"""
+    
+    if req.method == "OPTIONS":
+        return https_fn.Response(
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                "Access-Control-Max-Age": "3600"
+            }
+        )
+    
     user_id = req.args.get('user_id')
     if not user_id:
         return https_fn.Response(
@@ -299,19 +737,70 @@ def check_user_history(req: https_fn.Request) -> https_fn.Response:
             headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
         )
     
-    db = get_firebase()
-    history = get_user_history(db, user_id)
-    
-    return https_fn.Response(
-        json.dumps({
+    try:
+        db = get_firebase()
+        profile = get_user_profile(db, user_id)
+        
+        # Generate insights
+        insights = []
+        
+        if profile["saved_count"] > 0:
+            insights.append(f"You've saved {profile['saved_count']} properties")
+        
+        if profile["search_count"] > 0:
+            insights.append(f"You've made {profile['search_count']} searches in the last 30 days")
+        
+        prefs = profile["preferences"]
+        if prefs["primary_category"]:
+            insights.append(f"You're most interested in: {prefs['primary_category']}")
+        
+        if prefs["primary_location"]:
+            insights.append(f"You frequently search in: {prefs['primary_location']}")
+        
+        if prefs["primary_type"]:
+            insights.append(f"You prefer: {prefs['primary_type']}")
+        
+        if not insights:
+            insights = ["Start saving properties or searching to build your profile"]
+        
+        response = {
             "user_id": user_id,
-            "has_history": history["has_history"],
-            "saved_properties": len(history["saved_properties"]),
-            "search_history": len(history["search_patterns"]),
-            "message": "Save properties you like to get personalized recommendations!" if not history["has_history"] else "You have history! Getting personalized recommendations..."
-        }, cls=FirestoreEncoder, indent=2),
-        headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
-    )
+            "profile": {
+                "saved_count": profile["saved_count"],
+                "search_count": profile["search_count"],
+                "confidence_score": prefs["confidence_score"],
+                "preferences": prefs,
+                "frequent_categories": dict(sorted(
+                    profile["search_frequency"]["categories"].items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:5]),
+                "frequent_locations": dict(sorted(
+                    profile["search_frequency"]["locations"].items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:5])
+            },
+            "insights": insights,
+            "recommendations": {
+                "save_more": max(0, 3 - profile["saved_count"]),
+                "search_more": "Try specific searches to improve recommendations",
+                "ai_ready": profile["saved_count"] >= 3 or profile["search_count"] >= 10
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        return https_fn.Response(
+            json.dumps(response, cls=FirestoreEncoder, indent=2),
+            headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
+        )
+    except Exception as e:
+        logger.error(f"Error getting user insights: {str(e)}")
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
+        )
 
 @https_fn.on_request()
 def health(req: https_fn.Request) -> https_fn.Response:
@@ -319,12 +808,28 @@ def health(req: https_fn.Request) -> https_fn.Response:
     return https_fn.Response(
         json.dumps({
             "status": "healthy",
-            "service": "true-personalized-recommender",
+            "service": "bahai-enhanced-recommender",
+            "version": "3.0",
             "timestamp": datetime.now().isoformat(),
-            "endpoints": {
-                "recommendations": "GET /personalized_recommendations?user_id=USER_ID",
-                "check_history": "GET /check_user_history?user_id=USER_ID"
+            "algorithm_features": {
+                "saved_property_analysis": True,
+                "search_history_analysis": True,
+                "preference_extraction": True,
+                "weighted_scoring": True,
+                "diversity_filtering": True,
+                "confidence_scoring": True
+            },
+            "data_sources": {
+                "saved_properties": "Primary signal",
+                "search_filters": "Secondary signal",
+                "category_clicks": "Behavioral signal",
+                "recent_searches": "Temporal signal"
+            },
+            "weights": {
+                "saved_similarity": 0.5,
+                "search_match": 0.3,
+                "preference_match": 0.2
             }
-        }),
+        }, indent=2),
         headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
     )
