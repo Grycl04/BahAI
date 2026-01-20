@@ -259,6 +259,10 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       overflow: hidden;
       cursor: pointer;
+      position: relative;
+      height: 520px; /* Fixed height for consistent card sizes */
+      display: flex;
+      flex-direction: column;
     }
 
     .listing-card:hover {
@@ -271,10 +275,15 @@
       height: 200px;
       object-fit: cover;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     .listing-content {
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
     }
 
     .listing-header {
@@ -283,6 +292,7 @@
       align-items: flex-start;
       margin-bottom: 12px;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .listing-title {
@@ -291,7 +301,13 @@
       color: var(--text-dark);
       margin-bottom: 5px;
       line-height: 1.3;
-      word-wrap: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 46px; /* Fixed height for 2 lines */
+      max-height: 46px; /* Fixed height for 2 lines */
     }
 
     .listing-price {
@@ -300,6 +316,8 @@
       color: var(--primary);
       white-space: nowrap;
       flex-shrink: 0;
+      text-align: right;
+      min-width: 120px;
     }
 
     .listing-location {
@@ -307,9 +325,24 @@
       font-size: 14px;
       margin-bottom: 15px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 5px;
       line-height: 1.4;
+      flex-shrink: 0;
+    }
+
+    .listing-location span {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .listing-location-text {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
     }
 
     .listing-details {
@@ -317,6 +350,7 @@
       gap: 15px;
       margin-bottom: 15px;
       flex-wrap: wrap;
+      flex-shrink: 0;
     }
 
     .detail {
@@ -326,6 +360,7 @@
       font-size: 14px;
       color: var(--text-light);
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .listing-broker {
@@ -336,6 +371,7 @@
       padding: 10px;
       background: var(--bg-light);
       border-radius: 8px;
+      flex-shrink: 0;
     }
 
     .broker-avatar {
@@ -364,6 +400,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: block;
     }
 
     .broker-contact {
@@ -372,6 +409,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: block;
     }
 
     .listing-status {
@@ -382,172 +420,19 @@
       font-weight: 600;
       text-transform: uppercase;
       white-space: nowrap;
+      margin-top: auto; /* Push to bottom */
+      align-self: flex-start; /* Align to start of flex container */
     }
 
+    /* Update the status-active class to have green background */
     .status-active {
-      background: #d1fae5;
-      color: #065f46;
+      background: #10b981; /* Green background */
+      color: white; /* White text for better contrast */
     }
 
     .status-pending {
       background: #fef3c7;
       color: #92400e;
-    }
-
-    .listing-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .action-btn {
-      flex: 1;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    .contact-btn {
-      background: var(--secondary);
-      color: white;
-    }
-
-    /* For single button layout */
-.listing-actions:has(button:only-child) {
-  justify-content: center;
-}
-
-.listing-actions:has(button:only-child) .action-btn {
-  max-width: 200px;
-}
-
-    .contact-btn:hover {
-      background: #1565c0;
-      transform: translateY(-1px);
-    }
-
-    .view-btn {
-      background: var(--bg-light);
-      color: var(--text-dark);
-      border: 1px solid var(--border);
-    }
-
-    .view-btn:hover {
-      background: var(--border);
-      transform: translateY(-1px);
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(5px);
-      padding: 20px;
-    }
-
-    .modal-overlay.show {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--bg-white);
-      border-radius: 16px;
-      max-width: 900px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .modal-header {
-      padding: 30px 40px;
-      border-bottom: 1px solid var(--border);
-      position: relative;
-    }
-
-    .modal-title-section h2 {
-      font-size: 24px;
-      margin-bottom: 10px;
-      color: var(--text-dark);
-      line-height: 1.3;
-    }
-
-    .modal-subtitle {
-      color: var(--text-light);
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      line-height: 1.4;
-    }
-
-    .modal-price-section {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-
-    .modal-price {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .modal-status {
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: var(--bg-light);
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .close-modal:hover {
-      background: var(--border);
-      transform: scale(1.1);
-    }
-
-    #propertyMap {
-      width: 100%;
-      height: 300px;
-      border-radius: 12px;
-      margin-top: 10px;
     }
 
     .empty-state {
@@ -605,6 +490,18 @@
       color: #ef4444;
     }
 
+    /* Card Link Overlay - for clickable cards */
+    .card-link-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0;
+      cursor: pointer;
+    }
+
     /* Responsive Design */
     @media (max-width: 1024px) {
       .container {
@@ -636,6 +533,10 @@
       .add-button {
         align-self: flex-start;
       }
+      
+      .listing-card {
+        height: 500px; /* Slightly smaller on tablets */
+      }
     }
 
     @media (max-width: 768px) {
@@ -658,8 +559,13 @@
         gap: 8px;
       }
       
-      .listing-actions {
-        flex-direction: column;
+      .listing-price {
+        text-align: left;
+      }
+      
+      .listing-card {
+        height: auto; /* Auto height on mobile */
+        min-height: 480px;
       }
     }
 </style>
@@ -671,30 +577,6 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
-
-<!-- Listing Detail Modal -->
-<div class="modal-overlay" id="listingModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title-section">
-        <h2 class="modal-title" id="modalTitle">Property Details</h2>
-        <div class="modal-subtitle">
-          <span>📍</span>
-          <span id="modalLocation">Loading location...</span>
-        </div>
-      </div>
-      <div class="modal-price-section">
-        <div class="modal-price" id="modalPrice">₱0</div>
-        <div class="modal-status" id="modalStatus">Active</div>
-      </div>
-      <button class="close-modal" id="closeModal">&times;</button>
-    </div>
-    
-    <div class="modal-body" id="modalBody">
-      <!-- Content will be loaded dynamically -->
-    </div>
-  </div>
-</div>
 
 <!-- Main -->
 <div class="container">
@@ -897,6 +779,11 @@ function getListingTypeDisplay(listing) {
   }
 }
 
+// Function to redirect to property details page
+function showListingDetails(id) {
+  window.location.href = `property_details.html?id=${id}`;
+}
+
 // Main function to load all listings
 async function loadAllListings() {
   const container = document.getElementById('listingsContainer');
@@ -1032,19 +919,37 @@ function displayListings(listings) {
     // Get user initials for avatar
     const initials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'UU';
     
+    // Normalize status text to show "Available" if status is active/available
+    let statusText = listing.status || 'active';
+    let statusClass = 'status-active';
+    
+    if (statusText.toLowerCase() === 'active' || statusText.toLowerCase() === 'available' || 
+        statusText.toLowerCase() === 'published' || statusText === true || statusText === 'true') {
+      statusText = 'Available';
+      statusClass = 'status-active'; // This now has green background
+    } else if (statusText.toLowerCase() === 'pending') {
+      statusClass = 'status-pending';
+    }
+    
     return `
-    <div class="listing-card" onclick="showListingDetails('${listing.id}')">
+    <div class="listing-card" data-listing-id="${listing.id}">
+      <a href="property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${listing.title}"></a>
+      
       <img src="${imageUrl}" alt="${listing.title}" class="listing-image">
       <div class="listing-content">
         <div class="listing-header">
-          <div>
+          <div style="flex: 1; min-width: 0;">
             <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
-            <div class="listing-location">
-              <span>📍</span> ${listing.address || listing.location || 'Location not specified'}
-              <br><small>${listingType}</small>
-            </div>
           </div>
           <div class="listing-price">${priceInfo.label}</div>
+        </div>
+        
+        <div class="listing-location">
+          <span>📍</span>
+          <div class="listing-location-text">
+            ${listing.address || listing.location || 'Location not specified'}
+            <br><small>${listingType}</small>
+          </div>
         </div>
         
         <div class="listing-details">
@@ -1069,15 +974,9 @@ function displayListings(listings) {
           </div>
         </div>
         
-        <div class="listing-status status-${listing.status || 'active'}">
-          ${listing.status || 'active'}
+        <div class="listing-status ${statusClass}">
+          ${statusText}
         </div>
-        
-        <div class="listing-actions">
-  <button class="action-btn view-btn" onclick="event.stopPropagation(); showListingDetails('${listing.id}')">
-    👀 View Details
-  </button>
-</div>
       </div>
     </div>
     `;
@@ -1211,188 +1110,6 @@ function applyFilters() {
   }
 }
 
-// Show listing details in modal
-window.showListingDetails = async function(id) {
-  const listing = allListings.find(l => l.id === id);
-  if (!listing) return;
-  
-  const userId = listing.userId || listing.ownerId || listing.brokerId || 'unknown';
-  const userInfo = userMap.get(userId) || {
-    displayName: `User ${userId.substring(0, 8)}`,
-    email: 'N/A',
-    phone: 'N/A',
-    role: 'user'
-  };
-  
-  const priceInfo = getPriceInfo(listing);
-  const listingType = getListingTypeDisplay(listing);
-  
-  // Get all images
-  const images = listing.photos || listing.imageUrls || [];
-  const mainImage = images.length > 0 ? images[0] : 'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image';
-  
-  // Update modal content
-  document.getElementById('modalTitle').textContent = listing.title || 'Untitled Property';
-  document.getElementById('modalLocation').textContent = listing.address || listing.location || 'Location not specified';
-  document.getElementById('modalPrice').textContent = priceInfo.label;
-  document.getElementById('modalStatus').textContent = listing.status || 'active';
-  document.getElementById('modalStatus').className = `modal-status status-${listing.status || 'active'}`;
-  
-  // Create modal body content
-  const modalBody = document.getElementById('modalBody');
-  modalBody.innerHTML = `
-    <div style="padding: 30px 40px;">
-      <!-- Images Gallery -->
-      <div style="margin-bottom: 30px;">
-        <img src="${mainImage}" alt="${listing.title}" style="width: 100%; height: 400px; object-fit: cover; border-radius: 12px;">
-        ${images.length > 1 ? `
-          <div style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto;">
-            ${images.slice(1, 5).map(img => `
-              <img src="${img}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer;" 
-                   onclick="document.querySelector('#modalBody img').src='${img}'">
-            `).join('')}
-          </div>
-        ` : ''}
-      </div>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-        <!-- Left Column -->
-        <div>
-          <h3 style="margin-bottom: 15px; color: var(--text-dark);">Property Information</h3>
-          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px;">
-            <div style="display: grid; gap: 10px;">
-              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                <span style="color: var(--text-light);">Type:</span>
-                <span style="font-weight: 600;">${listing.propertyType || 'N/A'}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                <span style="color: var(--text-light);">Listing Type:</span>
-                <span style="font-weight: 600;">${listingType}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                <span style="color: var(--text-light);">Bedrooms:</span>
-                <span style="font-weight: 600;">${listing.bedrooms || 0}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                <span style="color: var(--text-light);">Bathrooms:</span>
-                <span style="font-weight: 600;">${listing.bathrooms || 0}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                <span style="color: var(--text-light);">Area:</span>
-                <span style="font-weight: 600;">${listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A'} sqm</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Description -->
-          <h3 style="margin: 20px 0 15px; color: var(--text-dark);">Description</h3>
-          <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; line-height: 1.6;">
-            ${listing.description || 'No description available.'}
-          </div>
-          
-          <!-- Amenities -->
-          ${listing.amenities && listing.amenities.length > 0 ? `
-            <h3 style="margin: 20px 0 15px; color: var(--text-dark);">Amenities</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              ${listing.amenities.map(amenity => `
-                <span style="background: white; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); font-size: 14px;">
-                  ${amenity}
-                </span>
-              `).join('')}
-            </div>
-          ` : ''}
-        </div>
-        
-        <!-- Right Column -->
-        <div>
-          <h3 style="margin-bottom: 15px; color: var(--text-dark);">${userInfo.role === 'landlord' ? 'Property Owner' : 'Broker'} Information</h3>
-          <div style="background: var(--bg-light); padding: 25px; border-radius: 12px;">
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-              <div class="broker-avatar" style="width: 60px; height: 60px; font-size: 20px;">
-                ${userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-              </div>
-              <div>
-                <div style="font-weight: 700; font-size: 18px; color: var(--text-dark);">${userInfo.displayName}</div>
-                <div style="font-size: 14px; color: var(--text-light);">${getRoleDisplayText(userInfo.role)}</div>
-              </div>
-            </div>
-            
-            <div style="display: grid; gap: 10px;">
-              <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
-                <span style="color: var(--text-light);">Email:</span>
-                <span style="font-weight: 600; font-size: 14px;">${userInfo.email}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                <span style="color: var(--text-light);">Phone:</span>
-                <span style="font-weight: 600;">${userInfo.phone}</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Map -->
-          ${listing.latitude && listing.longitude ? `
-            <div style="margin-top: 20px;">
-              <h3 style="margin-bottom: 15px; color: var(--text-dark);">📍 Property Location</h3>
-              <div id="propertyMap" style="width: 100%; height: 250px; border-radius: 12px; border: 1px solid var(--border);"></div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-      
-      <!-- Actions -->
-<div style="display: flex; gap: 15px; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border);">
-  <button class="action-btn view-btn" onclick="closeModal()" style="flex: 1;">
-    Close
-  </button>
-</div>
-    </div>
-  `;
-  
-  // Show modal
-  document.getElementById('listingModal').classList.add('show');
-  document.body.style.overflow = 'hidden';
-  
-  // Initialize map if coordinates exist
-  if (listing.latitude && listing.longitude) {
-    setTimeout(() => {
-      if (window.google && window.google.maps) {
-        const mapElement = document.getElementById("propertyMap");
-        if (mapElement) {
-          const map = new google.maps.Map(mapElement, {
-            center: { lat: listing.latitude, lng: listing.longitude },
-            zoom: 15,
-            mapTypeControl: true,
-            streetViewControl: true
-          });
-          
-          new google.maps.Marker({
-            position: { lat: listing.latitude, lng: listing.longitude },
-            map: map,
-            title: listing.title
-          });
-        }
-      }
-    }, 100);
-  }
-};
-
-// Contact user function
-window.contactUser = function(userId) {
-  const userInfo = userMap.get(userId);
-  if (userInfo) {
-    const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
-    alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
-  } else {
-    alert('Contact information not available.');
-  }
-};
-
-// Close modal function
-window.closeModal = function() {
-  document.getElementById('listingModal').classList.remove('show');
-  document.body.style.overflow = 'auto';
-};
-
 // Event Listeners
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
 document.getElementById('resetFilters').addEventListener('click', function() {
@@ -1403,19 +1120,10 @@ document.getElementById('resetFilters').addEventListener('click', function() {
   displayListings(allListings);
 });
 
-document.getElementById('closeModal').addEventListener('click', closeModal);
-document.getElementById('listingModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeModal();
-});
-
 // Initialize on page load
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "../login.html";
   } else {
     console.log('👤 User authenticated:', user.uid);
     loadAllListings();

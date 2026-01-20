@@ -1,354 +1,749 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KYC Verification</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KYC Verification - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body {
-font-family: Arial, sans-serif;
-background: #f4f4f4;
-margin: 0;
-padding: 20px;
-}
-.container {
-max-width: 700px;
-margin: 40px auto;
-background: white;
-padding: 30px;
-border-radius: 10px;
-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-h1 {
-text-align: center;
-color: #2c3e50;
-margin-bottom: 10px;
-}
-.role-badge {
-text-align: center;
-padding: 8px 16px;
-border-radius: 15px;
-font-weight: bold;
-display: inline-block;
-margin-bottom: 20px;
-background: #3498db;
-color: white;
-text-transform: capitalize;
-}
-.status-badge {
-text-align: center;
-padding: 10px 20px;
-border-radius: 20px;
-font-weight: bold;
-margin: 20px 0;
-display: inline-block;
-width: 100%;
-box-sizing: border-box;
-}
-.status-not_submitted { background: #ffc107; color: #000; }
-.status-pending { background: #17a2b8; color: white; }
-.status-approved { background: #28a745; color: white; }
-.status-rejected { background: #dc3545; color: white; }
-.info-box {
-background: #e3f2fd;
-border-left: 4px solid #2196f3;
-padding: 15px;
-margin: 20px 0;
-border-radius: 4px;
-}
-.info-box h3 {
-margin-top: 0;
-color: #1976d2;
-}
-.info-box ul {
-margin: 10px 0;
-padding-left: 20px;
-}
-.info-box li {
-margin: 8px 0;
-}
-label {
-display: block;
-font-weight: bold;
-margin-top: 15px;
-color: #333;
-}
-.required::after {
-content: " *";
-color: red;
-}
-input[type="text"],
-input[type="file"] {
-width: 100%;
-padding: 10px;
-margin-top: 5px;
-border: 2px solid #ccc;
-border-radius: 6px;
-box-sizing: border-box;
-}
-input[type="file"] {
-border-style: dashed;
-cursor: pointer;
-}
-input[type="file"]:hover {
-border-color: #2c3e50;
-}
-.preview-container {
-display: flex;
-gap: 15px;
-flex-wrap: wrap;
-margin: 15px 0;
-}
-.preview-item {
-position: relative;
-}
-.preview-container img {
-width: 150px;
-height: 150px;
-object-fit: cover;
-border-radius: 8px;
-border: 2px solid #ddd;
-}
-.image-info {
-font-size: 0.8rem;
-color: #666;
-margin-top: 5px;
-}
-.quality-indicator {
-display: inline-block;
-padding: 2px 8px;
-border-radius: 10px;
-font-size: 0.75rem;
-font-weight: bold;
-margin-top: 5px;
-}
-.quality-good { background: #d4edda; color: #155724; }
-.quality-warning { background: #fff3cd; color: #856404; }
-.quality-bad { background: #f8d7da; color: #721c24; }
-.checkbox-container {
-margin: 20px 0;
-padding: 15px;
-background: #f8f9fa;
-border-radius: 6px;
-}
-.checkbox-container label {
-display: flex;
-align-items: flex-start;
-gap: 10px;
-font-weight: normal;
-margin: 0;
-cursor: pointer;
-}
-.checkbox-container input[type="checkbox"] {
-margin-top: 3px;
-width: 18px;
-height: 18px;
-cursor: pointer;
-}
-button {
-width: 100%;
-padding: 12px;
-background: #2c3e50;
-color: white;
-border: none;
-border-radius: 6px;
-font-size: 16px;
-font-weight: bold;
-cursor: pointer;
-margin-top: 20px;
-}
-button:hover {
-background: #34495e;
-}
-button:disabled {
-background: #999;
-cursor: not-allowed;
-}
-.message {
-padding: 12px;
-border-radius: 6px;
-margin: 15px 0;
-text-align: center;
-font-weight: bold;
-}
-.message.success { background: #d4edda; color: #155724; }
-.message.error { background: #f8d7da; color: #721c24; }
-.message.warning { background: #fff3cd; color: #856404; }
-.back-link {
-display: block;
-text-align: center;
-margin-top: 20px;
-color: #2c3e50;
-text-decoration: none;
-}
-.back-link:hover {
-text-decoration: underline;
-}
-.hidden {
-display: none;
-}
-.help-text {
-font-size: 0.9rem;
-color: #666;
-margin-top: 5px;
-font-style: italic;
-}
-.progress-bar {
-width: 100%;
-height: 20px;
-background: #e0e0e0;
-border-radius: 10px;
-overflow: hidden;
-margin: 10px 0;
-}
-.progress-fill {
-height: 100%;
-background: linear-gradient(90deg, #2196f3, #21cbf3);
-transition: width 0.3s ease;
-display: flex;
-align-items: center;
-justify-content: center;
-color: white;
-font-size: 0.8rem;
-font-weight: bold;
-}
+    :root {
+      --primary: #0b2e52;
+      --primary-dark: #001F3F;
+      --primary-light: #002f3f;
+      --secondary: #1976d2;
+      --accent: #ff9800;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      width: 100%;
+      max-width: 1000px;
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 20px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    .logo span {
+      color: var(--secondary);
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .page-header p {
+      color: var(--text-light);
+      font-size: 16px;
+      line-height: 1.4;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Status Cards */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .status-card {
+      background: var(--bg-white);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+    }
+
+    .status-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .status-icon {
+      font-size: 40px;
+      margin-bottom: 15px;
+    }
+
+    .status-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+
+    .status-label {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-not_submitted { 
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+    
+    .status-pending { 
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+    
+    .status-approved { 
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    
+    .status-rejected { 
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    /* Main Content Container */
+    .main-container {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* KYC Form Container */
+    .kyc-container {
+      background: var(--bg-white);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-left: 5px solid var(--secondary);
+    }
+
+    .info-box h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-box ul {
+      list-style: none;
+      margin: 15px 0;
+    }
+
+    .info-box li {
+      padding: 10px 0;
+      border-bottom: 1px solid #cbd5e0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .info-box li:last-child {
+      border-bottom: none;
+    }
+
+    .info-box strong {
+      color: var(--primary);
+      min-width: 200px;
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .required::after {
+      content: " *";
+      color: #ef4444;
+    }
+
+    .form-input, .form-select {
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      background: var(--bg-white);
+      width: 100%;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+    }
+
+    .form-input.file-input {
+      padding: 20px;
+      border: 2px dashed #cbd5e0;
+      background: #f8fafc;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .form-input.file-input:hover {
+      border-color: var(--primary);
+      background: #f0f9ff;
+    }
+
+    .help-text {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    /* Preview Container */
+    .preview-container {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+
+    .preview-item {
+      position: relative;
+      width: 150px;
+    }
+
+    .preview-container img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+    }
+
+    .image-info {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    .quality-indicator {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+    
+    .quality-good { background: #d1fae5; color: #065f46; }
+    .quality-warning { background: #fef3c7; color: #92400e; }
+    .quality-bad { background: #fee2e2; color: #991b1b; }
+
+    /* Progress Bar */
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--secondary), var(--primary));
+      transition: width 0.3s ease;
+      border-radius: 6px;
+    }
+
+    /* Checkbox Container */
+    .checkbox-container {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 25px 0;
+      border: 1px solid var(--border);
+    }
+
+    .checkbox-container label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text-dark);
+    }
+
+    .checkbox-container input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+      width: 100%;
+    }
+
+    .submit-btn, .back-btn {
+      flex: 1;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    }
+
+    .submit-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .back-btn {
+      background: var(--bg-white);
+      color: var(--text-dark);
+      border: 2px solid var(--border);
+    }
+
+    .back-btn:hover {
+      background: var(--bg-light);
+      transform: translateY(-2px);
+    }
+
+    /* Message Box */
+    .message-box {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+    
+    .message-box.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      display: block;
+    }
+    
+    .message-box.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      display: block;
+    }
+    
+    .message-box.warning {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      display: block;
+    }
+
+    /* Hidden utility class */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: var(--text-light);
+      font-size: 14px;
+      width: 100%;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .kyc-container {
+        padding: 30px;
+      }
+      
+      .status-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+      
+      .page-header h1 {
+        font-size: 28px;
+      }
+      
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .kyc-container {
+        padding: 20px;
+      }
+      
+      .info-box li {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .info-box strong {
+        min-width: auto;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page-header h1 {
+        font-size: 24px;
+      }
+      
+      .preview-item {
+        width: 100%;
+      }
+      
+      .preview-container img {
+        height: 200px;
+      }
+      
+      .form-grid {
+        gap: 15px;
+      }
+    }
 </style>
 </head>
+
 <body>
-<div class="container">
-<h1>KYC Verification</h1>
-<div style="text-align: center;">
-<span class="role-badge" id="roleBadge">Loading...</span>
-</div>
-<div id="statusContainer">
-<div class="status-badge" id="statusBadge">Loading...</div>
-</div>
+<!-- Header -->
+<header class="header">
+  <a href="index.html" class="logo">Bah<span>AI</span> Real Estate</a>
+  <div class="page-header">
+    <h1>KYC Verification</h1>
+    <p>Complete your identity verification to access all features</p>
+  </div>
+</header>
 
-<div id="brokerInfo" class="info-box hidden">
-<h3>📋 Required Documents for Brokers</h3>
-<ul>
-<li><strong>PRC License Number</strong> - Your Professional Regulation Commission License</li>
-<li><strong>PRC License Document</strong> - Clear photo/scan of your PRC License (PDF/JPG/PNG)</li>
-<li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-<li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
-</ul>
-<p><strong>Note:</strong> Your account will be verified by admin before you can post listings.</p>
-</div>
+<!-- Main Content -->
+<main class="main-container">
+  <!-- Status Overview -->
+  <div class="status-grid">
+    <div class="status-card">
+      <div class="status-icon">📋</div>
+      <div class="status-value" id="roleBadge">Loading...</div>
+      <div class="status-label">Your Role</div>
+    </div>
+    <div class="status-card">
+      <div class="status-icon">🔄</div>
+      <div class="status-value">
+        <span class="status-badge" id="statusBadge">Loading...</span>
+      </div>
+      <div class="status-label">Verification Status</div>
+    </div>
+  </div>
 
-<div id="agentInfo" class="info-box hidden">
-<h3>📋 Required Documents for Agents</h3>
-<ul>
-<li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-<li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
-<li><strong>Broker Accreditation (Optional)</strong> - Number or referral code from your broker</li>
-<li><strong>Broker Endorsement (Optional)</strong> - Document from your broker if available</li>
-</ul>
-<p><strong>Note:</strong> Admin may verify broker endorsement before activating your account.</p>
-</div>
+  <!-- KYC Form Container -->
+  <div class="kyc-container">
+    <!-- Role-specific Information -->
+    <div id="brokerInfo" class="info-box hidden">
+      <h3>📋 Required Documents for Brokers</h3>
+      <ul>
+        <li><strong>PRC License Number</strong> - Your Professional Regulation Commission License</li>
+        <li><strong>PRC License Document</strong> - Clear photo/scan of your PRC License (PDF/JPG/PNG)</li>
+        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
+        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+      </ul>
+      <p><strong>Note:</strong> Your account will be verified by admin before you can post listings.</p>
+    </div>
 
-<div id="landlordInfo" class="info-box hidden">
-<h3>📋 Required Documents for Landlords/Sellers</h3>
-<ul>
-<li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-<li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
-<li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
-</ul>
-<p><strong>Note:</strong> Each property listing will require separate ownership verification.</p>
-</div>
+    <div id="agentInfo" class="info-box hidden">
+      <h3>📋 Required Documents for Agents</h3>
+      <ul>
+        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
+        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+        <li><strong>Broker Accreditation (Optional)</strong> - Number or referral code from your broker</li>
+        <li><strong>Broker Endorsement (Optional)</strong> - Document from your broker if available</li>
+      </ul>
+      <p><strong>Note:</strong> Admin may verify broker endorsement before activating your account.</p>
+    </div>
 
-<div id="uploadForm" class="hidden">
-<form id="kycForm">
-<!-- Broker-specific fields -->
-<div id="brokerFields" class="hidden">
-<label for="prcLicense" class="required">PRC License Number</label>
-<input type="text" id="prcLicense" placeholder="e.g., 0123456">
-<label for="prcDocument" class="required">Upload PRC License Document</label>
-<input type="file" id="prcDocument" accept="image/*,.pdf">
-<div class="help-text">Accepted formats: JPG, PNG, PDF (Max 5MB)</div>
-<div class="preview-container" id="previewPRC"></div>
-</div>
+    <div id="landlordInfo" class="info-box hidden">
+      <h3>📋 Required Documents for Landlords/Sellers</h3>
+      <ul>
+        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
+        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+        <li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
+      </ul>
+      <p><strong>Note:</strong> Each property listing will require separate ownership verification.</p>
+    </div>
 
-<!-- Agent-specific fields -->
-<div id="agentFields" class="hidden">
-<label for="brokerAccreditation">Broker Accreditation Number (Optional)</label>
-<input type="text" id="brokerAccreditation" placeholder="Enter accreditation or referral code">
-<label for="brokerEndorsement">Upload Broker Endorsement (Optional)</label>
-<input type="file" id="brokerEndorsement" accept="image/*,.pdf">
-<div class="help-text">Upload endorsement document from your broker if available</div>
-<div class="preview-container" id="previewEndorsement"></div>
-</div>
+    <!-- Upload Form -->
+    <div id="uploadForm" class="hidden">
+      <form id="kycForm">
+        <!-- Broker-specific fields -->
+        <div id="brokerFields" class="form-section hidden">
+          <div class="section-title">Broker Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="prcLicense" class="form-label required">PRC License Number</label>
+              <input type="text" id="prcLicense" class="form-input" placeholder="e.g., 0123456">
+            </div>
+            <div class="form-group">
+              <label for="prcDocument" class="form-label required">PRC License Document</label>
+              <input type="file" id="prcDocument" class="form-input file-input" accept="image/*,.pdf">
+              <div class="help-text">Accepted formats: JPG, PNG, PDF (Max 5MB)</div>
+            </div>
+          </div>
+          <div class="preview-container" id="previewPRC"></div>
+        </div>
 
-<!-- Common fields for all roles -->
-<label for="govId" class="required">Upload Valid Government ID</label>
-<input type="file" id="govId" accept="image/*" required>
-<div class="help-text">Front side of your ID (National ID, Driver's License, Passport, SSS, UMID, etc.)</div>
-<div class="preview-container" id="previewGovId"></div>
+        <!-- Agent-specific fields -->
+        <div id="agentFields" class="form-section hidden">
+          <div class="section-title">Agent Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="brokerAccreditation" class="form-label">Broker Accreditation Number</label>
+              <input type="text" id="brokerAccreditation" class="form-input" placeholder="Enter accreditation or referral code">
+              <div class="help-text">Optional - Required for broker-affiliated agents</div>
+            </div>
+            <div class="form-group">
+              <label for="brokerEndorsement" class="form-label">Broker Endorsement Document</label>
+              <input type="file" id="brokerEndorsement" class="form-input file-input" accept="image/*,.pdf">
+              <div class="help-text">Optional - Upload endorsement document from your broker</div>
+            </div>
+          </div>
+          <div class="preview-container" id="previewEndorsement"></div>
+        </div>
 
-<label for="govIdBack">Upload ID Back Side (Optional)</label>
-<input type="file" id="govIdBack" accept="image/*">
-<div class="preview-container" id="previewGovIdBack"></div>
+        <!-- Common Fields -->
+        <div class="form-section">
+          <div class="section-title">Identity Verification</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="govId" class="form-label required">Government ID (Front)</label>
+              <input type="file" id="govId" class="form-input file-input" accept="image/*" required>
+              <div class="help-text">National ID, Driver's License, Passport, SSS, UMID, etc.</div>
+            </div>
+            <div class="form-group">
+              <label for="govIdBack" class="form-label">Government ID (Back)</label>
+              <input type="file" id="govIdBack" class="form-input file-input" accept="image/*">
+              <div class="help-text">Optional - Back side of your ID</div>
+            </div>
+          </div>
+          <div class="preview-container" id="previewGovId"></div>
+          <div class="preview-container" id="previewGovIdBack"></div>
+        </div>
 
-<label for="selfieId" class="required">Selfie with ID</label>
-<input type="file" id="selfieId" accept="image/*" required>
-<div class="help-text">Take a selfie while holding your ID next to your face</div>
-<div class="preview-container" id="previewSelfie"></div>
+        <!-- Selfie Section -->
+        <div class="form-section">
+          <div class="section-title">Selfie Verification</div>
+          <div class="form-group">
+            <label for="selfieId" class="form-label required">Selfie with ID</label>
+            <input type="file" id="selfieId" class="form-input file-input" accept="image/*" required>
+            <div class="help-text">Take a selfie while holding your ID next to your face</div>
+          </div>
+          <div class="preview-container" id="previewSelfie"></div>
+        </div>
 
-<!-- Landlord/Seller-specific field -->
-<div id="landlordFields" class="hidden">
-<label for="proofAddress">Proof of Address (Optional)</label>
-<input type="file" id="proofAddress" accept="image/*,.pdf">
-<div class="help-text">Utility bill, bank statement, or official document with your address</div>
-<div class="preview-container" id="previewAddress"></div>
-</div>
+        <!-- Landlord-specific field -->
+        <div id="landlordFields" class="form-section hidden">
+          <div class="section-title">Address Verification</div>
+          <div class="form-group">
+            <label for="proofAddress" class="form-label">Proof of Address</label>
+            <input type="file" id="proofAddress" class="form-input file-input" accept="image/*,.pdf">
+            <div class="help-text">Optional - Utility bill, bank statement, or official document with your address</div>
+          </div>
+          <div class="preview-container" id="previewAddress"></div>
+        </div>
 
-<!-- Progress bar -->
-<div id="progressContainer" class="hidden">
-<div class="progress-bar">
-<div class="progress-fill" id="progressFill">0%</div>
-</div>
-</div>
+        <!-- Progress Bar -->
+        <div id="progressContainer" class="hidden">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div style="text-align: center; font-size: 14px; color: var(--text-light);" id="progressText">0%</div>
+        </div>
 
-<!-- Confirmation checkboxes -->
-<div class="checkbox-container">
-<label>
-<input type="checkbox" id="confirmCheck" required>
-<span id="confirmText">I confirm that the information provided is true and verifiable.</span>
-</label>
-</div>
+        <!-- Confirmation -->
+        <div class="checkbox-container">
+          <label>
+            <input type="checkbox" id="confirmCheck" required>
+            <span id="confirmText">I confirm that the information provided is true and verifiable.</span>
+          </label>
+        </div>
 
-<button type="submit" id="submitBtn">Submit for Verification</button>
-</form>
-</div>
+        <!-- Message Box -->
+        <div id="messageBox" class="message-box"></div>
 
-<div id="messageBox" class="message hidden"></div>
-<a href="#" id="backLink" class="back-link">← Back to Dashboard</a>
-</div>
+        <!-- Buttons -->
+        <div class="button-group">
+          <button type="submit" id="submitBtn" class="submit-btn">Submit for Verification</button>
+          <a href="#" id="backLink" class="back-btn">← Back to Dashboard</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
 
+<!-- Footer -->
+<footer class="footer">
+  <p>© 2024 BahAI Real Estate. All rights reserved. | Need help? Contact support@bahai.com</p>
+</footer>
+
+<!-- Firebase Script -->
 <script type="module">
-// Import Firebase modules directly
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+import { auth, db } from './firebase-common.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js";
 
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-    authDomain: "bahai-1b76d.firebaseapp.com",
-    projectId: "bahai-1b76d",
-    storageBucket: "bahai-1b76d.firebasestorage.app",
-    messagingSenderId: "646878644941",
-    appId: "1:646878644941:web:5b4ccc3412250337587784",
-    measurementId: "G-PDW1PRZTM9"
-};
+const storage = getStorage();
+const functions = getFunctions();
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-// DOM Elements
 const roleBadge = document.getElementById("roleBadge");
 const statusBadge = document.getElementById("statusBadge");
 const uploadForm = document.getElementById("uploadForm");
@@ -358,6 +753,7 @@ const submitBtn = document.getElementById("submitBtn");
 const confirmText = document.getElementById("confirmText");
 const progressContainer = document.getElementById("progressContainer");
 const progressFill = document.getElementById("progressFill");
+const progressText = document.getElementById("progressText");
 
 let currentUser = null;
 let userRole = null;
@@ -534,46 +930,33 @@ onAuthStateChanged(auth, async (user) => {
     console.log("Current user ID:", user.uid);
 
     try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
         console.log("User document exists:", userDoc.exists());
         
         if (!userDoc.exists()) {
-            // Create a default user document if it doesn't exist
-            console.log("Creating default user document...");
-            await setDoc(userDocRef, {
-                uid: user.uid,
-                email: user.email,
-                role: "seller", // Default role
-                kycStatus: "not_submitted",
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            });
-            
-            // Reload the document
-            const newUserDoc = await getDoc(userDocRef);
-            const userData = newUserDoc.data();
-            userRole = userData.role || "seller";
-            kycStatus = userData.kycStatus || "not_submitted";
-        } else {
-            const userData = userDoc.data();
-            userRole = userData.role || "seller";
-            kycStatus = userData.kycStatus || "not_submitted";
+            showMessage("⚠️ User profile not found.", "error");
+            return;
         }
 
+        const userData = userDoc.data();
+        console.log("User data:", userData);
+        
+        userRole = userData.role || "seller";
+        kycStatus = userData.kycStatus || "not_submitted";
         console.log("Role:", userRole, "KYC Status:", kycStatus);
 
         // Display role
-        roleBadge.textContent = `Role: ${userRole.charAt(0).toUpperCase() + userRole.slice(1)}`;
+        roleBadge.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
         // Set back link based on role
         const dashboardMap = {
-            broker: 'broker/broker_dashboard.html',
-            agent: 'agent_dashboard.html',
-            seller: 'seller/seller_dashboard.html',
-            landlord: 'landlord/landlord_dashboard.html'
+            broker: 'broker_dashboard.html',
+            agent: 'broker/agent_dashboard.html',
+            seller: 'seller_dashboard.html',
+            landlord: 'landlord_dashboard.html'
         };
-        document.getElementById("backLink").href = dashboardMap[userRole] || 'index.html';
+        const backLink = document.getElementById("backLink");
+        backLink.href = dashboardMap[userRole] || 'dashboard.html';
 
         // Show role-specific info and fields
         showRoleSpecificContent(userRole);
@@ -583,14 +966,7 @@ onAuthStateChanged(auth, async (user) => {
 
     } catch (error) {
         console.error("Error loading user data:", error);
-        
-        // Check if it's a permissions error
-        if (error.code === 'permission-denied') {
-            showMessage("⚠️ Permission denied. Please check your Firebase security rules.", "error");
-            console.error("Firestore security rules need to be updated. Go to Firebase Console → Firestore → Rules");
-        } else {
-            showMessage("⚠️ Error loading verification status: " + error.message, "error");
-        }
+        showMessage("⚠️ Error loading verification status.", "error");
     }
 });
 
@@ -626,19 +1002,19 @@ function updateStatusDisplay(status) {
     
     switch(status) {
         case "not_submitted":
-            statusBadge.textContent = "⏺ Not Submitted";
+            statusBadge.textContent = "Not Submitted";
             uploadForm.classList.remove("hidden");
             break;
         case "pending":
-            statusBadge.textContent = "⏳ Pending Verification";
+            statusBadge.textContent = "Pending";
             showMessage("Your KYC documents are under review. You will be notified once approved.", "warning");
             break;
         case "approved":
-            statusBadge.textContent = "✅ Verified";
+            statusBadge.textContent = "Approved";
             showMessage("Your account is verified! You can now post properties.", "success");
             break;
         case "rejected":
-            statusBadge.textContent = "❌ Rejected";
+            statusBadge.textContent = "Rejected";
             uploadForm.classList.remove("hidden");
             showMessage("Your KYC was rejected. Please resubmit valid documents.", "error");
             break;
@@ -648,7 +1024,7 @@ function updateStatusDisplay(status) {
 function updateProgress(percent, text) {
     progressContainer.classList.remove("hidden");
     progressFill.style.width = percent + '%';
-    progressFill.textContent = text || (percent + '%');
+    progressText.textContent = text || (percent + '%');
 }
 
 // Form submission
@@ -782,6 +1158,26 @@ kycForm.addEventListener("submit", async (e) => {
         await updateDoc(doc(db, "users", currentUser.uid), kycData);
         console.log("Firestore updated successfully");
 
+        // Trigger Cloud Function for verification
+        updateProgress(95, "Verifying documents...");
+        try {
+            const { httpsCallable } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js");
+            const { getFunctions } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js");
+            
+            const functions = getFunctions();
+            const verifyKYC = httpsCallable(functions, 'verifyKYC');
+            
+            const result = await verifyKYC({
+                governmentIdUrl: govIdUrl,
+                selfieWithIdUrl: selfieUrl
+            });
+            
+            console.log("Verification result:", result.data);
+        } catch (error) {
+            console.log("Auto-verification will run in background:", error);
+            // Don't fail - auto-verification will trigger via Firestore
+        }
+
         updateProgress(100, "Complete!");
         showMessage("✅ KYC documents submitted successfully! Verification in progress...", "success");
 
@@ -800,13 +1196,13 @@ kycForm.addEventListener("submit", async (e) => {
 
 function showMessage(text, type) {
     messageBox.textContent = text;
-    messageBox.className = `message ${type}`;
-    messageBox.classList.remove("hidden");
+    messageBox.className = `message-box ${type}`;
     
     setTimeout(() => {
-        messageBox.classList.add("hidden");
+        messageBox.className = 'message-box';
     }, 8000);
 }
 </script>
+
 </body>
 </html>

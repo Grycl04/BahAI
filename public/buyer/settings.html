@@ -545,11 +545,6 @@
         margin-left: 50px;
       }
     }
-    @media (max-width: 768px) {
-    .properties-grid {
-        grid-template-columns: 1fr !important;
-    }
-}
 
     @media (max-width: 768px) {
       .container {
@@ -594,88 +589,6 @@
         gap: 15px;
         text-align: center;
       }
-      /* Saved Property Cards */
-.property-card {
-    background: var(--bg-white);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.property-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.property-image {
-    height: 180px;
-    background: linear-gradient(135deg, var(--primary-light), var(--primary));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 24px;
-}
-
-.property-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.property-info {
-    padding: 20px;
-}
-
-.property-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-dark);
-}
-
-.property-address {
-    font-size: 14px;
-    color: var(--text-light);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.property-price {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 15px;
-}
-
-.property-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-light);
-    margin-bottom: 15px;
-}
-
-.property-meta span {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.property-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.btn-sm {
-    padding: 8px 16px;
-    font-size: 13px;
-}
     }
 </style>
 </head>
@@ -812,31 +725,6 @@
             </button>
           </div>
         </form>
-        <!-- Saved Properties Section -->
-<div class="saved-properties-section" style="margin-top: 40px;">
-    <div class="section-header" style="margin-bottom: 20px;">
-        <h2>Saved Properties</h2>
-        <p>View and manage properties you've saved for later</p>
-    </div>
-    
-    <div id="savedPropertiesList" class="properties-grid" 
-         style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-        <!-- Saved properties will be dynamically loaded here -->
-        <div class="property-loading" style="text-align: center; padding: 40px; color: var(--text-light);">
-            Loading saved properties...
-        </div>
-    </div>
-    
-    <div id="noPropertiesMessage" class="no-properties" 
-         style="display: none; text-align: center; padding: 40px; background: var(--bg-light); border-radius: 12px;">
-        <p style="font-size: 16px; color: var(--text-light); margin-bottom: 15px;">
-            You haven't saved any properties yet.
-        </p>
-        <a href="buyer_dashboard.html" class="btn btn-primary" style="text-decoration: none;">
-            Browse Properties
-        </a>
-    </div>
-</div>
       </div>
 
       <!-- Notifications Section -->
@@ -1067,12 +955,7 @@
 <script>
 // Load sidebar
 fetch('sidebar.html')
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.text();
-  })
+  .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
     // Set active state for current page
@@ -1083,15 +966,7 @@ fetch('sidebar.html')
       }
     });
   })
-  .catch(error => {
-    console.error('Error loading sidebar:', error);
-    // Optionally, show a fallback sidebar or hide the sidebar container
-    document.getElementById('sidebar-container').innerHTML = `
-      <div style="padding: 20px; color: var(--text-light);">
-        <p>Sidebar could not be loaded.</p>
-      </div>
-    `;
-  });
+  .catch(error => console.error('Error loading sidebar:', error));
 </script>
 
 <!-- Firebase Script -->
@@ -1119,142 +994,7 @@ const auth = getAuth(app);
 
 let currentUser = null;
 let userData = {};
-// Load saved properties
-async function loadSavedProperties() {
-    if (!currentUser) return;
-    
-    try {
-        const savedPropertiesList = document.getElementById('savedPropertiesList');
-        const noPropertiesMessage = document.getElementById('noPropertiesMessage');
-        
-        // Clear loading message
-        savedPropertiesList.innerHTML = '';
-        
-        // Fetch saved properties from Firestore
-        // Assuming you have a 'savedProperties' collection or array in user document
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const savedProperties = userData.savedProperties || [];
-            
-            if (savedProperties.length === 0) {
-                savedPropertiesList.style.display = 'none';
-                noPropertiesMessage.style.display = 'block';
-                return;
-            }
-            
-            noPropertiesMessage.style.display = 'none';
-            
-            // For each saved property ID, fetch property details
-            for (const propertyId of savedProperties) {
-                try {
-                    const propertyDoc = await getDoc(doc(db, "properties", propertyId));
-                    
-                    if (propertyDoc.exists()) {
-                        const property = propertyDoc.data();
-                        const propertyCard = createPropertyCard(property, propertyId);
-                        savedPropertiesList.appendChild(propertyCard);
-                    }
-                } catch (error) {
-                    console.error("Error loading property:", propertyId, error);
-                }
-            }
-            
-            if (savedPropertiesList.children.length === 0) {
-                savedPropertiesList.style.display = 'none';
-                noPropertiesMessage.style.display = 'block';
-            }
-        }
-    } catch (error) {
-        console.error("Error loading saved properties:", error);
-        document.getElementById('savedPropertiesList').innerHTML = 
-            '<div class="error-message" style="text-align: center; padding: 40px; color: var(--danger);">Error loading saved properties</div>';
-    }
-}
 
-// Create property card HTML element
-function createPropertyCard(property, propertyId) {
-    const card = document.createElement('div');
-    card.className = 'property-card';
-    
-    card.innerHTML = `
-        <div class="property-image">
-            ${property.imageUrl ? 
-                `<img src="${property.imageUrl}" alt="${property.title || 'Property'}">` : 
-                '<span>🏠</span>'}
-        </div>
-        <div class="property-info">
-            <h4 class="property-title">${property.title || 'Untitled Property'}</h4>
-            <div class="property-address">
-                <span>📍</span> ${property.address || 'Address not available'}
-            </div>
-            <div class="property-price">${property.price ? formatPrice(property.price, property.currency) : 'Price on request'}</div>
-            <div class="property-meta">
-                <span>🛏️ ${property.bedrooms || '-'} Beds</span>
-                <span>🚿 ${property.bathrooms || '-'} Baths</span>
-                <span>📏 ${property.area ? `${property.area} sqm` : '-'}</span>
-            </div>
-            <div class="property-actions">
-                <button class="btn btn-primary btn-sm" onclick="viewProperty('${propertyId}')">
-                    View Details
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="removeSavedProperty('${propertyId}')">
-                    Remove
-                </button>
-            </div>
-        </div>
-    `;
-    
-    return card;
-}
-
-// Format price with currency
-function formatPrice(price, currency = 'PHP') {
-    const formatter = new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-    return formatter.format(price);
-}
-
-// Property actions
-function viewProperty(propertyId) {
-    window.location.href = `property-details.html?id=${propertyId}`;
-}
-
-async function removeSavedProperty(propertyId) {
-    if (!currentUser || !confirm('Are you sure you want to remove this property from your saved list?')) {
-        return;
-    }
-    
-    try {
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const savedProperties = userData.savedProperties || [];
-            
-            // Remove the property ID
-            const updatedSavedProperties = savedProperties.filter(id => id !== propertyId);
-            
-            await updateDoc(userDocRef, {
-                savedProperties: updatedSavedProperties,
-                updatedAt: new Date()
-            });
-            
-            // Reload saved properties
-            await loadSavedProperties();
-            showSuccess('Property removed from saved list!');
-        }
-    } catch (error) {
-        console.error("Error removing saved property:", error);
-        alert('Error removing property: ' + error.message);
-    }
-}
 // Load user data
 async function loadUserData() {
   currentUser = auth.currentUser;
@@ -1272,9 +1012,6 @@ async function loadUserData() {
       userData = userDoc.data();
       populateForm(userData);
     }
-    
-    // Load saved properties AFTER user data is loaded
-    await loadSavedProperties();
   } catch (error) {
     console.error("Error loading user data:", error);
   }

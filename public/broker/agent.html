@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Add Agent - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+      --primary: #0b2e52;
+      --primary-dark: #001F3F;
+      --primary-light: #002f3f;
+      --secondary: #1976d2;
+      --accent: #ff9800;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --success: #059669;
+      --danger: #dc2626;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: var(--text-dark);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Main wrapper - Full width */
+    .container {
+      flex: 1;
+      margin-left: 280px;
+      padding: 0;
+      width: calc(100% - 280px);
+    }
+
+    /* Topbar - Full width background */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 40px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--text-light);
+      font-size: 16px;
+    }
+
+    .back-button {
+      background: var(--bg-light);
+      color: var(--text-dark);
+      border: 2px solid var(--border);
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .back-button:hover {
+      background: var(--border);
+    }
+
+    /* Main Content Area - Full page form */
+    .main-content {
+      padding: 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Form takes full width */
+    .form-container {
+      background: var(--bg-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    /* Form Header */
+    .form-header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      padding: 30px 40px;
+      color: white;
+    }
+
+    .form-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .form-header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 15px;
+    }
+
+    /* Form Body */
+    .form-body {
+      padding: 40px;
+    }
+
+    /* Form Sections */
+    .form-section {
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .section-icon {
+      background: var(--primary-light);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .section-description {
+      color: var(--text-light);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    /* Form Styles - Improved */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 25px;
+    }
+
+    .field {
+      margin-bottom: 0;
+    }
+
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--text-dark);
+      font-size: 14px;
+    }
+
+    .field label.required::after {
+      content: " *";
+      color: var(--danger);
+    }
+
+    .field-hint {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      background: var(--bg-white);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+    }
+
+    /* Specializations - Improved */
+    .specializations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .specialty-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-light);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .specialty-checkbox:hover {
+      background: var(--border);
+      transform: translateY(-2px);
+    }
+
+    .specialty-checkbox input {
+      width: auto;
+      transform: scale(1.2);
+    }
+
+    .specialty-checkbox.checked {
+      background: #e8f4fd;
+      border-color: var(--primary);
+    }
+
+    /* Action Buttons - Fixed at bottom */
+    .action-section {
+      background: var(--bg-light);
+      padding: 30px 40px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      bottom: 0;
+      margin-top: 40px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-secondary {
+      background: var(--bg-white);
+      color: var(--text-dark);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-light);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Success Message */
+    .success-message {
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      display: none;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .success-message.show {
+      display: flex;
+    }
+
+    .success-icon {
+      font-size: 24px;
+    }
+
+    .success-content h3 {
+      margin: 0 0 5px 0;
+      font-size: 16px;
+    }
+
+    .success-content p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    /* Loading Overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      backdrop-filter: blur(5px);
+    }
+
+    .spinner {
+      width: 100px;
+      height: 100px;
+      border-radius: 16px;
+      background: var(--bg-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .loader {
+      border: 4px solid var(--bg-light);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Information Box */
+    .info-box {
+      background: #e8f4fd;
+      border-left: 4px solid var(--primary);
+      padding: 25px;
+      border-radius: 10px;
+      margin-top: 40px;
+    }
+
+    .info-box h3 {
+      margin-top: 0;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .info-box ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-dark);
+    }
+
+    .info-box li {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .container {
+        margin-left: 0;
+        width: 100%;
+      }
+      
+      .topbar {
+        padding: 25px;
+      }
+      
+      .main-content {
+        padding: 25px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .specializations-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .topbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      
+      .action-section {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .topbar {
+        padding: 20px;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+      
+      .form-header,
+      .form-body {
+        padding: 25px;
+      }
+      
+      .action-section {
+        padding: 25px;
+      }
+    }
+
+    /* Custom checkbox styling */
+    input[type="checkbox"] {
+      accent-color: var(--primary);
+    }
+</style>
+</head>
+
+<body>
+<!-- Include Sidebar -->
+<div id="sidebar-container"></div>
+
+<!-- Loading Overlay -->
+<div class="overlay" id="overlay">
+  <div class="spinner">
+    <div class="loader"></div>
+    <div style="font-size:14px;color:#333;font-weight:500;">Sending Invitation...</div>
+  </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="page-header">
+      <h1>Invite New Agent</h1>
+      <p>Send an invitation to join your brokerage team</p>
+    </div>
+    <a href="list_agent.html" class="back-button">
+      <span>←</span> Back to Agents List
+    </a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage">
+      <div class="success-icon">✅</div>
+      <div class="success-content">
+        <h3>Invitation Sent Successfully!</h3>
+        <p id="successText">Agent will receive an email to complete their profile.</p>
+      </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+      <!-- Form Header -->
+      <div class="form-header">
+        <h2>Agent Information</h2>
+        <p>Fill in the agent's basic information. They will complete their full profile after accepting the invitation.</p>
+      </div>
+
+      <!-- Form Body -->
+      <div class="form-body">
+        <form id="agentForm">
+          <!-- Personal Information Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon">👤</div>
+              <div>
+                <div class="section-title">Personal Information</div>
+                <div class="section-description">Basic details about the agent</div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="firstName" class="required">First Name</label>
+                <input type="text" id="firstName" placeholder="Enter first name" required>
+              </div>
+              <div class="field">
+                <label for="lastName" class="required">Last Name</label>
+                <input type="text" id="lastName" placeholder="Enter last name" required>
+              </div>
+              <div class="field field-full">
+                <label for="email" class="required">Email Address</label>
+                <input type="email" id="email" placeholder="agent@example.com" required>
+                <div class="field-hint">📧 Invitation will be sent to this email address</div>
+              </div>
+              <div class="field">
+                <label for="phone" class="required">Phone Number</label>
+                <input type="tel" id="phone" placeholder="+63 XXX XXX XXXX" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Information Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon">💼</div>
+              <div>
+                <div class="section-title">Professional Information</div>
+                <div class="section-description">Agent's professional details and credentials</div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="licenseNumber">License Number</label>
+                <input type="text" id="licenseNumber" placeholder="PRC License Number">
+                <div class="field-hint">Optional - Agent can add later</div>
+              </div>
+              <div class="field">
+                <label for="experience">Experience Level</label>
+                <select id="experience">
+                  <option value="">Select experience level</option>
+                  <option value="0-2">0-2 years (Beginner)</option>
+                  <option value="3-5">3-5 years (Intermediate)</option>
+                  <option value="6-10">6-10 years (Experienced)</option>
+                  <option value="10+">10+ years (Expert)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="title">Professional Title</label>
+                <input type="text" id="title" placeholder="e.g., Real Estate Agent">
+              </div>
+            </div>
+          </div>
+
+          <!-- Specializations Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon">🎯</div>
+              <div>
+                <div class="section-title">Areas of Specialization</div>
+                <div class="section-description">Select the agent's areas of expertise (optional)</div>
+              </div>
+            </div>
+
+            <div class="specializations-grid">
+              <label class="specialty-checkbox">
+                <input type="checkbox" name="specialties" value="Residential">
+                <span>Residential Properties</span>
+              </label>
+              <label class="specialty-checkbox">
+                <input type="checkbox" name="specialties" value="Commercial">
+                <span>Commercial Properties</span>
+              </label>
+              <label class="specialty-checkbox">
+                <input type="checkbox" name="specialties" value="Luxury Homes">
+                <span>Luxury Homes</span>
+              </label>
+              <label class="specialty-checkbox">
+                <input type="checkbox" name="specialties" value="Rental">
+                <span>Rental Properties</span>
+              </label>
+              <label class="specialty-checkbox">
+                <input type="checkbox" name="specialties" value="Investment">
+                <span>Investment Properties</span>
+              </label>
+              <label class="specialty-checkbox">
+                <input type="checkbox" name="specialties" value="Industrial">
+                <span>Industrial Properties</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Action Section -->
+          <div class="action-section">
+            <div class="form-status">
+              <div style="font-size: 14px; color: var(--text-light);">
+                <span id="formStatus">Fill in all required fields to send invitation</span>
+              </div>
+            </div>
+            
+            <div class="action-buttons">
+              <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                <span>🗑️</span> Clear Form
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <span>📧</span> Send Invitation
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Information Box -->
+    <div class="info-box">
+      <h3>How the Invitation Process Works:</h3>
+      <ol>
+        <li><strong>Fill in basic agent information</strong> - Enter the agent's name, email, and contact details</li>
+        <li><strong>Click "Send Invitation"</strong> - The system will send an automated email to the agent</li>
+        <li><strong>Agent receives email</strong> - The email contains a secure link to complete registration</li>
+        <li><strong>Agent creates account</strong> - They'll set up their password and verify their email</li>
+        <li><strong>Agent completes profile</strong> - They'll add additional details, photo, and preferences</li>
+        <li><strong>Agent appears in your team</strong> - Once completed, they'll show up in your agents list</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Loader -->
+<script>
+// Load sidebar
+fetch('sidebar.html')
+  .then(response => response.text())
+  .then(html => {
+    document.getElementById('sidebar-container').innerHTML = html;
+    const links = document.querySelectorAll('.sidebar-link');
+    links.forEach(link => {
+      if (link.getAttribute('href') === 'agents.html') {
+        link.classList.add('active');
+      }
+    });
+  })
+  .catch(error => console.error('Error loading sidebar:', error));
+</script>
+
+<!-- Add EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<script>
+  // Initialize EmailJS with your User ID
+  emailjs.init("lm-1BuSSAF791sZuP");
+</script>
+
+<!-- Firebase Script -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getFirestore, 
+  collection, 
+  addDoc,
+  doc,
+  updateDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.appspot.com",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+
+// Initialize
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    currentUser = user;
+    console.log('👤 Broker logged in:', user.email, 'UID:', user.uid);
+  }
+});
+
+// Form submission
+document.getElementById('agentForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const submitButton = this.querySelector('button[type="submit"]');
+  const originalText = submitButton.innerHTML;
+  submitButton.disabled = true;
+  submitButton.innerHTML = '<span>⏳</span> Sending Invitation...';
+
+  showLoading(true);
+
+  try {
+    // Get form values
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const phone = document.getElementById('phone').value.trim();
+    const licenseNumber = document.getElementById('licenseNumber').value.trim();
+    const experience = document.getElementById('experience').value;
+    const title = document.getElementById('title').value.trim();
+
+    // Get selected specializations
+    const specialties = Array.from(document.querySelectorAll('input[name="specialties"]:checked'))
+      .map(checkbox => checkbox.value);
+
+    // Validate email doesn't already exist as an agent
+    const agentsQuery = await getDoc(doc(db, "agents", email)); // Check if email already used
+    if (agentsQuery.exists()) {
+      throw new Error(`An agent with email ${email} already exists.`);
+    }
+
+    // Create agent data for Firestore
+    const agentData = {
+      firstName,
+      lastName,
+      email,
+      phone,
+      licenseNumber: licenseNumber || null,
+      experience: experience || null,
+      title: title || null,
+      specialties: specialties.length > 0 ? specialties : [],
+      brokerId: currentUser.uid,
+      brokerName: currentUser.displayName || currentUser.email,
+      brokerEmail: currentUser.email,
+      status: 'pending',
+      authUid: null,
+      invitationSent: true,
+      invitationDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      photoURL: '',
+      bio: '',
+      socialLinks: {},
+      serviceAreas: [],
+      profileCompleted: false,
+      fullName: `${firstName} ${lastName}`,
+      searchTerms: [
+        firstName.toLowerCase(),
+        lastName.toLowerCase(),
+        email.toLowerCase(),
+        `${firstName} ${lastName}`.toLowerCase()
+      ]
+    };
+
+    console.log('📝 Saving agent to Firestore:', agentData);
+
+    // Step 1: Save agent to Firestore
+    const agentRef = await addDoc(collection(db, "agents"), agentData);
+    const agentId = agentRef.id;
+
+    console.log('✅ Agent saved with ID:', agentId);
+
+    // Step 2: Generate invitation link
+    const baseUrl = window.location.origin;
+    const invitationLink = `${baseUrl}/BahAI/public/broker/agent_profile_setup.html?id=${agentId}`;
+    console.log('🔗 Generated invitation link:', invitationLink);
+
+    // Step 3: Save invitation link to Firestore
+    await updateDoc(doc(db, "agents", agentId), {
+      invitationLink: invitationLink,
+      lastInvitationSent: new Date().toISOString()
+    });
+
+    // Step 4: Send Email Invitation
+    const emailSent = await sendEmailInvitation({
+      agentId,
+      agentName: `${firstName} ${lastName}`,
+      agentEmail: email,
+      brokerName: currentUser.displayName || currentUser.email,
+      brokerageName: "BahAI Real Estate",
+      invitationLink: invitationLink
+    });
+
+    // Step 5: Show success message
+    showSuccess(`Invitation sent to ${email}. The agent can now complete their registration.`);
+    
+    // Reset form after successful submission
+    setTimeout(() => {
+      resetForm();
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<span>📧</span> Send Invitation';
+    }, 3000);
+
+  } catch (error) {
+    console.error("❌ Error adding agent:", error);
+    
+    let errorMessage = 'Error: ' + error.message;
+    if (error.code === 'permission-denied') {
+      errorMessage += '\n\n⚠️ Permission denied. Check your Firestore rules.';
+    } else if (error.code === 'already-exists') {
+      errorMessage += '\n\nAn agent with this email already exists.';
+    }
+    
+    alert(errorMessage);
+    submitButton.disabled = false;
+    submitButton.innerHTML = '<span>📧</span> Send Invitation';
+  }
+
+  showLoading(false);
+});
+
+// Email sending function
+async function sendEmailInvitation(data) {
+  console.log('🔍 Preparing email invitation:', data);
+  
+  try {
+    const templateParams = {
+      to_name: data.agentName || 'Agent',
+      to_email: data.agentEmail,
+      agent_name: data.agentName,
+      agent_email: data.agentEmail,
+      broker_name: data.brokerName || 'Broker',
+      brokerage_name: data.brokerageName || "BahAI Real Estate",
+      invitation_link: data.invitationLink,
+      website_link: window.location.origin,
+      reply_to: data.brokerName || 'noreply@bahai.com',
+      from_name: "BahAI Real Estate",
+      subject: `Complete Your Agent Profile - BahAI Real Estate`,
+      agent_id: data.agentId,
+      current_date: new Date().toLocaleDateString(),
+    };
+    
+    console.log('📤 Sending email with params:', templateParams);
+    
+    const response = await emailjs.send(
+      'service_gisn893',
+      'template_cg8axmd',
+      templateParams,
+      'lm-1BuSSAF791sZuP'
+    );
+    
+    console.log('✅ Email sent successfully!', response);
+    
+    await updateDoc(doc(db, "agents", data.agentId), {
+      emailSent: true,
+      emailSentAt: new Date().toISOString(),
+      emailStatus: 'sent'
+    });
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ EmailJS error:', error);
+    
+    await updateDoc(doc(db, "agents", data.agentId), {
+      emailError: error.message || 'Email sending failed',
+      emailSent: false,
+      emailStatus: 'failed'
+    });
+    
+    alert(`⚠️ Agent was saved but email sending failed.\n\nYou can manually send this link to the agent:\n${data.invitationLink}`);
+    
+    return false;
+  }
+}
+
+// Reset form
+window.resetForm = function() {
+  document.getElementById('agentForm').reset();
+  const successMsg = document.getElementById('successMessage');
+  successMsg.classList.remove('show');
+  document.getElementById('formStatus').textContent = 'Fill in all required fields to send invitation';
+};
+
+// Utility functions
+function showLoading(show) {
+  document.getElementById('overlay').style.display = show ? 'flex' : 'none';
+}
+
+function showSuccess(message) {
+  const successEl = document.getElementById('successMessage');
+  document.getElementById('successText').textContent = message;
+  successEl.classList.add('show');
+  
+  setTimeout(() => {
+    successEl.classList.remove('show');
+  }, 8000);
+}
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('agentForm');
+  const formStatus = document.getElementById('formStatus');
+  
+  form.addEventListener('input', function() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    
+    const allFilled = firstName && lastName && email && phone;
+    
+    if (allFilled) {
+      formStatus.textContent = '✅ All required fields are filled. Ready to send invitation.';
+      formStatus.style.color = 'var(--success)';
+    } else {
+      formStatus.textContent = 'Fill in all required fields to send invitation';
+      formStatus.style.color = 'var(--text-light)';
+    }
+  });
+  
+  // Add visual feedback for checkboxes
+  const checkboxes = document.querySelectorAll('.specialty-checkbox input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const label = this.closest('.specialty-checkbox');
+      if (this.checked) {
+        label.classList.add('checked');
+      } else {
+        label.classList.remove('checked');
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

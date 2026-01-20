@@ -7,9 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #2e7d32;
-      --primary-dark: #1b5e20;
-      --primary-light: #4caf50;
+      --primary: #0b2e52;
+      --primary-dark: #001F3F;
+      --primary-light: #002f3f;
       --secondary: #1976d2;
       --accent: #ff9800;
       --text-dark: #1a202c;
@@ -31,14 +31,43 @@
       font-family: 'Inter', Arial, sans-serif;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       color: var(--text-dark);
-      line-height: 1.6;
-      padding: 20px;
+      display: flex;
       min-height: 100vh;
     }
 
+    /* Sidebar Container */
+    #sidebar-container {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      z-index: 100;
+    }
+
+    /* Main Content */
     .container {
-      max-width: 1200px;
-      margin: 0 auto;
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
     }
 
     /* Header Section */
@@ -47,28 +76,28 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 30px;
-      padding: 20px 0;
     }
 
     .back-btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 20px;
-      background: var(--bg-white);
-      color: var(--text-dark);
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
       text-decoration: none;
       border-radius: 10px;
       font-weight: 500;
       transition: all 0.3s ease;
-      border: 1px solid var(--border);
+      border: none;
+      cursor: pointer;
       box-shadow: var(--shadow);
     }
 
     .back-btn:hover {
-      background: var(--bg-light);
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
     }
 
     .page-header h1 {
@@ -82,12 +111,17 @@
       background-clip: text;
     }
 
+    .page-header p {
+      color: var(--text-light);
+      font-size: 16px;
+      margin-top: 8px;
+    }
+
     /* Grid Layout */
     .grid {
       display: grid;
       grid-template-columns: 1fr 400px;
       gap: 30px;
-      margin-top: 10px;
     }
 
     /* Card Styles */
@@ -101,23 +135,35 @@
     }
 
     .card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
     }
 
     .card-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 25px;
       padding-bottom: 15px;
-      border-bottom: 2px solid var(--bg-light);
+      border-bottom: 2px solid var(--border);
     }
 
     .card-header strong {
       font-size: 18px;
       font-weight: 600;
       color: var(--text-dark);
+    }
+
+    .card-header-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
     }
 
     /* Form Styles */
@@ -154,14 +200,72 @@
     input:focus, textarea:focus, select:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-      transform: translateY(-1px);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
     }
 
     textarea {
       min-height: 140px;
       resize: vertical;
       line-height: 1.6;
+    }
+
+    /* Listing Type Selector */
+    .listing-type-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--border);
+      background: var(--bg-white);
+      border-radius: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .type-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .type-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Price Input Container */
+    .price-input-container {
+      position: relative;
+    }
+
+    .price-input-container::before {
+      content: '₱';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 600;
+      color: var(--primary);
+      z-index: 1;
+    }
+
+    #pricing, #monthlyRent, #annualRent {
+      padding-left: 40px;
+    }
+
+    /* Hidden fields */
+    .price-field {
+      display: none;
+    }
+
+    .price-field.show {
+      display: block;
     }
 
     /* Actions Section */
@@ -294,7 +398,7 @@
 
     .upload-area:hover {
       border-color: var(--primary);
-      background: rgba(46, 125, 50, 0.05);
+      background: rgba(11, 46, 82, 0.05);
     }
 
     .upload-area p {
@@ -308,7 +412,7 @@
     }
 
     #uploadBtn {
-      background: var(--text-dark);
+      background: var(--primary);
       color: white;
       padding: 12px 24px;
       border-radius: 8px;
@@ -322,7 +426,7 @@
     }
 
     #uploadBtn:hover {
-      background: #2d3748;
+      background: var(--primary-dark);
       transform: translateY(-2px);
     }
 
@@ -483,7 +587,7 @@
       color: #c53030;
       padding: 16px;
       border-radius: 10px;
-      margin: 20px 0;
+      margin-bottom: 20px;
       display: none;
       animation: slideDown 0.3s ease-out;
     }
@@ -503,6 +607,7 @@
       text-align: center;
       padding: 40px 20px;
       color: var(--text-light);
+      grid-column: 1 / -1;
     }
 
     .empty-state::before {
@@ -515,6 +620,17 @@
 
     /* Responsive Design */
     @media (max-width: 1024px) {
+      .container {
+        margin-left: 0;
+        padding: 25px;
+      }
+      
+      .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
       .grid {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -526,8 +642,8 @@
     }
 
     @media (max-width: 768px) {
-      body {
-        padding: 15px;
+      .container {
+        padding: 20px;
       }
       
       .topbar {
@@ -548,11 +664,9 @@
       .photo-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       }
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 0 10px;
+      
+      .listing-type-selector {
+        flex-direction: column;
       }
       
       .actions {
@@ -565,9 +679,30 @@
         justify-content: center;
       }
     }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .amenity-input-group {
+        flex-direction: column;
+      }
+      
+      #addAmenityBtn {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+  <!-- Include Sidebar -->
+  <div id="sidebar-container"></div>
+
+  <!-- Main Content -->
   <div class="container">
     <div class="topbar">
       <a class="back-btn" href="broker_listings.html">
@@ -575,6 +710,7 @@
       </a>
       <div class="page-header">
         <h1>Edit Property</h1>
+        <p>Update your property listing details</p>
       </div>
     </div>
 
@@ -588,7 +724,7 @@
       <!-- LEFT: Property Details Form -->
       <div class="card">
         <div class="card-header">
-          <span>📝</span>
+          <div class="card-header-icon">📝</div>
           <strong>Property Details</strong>
         </div>
         <form id="editForm">
@@ -597,27 +733,61 @@
             <input id="title" type="text" placeholder="Enter property title" required />
           </div>
 
-          <div class="field-grid">
-            <div class="field">
-              <label for="location">Location</label>
-              <input id="location" type="text" placeholder="Property location" required />
+          <div class="field">
+            <label>Listing Type</label>
+            <div class="listing-type-selector">
+              <button type="button" class="type-btn" data-type="sale">For Sale</button>
+              <button type="button" class="type-btn" data-type="rent">For Rent</button>
+              <button type="button" class="type-btn" data-type="lease">For Lease</button>
             </div>
-            <div class="field">
-              <label for="pricing">Price (₱)</label>
+          </div>
+
+          <div class="field">
+            <label for="location">Location</label>
+            <input id="location" type="text" placeholder="Full property address" required />
+          </div>
+
+          <!-- Sale Price Field -->
+          <div class="field price-field show" id="salePriceField">
+            <label for="pricing">Sale Price (₱)</label>
+            <div class="price-input-container">
               <input id="pricing" type="number" placeholder="0" required />
+            </div>
+          </div>
+
+          <!-- Monthly Rent Field -->
+          <div class="field price-field" id="monthlyRentField">
+            <label for="monthlyRent">Monthly Rent (₱)</label>
+            <div class="price-input-container">
+              <input id="monthlyRent" type="number" placeholder="0" />
+            </div>
+          </div>
+
+          <!-- Annual Rent Field -->
+          <div class="field price-field" id="annualRentField">
+            <label for="annualRent">Annual Rent (₱)</label>
+            <div class="price-input-container">
+              <input id="annualRent" type="number" placeholder="0" />
             </div>
           </div>
 
           <div class="field-grid">
             <div class="field">
               <label for="propertyType">Property Type</label>
-              <input id="propertyType" type="text" placeholder="e.g., Condo, House, Lot" required />
+              <select id="propertyType" required>
+                <option value="">Select Property Type</option>
+                <option value="House">House</option>
+                <option value="Condo">Condo</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Land">Land</option>
+                <option value="Commercial">Commercial</option>
+              </select>
             </div>
             <div class="field">
               <label for="status">Listing Status</label>
               <select id="status">
-                <option value="pending">Pending Review</option>
                 <option value="active">Active</option>
+                <option value="pending">Pending Review</option>
                 <option value="sold">Sold</option>
                 <option value="rejected">Rejected</option>
               </select>
@@ -636,8 +806,8 @@
           </div>
 
           <div class="field">
-            <label for="squareFootage">Square Footage</label>
-            <input id="squareFootage" type="text" placeholder="e.g., 1200 sq ft" required />
+            <label for="floorArea">Floor Area (sqm)</label>
+            <input id="floorArea" type="number" placeholder="e.g., 120" required />
           </div>
 
           <div class="field">
@@ -668,7 +838,7 @@
       <!-- RIGHT: Photos Section -->
       <div class="card photos-section">
         <div class="card-header">
-          <span>🖼️</span>
+          <div class="card-header-icon">🖼️</div>
           <strong>Property Photos</strong>
         </div>
         
@@ -709,8 +879,33 @@
     <div>Changes saved successfully!</div>
   </div>
 
-  <!-- Firebase and JavaScript (keep your existing JS code) -->
-    <!-- Firebase modules and script -->
+  <!-- Sidebar Loader Script -->
+  <script>
+    // Mobile menu functionality
+    document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
+          'translateX(-100%)' : 'translateX(0px)';
+      }
+    });
+
+    // Load sidebar
+    fetch('sidebar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('sidebar-container').innerHTML = html;
+        const links = document.querySelectorAll('.sidebar-link');
+        links.forEach(link => {
+          if (link.getAttribute('href') === 'broker_listings.html') {
+            link.classList.add('active');
+          }
+        });
+      })
+      .catch(error => console.error('Error loading sidebar:', error));
+  </script>
+
+  <!-- Firebase and JavaScript -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
@@ -737,16 +932,23 @@
     const titleInput = document.getElementById("title");
     const locationInput = document.getElementById("location");
     const pricingInput = document.getElementById("pricing");
+    const monthlyRentInput = document.getElementById("monthlyRent");
+    const annualRentInput = document.getElementById("annualRent");
     const propertyTypeInput = document.getElementById("propertyType");
     const bedroomsInput = document.getElementById("bedrooms");
     const bathroomsInput = document.getElementById("bathrooms");
-    const squareFootageInput = document.getElementById("squareFootage");
+    const floorAreaInput = document.getElementById("floorArea");
     const descriptionInput = document.getElementById("description");
     const statusInput = document.getElementById("status");
 
     const amenityInput = document.getElementById("amenityInput");
     const addAmenityBtn = document.getElementById("addAmenityBtn");
     const amenitiesContainer = document.getElementById("amenitiesContainer");
+
+    const typeButtons = document.querySelectorAll('.type-btn');
+    const salePriceField = document.getElementById('salePriceField');
+    const monthlyRentField = document.getElementById('monthlyRentField');
+    const annualRentField = document.getElementById('annualRentField');
 
     const photoGrid = document.getElementById("photoGrid");
     const photoInput = document.getElementById("photoInput");
@@ -770,6 +972,7 @@
     // Local data
     let photos = [];
     let amenities = [];
+    let listingType = 'sale';
 
     // Helper functions
     function showLoading(flag = true) {
@@ -786,6 +989,37 @@
       errorAlert.style.display = 'block';
       setTimeout(() => errorAlert.style.display = 'none', 5000);
     }
+
+    // Listing Type Selection
+    typeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        typeButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        listingType = this.dataset.type;
+        
+        // Show/hide price fields based on listing type
+        salePriceField.classList.remove('show');
+        monthlyRentField.classList.remove('show');
+        annualRentField.classList.remove('show');
+        
+        if (listingType === 'sale') {
+          salePriceField.classList.add('show');
+          pricingInput.required = true;
+          monthlyRentInput.required = false;
+          annualRentInput.required = false;
+        } else if (listingType === 'rent') {
+          monthlyRentField.classList.add('show');
+          pricingInput.required = false;
+          monthlyRentInput.required = true;
+          annualRentInput.required = false;
+        } else if (listingType === 'lease') {
+          annualRentField.classList.add('show');
+          pricingInput.required = false;
+          monthlyRentInput.required = false;
+          annualRentInput.required = true;
+        }
+      });
+    });
 
     // Extract storage path from URL
     function extractStoragePathFromUrl(url) {
@@ -984,13 +1218,37 @@
         // Populate form fields with existing data
         titleInput.value = data.title || "";
         locationInput.value = data.location || "";
-        pricingInput.value = data.pricing || "";
         propertyTypeInput.value = data.propertyType || "";
         bedroomsInput.value = data.bedrooms || "";
         bathroomsInput.value = data.bathrooms || "";
-        squareFootageInput.value = data.squareFootage || "";
+        floorAreaInput.value = data.floorArea || data.totalArea || "";
         descriptionInput.value = data.description || "";
-        statusInput.value = data.status || "pending";
+        statusInput.value = data.status || "active";
+        
+        // Handle listing type and pricing
+        const type = data.type || data.listingType || 'sale';
+        listingType = type;
+        
+        // Activate correct type button
+        typeButtons.forEach(btn => {
+          if (btn.dataset.type === type) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+        
+        // Show correct price field and populate value
+        if (type === 'sale') {
+          salePriceField.classList.add('show');
+          pricingInput.value = data.pricing || data.salePrice || "";
+        } else if (type === 'rent') {
+          monthlyRentField.classList.add('show');
+          monthlyRentInput.value = data.monthlyRent || data.rent || "";
+        } else if (type === 'lease') {
+          annualRentField.classList.add('show');
+          annualRentInput.value = data.annualRent || "";
+        }
         
         // Set arrays
         photos = Array.isArray(data.photos) ? [...data.photos] : [];
@@ -1030,24 +1288,54 @@
       saveMsg.textContent = "";
       
       try {
+        // Prepare data based on listing type
         const updatedData = {
           title: titleInput.value.trim(),
           location: locationInput.value.trim(),
-          pricing: Number(pricingInput.value) || 0,
           propertyType: propertyTypeInput.value.trim(),
           bedrooms: Number(bedroomsInput.value) || 0,
           bathrooms: Number(bathroomsInput.value) || 0,
-          squareFootage: squareFootageInput.value.trim(),
+          floorArea: Number(floorAreaInput.value) || 0,
           description: descriptionInput.value.trim(),
           status: statusInput.value,
+          type: listingType,
           amenities: amenities,
           photos: photos,
           updatedAt: new Date()
         };
 
+        // Add pricing based on listing type
+        if (listingType === 'sale') {
+          updatedData.pricing = Number(pricingInput.value) || 0;
+          updatedData.salePrice = Number(pricingInput.value) || 0;
+        } else if (listingType === 'rent') {
+          updatedData.monthlyRent = Number(monthlyRentInput.value) || 0;
+          updatedData.rent = Number(monthlyRentInput.value) || 0;
+        } else if (listingType === 'lease') {
+          updatedData.annualRent = Number(annualRentInput.value) || 0;
+        }
+
         // Validate required fields
-        if (!updatedData.title || !updatedData.location || !updatedData.pricing) {
+        if (!updatedData.title || !updatedData.location) {
           showError("Please fill in all required fields");
+          showLoading(false);
+          return;
+        }
+
+        if (listingType === 'sale' && (!updatedData.pricing || updatedData.pricing <= 0)) {
+          showError("Please enter a valid sale price");
+          showLoading(false);
+          return;
+        }
+
+        if (listingType === 'rent' && (!updatedData.monthlyRent || updatedData.monthlyRent <= 0)) {
+          showError("Please enter a valid monthly rent");
+          showLoading(false);
+          return;
+        }
+
+        if (listingType === 'lease' && (!updatedData.annualRent || updatedData.annualRent <= 0)) {
+          showError("Please enter a valid annual rent");
           showLoading(false);
           return;
         }
@@ -1089,25 +1377,6 @@
         loadData();
       }
     });
-
-    // Add input field styling to show they're pre-filled
-    const style = document.createElement('style');
-    style.textContent = `
-      input:not([value=""]), textarea:not(:empty), select:not([value=""]) {
-        border-left: 4px solid var(--primary) !important;
-        background-color: rgba(46, 125, 50, 0.02) !important;
-      }
-      
-      .field-with-data::after {
-        content: "Current value";
-        display: block;
-        font-size: 12px;
-        color: var(--primary);
-        margin-top: 4px;
-        font-weight: 500;
-      }
-    `;
-    document.head.appendChild(style);
 
   </script>
 </body>

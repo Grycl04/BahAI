@@ -1,3 +1,5 @@
-﻿firebase-admin==6.6.0
-firebase-functions==0.5.0
-google-cloud-firestore==2.22.0
+﻿firebase-admin==7.1.0
+google-cloud-firestore==2.23.0
+Flask==3.1.2
+python-dotenv==1.2.1
+functions-framework==3.10.0

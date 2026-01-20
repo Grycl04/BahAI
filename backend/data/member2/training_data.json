@@ -1,0 +1,88 @@
+json
+{
+"member_id": "member2",
+"assigned_questions": [
+"Question 2: Show me [type] under [price] with [bedroom/bath]",
+"Question 4: Properties near [landmark/amenity]",
+"Question 6: Find [ready to move in] properties for [needs] in [location]"
+],
+"training_samples": [
+{
+"query": "show me houses under 3M with 3 bedrooms",
+"intent": "type_price_features",
+"entities": {
+"property_type": "house",
+"max_price": "3M",
+"bedrooms": "3"
+},
+"variations": [
+"find houses below 3 million with 3 bedrooms",
+"houses under 3m 3 bed",
+"show me 3 bedroom houses under 3 million",
+"houses for sale under 3m with 3 bedrooms",
+"3 bedroom houses below 3 million pesos",
+"properties under 3m 3br",
+"find me houses under 3m 3 bedrooms",
+"looking for 3 bedroom house under 3m",
+"houses under 3 million pesos 3 bedrooms",
+"3 bed houses under 3m"
+],
+"response_template": "Here are {property_type} properties under {price} with {bedrooms}
+bedrooms:",
+"price_ranges": ["1M", "2M", "3M", "5M", "10M"],
+"bedroom_options": ["1", "2", "3", "4", "5+"]
+},
+{
+"query": "properties near schools",
+"intent": "near_landmark",
+"entities": {
+"landmark_type": "school",
+"landmark": "schools"
+},
+"variations": [
+"houses close to schools",
+"apartments near universities",
+"properties around campuses",
+"real estate near educational institutions",
+"houses beside schools",
+"properties in school areas",
+"apartments near colleges",
+"houses near batangas state university",
+"properties close to dlsu",
+"real estate near up lipa"
+],
+"response_template": "Here are properties near {landmark} in {location}:",
+"landmark_types": {
+"school": ["school", "university", "college", "campus", "learning center"],
+"hospital": ["hospital", "medical center", "clinic", "health center"],
+"mall": ["mall", "shopping center", "supermarket", "market"],
+"church": ["church", "cathedral", "chapel", "mosque"]
+}
+},
+{
+"query": "find ready to move in properties for family in lipa",
+"intent": "ready_to_move",
+"entities": {
+"ready_status": true,
+"need": "family",
+"location": "Lipa City"
+},
+"variations": [
+"available now properties for family in lipa",
+"ready for occupancy houses for family lipa",
+"immediate move in properties family lipa",
+"properties ready now for family lipa city",
+"move in ready houses for family in lipa",
+"available properties for family lipa",
+"ready to occupy family homes lipa",
+"immediate occupancy family properties lipa",
+"properties available immediately family lipa",
+"ready houses for family lipa city"
+],
+"response_template": "Ready to move in properties for {need} in {location}:",
+"ready_terms": ["ready to move in", "ready for occupancy", "available now", "immediate
+occupancy", "move in ready"],
+"needs": ["family", "couple", "single", "students", "professionals"]
+}
+]
+}

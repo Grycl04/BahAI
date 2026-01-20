@@ -4,11 +4,339 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Search Results - BahAI Real Estate</title>
-<link
-href="https://fonts.googleapis.com/css227family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="search_results.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+
+<!-- Messaging Modal CSS -->
+<style>
+    /* ===== MESSAGING MODAL STYLES ===== */
+    .message-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .message-modal.show {
+        display: flex;
+    }
+
+    .message-modal-content {
+        background: var(--bg-white);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .message-header {
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        background: var(--primary);
+        color: white;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .message-header h2 {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .message-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .message-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .message-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .message-broker-card {
+        background: var(--bg-light);
+        padding: 15px;
+        border-radius: 12px;
+        margin: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .message-broker-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .message-broker-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .message-broker-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 2px;
+    }
+
+    .message-broker-role {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: var(--bg-light);
+        min-height: 300px;
+        max-height: 400px;
+    }
+
+    .message-bubble {
+        margin-bottom: 15px;
+        max-width: 80%;
+    }
+
+    .message-bubble.sent {
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .message-bubble-content {
+        display: inline-block;
+        padding: 12px 16px;
+        border-radius: 18px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        text-align: left;
+        word-wrap: break-word;
+    }
+
+    .message-bubble.sent .message-bubble-content {
+        background: var(--primary);
+        color: white;
+        border: none;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: var(--text-light);
+        margin-top: 4px;
+        display: block;
+    }
+
+    .message-bubble.sent .message-time {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .no-messages {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-light);
+    }
+
+    .message-input-area {
+        padding: 20px;
+        border-top: 1px solid var(--border);
+        background: var(--bg-white);
+        border-radius: 0 0 16px 16px;
+    }
+
+    .message-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        resize: none;
+        min-height: 60px;
+        margin-bottom: 10px;
+        transition: border-color 0.3s ease;
+    }
+
+    .message-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+    }
+
+    .message-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .contact-info {
+        font-size: 12px;
+        color: var(--text-light);
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .send-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .send-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .send-btn:disabled {
+        background: var(--border);
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .loading-messages {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .quick-contact-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .quick-contact-btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .email-btn {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+    }
+
+    .email-btn:hover {
+        background: #d4edd5;
+        transform: translateY(-1px);
+    }
+
+    .call-btn {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #bbdefb;
+    }
+
+    .call-btn:hover {
+        background: #c5e0fb;
+        transform: translateY(-1px);
+    }
+
+    /* Mobile responsive styles for messaging */
+    @media (max-width: 768px) {
+        .message-modal-content {
+            max-width: 95%;
+        }
+        
+        .message-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .contact-info {
+            justify-content: center;
+        }
+        
+        .send-btn {
+            width: 100%;
+        }
+        
+        .quick-contact-buttons {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .message-header {
+            padding: 20px;
+        }
+        
+        .message-broker-card {
+            margin: 15px;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .message-broker-avatar {
+            width: 50px;
+            height: 50px;
+            font-size: 16px;
+        }
+    }
+</style>
 </head>
 
 <body>
@@ -18,116 +346,178 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
 
+<!-- Messaging Modal -->
+<div class="message-modal" id="messageModal">
+    <div class="message-modal-content">
+        <div class="message-header">
+            <h2 id="messageBrokerName">Contact Broker</h2>
+            <div class="message-subtitle" id="messageBrokerRole"></div>
+            <button class="message-close" id="closeMessageModal">&times;</button>
+        </div>
+        
+        <div class="message-broker-card">
+            <div class="message-broker-avatar" id="messageBrokerAvatar">B</div>
+            <div class="message-broker-info">
+                <div class="message-broker-name" id="messageBrokerFullName">Loading...</div>
+                <div class="message-broker-role">
+                    <span id="messageBrokerType">Broker</span> • 
+                    <span id="messageBrokerContact">Contact info loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+            <div class="loading-messages">
+                <div class="spinner"></div>
+                <p>Loading messages...</p>
+            </div>
+        </div>
+        
+        <div class="message-input-area">
+            <textarea class="message-textarea" 
+                    id="messageInput" 
+                    placeholder="Type your message here..." 
+                    rows="3"></textarea>
+            
+            <div class="message-actions">
+                <div class="contact-info">
+                    <span id="brokerEmailInfo">📧 Email: Loading...</span>
+                    <span id="brokerPhoneInfo">📞 Phone: Loading...</span>
+                </div>
+                <button class="send-btn" id="sendMessageBtn">
+                    <span>📨 Send</span>
+                </button>
+            </div>
+            
+            <div class="quick-contact-buttons">
+                <a href="#" class="quick-contact-btn email-btn" id="quickEmailBtn">
+                    📧 Send Email
+                </a>
+                <a href="#" class="quick-contact-btn call-btn" id="quickCallBtn">
+                    📞 Make Call
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Main -->
 <div class="container">
 <!-- Hero Section -->
 <div class="hero-section">
-<h1>Search Results</h1>
-<p>Properties matching your search criteria</p>
-<div id="searchSummary" style="font-weight: 500; opacity: 0.9; font-size: 16px;">Loading results...</div>
+    <h1>Search Results</h1>
+    <p>Properties matching your search criteria</p>
+    <div id="searchSummary" style="font-weight: 500; opacity: 0.9; font-size: 16px; margin-top: 5px;">
+        <i class="fas fa-spinner fa-spin"></i> Loading results...
+    </div>
 </div>
 
 <!-- Search Section -->
 <div class="search-section">
     <div class="search-title">
-    <i class="fas fa-search"></i>
-    Refine Your Search
-</div>
-
-<div class="search-grid">
-    <!-- Location Filter -->
-    <div class="search-group">
-    <label class="search-label">Select City/Municipality</label>
-    <select class="search-select" id="filterLocation">
-    <option value="">All of Batangas</option>
-    <option value="Batangas City">Batangas City</option>
-    <option value="Lipa City">Lipa City</option>
-    <option value="Tanauan City">Tanauan City</option>
-    <option value="Bauan">Bauan</option>
-    <option value="Balayan">Balayan</option>
-    <option value="Calaca">Calaca</option>
-    <option value="Lemery">Lemery</option>
-    <option value="Nasugbu">Nasugbu</option>
-    <option value="San Juan">San Juan</option>
-    <option value="Taal">Taal</option>
-    <option value="Talisay">Talisay</option>
-    <option value="Alitagtag">Alitagtag</option>
-    <option value="Cuenca">Cuenca</option>
-    <option value="Laurel">Laurel</option>
-    <option value="Mataasnakahoy">Mataasnakahoy</option>
-    <option value="San Jose">San Jose</option>
-    <option value="San Luis">San Luis</option>
-    <option value="San Pascual">San Pascual</option>
-    <option value="Santo Tomas">Santo Tomas</option>
-</select>
-</div>
-
-<!-- Transaction Type Filter -->
-<div class="search-group">
-    <label class="search-label">Transaction Type</label>
-    <select class="search-select" id="filterListingType">
-    <option value="">All Types</option>
-    <option value="sale">For Sale</option>
-    <option value="rent">For Rent</option>
-    <option value="lease">For Lease</option>
-    </select>
-</div>
-
-<!-- Property Category Filter (Dynamic based on transaction type) -->
-<div class="search-group">
-    <label class="search-label">Property Category</label>
-    <select class="search-select" id="filterPropertyCategory">
-    <option value="">All Categories</option>
-    <!-- Options will be populated dynamically -->
-    </select>
-</div>
-
-<!-- Property Type Filter (Dynamic based on category) -->
-<div class="search-group">
-    <label class="search-label">Property Type</label>
-    <select class="search-select" id="filterPropertyType">
-    <option value="">All Types</option>
-    <!-- Options will be populated dynamically -->
-    </select>
-</div>
-
-<!-- Search by Name/Keyword -->
-<div class="search-group">
-    <label class="search-label">Search Property</label>
-    <input type="text" class="search-input" id="filterName" placeholder="Enter property name or keyword...">
+        <i class="fas fa-filter"></i>
+        Refine Your Search
     </div>
-</div>
 
-<div class="search-actions">
-<button class="search-button" id="applyFilters">
-    <i class="fas fa-search"></i>
-    Search Properties
-</button>
-<button class="reset-button" id="resetFilters">
-    <i class="fas fa-redo"></i>
-    Reset Filters
-</button>
-<button class="reset-button back-button" id="backToDashboard">
-    <i class="fas fa-arrow-left"></i>
-    Back to Dashboard
-</button>
-</div>
+    <div class="search-grid">
+        <!-- Location Filter -->
+        <div class="search-group">
+            <label class="search-label">Select City/Municipality</label>
+            <select class="search-select" id="filterLocation">
+                <option value="">All of Batangas</option>
+                <option value="Batangas City">Batangas City</option>
+                <option value="Lipa City">Lipa City</option>
+                <option value="Tanauan City">Tanauan City</option>
+                <option value="Bauan">Bauan</option>
+                <option value="Balayan">Balayan</option>
+                <option value="Calaca">Calaca</option>
+                <option value="Lemery">Lemery</option>
+                <option value="Nasugbu">Nasugbu</option>
+                <option value="San Juan">San Juan</option>
+                <option value="Taal">Taal</option>
+                <option value="Talisay">Talisay</option>
+                <option value="Alitagtag">Alitagtag</option>
+                <option value="Cuenca">Cuenca</option>
+                <option value="Laurel">Laurel</option>
+                <option value="Mataasnakahoy">Mataasnakahoy</option>
+                <option value="San Jose">San Jose</option>
+                <option value="San Luis">San Luis</option>
+                <option value="San Pascual">San Pascual</option>
+                <option value="Santo Tomas">Santo Tomas</option>
+            </select>
+        </div>
+
+        <!-- Transaction Type Filter -->
+        <div class="search-group">
+            <label class="search-label">Transaction Type</label>
+            <select class="search-select" id="filterListingType">
+                <option value="">All Types</option>
+                <option value="sale">For Sale</option>
+                <option value="rent">For Rent</option>
+                <option value="lease">For Lease</option>
+            </select>
+        </div>
+
+        <!-- Property Category Filter (Dynamic based on transaction type) -->
+        <div class="search-group">
+            <label class="search-label">Property Category</label>
+            <select class="search-select" id="filterPropertyCategory">
+                <option value="">All Categories</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+
+        <!-- Property Type Filter (Dynamic based on category) -->
+        <div class="search-group">
+            <label class="search-label">Property Type</label>
+            <select class="search-select" id="filterPropertyType">
+                <option value="">All Types</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+
+        <!-- Search by Name/Keyword -->
+        <div class="search-group">
+            <label class="search-label">Search Property</label>
+            <input type="text" class="search-input" id="filterName" placeholder="Enter property name or keyword...">
+        </div>
+    </div>
+
+    <div class="search-actions">
+        <button class="search-button" id="applyFilters">
+            <i class="fas fa-search"></i>
+            Apply Filters
+        </button>
+        <button class="reset-button" id="resetFilters">
+            <i class="fas fa-redo"></i>
+            Reset Filters
+        </button>
+        <button class="reset-button back-button" id="backToDashboard">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </button>
+    </div>
 </div>
 
 <!-- Search Results Section -->
 <div class="properties-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
         <div>
             <h2 class="section-title" id="resultsTitle">
                 <i class="fas fa-search"></i>
                 Search Results
             </h2>
-            <p style="color: var(--text-light); margin-bottom: 25px; font-size: 15px;" id="resultsCount">
+            <p style="color: var(--text-light); font-size: 15px; margin-top: 5px;" id="resultsCount">
                 Loading results...
             </p>
         </div>
-        <div id="sortOptions" style="display: none;">
-            <!-- Sorting options can be added here if needed -->
+        <div id="sortOptions" style="display: flex; align-items: center; gap: 10px;">
+            <div class="filter-tags" id="activeFilters" style="display: none;">
+                <!-- Active filter tags will be added here -->
+            </div>
+            <div class="results-count-badge" id="resultsBadge" style="display: none;">
+                <span id="resultsNumber">0</span> properties
+            </div>
         </div>
     </div>
 
@@ -138,6 +528,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
             <p>Loading search results...</p>
         </div>
     </div>
+
+    <!-- Pagination (if needed in future) -->
+    <div id="pagination" style="display: none; margin-top: 30px; text-align: center;"></div>
 </div>
 
 </div>
@@ -255,12 +648,17 @@ import {
     getDoc,
     doc,
     addDoc,
-    deleteDoc
+    deleteDoc,
+    orderBy,
+    serverTimestamp,
+    updateDoc,
+    setDoc,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 // Firebase Config
 const firebaseConfig = {
-    apiKey: "AIzaSyClfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
     authDomain: "bahai-1b76d.firebaseapp.com",
     projectId: "bahai-1b76d",
     storageBucket: "bahai-1b76d.firebasestorage.app",
@@ -279,6 +677,8 @@ let allListings = [];
 let userMap = new Map();
 let searchFilters = {};
 let isUserAuthenticated = false;
+let currentConversationId = null;
+let messageListener = null;
 
 // Property category and type mappings based on transaction type
 const PROPERTY_CATEGORIES = {
@@ -298,6 +698,411 @@ const PROPERTY_CATEGORIES = {
         { category: 'Land / Lot', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Lot'] }
     ]
 };
+
+// --- MESSAGING SYSTEM FUNCTIONS ---
+
+// Initialize messaging event listeners
+function initializeMessagingListeners() {
+    // Send message button
+    const sendBtn = document.getElementById('sendMessageBtn');
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+    }
+    
+    // Message input enter key support
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+    
+    // Close message modal button
+    const closeMessageBtn = document.getElementById('closeMessageModal');
+    if (closeMessageBtn) {
+        closeMessageBtn.addEventListener('click', closeMessageModal);
+    }
+    
+    // Close modal when clicking outside
+    const messageModal = document.getElementById('messageModal');
+    if (messageModal) {
+        messageModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMessageModal();
+            }
+        });
+    }
+}
+
+// Contact broker function (for use in onclick attributes)
+window.contactBroker = async function(userId, propertyId = null) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        alert('Please log in to contact brokers');
+        return;
+    }
+
+    const userInfo = userMap.get(userId);
+    if (!userInfo) {
+        alert('Broker information not available');
+        return;
+    }
+
+    // Generate conversation ID (sorted combination of both user IDs)
+    currentConversationId = [currentUser.uid, userId].sort().join('_');
+    
+    // Get property info for context
+    const property = allListings.find(l => l.userId === userId);
+    
+    // Update messaging modal UI
+    updateMessagingModal(userInfo, property);
+    
+    // Show messaging modal
+    const messageModal = document.getElementById('messageModal');
+    messageModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Load existing messages
+    loadMessages(currentConversationId, userId);
+    
+    // Focus on message input
+    setTimeout(() => {
+        document.getElementById('messageInput').focus();
+    }, 300);
+};
+
+// Update messaging modal with broker info
+function updateMessagingModal(userInfo, property) {
+    const brokerName = userInfo.displayName || 'Broker';
+    const brokerRole = userInfo.role === 'landlord' ? 'Property Owner' : 
+                     userInfo.role === 'broker' ? 'Licensed Broker' : 
+                     'Property Contact';
+    
+    // Set modal title and info
+    document.getElementById('messageBrokerName').textContent = `Message ${brokerName}`;
+    document.getElementById('messageBrokerRole').textContent = brokerRole;
+    document.getElementById('messageBrokerFullName').textContent = brokerName;
+    document.getElementById('messageBrokerType').textContent = brokerRole;
+    document.getElementById('messageBrokerContact').textContent = userInfo.email || 'Email not available';
+
+    // Set broker avatar initials
+    const initials = brokerName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'B';
+    document.getElementById('messageBrokerAvatar').textContent = initials;
+    
+    // Update contact info
+    const emailInfo = document.getElementById('brokerEmailInfo');
+    const phoneInfo = document.getElementById('brokerPhoneInfo');
+    emailInfo.textContent = `📧 ${userInfo.email || 'Email not available'}`;
+    phoneInfo.textContent = `📞 ${userInfo.phone || 'Phone not available'}`;
+    
+    // Setup quick contact buttons
+    const quickEmailBtn = document.getElementById('quickEmailBtn');
+    const quickCallBtn = document.getElementById('quickCallBtn');
+    
+    if (userInfo.email) {
+        const subject = property ? `Inquiry about: ${property.title}` : 'Property Inquiry';
+        const body = property ? `Hello ${brokerName},\n\nI'm interested in your property: ${property.title}\n\nPlease send me more information.` : '';
+        quickEmailBtn.href = `mailto:${userInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        quickEmailBtn.style.display = 'flex';
+    } else {
+        quickEmailBtn.style.display = 'none';
+    }
+    
+    if (userInfo.phone) {
+        quickCallBtn.href = `tel:${userInfo.phone}`;
+        quickCallBtn.style.display = 'flex';
+    } else {
+        quickCallBtn.style.display = 'none';
+    }
+    
+    // Set up message input placeholder with property context
+    const messageInput = document.getElementById('messageInput');
+    if (property) {
+        messageInput.placeholder = `Hi ${brokerName}, I'm interested in ${property.title} at ${property.location}. Could you please provide more details about...`;
+    } else {
+        messageInput.placeholder = `Type your message here...`;
+    }
+}
+
+// Load messages for a conversation
+function loadMessages(conversationId, brokerId) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    
+    // Clear any existing listener
+    if (messageListener) {
+        messageListener();
+        messageListener = null;
+    }
+    
+    // Show loading state
+    messagesContainer.innerHTML = `
+        <div class="loading-messages">
+            <div class="spinner"></div>
+            <p>Loading messages...</p>
+        </div>
+    `;
+    
+    console.log('🔍 Attempting to load messages for conversation:', conversationId);
+    
+    try {
+        // Query messages for this conversation
+        const messagesRef = collection(db, 'messages');
+        const messagesQuery = query(
+            messagesRef,
+            where('conversationId', '==', conversationId),
+            orderBy('timestamp', 'asc')
+        );
+        
+        console.log('📋 Query created, listening for messages...');
+        
+        // Listen for real-time updates
+        messageListener = onSnapshot(messagesQuery, 
+            (snapshot) => {
+                console.log('📨 Snapshot received, docs:', snapshot.size);
+                
+                messagesContainer.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    console.log('📭 No messages found in conversation');
+                    messagesContainer.innerHTML = `
+                        <div class="no-messages">
+                            <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                            <h3>No messages yet</h3>
+                            <p>Start the conversation by sending a message below.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const currentUser = auth.currentUser;
+                
+                snapshot.forEach((doc) => {
+                    const message = doc.data();
+                    const isSent = message.senderId === currentUser.uid;
+                    
+                    const messageElement = document.createElement('div');
+                    messageElement.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+                    
+                    // Format timestamp
+                    let timestamp = 'Just now';
+                    if (message.timestamp) {
+                        const date = message.timestamp.toDate ? message.timestamp.toDate() : new Date();
+                        timestamp = formatMessageTime(date);
+                    }
+                    
+                    const messageContent = document.createElement('div');
+                    messageContent.className = 'message-bubble-content';
+                    
+                    let statusIndicator = '';
+                    if (isSent) {
+                        statusIndicator = `<span class="message-status" style="margin-left: 5px; font-size: 10px;">✓</span>`;
+                    }
+                    
+                    messageContent.innerHTML = `
+                        <div>${message.text}</div>
+                        <span class="message-time">${timestamp}${statusIndicator}</span>
+                    `;
+                    
+                    messageElement.appendChild(messageContent);
+                    messagesContainer.appendChild(messageElement);
+                });
+                
+                // Scroll to bottom
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+                
+            }, 
+            (error) => {
+                console.error('❌ Error in onSnapshot listener:', error);
+                
+                messagesContainer.innerHTML = `
+                    <div class="no-messages">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                        <h3>Start a conversation</h3>
+                        <p>Send a message to begin chatting with the broker.</p>
+                    </div>
+                `;
+            }
+        );
+        
+    } catch (error) {
+        console.error('💥 Error setting up message listener:', error);
+        messagesContainer.innerHTML = `
+            <div class="no-messages">
+                <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                <h3>Ready to chat</h3>
+                <p>Send your first message below to start the conversation.</p>
+            </div>
+        `;
+    }
+}
+
+// Send message function
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
+    const sendBtn = document.getElementById('sendMessageBtn');
+    
+    if (!messageText) {
+        messageInput.focus();
+        return;
+    }
+    
+    if (!currentConversationId || !auth.currentUser) {
+        alert('Unable to send message. Please refresh and try again.');
+        return;
+    }
+    
+    // Get broker ID from conversation ID
+    const conversationParts = currentConversationId.split('_');
+    const brokerId = conversationParts.find(id => id !== auth.currentUser.uid);
+    
+    if (!brokerId) {
+        alert('Unable to identify recipient.');
+        return;
+    }
+    
+    // Disable send button and show loading
+    const originalText = sendBtn.innerHTML;
+    sendBtn.innerHTML = '<div class="spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; width: 16px; height: 16px;"></div>';
+    sendBtn.disabled = true;
+    messageInput.disabled = true;
+    
+    try {
+        // Get property ID for context
+        const property = allListings.find(l => l.userId === brokerId);
+        const propertyId = property?.id;
+        
+        // Create conversation document if it doesn't exist
+        const conversationRef = doc(db, 'conversations', currentConversationId);
+        const conversationSnap = await getDoc(conversationRef);
+        
+        const conversationData = {
+            participants: [auth.currentUser.uid, brokerId],
+            lastMessage: messageText.substring(0, 100),
+            lastMessageTime: serverTimestamp(),
+            lastSenderId: auth.currentUser.uid,
+            unreadCount: {
+                [brokerId]: (conversationSnap.exists() ? 
+                    (conversationSnap.data().unreadCount?.[brokerId] || 0) + 1 : 1)
+            },
+            buyerId: auth.currentUser.uid,
+            brokerId: brokerId,
+            propertyId: propertyId || null,
+            propertyTitle: property?.title || null,
+            buyerName: auth.currentUser.displayName || auth.currentUser.email,
+            createdAt: conversationSnap.exists() ? 
+                conversationSnap.data().createdAt : serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        
+        // Update or create conversation
+        await setDoc(conversationRef, conversationData, { merge: true });
+        
+        // Add message to messages collection
+        const messageData = {
+            conversationId: currentConversationId,
+            senderId: auth.currentUser.uid,
+            receiverId: brokerId,
+            text: messageText,
+            timestamp: serverTimestamp(),
+            read: false,
+            createdAt: serverTimestamp(),
+            type: 'text',
+            propertyId: propertyId || null,
+            senderName: auth.currentUser.displayName || auth.currentUser.email
+        };
+        
+        await addDoc(collection(db, 'messages'), messageData);
+        
+        console.log('✅ Message sent successfully');
+        
+        // Clear input and reset UI
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        messageInput.disabled = false;
+        
+        // Show success feedback
+        sendBtn.innerHTML = '✓ Sent';
+        sendBtn.style.background = '#10b981';
+        
+        setTimeout(() => {
+            sendBtn.innerHTML = '📨 Send';
+            sendBtn.style.background = '';
+            sendBtn.disabled = false;
+        }, 1500);
+        
+        // Scroll to bottom of messages
+        const messagesContainer = document.getElementById('messagesContainer');
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+        
+    } catch (error) {
+        console.error('❌ Error sending message:', error);
+        
+        // Reset UI
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
+        messageInput.disabled = false;
+        
+        // Show user-friendly error
+        let errorMessage = 'Failed to send message. ';
+        if (error.code === 'permission-denied') {
+            errorMessage += 'You do not have permission to send messages.';
+        } else if (error.code === 'unavailable') {
+            errorMessage += 'Network error. Please check your connection.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+        
+        alert(errorMessage);
+    }
+}
+
+// Format message timestamp
+function formatMessageTime(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+// Close messaging modal
+function closeMessageModal() {
+    const messageModal = document.getElementById('messageModal');
+    messageModal.classList.remove('show');
+    document.body.style.overflow = 'auto';
+    
+    // Clean up message listener
+    if (messageListener) {
+        messageListener();
+        messageListener = null;
+    }
+    
+    currentConversationId = null;
+    
+    // Clear message input
+    document.getElementById('messageInput').value = '';
+}
 
 // --- HELPER FUNCTIONS ---
 
@@ -346,13 +1151,13 @@ function getDisplayPrice(listing) {
 
     switch (type) {
         case 'rent':
-            return 'P' + (listing.monthlyRent || 0).toLocaleString() + '/month';
+            return '₱' + (listing.monthlyRent || 0).toLocaleString() + '/month';
         case 'lease':
             const annualRent = listing.annualRent || 0;
-            return 'P' + annualRent.toLocaleString() + '/year';
+            return '₱' + annualRent.toLocaleString() + '/year';
         case 'sale':
         default:
-            return 'P' + (listing.pricing || listing.salePrice || 0).toLocaleString();
+            return '₱' + (listing.pricing || listing.salePrice || 0).toLocaleString();
     }
 }
 
@@ -545,6 +1350,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load filters from URL parameters
     loadFiltersFromURL();
+    
+    // Initialize messaging listeners
+    initializeMessagingListeners();
 });
 
 // Load filters from URL parameters
@@ -575,6 +1383,82 @@ function loadFiltersFromURL() {
         } catch (error) {
             console.error("Error parsing filters from URL:", error);
         }
+    }
+}
+
+// Update active filters display
+function updateActiveFiltersDisplay() {
+    const activeFiltersContainer = document.getElementById('activeFilters');
+    const resultsBadge = document.getElementById('resultsBadge');
+    const resultsNumber = document.getElementById('resultsNumber');
+    
+    if (Object.keys(searchFilters).length > 0) {
+        activeFiltersContainer.innerHTML = '';
+        
+        Object.entries(searchFilters).forEach(([key, value]) => {
+            if (value) {
+                const filterTag = document.createElement('div');
+                filterTag.className = 'filter-tag';
+                filterTag.style.cssText = `
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    background: var(--primary-light);
+                    color: white;
+                    padding: 4px 10px;
+                    border-radius: 15px;
+                    font-size: 12px;
+                    margin-right: 8px;
+                    margin-bottom: 8px;
+                `;
+                
+                let displayKey = key;
+                if (key === 'transactionType') displayKey = 'Type';
+                if (key === 'propertyCategory') displayKey = 'Category';
+                if (key === 'propertyType') displayKey = 'Property';
+                if (key === 'searchTerm') displayKey = 'Keyword';
+                
+                filterTag.innerHTML = `
+                    <span>${displayKey}: ${value}</span>
+                    <button class="remove-filter" data-filter="${key}" style="background: none; border: none; color: white; cursor: pointer; font-size: 14px; margin-left: 4px;">×</button>
+                `;
+                activeFiltersContainer.appendChild(filterTag);
+            }
+        });
+        
+        activeFiltersContainer.style.display = 'flex';
+        activeFiltersContainer.style.flexWrap = 'wrap';
+        
+        // Add event listeners to remove buttons
+        activeFiltersContainer.querySelectorAll('.remove-filter').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const filterKey = this.getAttribute('data-filter');
+                removeFilter(filterKey);
+            });
+        });
+    } else {
+        activeFiltersContainer.style.display = 'none';
+    }
+}
+
+// Remove individual filter
+function removeFilter(filterKey) {
+    if (searchFilters[filterKey]) {
+        delete searchFilters[filterKey];
+        
+        // Update form
+        if (filterKey === 'location') document.getElementById('filterLocation').value = '';
+        if (filterKey === 'transactionType') document.getElementById('filterListingType').value = '';
+        if (filterKey === 'propertyCategory') document.getElementById('filterPropertyCategory').value = '';
+        if (filterKey === 'propertyType') document.getElementById('filterPropertyType').value = '';
+        if (filterKey === 'searchTerm') document.getElementById('filterName').value = '';
+        
+        // Update dropdowns
+        updateCategoryDropdown();
+        
+        // Apply filters and update URL
+        applyFilters();
     }
 }
 
@@ -619,7 +1503,7 @@ async function logSaveEvent(userId, propertyId) {
 // --- FILTER FUNCTIONS ---
 
 // Apply filters function for this page
-window.applyFilters = async function() {
+async function applyFilters() {
     // Collect filter values
     const filters = {
         location: document.getElementById('filterLocation').value || undefined,
@@ -655,10 +1539,10 @@ window.applyFilters = async function() {
     } catch (error) {
         console.log('Could not log search event', error.message);
     }
-};
+}
 
 // Reset filters function
-window.resetFilters = function() {
+function resetFilters() {
     document.getElementById('filterLocation').value = "";
     document.getElementById('filterListingType').value = "";
     document.getElementById('filterPropertyCategory').value = "";
@@ -674,11 +1558,11 @@ window.resetFilters = function() {
 
     // Clear URL parameters
     window.history.pushState({}, '', 'search_results.html');
-};
+}
 
 // Attach event listeners
-document.getElementById('applyFilters').addEventListener('click', window.applyFilters);
-document.getElementById('resetFilters').addEventListener('click', window.resetFilters);
+document.getElementById('applyFilters').addEventListener('click', applyFilters);
+document.getElementById('resetFilters').addEventListener('click', resetFilters);
 
 // --- AUTHENTICATION ---
 
@@ -956,6 +1840,8 @@ function displayFilteredListings() {
     const searchSummary = document.getElementById('searchSummary');
     const resultsCount = document.getElementById('resultsCount');
     const resultsTitle = document.getElementById('resultsTitle');
+    const resultsBadge = document.getElementById('resultsBadge');
+    const resultsNumber = document.getElementById('resultsNumber');
 
     if (Object.keys(searchFilters).length > 0) {
         let summaryText = `Found ${filtered.length} properties`;
@@ -971,14 +1857,45 @@ function displayFilteredListings() {
             summaryText += ` matching ${filterParts.join(', ')}`;
         }
 
-        searchSummary.textContent = summaryText;
+        searchSummary.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i> ${summaryText}`;
         resultsCount.textContent = summaryText;
         resultsTitle.innerHTML = `<i class="fas fa-search"></i> Search Results (${filtered.length})`;
+        
+        // Update results badge
+        resultsNumber.textContent = filtered.length;
+        resultsBadge.style.display = 'inline-flex';
+        resultsBadge.style.cssText = `
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            align-items: center;
+            gap: 5px;
+        `;
     } else {
-        searchSummary.textContent = `Showing ${filtered.length} properties in Batangas`;
+        searchSummary.innerHTML = `<i class="fas fa-building"></i> Showing ${filtered.length} properties in Batangas`;
         resultsCount.textContent = `Showing ${filtered.length} properties in Batangas`;
         resultsTitle.innerHTML = `<i class="fas fa-building"></i> All Properties in Batangas (${filtered.length})`;
+        
+        // Update results badge
+        resultsNumber.textContent = filtered.length;
+        resultsBadge.style.display = 'inline-flex';
+        resultsBadge.style.cssText = `
+            background: var(--secondary);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            align-items: center;
+            gap: 5px;
+        `;
     }
+    
+    // Update active filters display
+    updateActiveFiltersDisplay();
 
     // Display filtered listings
     if (filtered.length === 0) {
@@ -1147,7 +2064,11 @@ async function displayListings(listings) {
 function setupListingEventListeners() {
     // Save property buttons
     document.querySelectorAll('.save-property-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        // Remove existing and add new listener
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -1160,13 +2081,16 @@ function setupListingEventListeners() {
 
     // Contact buttons - prevent card click when clicking contact button
     document.querySelectorAll('.action-btn.contact-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             const userId = this.getAttribute('data-user-id');
             if (userId) {
-                contactBroker(userId);
+                window.contactBroker(userId);
             }
         });
     });
@@ -1176,6 +2100,7 @@ function displayNoListings() {
     const container = document.getElementById('listingsContainer');
     const resultsTitle = document.getElementById('resultsTitle');
     const resultsCount = document.getElementById('resultsCount');
+    const resultsBadge = document.getElementById('resultsBadge');
 
     if (Object.keys(searchFilters).length > 0) {
         container.innerHTML = `
@@ -1183,7 +2108,7 @@ function displayNoListings() {
             <div class="empty-state-icon">🔍</div>
             <h3>No Properties Found</h3>
             <p>There are currently no properties matching your search criteria.</p>
-            <button class="search-button" onclick="window.resetFilters()" style="margin-top: 20px;">
+            <button class="search-button" onclick="resetFilters()" style="margin-top: 20px;">
                 <i class="fas fa-redo"></i>
                 Reset Filters
             </button>
@@ -1195,6 +2120,7 @@ function displayNoListings() {
 
         resultsTitle.innerHTML = '<i class="fas fa-search"></i> No Results Found';
         resultsCount.textContent = "No properties match your search criteria";
+        resultsBadge.style.display = 'none';
     } else {
         container.innerHTML = `
         <div class="empty-state">
@@ -1209,11 +2135,14 @@ function displayNoListings() {
 
         resultsTitle.innerHTML = '<i class="fas fa-building"></i> All Properties in Batangas';
         resultsCount.textContent = "No properties available";
+        resultsBadge.style.display = 'none';
     }
 }
 
 function displayError(error) {
     const container = document.getElementById('listingsContainer');
+    const resultsBadge = document.getElementById('resultsBadge');
+    
     container.innerHTML = `
     <div class="error-state">
         <div class="error-icon">⚠️</div>
@@ -1224,11 +2153,13 @@ function displayError(error) {
             Try Again
         </button>
     </div>`;
+    
+    resultsBadge.style.display = 'none';
 }
 
 // ====================== EVENT HANDLERS ============================
 
-window.toggleSaveProperty = async function(propertyId, buttonElement) {
+async function toggleSaveProperty(propertyId, buttonElement) {
     try {
         const currentUser = auth.currentUser;
         if (!currentUser) {
@@ -1250,8 +2181,8 @@ window.toggleSaveProperty = async function(propertyId, buttonElement) {
             if (!snapshot.empty) {
                 await deleteDoc(snapshot.docs[0].ref);
                 buttonElement.querySelector('.save-icon').textContent = '🤍';
-                buttonElement.style.background = 'var(--bg-white)';
-                buttonElement.style.color = 'var(--text-dark)';
+                buttonElement.setAttribute('data-is-saved', 'false');
+                buttonElement.setAttribute('aria-label', 'Save property');
                 console.log(`Property ${propertyId} removed from saved`);
                 showSaveToast('Removed from saved', false);
             }
@@ -1268,8 +2199,8 @@ window.toggleSaveProperty = async function(propertyId, buttonElement) {
             await logSaveEvent(currentUser.uid, propertyId);
 
             buttonElement.querySelector('.save-icon').textContent = '❤️';
-            buttonElement.style.background = 'var(--primary)';
-            buttonElement.style.color = 'white';
+            buttonElement.setAttribute('data-is-saved', 'true');
+            buttonElement.setAttribute('aria-label', 'Remove from saved');
             console.log(`Property ${propertyId} saved`);
             showSaveToast('Property saved!', false);
         }
@@ -1277,7 +2208,7 @@ window.toggleSaveProperty = async function(propertyId, buttonElement) {
         console.error("Error toggling save:", error);
         showSaveToast("Error saving property", true);
     }
-};
+}
 
 function showSaveToast(message, isError = false) {
     const toast = document.createElement('div');
@@ -1306,17 +2237,10 @@ function showSaveToast(message, isError = false) {
 
 // =========================== WINDOW FUNCTIONS ==========================
 
-window.contactBroker = async function(userId) {
-    const userInfo = userMap.get(userId);
-    if (userInfo) {
-        const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
-        alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
-    } else {
-        alert('Contact information not available.');
-    }
-};
-
+window.applyFilters = applyFilters;
+window.resetFilters = resetFilters;
 window.loadAllListings = loadAllListings;
+window.toggleSaveProperty = toggleSaveProperty;
 
 // ====================== CSS ANIMATIONS ============================
 
@@ -1337,6 +2261,78 @@ style.textContent = `
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Filter tags styling */
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--primary-light);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.filter-tag .remove-filter {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 4px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+}
+
+.filter-tag .remove-filter:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+/* Results badge */
+.results-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .properties-section > div:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .filter-tags {
+        width: 100%;
+    }
+    
+    .results-count-badge {
+        align-self: flex-start;
+        margin-top: 10px;
+    }
 }
 `;
 document.head.appendChild(style);

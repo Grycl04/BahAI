@@ -20,6 +20,9 @@
       --border: #e2e8f0;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
     }
     
     * {
@@ -241,7 +244,7 @@
       margin-bottom: 40px;
     }
 
-    /* Image Gallery */
+    /* Image/Video Gallery */
     .property-gallery {
       background: var(--bg-white);
       padding: 25px;
@@ -254,17 +257,21 @@
     .main-image-container {
       position: relative;
       width: 100%;
-      height: 400px;
+      height: 500px;
       overflow: hidden;
       border-radius: 12px;
       margin-bottom: 15px;
     }
     
-    .main-property-image {
+    .main-property-image, .main-property-video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: transform 0.3s ease;
+    }
+    
+    .main-property-video {
+      background: #000;
     }
     
     .image-navigation {
@@ -331,6 +338,7 @@
       opacity: 0.7;
       transition: all 0.3s;
       flex-shrink: 0;
+      position: relative;
     }
     
     .thumbnail:hover {
@@ -342,10 +350,22 @@
       border: 3px solid var(--primary);
     }
     
-    .thumbnail img {
+    .thumbnail img, .thumbnail video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .video-badge {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
     }
 
     /* Property Section */
@@ -517,6 +537,171 @@
       font-weight: 600;
     }
 
+    /* Universal Calculator Widget */
+    .calculator-widget {
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: 30px;
+      margin-top: 40px;
+    }
+
+    .calculator-header {
+      margin-bottom: 25px;
+    }
+
+    .calc-panel {
+      background: var(--bg-light);
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .calc-input-group {
+      margin-bottom: 20px;
+    }
+
+    .calc-input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+
+    .calc-input-group input[type="number"],
+    .calc-input-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .calc-input-group input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      outline: none;
+    }
+
+    .calc-input-group input[type="range"]::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+
+    .range-value {
+      display: inline-block;
+      min-width: 50px;
+      font-weight: 600;
+      color: var(--primary);
+      text-align: right;
+    }
+
+    .calc-btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .calc-btn.mortgage {
+      background: var(--primary);
+      color: white;
+    }
+
+    .calc-btn.rent {
+      background: var(--success);
+      color: white;
+    }
+
+    .calc-btn.lease {
+      background: var(--warning);
+      color: var(--text-dark);
+    }
+
+    .calc-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .calc-results {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .calc-results h4 {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .calc-results-content {
+      font-size: 14px;
+    }
+
+    .result-highlight {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .result-amount {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .result-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .result-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .result-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .result-item-label {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 5px;
+    }
+
+    .result-item-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .calc-note {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 15px;
+      font-style: italic;
+      line-height: 1.4;
+    }
+
     /* Map Section */
     #propertyMap {
       width: 100%;
@@ -570,375 +755,56 @@
       border: 1px solid var(--border);
     }
 
-    /* Mortgage Calculator Modal - Updated to match dashboard style */
-    .mortgage-calculator-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        z-index: 10000;
-        justify-content: center;
-        align-items: center;
-        backdrop-filter: blur(5px);
-        padding: 20px;
-    }
-    
-    .mortgage-calculator-content {
-        background: var(--bg-white);
-        width: 90%;
-        max-width: 500px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: var(--shadow-lg);
-        animation: slideUp 0.3s ease;
-    }
-    
-    @keyframes slideUp {
-        from { transform: translateY(50px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-    
-    .calculator-header {
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
-        color: white;
-        padding: 25px;
-        text-align: center;
-        position: relative;
-    }
-    
-    .calculator-header h3 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 600;
-    }
-    
-    .calculator-header p {
-        margin: 8px 0 0;
-        opacity: 0.9;
-        font-size: 14px;
-    }
-    
-    .calculator-body {
-        padding: 25px;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-    
-    .calculator-section {
-        margin-bottom: 25px;
-    }
-    
-    .calculator-section h4 {
-        color: var(--primary);
-        margin: 0 0 15px;
-        font-size: 16px;
-        font-weight: 600;
-    }
-    
-    .price-display {
-        background: var(--bg-light);
-        border: 2px solid var(--border);
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 25px;
-    }
-    
-    .price-display .label {
-        display: block;
-        color: var(--text-light);
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-    
-    .price-display .amount {
-        font-size: 32px;
-        font-weight: 700;
-        color: var(--primary);
-    }
-    
-    .price-display .currency {
-        display: block;
-        color: var(--text-light);
-        font-size: 14px;
-        margin-top: 5px;
-    }
-    
-    .options-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-    
-    .option-btn {
-        padding: 12px;
-        background: var(--bg-light);
-        border: 2px solid var(--border);
-        border-radius: 10px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
-        color: var(--text-dark);
-    }
-    
-    .option-btn:hover {
-        background: var(--border);
-    }
-    
-    .option-btn.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-    
-    .option-btn.custom-option {
-        background: #fef3c7;
-        border-color: #fbbf24;
-        color: #92400e;
-    }
-    
-    .custom-input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid var(--border);
-        border-radius: 10px;
-        font-size: 16px;
-        text-align: center;
-        margin-top: 10px;
-        box-sizing: border-box;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .result-section {
-        background: linear-gradient(135deg, #10b981, #34d399);
-        color: white;
-        padding: 25px;
-        border-radius: 12px;
-        margin-top: 20px;
-    }
-    
-    .result-label {
-        display: block;
-        font-size: 14px;
-        opacity: 0.9;
-        margin-bottom: 8px;
-    }
-    
-    .result-amount {
-        font-size: 36px;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-    
-    .result-currency {
-        display: block;
-        font-size: 14px;
-        opacity: 0.9;
-        margin-bottom: 20px;
-    }
-    
-    .result-note {
-        font-size: 12px;
-        opacity: 0.8;
-        margin-top: 10px;
-        line-height: 1.4;
-        font-style: italic;
-    }
-    
-    .loan-breakdown {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-top: 20px;
-    }
-    
-    .breakdown-item {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 15px;
-        border-radius: 10px;
-    }
-    
-    .breakdown-label {
-        display: block;
-        font-size: 12px;
-        opacity: 0.8;
-        margin-bottom: 5px;
-    }
-    
-    .breakdown-value {
-        font-size: 18px;
-        font-weight: 600;
-    }
-    
-    .calculator-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 25px;
-    }
-    
-    .btn-primary {
-        flex: 1;
-        padding: 15px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-    }
-    
-    .btn-secondary {
-        flex: 1;
-        padding: 15px;
-        background: var(--bg-light);
-        color: var(--text-dark);
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .btn-secondary:hover {
-        background: var(--border);
-        transform: translateY(-1px);
-    }
-    
-    .close-calculator {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .email-section {
-        background: var(--bg-light);
-        border-radius: 12px;
-        padding: 20px;
-        margin-top: 20px;
-        border: 1px solid var(--border);
-    }
-    
-    .email-section h4 {
-        color: var(--primary);
-        margin: 0 0 10px;
-        font-size: 16px;
-        font-weight: 600;
-    }
-    
-    .email-section p {
-        color: var(--text-light);
-        font-size: 14px;
-        margin: 0 0 15px;
-        line-height: 1.5;
-    }
-    
-    .email-input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid var(--border);
-        border-radius: 10px;
-        font-size: 14px;
-        margin-bottom: 10px;
-        box-sizing: border-box;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .btn-email {
-        width: 100%;
-        padding: 15px;
-        background: #f59e0b;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .btn-email:hover {
-        background: #d97706;
-        transform: translateY(-1px);
-    }
-
     /* Loading State */
     .loading-state {
-        text-align: center;
-        padding: 100px 20px;
-        background: var(--bg-white);
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
+      text-align: center;
+      padding: 100px 20px;
+      background: var(--bg-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
     }
     
     .spinner {
-        border: 4px solid var(--bg-light);
-        border-top: 4px solid var(--primary);
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
+      border: 4px solid var(--bg-light);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
     }
     
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     /* Error State */
     .error-state {
-        text-align: center;
-        padding: 100px 20px;
-        background: var(--bg-white);
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
+      text-align: center;
+      padding: 100px 20px;
+      background: var(--bg-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
     }
 
     .error-icon {
-        font-size: 48px;
-        margin-bottom: 20px;
-        color: #ef4444;
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: var(--danger);
     }
 
     /* Toast Styles */
     @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
     
     @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
     }
 
     /* Responsive Design */
@@ -965,6 +831,14 @@
       .stat-item {
         width: 100%;
       }
+      
+      .main-image-container {
+        height: 400px;
+      }
+      
+      .result-details {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 768px) {
@@ -987,6 +861,28 @@
       .main-image-container {
         height: 300px;
       }
+      
+      .price-value {
+        font-size: 32px;
+      }
+      
+      .calculator-widget {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .property-header {
+        padding: 20px;
+      }
+      
+      .property-stats .stat-item {
+        min-width: auto;
+      }
+      
+      .main-image-container {
+        height: 250px;
+      }
     }
 </style>
 </head>
@@ -998,122 +894,12 @@
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
 
-<!-- Mortgage Calculator Modal -->
-<div id="mortgageCalculatorModal" class="mortgage-calculator-modal">
-    <div class="mortgage-calculator-content">
-        <div class="calculator-header">
-            <button class="close-calculator" id="closeCalculator">&times;</button>
-            <h3>Mortgage Calculator</h3>
-            <p>Calculate your mortgage credit and organize the purchase of your home.*</p>
-        </div>
-        
-        <div class="calculator-body">
-            <!-- Property Price Section -->
-            <div class="calculator-section">
-                <h4>Property Price</h4>
-                <div class="price-display">
-                    <span class="label">Total Property Value</span>
-                    <div class="amount" id="propertyPriceDisplay">0</div>
-                    <span class="currency">PHP</span>
-                </div>
-            </div>
-            
-            <!-- Deposit Section -->
-            <div class="calculator-section">
-                <h4>Deposit</h4>
-                <div class="options-grid" id="depositOptions">
-                    <div class="option-btn" data-value="10">10%</div>
-                    <div class="option-btn active" data-value="20">20%</div>
-                    <div class="option-btn" data-value="30">30%</div>
-                    <div class="option-btn" data-value="40">40%</div>
-                    <div class="option-btn" data-value="50">50%</div>
-                    <div class="option-btn custom-option" data-value="custom">Custom</div>
-                </div>
-                <input type="number" id="customDeposit" class="custom-input" placeholder="Enter custom %" style="display: none;">
-            </div>
-            
-            <!-- Loan Term Section -->
-            <div class="calculator-section">
-                <h4>Loan Term (years)</h4>
-                <div class="options-grid" id="loanTermOptions">
-                    <div class="option-btn" data-value="5">5</div>
-                    <div class="option-btn active" data-value="9">9</div>
-                    <div class="option-btn" data-value="13">13</div>
-                    <div class="option-btn" data-value="17">17</div>
-                    <div class="option-btn" data-value="21">21</div>
-                    <div class="option-btn" data-value="25">25</div>
-                </div>
-            </div>
-            
-            <!-- Interest Rate Section -->
-            <div class="calculator-section">
-                <h4>Interest Rate</h4>
-                <div class="options-grid" id="interestRateOptions">
-                    <div class="option-btn" data-value="0">0%</div>
-                    <div class="option-btn" data-value="8">8%</div>
-                    <div class="option-btn active" data-value="16">16%</div>
-                    <div class="option-btn" data-value="24">24%</div>
-                    <div class="option-btn" data-value="32">32%</div>
-                    <div class="option-btn custom-option" data-value="custom">Custom</div>
-                </div>
-                <input type="number" id="customInterest" class="custom-input" placeholder="Enter custom %" style="display: none;">
-            </div>
-            
-            <!-- Results Section -->
-            <div class="result-section">
-                <span class="result-label">Estimated Repayment (monthly)</span>
-                <div class="result-amount" id="monthlyPayment">0</div>
-                <span class="result-currency">PHP</span>
-                
-                <div class="loan-breakdown">
-                    <div class="breakdown-item">
-                        <span class="breakdown-label">Legal expenses</span>
-                        <div class="breakdown-value" id="legalExpenses">0</div>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="breakdown-label">Deposit</span>
-                        <div class="breakdown-value" id="depositAmount">0</div>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="breakdown-label">Mortgage amount</span>
-                        <div class="breakdown-value" id="mortgageAmount">0</div>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="breakdown-label">Interest</span>
-                        <div class="breakdown-value" id="totalInterest">0</div>
-                    </div>
-                </div>
-                
-                <div class="result-note">
-                    *The calculation is approximate, the final amount may vary depending on the financial institution chosen and other conditions not considered in this simulation.
-                </div>
-            </div>
-            
-            <!-- Email Section -->
-            <div class="email-section">
-                <h4>Get Detailed Report</h4>
-                <p>Find out how much you will pay month by month and all the expenses in your email.</p>
-                <input type="email" id="userEmail" class="email-input" placeholder="Enter your email address">
-                <button class="btn-email" id="sendEmailBtn">
-                    <i class="fas fa-envelope"></i> Get Pre-qualified
-                </button>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="calculator-actions">
-                <button class="btn-primary" id="recalculateBtn">Recalculate</button>
-                <button class="btn-secondary" id="closeCalculatorBtn">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Main Content -->
 <div class="container">
-    <!-- Back Button -->
+    <!-- Back Button - Will be dynamically updated -->
     <div>
-        <a href="profile.html" class="back-button">
-            <i class="fas fa-arrow-left"></i> Back to Profile
+        <a href="#" id="backButton" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
@@ -1169,33 +955,69 @@ function setupLogoutButton() {
     console.log('Logout button initialized successfully');
 }
 
-// Load sidebar
-fetch('sidebar.html')
-    .then(response => {
+// Function to load sidebar based on user role
+async function loadSidebarBasedOnRole(userRole) {
+    let sidebarFile = 'sidebar.html'; // Default
+    
+    if (userRole === 'agent') {
+        sidebarFile = 'agent_sidebar.html';
+    } else if (userRole === 'broker') {
+        sidebarFile = 'broker_sidebar.html';
+    }
+    // For other roles (admin, landlord, user) use default sidebar
+    
+    try {
+        const response = await fetch(sidebarFile);
         if (!response.ok) {
             throw new Error('Failed to load sidebar: ' + response.status);
         }
-        return response.text();
-    })
-    .then(html => {
+        const html = await response.text();
         document.getElementById('sidebar-container').innerHTML = html;
-        // Highlight active link
-        const links = document.querySelectorAll('.sidebar-link');
-        links.forEach(link => {
-            if (link.getAttribute('href') === 'profile.html') {
-                link.classList.add('active');
-            }
-        });
+        
         // Setup logout button
         setupLogoutButton();
-    })
-    .catch(error => {
+        
+        console.log(`✅ Loaded sidebar: ${sidebarFile} for role: ${userRole}`);
+    } catch (error) {
         console.error('Error loading sidebar:', error);
-        document.getElementById('sidebar-container').innerHTML = 
-            '<div class="sidebar" style="padding: 20px; background: var(--bg-light); color: #ef4444;">' +
-            '<p>Unable to load navigation. Please refresh the page.</p>' +
-            '</div>';
-    });
+        // Fallback to default sidebar
+        try {
+            const fallbackResponse = await fetch('sidebar.html');
+            const fallbackHtml = await fallbackResponse.text();
+            document.getElementById('sidebar-container').innerHTML = fallbackHtml;
+            setupLogoutButton();
+        } catch (fallbackError) {
+            console.error('Failed to load fallback sidebar:', fallbackError);
+            document.getElementById('sidebar-container').innerHTML = 
+                '<div class="sidebar" style="padding: 20px; background: var(--bg-light); color: #ef4444;">' +
+                '<p>Unable to load navigation. Please refresh the page.</p>' +
+                '</div>';
+        }
+    }
+}
+
+// Function to update back button based on user role
+function updateBackButton(userRole) {
+    const backButton = document.getElementById('backButton');
+    
+    if (userRole === 'agent') {
+        backButton.href = '../agent/agent_dashboard.html';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Agent Dashboard';
+    } else if (userRole === 'broker') {
+        backButton.href = '../broker/broker_dashboard.html';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Broker Dashboard';
+    } else if (userRole === 'landlord') {
+        backButton.href = '../landlord/landlord_dashboard.html';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Landlord Dashboard';
+    } else if (userRole === 'admin') {
+        backButton.href = '../admin/admin_dashboard.html';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Admin Dashboard';
+    } else {
+        // Default for other roles
+        backButton.href = '../index.html';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Home';
+    }
+}
 </script>
 
 <!-- Main Application Script -->
@@ -1252,13 +1074,10 @@ const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
 
 // Global variables
-let propertyPrice = 0;
-let depositPercentage = 20;
-let loanTermYears = 9;
-let interestRate = 16;
-let currentImageIndex = 0;
-let imageUrls = [];
+let currentMediaIndex = 0;
+let mediaUrls = [];
 let currentListing = null;
+let currentUserRole = null;
 
 // --- HELPER FUNCTIONS ---
 
@@ -1355,205 +1174,367 @@ function getCompleteAddress(listing) {
     return addressParts.join('. ');
 }
 
+// Check if URL is a video
+function isVideoFile(url) {
+    if (!url) return false;
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v'];
+    const urlLower = url.toLowerCase();
+    
+    return videoExtensions.some(ext => urlLower.includes(ext)) ||
+           urlLower.includes('/videos/') ||
+           urlLower.includes('video/');
+}
+
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
 
-// --- MORTGAGE CALCULATOR FUNCTIONS ---
+// --- UNIVERSAL CALCULATOR FUNCTIONS ---
 
-function showMortgageCalculatorModal(listing) {
-    // Get the actual property price based on listing type
+function initializePropertyCalculator(listing) {
     const listingType = getListingType(listing);
+    const price = getNumericPrice(listing);
+    
+    // Set calculator title based on listing type
+    const calcTitle = document.getElementById('calc-title');
+    const calcDescription = document.getElementById('calc-description');
     
     if (listingType === 'sale') {
-        // For sale properties, use the sale price
-        propertyPrice = listing.pricing || listing.salePrice || 0;
+        calcTitle.innerHTML = '<i class="fas fa-home"></i> Mortgage Calculator';
+        calcDescription.textContent = 'Calculate your estimated monthly mortgage payments';
+        showCalculatorPanel('mortgage');
+        document.getElementById('calc-property-price').value = price;
+        updateDownpaymentAmount();
     } else if (listingType === 'rent') {
-        // For rent properties, you might want to use a different calculation
-        // For example, calculate based on 10 years of rent
-        const monthlyRent = listing.monthlyRent || 0;
-        propertyPrice = monthlyRent * 12 * 10; // 10 years of rent
+        calcTitle.innerHTML = '<i class="fas fa-money-bill-wave"></i> Rent Affordability Calculator';
+        calcDescription.textContent = 'Check if this rent fits your budget';
+        showCalculatorPanel('rent');
+        document.getElementById('calc-monthly-rent').value = price;
     } else if (listingType === 'lease') {
-        // For lease properties
-        const annualRent = listing.annualRent || 0;
-        propertyPrice = annualRent * 10; // 10 years lease
+        calcTitle.innerHTML = '<i class="fas fa-file-contract"></i> Lease Cost Calculator';
+        calcDescription.textContent = 'Calculate total lease cost over time';
+        showCalculatorPanel('lease');
+        document.getElementById('calc-annual-rent').value = price;
     }
     
-    // Update the calculator with the actual property price
-    document.getElementById('propertyPriceDisplay').textContent = propertyPrice.toLocaleString();
-    
-    // Reset calculator options to defaults
-    depositPercentage = 20;
-    loanTermYears = 9;
-    interestRate = 16;
-    
-    // Update UI to show active options
-    document.querySelectorAll('#depositOptions .option-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.value === '20') {
-            btn.classList.add('active');
-        }
-    });
-    
-    document.querySelectorAll('#loanTermOptions .option-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.value === '9') {
-            btn.classList.add('active');
-        }
-    });
-    
-    document.querySelectorAll('#interestRateOptions .option-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.value === '16') {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Hide custom inputs
-    document.getElementById('customDeposit').style.display = 'none';
-    document.getElementById('customInterest').style.display = 'none';
-    
-    // Calculate initial values
-    calculateMortgage();
-    
-    // Show modal
-    document.getElementById('mortgageCalculatorModal').style.display = 'flex';
-    
-    // Setup calculator event listeners
     setupCalculatorEventListeners();
 }
 
+function getNumericPrice(listing) {
+    const type = getListingType(listing);
+    
+    switch (type) {
+        case 'rent':
+            return listing.monthlyRent || 0;
+        case 'lease':
+            return listing.annualRent || 0;
+        case 'sale':
+        default:
+            return listing.pricing || listing.salePrice || 0;
+    }
+}
+
+function showCalculatorPanel(panelType) {
+    // Hide all panels
+    document.getElementById('calc-mortgage-panel').style.display = 'none';
+    document.getElementById('calc-rent-panel').style.display = 'none';
+    document.getElementById('calc-lease-panel').style.display = 'none';
+    
+    // Show selected panel
+    if (panelType === 'mortgage') {
+        document.getElementById('calc-mortgage-panel').style.display = 'block';
+    } else if (panelType === 'rent') {
+        document.getElementById('calc-rent-panel').style.display = 'block';
+    } else if (panelType === 'lease') {
+        document.getElementById('calc-lease-panel').style.display = 'block';
+    }
+    
+    // Hide results when switching panels
+    document.getElementById('calc-results').style.display = 'none';
+}
+
 function setupCalculatorEventListeners() {
-    // Deposit options
-    const depositBtns = document.querySelectorAll('#depositOptions .option-btn');
-    depositBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            depositBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            if (this.dataset.value === 'custom') {
-                document.getElementById('customDeposit').style.display = 'block';
-                document.getElementById('customDeposit').focus();
-                depositPercentage = parseFloat(document.getElementById('customDeposit').value) || 20;
-            } else {
-                document.getElementById('customDeposit').style.display = 'none';
-                depositPercentage = parseFloat(this.dataset.value);
-            }
-            
-            calculateMortgage();
+    // Mortgage calculator sliders
+    const downpaymentSlider = document.getElementById('calc-downpayment');
+    const interestSlider = document.getElementById('calc-interest-rate');
+    
+    if (downpaymentSlider) {
+        downpaymentSlider.addEventListener('input', function() {
+            document.getElementById('downpayment-value').textContent = this.value + '%';
+            updateDownpaymentAmount();
         });
-    });
+    }
     
-    // Loan term options
-    const loanTermBtns = document.querySelectorAll('#loanTermOptions .option-btn');
-    loanTermBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            loanTermBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            loanTermYears = parseFloat(this.dataset.value);
-            calculateMortgage();
+    if (interestSlider) {
+        interestSlider.addEventListener('input', function() {
+            document.getElementById('interest-rate-value').textContent = this.value + '%';
         });
-    });
+    }
     
-    // Interest rate options
-    const interestBtns = document.querySelectorAll('#interestRateOptions .option-btn');
-    interestBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            interestBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            if (this.dataset.value === 'custom') {
-                document.getElementById('customInterest').style.display = 'block';
-                document.getElementById('customInterest').focus();
-                interestRate = parseFloat(document.getElementById('customInterest').value) || 16;
-            } else {
-                document.getElementById('customInterest').style.display = 'none';
-                interestRate = parseFloat(this.dataset.value);
-            }
-            
-            calculateMortgage();
+    // Lease calculator slider
+    const leaseIncreaseSlider = document.getElementById('calc-lease-increase');
+    if (leaseIncreaseSlider) {
+        leaseIncreaseSlider.addEventListener('input', function() {
+            document.getElementById('lease-increase-value').textContent = this.value + '%';
         });
-    });
+    }
     
-    // Custom deposit input
-    document.getElementById('customDeposit').addEventListener('input', function() {
-        depositPercentage = parseFloat(this.value) || 20;
-        calculateMortgage();
-    });
+    // Calculate buttons
+    const mortgageBtn = document.getElementById('calc-mortgage-btn');
+    const rentBtn = document.getElementById('calc-rent-btn');
+    const leaseBtn = document.getElementById('calc-lease-btn');
     
-    // Custom interest input
-    document.getElementById('customInterest').addEventListener('input', function() {
-        interestRate = parseFloat(this.value) || 16;
-        calculateMortgage();
-    });
+    if (mortgageBtn) {
+        mortgageBtn.addEventListener('click', calculateMortgage);
+    }
     
-    // Recalculate button
-    document.getElementById('recalculateBtn').addEventListener('click', calculateMortgage);
+    if (rentBtn) {
+        rentBtn.addEventListener('click', calculateRentAffordability);
+    }
     
-    // Close buttons
-    document.getElementById('closeCalculator').addEventListener('click', closeCalculatorModal);
-    document.getElementById('closeCalculatorBtn').addEventListener('click', closeCalculatorModal);
+    if (leaseBtn) {
+        leaseBtn.addEventListener('click', calculateLeaseCost);
+    }
+}
+
+function updateDownpaymentAmount() {
+    const price = parseFloat(document.getElementById('calc-property-price').value) || 0;
+    const downpaymentPercent = parseFloat(document.getElementById('calc-downpayment').value) || 20;
+    const downpaymentAmount = (price * downpaymentPercent / 100);
     
-    // Email button
-    document.getElementById('sendEmailBtn').addEventListener('click', function() {
-        const email = document.getElementById('userEmail').value;
-        if (email && validateEmail(email)) {
-            alert('Mortgage calculation report has been sent to ' + email);
-            closeCalculatorModal();
-        } else {
-            alert('Please enter a valid email address');
-        }
-    });
-    
-    // Close modal when clicking outside
-    document.getElementById('mortgageCalculatorModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeCalculatorModal();
-        }
-    });
+    document.getElementById('downpayment-amount').textContent = 
+        `₱${downpaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function calculateMortgage() {
-    // Calculate deposit amount
-    const depositAmount = (propertyPrice * depositPercentage) / 100;
-    const mortgageAmount = propertyPrice - depositAmount;
+    const price = parseFloat(document.getElementById('calc-property-price').value);
+    const downpaymentPercent = parseFloat(document.getElementById('calc-downpayment').value);
+    const loanTerm = parseInt(document.getElementById('calc-loan-term').value);
+    const interestRate = parseFloat(document.getElementById('calc-interest-rate').value);
     
-    // Calculate monthly payment using mortgage formula
-    const monthlyInterestRate = (interestRate / 100) / 12;
-    const numberOfPayments = loanTermYears * 12;
-    
-    let monthlyPayment = 0;
-    if (monthlyInterestRate > 0) {
-        monthlyPayment = mortgageAmount * 
-            (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfPayments)) / 
-            (Math.pow(1 + monthlyInterestRate, numberOfPayments) - 1);
-    } else {
-        monthlyPayment = mortgageAmount / numberOfPayments;
+    if (!price || price <= 0) {
+        showCalculatorError('Please enter a valid property price');
+        return;
     }
     
-    // Calculate total interest
+    const downpaymentAmount = price * downpaymentPercent / 100;
+    const loanAmount = price - downpaymentAmount;
+    const monthlyRate = interestRate / 100 / 12;
+    const numberOfPayments = loanTerm * 12;
+    
+    // Mortgage formula: M = P [ i(1 + i)^n ] / [ (1 + i)^n - 1]
+    const monthlyPayment = loanAmount * 
+        (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+        (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+    
     const totalPayment = monthlyPayment * numberOfPayments;
-    const totalInterest = totalPayment - mortgageAmount;
+    const totalInterest = totalPayment - loanAmount;
     
-    // Calculate legal expenses (5% of property price as example)
-    const legalExpenses = propertyPrice * 0.05;
+    const results = `
+        <div class="result-highlight">
+            <div class="result-amount">₱${monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div class="result-label">Monthly Payment</div>
+        </div>
+        
+        <div class="result-details">
+            <div class="result-item">
+                <div class="result-item-label">Loan Amount</div>
+                <div class="result-item-value">₱${loanAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Down Payment</div>
+                <div class="result-item-value">₱${downpaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${downpaymentPercent}%)</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Total Interest</div>
+                <div class="result-item-value">₱${totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Total Payment</div>
+                <div class="result-item-value">₱${totalPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+        </div>
+        
+        <div class="calc-note">
+            *Calculation based on ${loanTerm} years at ${interestRate}% interest rate. Actual payments may vary based on credit score, additional fees, and lender terms.
+        </div>
+    `;
     
-    // Update display with formatted numbers
-    document.getElementById('depositAmount').textContent = 
-        Math.round(depositAmount).toLocaleString();
-    document.getElementById('mortgageAmount').textContent = 
-        Math.round(mortgageAmount).toLocaleString();
-    document.getElementById('totalInterest').textContent = 
-        Math.round(totalInterest).toLocaleString();
-    document.getElementById('legalExpenses').textContent = 
-        Math.round(legalExpenses).toLocaleString();
-    document.getElementById('monthlyPayment').textContent = 
-        monthlyPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    showCalculatorResults(results);
 }
 
-function closeCalculatorModal() {
-    document.getElementById('mortgageCalculatorModal').style.display = 'none';
+function calculateRentAffordability() {
+    const monthlyRent = parseFloat(document.getElementById('calc-monthly-rent').value);
+    const monthlyIncome = parseFloat(document.getElementById('calc-income').value);
+    const otherExpenses = parseFloat(document.getElementById('calc-expenses').value) || 0;
+    
+    if (!monthlyRent || monthlyRent <= 0) {
+        showCalculatorError('Please enter a valid monthly rent');
+        return;
+    }
+    
+    if (!monthlyIncome || monthlyIncome <= 0) {
+        showCalculatorError('Please enter your monthly income');
+        return;
+    }
+    
+    const rentPercentage = (monthlyRent / monthlyIncome) * 100;
+    const disposableIncome = monthlyIncome - monthlyRent - otherExpenses;
+    const affordabilityStatus = rentPercentage <= 30 ? 'good' : rentPercentage <= 40 ? 'moderate' : 'stressed';
+    
+    let statusText = '';
+    let statusColor = '';
+    let recommendation = '';
+    
+    if (affordabilityStatus === 'good') {
+        statusText = 'Within Budget ✓';
+        statusColor = '#10b981';
+        recommendation = 'This rent is comfortably within the recommended 30% of income.';
+    } else if (affordabilityStatus === 'moderate') {
+        statusText = 'Moderate Budget ⚠';
+        statusColor = '#f59e0b';
+        recommendation = 'This rent exceeds the 30% guideline but may be manageable depending on other expenses.';
+    } else {
+        statusText = 'Above Budget ✗';
+        statusColor = '#ef4444';
+        recommendation = 'This rent exceeds 40% of income, which may cause financial strain.';
+    }
+    
+    const results = `
+        <div class="result-highlight" style="border-left: 4px solid ${statusColor};">
+            <div class="result-amount" style="color: ${statusColor};">${rentPercentage.toFixed(1)}%</div>
+            <div class="result-label">of your income</div>
+        </div>
+        
+        <div class="result-details">
+            <div class="result-item">
+                <div class="result-item-label">Monthly Rent</div>
+                <div class="result-item-value">₱${monthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Monthly Income</div>
+                <div class="result-item-value">₱${monthlyIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Disposable Income</div>
+                <div class="result-item-value">₱${disposableIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Affordability</div>
+                <div class="result-item-value" style="color: ${statusColor};">${statusText}</div>
+            </div>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="font-size: 14px; font-weight: 600; color: ${statusColor}; margin-bottom: 5px;">
+                ${statusText}
+            </div>
+            <div style="font-size: 13px; opacity: 0.9;">
+                ${recommendation}
+            </div>
+        </div>
+        
+        <div class="calc-note">
+            *General guideline: Rent should not exceed 30% of your monthly income. Your disposable income after rent and other expenses is ₱${disposableIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.
+        </div>
+    `;
+    
+    showCalculatorResults(results);
+}
+
+function calculateLeaseCost() {
+    const annualRent = parseFloat(document.getElementById('calc-annual-rent').value);
+    const leaseTerm = parseInt(document.getElementById('calc-lease-term').value);
+    const annualIncrease = parseFloat(document.getElementById('calc-lease-increase').value);
+    
+    if (!annualRent || annualRent <= 0) {
+        showCalculatorError('Please enter a valid annual rent');
+        return;
+    }
+    
+    let totalCost = 0;
+    let currentRent = annualRent;
+    let yearDetails = [];
+    
+    for (let year = 1; year <= leaseTerm; year++) {
+        totalCost += currentRent;
+        yearDetails.push({
+            year: year,
+            rent: currentRent,
+            monthly: currentRent / 12
+        });
+        currentRent *= (1 + annualIncrease / 100);
+    }
+    
+    const avgMonthlyCost = totalCost / leaseTerm / 12;
+    const finalMonthlyRent = yearDetails[yearDetails.length - 1].monthly;
+    
+    const results = `
+        <div class="result-highlight">
+            <div class="result-amount">₱${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div class="result-label">Total ${leaseTerm}-Year Cost</div>
+        </div>
+        
+        <div class="result-details">
+            <div class="result-item">
+                <div class="result-item-label">Average Monthly</div>
+                <div class="result-item-value">₱${avgMonthlyCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Final Monthly (Year ${leaseTerm})</div>
+                <div class="result-item-value">₱${finalMonthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Annual Increase</div>
+                <div class="result-item-value">${annualIncrease}%</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">Lease Term</div>
+                <div class="result-item-value">${leaseTerm} years</div>
+            </div>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">
+                Year-by-Year Breakdown
+            </div>
+            <div style="max-height: 150px; overflow-y: auto; font-size: 13px;">
+                ${yearDetails.map(y => `
+                    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <span>Year ${y.year}:</span>
+                        <span>₱${y.rent.toLocaleString()}/year (₱${y.monthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month)</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="calc-note">
+            *Assumes annual rent increase of ${annualIncrease}%. Final monthly rent in year ${leaseTerm} will be ₱${finalMonthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.
+        </div>
+    `;
+    
+    showCalculatorResults(results);
+}
+
+function showCalculatorResults(htmlContent) {
+    const resultsContainer = document.getElementById('calc-results');
+    const resultsContent = document.getElementById('calc-results-content');
+    
+    resultsContent.innerHTML = htmlContent;
+    resultsContainer.style.display = 'block';
+    
+    // Scroll to results
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showCalculatorError(message) {
+    const results = `
+        <div style="color: #ef4444; padding: 12px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 4px solid #ef4444;">
+            <i class="fas fa-exclamation-circle"></i> ${message}
+        </div>
+    `;
+    showCalculatorResults(results);
 }
 
 // --- GOOGLE MAPS FUNCTIONS ---
@@ -1633,13 +1614,13 @@ function showMapPlaceholder(lat, lng) {
     </div>`;
 }
 
-// --- IMAGE NAVIGATION FUNCTIONS ---
+// --- MEDIA NAVIGATION FUNCTIONS ---
 
-function initializeImageNavigation(images) {
-    imageUrls = images;
-    currentImageIndex = 0;
+function initializeMediaNavigation(mediaArray) {
+    mediaUrls = mediaArray;
+    currentMediaIndex = 0;
 
-    if (images.length <= 1) {
+    if (mediaArray.length <= 1) {
         const nav = document.querySelector('.image-navigation');
         const counter = document.querySelector('.image-counter');
         if (nav) nav.style.display = 'none';
@@ -1652,43 +1633,58 @@ function initializeImageNavigation(images) {
     if (nav) nav.style.display = 'flex';
     if (counter) counter.style.display = 'block';
 
-    updateImageCounter();
+    updateMediaCounter();
 
     const prevBtn = document.querySelector('.prev-btn');
     const nextBtn = document.querySelector('.next-btn');
 
     if (prevBtn) {
-        prevBtn.addEventListener('click', () => navigateImage(-1));
-        prevBtn.disabled = currentImageIndex === 0;
+        prevBtn.addEventListener('click', () => navigateMedia(-1));
+        prevBtn.disabled = currentMediaIndex === 0;
     }
 
     if (nextBtn) {
-        nextBtn.addEventListener('click', () => navigateImage(1));
-        nextBtn.disabled = currentImageIndex === imageUrls.length - 1;
+        nextBtn.addEventListener('click', () => navigateMedia(1));
+        nextBtn.disabled = currentMediaIndex === mediaUrls.length - 1;
     }
 
     document.addEventListener('keydown', handleKeyboardNavigation);
 
     document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
-        thumb.addEventListener('click', () => goToImage(index));
+        thumb.addEventListener('click', () => goToMedia(index));
     });
 
-    function navigateImage(direction) {
-        const newIndex = currentImageIndex + direction;
-        if (newIndex >= 0 && newIndex < imageUrls.length) {
-            goToImage(newIndex);
+    function navigateMedia(direction) {
+        const newIndex = currentMediaIndex + direction;
+        if (newIndex >= 0 && newIndex < mediaUrls.length) {
+            goToMedia(newIndex);
         }
     }
 
-    function goToImage(index) {
-        if (index < 0 || index >= imageUrls.length) return;
+    function goToMedia(index) {
+        if (index < 0 || index >= mediaUrls.length) return;
 
-        currentImageIndex = index;
+        currentMediaIndex = index;
+        const mediaUrl = mediaUrls[index];
+        const isVideo = isVideoFile(mediaUrl);
+
         const mainImage = document.getElementById('mainPropertyImage');
-        if (mainImage) {
-            mainImage.src = imageUrls[index];
+        const mainVideo = document.getElementById('mainPropertyVideo');
+
+        if (isVideo) {
+            // Show video, hide image
+            mainImage.style.display = 'none';
+            mainVideo.style.display = 'block';
+            mainVideo.src = mediaUrl;
+            mainVideo.load(); // Load the video
+        } else {
+            // Show image, hide video
+            mainVideo.style.display = 'none';
+            mainImage.style.display = 'block';
+            mainImage.src = mediaUrl;
         }
 
+        // Update thumbnail selection
         document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
             if (i === index) {
                 thumb.classList.add('active');
@@ -1706,23 +1702,23 @@ function initializeImageNavigation(images) {
         const nextBtn = document.querySelector('.next-btn');
 
         if (prevBtn) prevBtn.disabled = index === 0;
-        if (nextBtn) nextBtn.disabled = index === imageUrls.length - 1;
+        if (nextBtn) nextBtn.disabled = index === mediaUrls.length - 1;
 
-        updateImageCounter();
+        updateMediaCounter();
     }
 
-    function updateImageCounter() {
+    function updateMediaCounter() {
         const counter = document.querySelector('.image-counter');
         if (counter) {
-            counter.textContent = `${currentImageIndex + 1} / ${imageUrls.length}`;
+            counter.textContent = `${currentMediaIndex + 1} / ${mediaUrls.length}`;
         }
     }
 
     function handleKeyboardNavigation(e) {
         if (e.key === 'ArrowLeft') {
-            navigateImage(-1);
+            navigateMedia(-1);
         } else if (e.key === 'ArrowRight') {
-            navigateImage(1);
+            navigateMedia(1);
         }
     }
 }
@@ -1794,6 +1790,33 @@ function displayPropertyDetails(listing, userInfo) {
     const typeBadgeText = getTypeBadgeText(listing);
     const completeAddress = getCompleteAddress(listing);
     
+    // Get ALL media (images + videos)
+    let allMedia = [];
+    
+    // Add images first
+    if (listing.photos && listing.photos.length > 0) {
+        allMedia = [...listing.photos];
+    } else if (listing.imageUrls && listing.imageUrls.length > 0) {
+        allMedia = [...listing.imageUrls];
+    }
+    
+    // Add videos
+    if (listing.videoUrls && listing.videoUrls.length > 0) {
+        allMedia = [...allMedia, ...listing.videoUrls];
+    } else if (listing.mediaUrls && listing.mediaUrls.videos) {
+        listing.mediaUrls.videos.forEach(video => {
+            if (video.url) allMedia.push(video.url);
+        });
+    }
+
+    // If no media, use placeholder
+    if (allMedia.length === 0) {
+        allMedia = ['https://via.placeholder.com/800x400/0b2e52/white?text=No+Media+Available'];
+    }
+
+    const firstMedia = allMedia[0];
+    const isFirstVideo = isVideoFile(firstMedia);
+    
     // Get badge class
     let badgeClass = 'badge-sale';
     if (listingType === 'rent') badgeClass = 'badge-rent';
@@ -1801,29 +1824,13 @@ function displayPropertyDetails(listing, userInfo) {
     if (listing.status === 'active') badgeClass = 'badge-active';
     if (listing.status === 'pending') badgeClass = 'badge-pending';
     
-    // Get the actual property price for mortgage calculator
-    let actualPropertyPrice = 0;
-    if (listingType === 'sale') {
-        actualPropertyPrice = listing.pricing || listing.salePrice || 0;
-    } else if (listingType === 'rent') {
-        const monthlyRent = listing.monthlyRent || 0;
-        actualPropertyPrice = monthlyRent * 12 * 10; // 10 years of rent
-    } else if (listingType === 'lease') {
-        const annualRent = listing.annualRent || 0;
-        actualPropertyPrice = annualRent * 10; // 10 years lease
-    }
-    
-    // Get images
-    const images = listing.photos || listing.imageUrls || [];
-    const mainImage = images.length > 0 ? images[0] : 'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image+Available';
-    
     // Pricing details
     let pricingDetails = "";
     if (listingType === 'rent') {
         pricingDetails = `
         <div class="pricing-item">
             <span class="pricing-label">Monthly Rent:</span>
-            <span class="pricing-value" style="color: #10b981; font-weight: 600;">
+            <span class="pricing-value" style="color: var(--success); font-weight: 600;">
                 ₱${(listing.monthlyRent || 0).toLocaleString()}
             </span>
         </div>
@@ -1843,7 +1850,7 @@ function displayPropertyDetails(listing, userInfo) {
         pricingDetails = `
         <div class="pricing-item">
             <span class="pricing-label">Annual Rent:</span>
-            <span class="pricing-value" style="color: #f59e0b; font-weight: 600;">
+            <span class="pricing-value" style="color: var(--warning); font-weight: 600;">
                 ₱${(listing.annualRent || 0).toLocaleString()}
             </span>
         </div>
@@ -1926,29 +1933,53 @@ function displayPropertyDetails(listing, userInfo) {
     <div class="two-column-layout">
         <!-- Main Content Column -->
         <div>
-            <!-- Image Gallery -->
+            <!-- Media Gallery -->
             <div class="property-gallery">
                 <div class="main-image-container">
-                    <img src="${mainImage}" alt="${listing.title}" id="mainPropertyImage" class="main-property-image">
+                    <!-- Main Media Display -->
+                    <div id="mainMediaDisplay">
+                        <img src="${isFirstVideo ? 'https://via.placeholder.com/800x400/0b2e52/white?text=Video+Thumbnail' : firstMedia}" 
+                             alt="${listing.title}" 
+                             id="mainPropertyImage" 
+                             class="main-property-image"
+                             style="${isFirstVideo ? 'display: none;' : 'display: block;'}">
+                        <video id="mainPropertyVideo" 
+                               class="main-property-video" 
+                               controls
+                               style="${isFirstVideo ? 'display: block;' : 'display: none;'}">
+                            ${isFirstVideo ? `<source src="${firstMedia}" type="video/mp4">Your browser does not support the video tag.` : ''}
+                        </video>
+                    </div>
                     <div class="image-navigation">
-                        <button class="image-nav-btn prev-btn" ${images.length <= 1 ? 'disabled' : ''}>
+                        <button class="image-nav-btn prev-btn" ${allMedia.length <= 1 ? 'disabled' : ''}>
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="image-nav-btn next-btn" ${images.length <= 1 ? 'disabled' : ''}>
+                        <button class="image-nav-btn next-btn" ${allMedia.length <= 1 ? 'disabled' : ''}>
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
                     <div class="image-counter">
-                        ${images.length > 0 ? '1 / ' + images.length : 'No images'}
+                        ${allMedia.length > 0 ? '1 / ' + allMedia.length : 'No media'}
                     </div>
                 </div>
-                ${images.length > 1 ? `
+                ${allMedia.length > 1 ? `
                 <div class="image-thumbnails">
-                    ${images.map((img, index) => `
-                    <div class="thumbnail ${index === 0 ? 'active' : ''}" data-image="${img}" data-index="${index}">
-                        <img src="${img}" alt="Thumbnail ${index + 1}">
-                    </div>
-                    `).join('')}
+                    ${allMedia.map((media, index) => {
+                        const isVideo = isVideoFile(media);
+                        return `
+                        <div class="thumbnail ${index === 0 ? 'active' : ''}" 
+                             data-media="${media}" 
+                             data-index="${index}" 
+                             data-type="${isVideo ? 'video' : 'image'}">
+                            ${isVideo ? 
+                                `<video src="${media}" style="width: 100%; height: 70px; object-fit: cover;"></video>
+                                 <div class="video-badge">VIDEO</div>` 
+                                : 
+                                `<img src="${media}" alt="Thumbnail ${index + 1}" style="width: 100%; height: 70px; object-fit: cover;">`
+                            }
+                        </div>
+                        `;
+                    }).join('')}
                 </div>
                 ` : ''}
             </div>
@@ -2035,6 +2066,121 @@ function displayPropertyDetails(listing, userInfo) {
         </div>
     </div>
 
+    <!-- Universal Calculator Widget -->
+    <div class="calculator-widget">
+        <div class="calculator-header">
+            <h3 id="calc-title" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="fas fa-calculator"></i>
+                Payment Calculator
+            </h3>
+            <p id="calc-description" style="color: var(--text-light); font-size: 14px;">
+                Calculate your estimated monthly payments
+            </p>
+        </div>
+        
+        <div id="propertyCalculator">
+            <!-- Mortgage Calculator (For Sale) -->
+            <div class="calc-panel" id="calc-mortgage-panel" style="display: none;">
+                <div class="calc-input-group">
+                    <label>Property Price (₱)</label>
+                    <input type="number" id="calc-property-price" placeholder="0" min="0">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Down Payment (%)</label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="range" id="calc-downpayment" min="0" max="100" value="20">
+                        <span id="downpayment-value" class="range-value">20%</span>
+                    </div>
+                    <div id="downpayment-amount" style="font-size: 13px; color: var(--text-light); margin-top: 5px;">Amount: ₱0</div>
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Loan Term</label>
+                    <select id="calc-loan-term">
+                        <option value="5">5 years (60 months)</option>
+                        <option value="10">10 years (120 months)</option>
+                        <option value="15" selected>15 years (180 months)</option>
+                        <option value="20">20 years (240 months)</option>
+                        <option value="25">25 years (300 months)</option>
+                        <option value="30">30 years (360 months)</option>
+                    </select>
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Interest Rate (%)</label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="range" id="calc-interest-rate" min="1" max="15" step="0.1" value="6.5">
+                        <span id="interest-rate-value" class="range-value">6.5%</span>
+                    </div>
+                </div>
+                
+                <button id="calc-mortgage-btn" class="calc-btn mortgage">
+                    Calculate Monthly Payment
+                </button>
+            </div>
+            
+            <!-- Rent Affordability Calculator (For Rent) -->
+            <div class="calc-panel" id="calc-rent-panel" style="display: none;">
+                <div class="calc-input-group">
+                    <label>Monthly Rent (₱)</label>
+                    <input type="number" id="calc-monthly-rent" placeholder="0" min="0">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Your Monthly Income (₱)</label>
+                    <input type="number" id="calc-income" placeholder="0" min="0">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Other Monthly Expenses (₱)</label>
+                    <input type="number" id="calc-expenses" placeholder="0" min="0" value="0">
+                </div>
+                
+                <button id="calc-rent-btn" class="calc-btn rent">
+                    Check Affordability
+                </button>
+            </div>
+            
+            <!-- Lease Calculator (For Lease) -->
+            <div class="calc-panel" id="calc-lease-panel" style="display: none;">
+                <div class="calc-input-group">
+                    <label>Annual Rent (₱)</label>
+                    <input type="number" id="calc-annual-rent" placeholder="0" min="0">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Lease Term (years)</label>
+                    <select id="calc-lease-term">
+                        <option value="1">1 year</option>
+                        <option value="2">2 years</option>
+                        <option value="3" selected>3 years</option>
+                        <option value="5">5 years</option>
+                        <option value="10">10 years</option>
+                    </select>
+                </div>
+                
+                <div class="calc-input-group">
+                    <label>Annual Increase (%)</label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="range" id="calc-lease-increase" min="0" max="10" step="0.5" value="3">
+                        <span id="lease-increase-value" class="range-value">3.0%</span>
+                    </div>
+                </div>
+                
+                <button id="calc-lease-btn" class="calc-btn lease">
+                    Calculate Total Lease Cost
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results Container -->
+        <div class="calc-results" id="calc-results">
+            <h4>Calculation Results</h4>
+            <div id="calc-results-content" class="calc-results-content"></div>
+        </div>
+    </div>
+
     <!-- Map Section -->
     ${listing.latitude && listing.longitude ? `
     <div class="property-section">
@@ -2051,9 +2197,6 @@ function displayPropertyDetails(listing, userInfo) {
         <button class="action-btn-large contact-btn" id="contactBtnBottom">
             <i class="fas fa-phone"></i> Contact Agent
         </button>
-        <button class="action-btn-large calculator-btn" id="calculatorBtn">
-            <i class="fas fa-calculator"></i> Mortgage Calculator
-        </button>
         <button class="action-btn-large save-btn" id="saveBtnBottom">
             <i class="far fa-heart"></i> Save Property
         </button>
@@ -2062,10 +2205,17 @@ function displayPropertyDetails(listing, userInfo) {
     container.innerHTML = html;
     
     // Initialize components
-    initializeImageNavigation(images);
+    initializeMediaNavigation(allMedia);
     setupButtonEventListeners(listing, userInfo);
     updateSaveButtonState();
-    
+    initializePropertyCalculator(listing);
+
+    // Preload video if first media is video
+    if (isFirstVideo) {
+        const video = document.getElementById('mainPropertyVideo');
+        video.src = firstMedia;
+    }
+
     // Load Google Maps
     if (listing.latitude && listing.longitude) {
         setTimeout(async () => {
@@ -2095,14 +2245,6 @@ function setupButtonEventListeners(listing, userInfo) {
             toggleSaveProperty();
         });
     });
-
-    // Mortgage calculator button
-    const calculatorBtn = document.getElementById('calculatorBtn');
-    if (calculatorBtn) {
-        calculatorBtn.addEventListener('click', function() {
-            showMortgageCalculatorModal(listing);
-        });
-    }
 }
 
 async function updateSaveButtonState() {
@@ -2133,7 +2275,7 @@ function updateSaveButtonText(text, isSaved = false) {
     document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
         if (isSaved) {
             btn.innerHTML = '<i class="fas fa-heart"></i> Saved';
-            btn.style.background = '#10b981';
+            btn.style.background = 'var(--success)';
             btn.style.color = 'white';
         } else {
             if (text === 'Login to Save') {
@@ -2191,7 +2333,7 @@ function showSaveToast(message, isError = false) {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${isError ? '#ef4444' : '#10b981'};
+        background: ${isError ? 'var(--danger)' : 'var(--success)'};
         color: white;
         padding: 12px 24px;
         border-radius: 8px;
@@ -2211,16 +2353,50 @@ function showSaveToast(message, isError = false) {
 
 function displayError(message) {
     const container = document.getElementById('propertyDetailsContainer');
+    
+    // Use currentUserRole to determine back link
+    let backLink = 'profile.html';
+    let backText = 'Back to Dashboard';
+    
+    if (currentUserRole === 'agent') {
+        backLink = 'agent_dashboard.html';
+        backText = 'Back to Agent Dashboard';
+    } else if (currentUserRole === 'broker') {
+        backLink = 'broker_dashboard.html';
+        backText = 'Back to Broker Dashboard';
+    }
+    
     container.innerHTML = `
     <div class="error-state">
         <div class="error-icon">⚠️</div>
-        <h3 style="color: #ef4444; margin-bottom: 15px;">${message}</h3>
+        <h3 style="color: var(--danger); margin-bottom: 15px;">${message}</h3>
         <p style="color: var(--text-light); margin-bottom: 30px;">Please try again or go back to the dashboard.</p>
-        <a href="profile.html" class="back-button">
+        <a href="${backLink}" class="back-button">
             <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
+            ${backText}
         </a>
     </div>`;
+}
+
+// Function to get user role from Firestore
+async function getUserRole(userId) {
+    try {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            return userData.role || userData.userType || 'user';
+        } else {
+            // Check brokers collection
+            const brokerDoc = await getDoc(doc(db, "brokers", userId));
+            if (brokerDoc.exists()) {
+                const brokerData = brokerDoc.data();
+                return brokerData.role || 'broker';
+            }
+        }
+    } catch (error) {
+        console.error("Error getting user role:", error);
+    }
+    return 'user'; // Default role
 }
 
 // --- INITIALIZATION ---
@@ -2233,6 +2409,17 @@ onAuthStateChanged(auth, async (user) => {
     }
     
     try {
+        // Get user role
+        currentUserRole = await getUserRole(user.uid);
+        console.log(`👤 User role detected: ${currentUserRole}`);
+        
+        // Load appropriate sidebar
+        await window.loadSidebarBasedOnRole(currentUserRole);
+        
+        // Update back button based on role
+        window.updateBackButton(currentUserRole);
+        
+        // Load property details
         await loadPropertyDetails();
     } catch (error) {
         console.error("Error in initialization:", error);
@@ -2241,8 +2428,8 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // Export for global use if needed
-window.closeCalculatorModal = closeCalculatorModal;
-window.showMortgageCalculatorModal = showMortgageCalculatorModal;
+window.loadSidebarBasedOnRole = loadSidebarBasedOnRole;
+window.updateBackButton = updateBackButton;
 </script>
 
 </body>

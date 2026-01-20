@@ -1,16 +1,5 @@
 {
   "projects": {
-    "default": "bahai-1b76d",
-    "BahAI": "bahai-1b76d"
-  },
-  "targets": {
-    "bahai-1b76d": {
-      "hosting": {
-        "bahai-site": [
-          "bahai-1b76d-415c6"
-        ]
-      }
-    }
-  },
-  "etags": {}
+    "default": "bahai-1b76d"
+  }
 }

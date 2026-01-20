@@ -1,0 +1,100 @@
+{
+  "batangas_locations": {
+    "Batangas City": {
+      "barangays": [
+        "Poblacion", "Kumintang Ilaya", "Bolbok", "Sto. Domingo", 
+        "Gulod Labac", "Alangilan", "Calicanto", "Concepcion",
+        "Wawa", "Talahib", "Bilogo", "Cuta", "Mahabang Dahilig"
+      ],
+      "landmarks": [
+        "SM City Batangas", "Batangas Port", "Batangas City Hall",
+        "Plaza Mabini", "Batangas Cathedral", "Batangas Medical Center",
+        "Batangas State University", "Metro Lipa Medical Center"
+      ],
+      "average_rents": {
+        "apartment": "₱8,000-₱15,000",
+        "house": "₱15,000-₱30,000",
+        "condo": "₱12,000-₱25,000",
+        "room": "₱3,000-₱8,000"
+      },
+      "property_types_common": ["apartment", "house", "condo", "commercial space"],
+      "lifestyle_description": "Urban center with port, universities, and commercial areas"
+    },
+    
+    "Lipa City": {
+      "barangays": [
+        "Poblacion", "Banay-banay", "Sabang", "Antipolo", 
+        "San Carlos", "Marawoy", "Bulan", "Gracia", "Latag"
+      ],
+      "landmarks": [
+        "SM City Lipa", "Robinsons Place Lipa", "Lipa Cathedral",
+        "De La Salle Lipa", "UB Lipa", "Lipa City Hall"
+      ],
+      "average_rents": {
+        "apartment": "₱7,000-₱14,000",
+        "house": "₱12,000-₱25,000",
+        "condo": "₱10,000-₱20,000"
+      },
+      "property_types_common": ["condo", "apartment", "townhouse", "commercial"],
+      "lifestyle_description": "Education hub with cool climate, known as coffee capital"
+    },
+    
+    "Tanauan City": {
+      "barangays": ["Poblacion", "Sala", "Talisay", "Boot", "Altura Bata"],
+      "landmarks": ["Nuvali", "Ayala Malls Serin", "Tanauan City Hall"],
+      "average_rents": {
+        "apartment": "₱6,000-₱12,000",
+        "house": "₱10,000-₱20,000",
+        "land": "₱1,500-₱3,000 per sqm"
+      }
+    }
+  },
+  
+  "landmark_categories": {
+    "school": [
+      "Batangas State University", "De La Salle Lipa", "University of the Philippines Lipa",
+      "STI College", "AMA Computer College", "Liceo de San Pablo",
+      "St. Bridget College", "Mondrian Aura College"
+    ],
+    "hospital": [
+      "Batangas Medical Center", "St. Patrick Hospital", "Lipa Medix Medical Center",
+      "Metro Lipa Medical Center", "Mary Mediatrix Medical Center"
+    ],
+    "mall": [
+      "SM City Batangas", "SM City Lipa", "Robinsons Place Lipa",
+      "Robinsons Place Batangas", "Nova Mall", "Ayala Malls Serin"
+    ],
+    "beach": [
+      "Laiya Beach", "Matabungkay Beach", "Calatagan Beach",
+      "Anilao Beach", "Maricaban Beach"
+    ],
+    "church": [
+      "Lipa Cathedral", "Batangas Cathedral", "Taal Basilica",
+      "St. Padre Pio Shrine", "Mt. Carmel Church"
+    ]
+  },
+  
+  "property_categories": {
+    "residential": ["house", "apartment", "condo", "townhouse", "villa", "bungalow", "duplex"],
+    "commercial": ["office space", "retail space", "commercial building", "warehouse", "showroom"],
+    "land": ["residential lot", "commercial lot", "agricultural land", "beachfront property"],
+    "special": ["resort", "hotel", "dormitory", "boarding house"]
+  },
+  
+  "price_ranges": {
+    "rent": ["5k", "10k", "15k", "20k", "25k", "30k", "40k", "50k"],
+    "sale": ["1M", "2M", "3M", "5M", "10M", "15M", "20M", "30M"],
+    "lease": ["100k", "200k", "500k", "1M", "2M", "5M"]
+  },
+  
+  "synonyms": {
+    "find": ["look for", "search for", "locate", "discover", "seek"],
+    "show": ["display", "present", "list", "give me", "tell me about"],
+    "house": ["home", "residence", "dwelling", "villa", "bungalow"],
+    "apartment": ["condo", "condominium", "flat", "unit", "studio"],
+    "near": ["close to", "around", "beside", "next to", "in the vicinity of"],
+    "under": ["below", "less than", "within", "maximum", "up to"],
+    "good": ["reasonable", "affordable", "fair", "decent", "acceptable"],
+    "big": ["spacious", "large", "roomy", "expansive", "generous"]
+  }
+}

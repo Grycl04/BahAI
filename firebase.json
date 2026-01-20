@@ -1,6 +1,17 @@
-﻿{
-  "functions": {
-    "source": "functions",
-    "runtime": "python311"
-  }
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "python311",
+      "ignore": [
+        "nodejs-files/**",
+        "venv/**",
+        "__pycache__/**",
+        ".env",
+        ".git",
+        ".gitignore"
+      ]
+    }
+  ]
 }

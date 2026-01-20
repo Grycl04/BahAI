@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin: Fix Agent Login - BahAI Real Estate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0b2e52;
+            --primary-dark: #001F3F;
+            --primary-light: #002f3f;
+            --secondary: #1976d2;
+            --accent: #ff9800;
+            --danger: #dc2626;
+            --success: #059669;
+            --warning: #d97706;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .logo span {
+            color: var(--accent);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .login-section {
+            display: block;
+        }
+        
+        .admin-section {
+            display: none;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .search-section {
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .search-box button:hover {
+            background: var(--primary-dark);
+        }
+        
+        .agent-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .agent-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .agent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .agent-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .agent-info h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .agent-info p {
+            color: #666;
+            font-size: 14px;
+            margin: 2px 0;
+        }
+        
+        .agent-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-view {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-fix {
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-reset {
+            background: var(--warning);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .agent-details {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .agent-details.active {
+            display: block;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .detail-item label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .detail-item .value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-problem {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .log {
+            font-family: monospace;
+            font-size: 12px;
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding-left: 10px;
+            border-left: 3px solid #4fd1c7;
+        }
+        
+        .log-entry.error {
+            border-left-color: #fc8181;
+        }
+        
+        .log-entry.success {
+            border-left-color: #68d391;
+        }
+        
+        .log-entry.warning {
+            border-left-color: #f6ad55;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e8f4fd;
+            border-radius: 8px;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div class="login-section" id="loginSection">
+            <div class="header">
+                <div class="logo">Bah<span>AI</span></div>
+                <h1>Admin Login</h1>
+                <p>Broker authentication required</p>
+            </div>
+            
+            <div class="card">
+                <div class="error" id="loginError"></div>
+                <div class="success" id="loginSuccess"></div>
+                
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="adminEmail">Broker Email</label>
+                        <input type="email" id="adminEmail" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter your password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <span id="loginBtnText">🔐 Login as Broker</span>
+                    </button>
+                </form>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                    <p style="margin: 0; color: #856404;">
+                        <strong>Note:</strong> You must be a registered broker to access this admin tool.
+                        Use the same credentials you use for the broker dashboard.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Section (shown after login) -->
+        <div class="admin-section" id="adminSection">
+            <div class="header">
+                <div class="logo">Bah<span>AI</span></div>
+                <h1>Admin: Fix Agent Login Issues</h1>
+                <p>Broker tool to resolve agent authentication problems</p>
+            </div>
+            
+            <div class="user-info" id="userInfo">
+                <span>👤 Logged in as: <strong id="userEmail"></strong></span>
+                <button class="btn btn-danger" onclick="logout()" style="margin-left: auto;">Logout</button>
+            </div>
+            
+            <div class="error" id="errorMessage"></div>
+            <div class="success" id="successMessage"></div>
+            
+            <div class="card search-section">
+                <h2>Search Agent</h2>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Enter agent email, name, or ID">
+                    <button onclick="searchAgent()">🔍 Search</button>
+                </div>
+                
+                <div class="agent-list" id="agentList">
+                    <div class="loading" id="loadingMessage">Enter search terms to find agents...</div>
+                </div>
+            </div>
+            
+            <div class="card agent-details" id="agentDetails">
+                <h2>Agent Details</h2>
+                <div class="detail-grid" id="detailGrid"></div>
+                
+                <h3>Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-view" onclick="viewSetupLink()">🔗 View Setup Link</button>
+                    <button class="btn btn-fix" onclick="resetFirebaseAccount()">🔄 Reset Firebase Account</button>
+                    <button class="btn btn-reset" onclick="sendPasswordReset()">📧 Send Password Reset</button>
+                    <button class="btn btn-danger" onclick="deleteAndRecreate()">🗑️ Delete & Recreate</button>
+                    <button class="btn" onclick="forceActivate()">⚡ Force Activate</button>
+                </div>
+                
+                <h3>Log</h3>
+                <div class="log" id="actionLog"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="checkAllProblemAgents()">🔍 Scan for Problem Agents</button>
+                    <button class="btn" onclick="testFirebaseConnection()">🧪 Test Firebase Connection</button>
+                    <button class="btn" onclick="generateReport()">📊 Generate Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            sendPasswordResetEmail,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            query,
+            where,
+            getDocs,
+            doc,
+            getDoc,
+            updateDoc,
+            addDoc
+        } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+            authDomain: "bahai-1b76d.firebaseapp.com",
+            projectId: "bahai-1b76d",
+            storageBucket: "bahai-1b76d.appspot.com",
+            messagingSenderId: "646878644941",
+            appId: "1:646878644941:web:5b4ccc3412250337587784"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentAgent = null;
+        const actionLog = [];
+
+        // Check authentication state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                showAdminSection();
+                document.getElementById('userEmail').textContent = user.email;
+                addLog(`Authenticated as: ${user.email}`, 'success');
+            } else {
+                // User is signed out
+                currentUser = null;
+                showLoginSection();
+            }
+        });
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const originalText = loginBtn.innerHTML;
+            
+            if (!email || !password) {
+                showLoginError('Please enter email and password');
+                return;
+            }
+            
+            try {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+                
+                // Sign in with Firebase Auth
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                currentUser = userCredential.user;
+                
+                showLoginSuccess('Login successful!');
+                addLog(`Broker logged in: ${email}`, 'success');
+                
+                // Switch to admin section (handled by onAuthStateChanged)
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                if (error.code === 'auth/wrong-password') {
+                    showLoginError('Incorrect password');
+                } else if (error.code === 'auth/user-not-found') {
+                    showLoginError('Account not found. Are you a registered broker?');
+                } else if (error.code === 'auth/invalid-email') {
+                    showLoginError('Invalid email address');
+                } else {
+                    showLoginError('Login failed: ' + error.message);
+                }
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = originalText;
+            }
+        });
+
+        // Show/hide sections
+        function showLoginSection() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('adminSection').style.display = 'none';
+            clearForm();
+        }
+
+        function showAdminSection() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('adminSection').style.display = 'block';
+            clearLog();
+            addLog('Admin panel loaded', 'info');
+        }
+
+        function clearForm() {
+            document.getElementById('adminEmail').value = '';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginSuccess').style.display = 'none';
+        }
+
+        // Logout
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                showLoginSuccess('Logged out successfully');
+                currentUser = null;
+                currentAgent = null;
+            } catch (error) {
+                console.error('Logout error:', error);
+                showLoginError('Logout failed: ' + error.message);
+            }
+        };
+
+        // Search agent - UPDATED TO WORK WITH SECURITY RULES
+        window.searchAgent = async function() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) {
+                showError('Please enter search terms');
+                return;
+            }
+
+            if (!currentUser) {
+                showError('Please login first');
+                return;
+            }
+
+            showLoading(true);
+            clearLog();
+            addLog(`Searching for: ${searchTerm}`, 'info');
+
+            try {
+                const agentsRef = collection(db, "agents");
+                
+                // IMPORTANT: Search only agents belonging to this broker
+                const brokerQuery = query(
+                    agentsRef, 
+                    where("brokerId", "==", currentUser.uid)
+                );
+                
+                const snapshot = await getDocs(brokerQuery);
+                const allAgents = [];
+                
+                snapshot.forEach(doc => {
+                    const agent = { id: doc.id, ...doc.data() };
+                    
+                    // Filter by search term
+                    if (
+                        agent.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        agent.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        agent.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        agent.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        agent.id?.includes(searchTerm)
+                    ) {
+                        allAgents.push(agent);
+                    }
+                });
+                
+                displayAgents(allAgents);
+                
+                if (allAgents.length === 0) {
+                    showError('No agents found matching your search');
+                    addLog('No agents found', 'warning');
+                } else {
+                    addLog(`Found ${allAgents.length} agent(s)`, 'success');
+                }
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                
+                if (error.code === 'permission-denied') {
+                    showError('Permission denied. You can only view your own agents.');
+                    addLog('Permission denied - showing demo data', 'error');
+                    
+                    // Show demo data for testing
+                    displayDemoAgents();
+                } else {
+                    showError('Search failed: ' + error.message);
+                    addLog(`Search error: ${error.message}`, 'error');
+                }
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        // Demo data for testing when permissions fail
+        function displayDemoAgents() {
+            const demoAgents = [
+                {
+                    id: 'demo-123',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john@example.com',
+                    phone: '+1234567890',
+                    status: 'active',
+                    authUid: 'auth123',
+                    brokerId: currentUser?.uid || 'demo-broker'
+                },
+                {
+                    id: 'demo-456',
+                    firstName: 'Jane',
+                    lastName: 'Smith',
+                    email: 'jane@example.com',
+                    phone: '+0987654321',
+                    status: 'pending',
+                    authUid: null,
+                    brokerId: currentUser?.uid || 'demo-broker'
+                }
+            ];
+            
+            displayAgents(demoAgents);
+            addLog('Showing demo data (permissions issue)', 'warning');
+        }
+
+        function displayAgents(agents) {
+            const agentList = document.getElementById('agentList');
+            agentList.innerHTML = '';
+            
+            if (agents.length === 0) {
+                agentList.innerHTML = '<div class="loading">No agents found</div>';
+                return;
+            }
+            
+            agents.forEach(agent => {
+                const agentItem = document.createElement('div');
+                agentItem.className = 'agent-item';
+                
+                // Determine status
+                let statusClass = 'status-pending';
+                let statusText = 'Pending';
+                
+                if (agent.status === 'active' && agent.authUid) {
+                    statusClass = 'status-active';
+                    statusText = 'Active';
+                } else if (agent.status === 'active' && !agent.authUid) {
+                    statusClass = 'status-problem';
+                    statusText = 'No Auth UID';
+                } else if (agent.lastLoginFailed) {
+                    statusClass = 'status-problem';
+                    statusText = 'Login Failed';
+                }
+                
+                agentItem.innerHTML = `
+                    <div class="agent-info">
+                        <h4>${agent.firstName} ${agent.lastName}</h4>
+                        <p>📧 ${agent.email}</p>
+                        <p>📞 ${agent.phone || 'No phone'}</p>
+                        <p>Status: <span class="status-badge ${statusClass}">${statusText}</span></p>
+                        <p><small>ID: ${agent.id}</small></p>
+                    </div>
+                    <div class="agent-actions">
+                        <button class="btn-view" onclick="selectAgent('${agent.id}')">Select</button>
+                    </div>
+                `;
+                
+                agentList.appendChild(agentItem);
+            });
+        }
+
+        window.selectAgent = async function(agentId) {
+            if (!currentUser) {
+                showError('Please login first');
+                return;
+            }
+            
+            showLoading(true);
+            clearLog();
+            
+            try {
+                const agentRef = doc(db, "agents", agentId);
+                const agentDoc = await getDoc(agentRef);
+                
+                if (!agentDoc.exists()) {
+                    showError('Agent not found');
+                    addLog('Agent not found in database', 'error');
+                    return;
+                }
+                
+                const agentData = agentDoc.data();
+                
+                // Check if broker owns this agent
+                if (agentData.brokerId !== currentUser.uid) {
+                    showError('You can only manage your own agents');
+                    addLog('Permission denied - agent belongs to different broker', 'error');
+                    return;
+                }
+                
+                currentAgent = { id: agentId, ...agentData };
+                displayAgentDetails();
+                addLog(`Selected agent: ${currentAgent.firstName} ${currentAgent.lastName}`, 'success');
+                
+            } catch (error) {
+                console.error('Error loading agent:', error);
+                
+                if (error.code === 'permission-denied') {
+                    showError('Permission denied. Cannot access this agent.');
+                    addLog('Permission denied - showing demo data', 'error');
+                    
+                    // Show demo data
+                    currentAgent = {
+                        id: agentId,
+                        firstName: 'Demo',
+                        lastName: 'Agent',
+                        email: 'demo@example.com',
+                        phone: '+1234567890',
+                        status: 'pending',
+                        authUid: null,
+                        brokerId: currentUser?.uid,
+                        brokerName: 'Demo Broker',
+                        brokerEmail: currentUser?.email
+                    };
+                    displayAgentDetails();
+                } else {
+                    showError('Failed to load agent: ' + error.message);
+                    addLog(`Load error: ${error.message}`, 'error');
+                }
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        function displayAgentDetails() {
+            const detailsCard = document.getElementById('agentDetails');
+            const detailGrid = document.getElementById('detailGrid');
+            
+            if (!currentAgent) return;
+            
+            const agent = currentAgent;
+            
+            // Check Firebase Auth status
+            let firebaseStatus = '❓ Not checked';
+            if (agent.authUid) {
+                firebaseStatus = '✅ Has Auth UID';
+            } else if (agent.email) {
+                firebaseStatus = '⚠️ No Auth UID (Problem)';
+            }
+            
+            detailGrid.innerHTML = `
+                <div class="detail-item">
+                    <label>Agent ID</label>
+                    <div class="value">${agent.id}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Full Name</label>
+                    <div class="value">${agent.firstName} ${agent.lastName}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Email</label>
+                    <div class="value">${agent.email}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Phone</label>
+                    <div class="value">${agent.phone || 'Not set'}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Status</label>
+                    <div class="value">
+                        <span class="status-badge ${agent.status === 'active' ? 'status-active' : 'status-pending'}">
+                            ${agent.status || 'pending'}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label>Firebase Status</label>
+                    <div class="value">${firebaseStatus}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Auth UID</label>
+                    <div class="value">${agent.authUid || 'None'}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Profile Completed</label>
+                    <div class="value">${agent.profileCompleted ? '✅ Yes' : '❌ No'}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Last Login</label>
+                    <div class="value">${agent.lastLogin ? new Date(agent.lastLogin).toLocaleString() : 'Never'}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Broker</label>
+                    <div class="value">${agent.brokerName || currentUser?.email || 'Unknown'}</div>
+                </div>
+            `;
+            
+            detailsCard.classList.add('active');
+        }
+
+        // Action functions - UPDATED WITH PROPER PERMISSIONS
+        window.viewSetupLink = function() {
+            if (!currentAgent) {
+                showError('Select an agent first');
+                return;
+            }
+            
+            const baseUrl = window.location.origin;
+            let setupLink;
+            
+            // Try different paths
+            if (window.location.pathname.includes('/broker/')) {
+                setupLink = `${baseUrl}/agent_profile_setup.html?id=${currentAgent.id}`;
+            } else {
+                setupLink = `${baseUrl}/BahAI/public/agent_profile_setup.html?id=${currentAgent.id}`;
+            }
+            
+            addLog(`Setup link: ${setupLink}`, 'info');
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(setupLink).then(() => {
+                showSuccess('Setup link copied to clipboard!');
+                addLog('Link copied to clipboard', 'success');
+            }).catch(err => {
+                alert(`Setup Link:\n\n${setupLink}\n\nCopy this link and send it to the agent.`);
+            });
+        };
+
+        window.resetFirebaseAccount = async function() {
+            if (!currentAgent || !confirm('Reset Firebase account? This will mark agent for recreation.')) {
+                return;
+            }
+            
+            if (!currentUser) {
+                showError('Please login first');
+                return;
+            }
+            
+            addLog('Starting Firebase account reset...', 'info');
+            
+            try {
+                // Update Firestore to remove authUid
+                await updateDoc(doc(db, "agents", currentAgent.id), {
+                    authUid: null,
+                    status: 'pending',
+                    lastError: 'Account reset by admin',
+                    updatedAt: new Date().toISOString(),
+                    resetRequested: new Date().toISOString(),
+                    resetBy: currentUser.email
+                });
+                
+                addLog('Firestore updated - authUid removed', 'success');
+                showSuccess('Account marked for reset. Agent can now create new account.');
+                
+                // Show instructions
+                alert(`
+✅ ACCOUNT RESET INITIATED
+
+Next steps:
+1. Agent should visit their setup link again
+2. Use password: RealEase123
+3. If that fails, agent should use password reset
+
+Setup link has been copied to clipboard.
+                `.trim());
+                
+                // Refresh agent data
+                selectAgent(currentAgent.id);
+                
+            } catch (error) {
+                console.error('Reset error:', error);
+                
+                if (error.code === 'permission-denied') {
+                    showError('Permission denied. Cannot update this agent.');
+                    addLog('Permission denied for update', 'error');
+                } else {
+                    showError('Reset failed: ' + error.message);
+                    addLog(`Reset error: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.sendPasswordReset = async function() {
+            if (!currentAgent || !currentAgent.email) {
+                showError('No email address');
+                return;
+            }
+            
+            if (!confirm(`Send password reset email to ${currentAgent.email}?`)) {
+                return;
+            }
+            
+            addLog(`Sending password reset to ${currentAgent.email}...`, 'info');
+            
+            try {
+                await sendPasswordResetEmail(auth, currentAgent.email);
+                
+                // Try to update Firestore (optional)
+                try {
+                    await updateDoc(doc(db, "agents", currentAgent.id), {
+                        passwordResetSent: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+                } catch (e) {
+                    // Ignore Firestore update errors
+                }
+                
+                addLog('Password reset email sent successfully', 'success');
+                showSuccess('Password reset email sent! Agent should check their inbox.');
+                
+            } catch (error) {
+                console.error('Password reset error:', error);
+                
+                if (error.code === 'auth/user-not-found') {
+                    showError('User not found in Firebase. Account may need to be created.');
+                    addLog('User not found in Firebase Auth', 'error');
+                } else {
+                    showError('Failed to send reset: ' + error.message);
+                    addLog(`Reset failed: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.deleteAndRecreate = async function() {
+            if (!currentAgent || !confirm('WARNING: Create new agent record? Old data will be marked as replaced.')) {
+                return;
+            }
+            
+            if (!currentUser) {
+                showError('Please login first');
+                return;
+            }
+            
+            addLog('Starting recreate process...', 'warning');
+            
+            try {
+                // Create new agent with same data
+                const newAgentData = {
+                    firstName: currentAgent.firstName,
+                    lastName: currentAgent.lastName,
+                    email: currentAgent.email,
+                    phone: currentAgent.phone || '',
+                    licenseNumber: currentAgent.licenseNumber || null,
+                    experience: currentAgent.experience || null,
+                    title: currentAgent.title || null,
+                    specialties: currentAgent.specialties || [],
+                    brokerId: currentUser.uid,
+                    brokerName: currentUser.displayName || currentUser.email,
+                    brokerEmail: currentUser.email,
+                    status: 'pending',
+                    authUid: null,
+                    temporaryPassword: "RealEase123",
+                    invitationSent: false,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    profileCompleted: false,
+                    fullName: `${currentAgent.firstName} ${currentAgent.lastName}`,
+                    searchTerms: [
+                        currentAgent.firstName.toLowerCase(),
+                        currentAgent.lastName.toLowerCase(),
+                        currentAgent.email.toLowerCase(),
+                        `${currentAgent.firstName} ${currentAgent.lastName}`.toLowerCase()
+                    ],
+                    previousAgentId: currentAgent.id,
+                    recreatedAt: new Date().toISOString()
+                };
+                
+                // Add new agent
+                const newAgentRef = await addDoc(collection(db, "agents"), newAgentData);
+                const newAgentId = newAgentRef.id;
+                
+                addLog(`New agent created with ID: ${newAgentId}`, 'success');
+                
+                // Generate new setup link
+                const baseUrl = window.location.origin;
+                const newSetupLink = `${baseUrl}/agent_profile_setup.html?id=${newAgentId}`;
+                
+                // Update old agent record
+                try {
+                    await updateDoc(doc(db, "agents", currentAgent.id), {
+                        status: 'replaced',
+                        replacedBy: newAgentId,
+                        updatedAt: new Date().toISOString(),
+                        replacementNote: 'Recreated due to login issues'
+                    });
+                } catch (e) {
+                    // Ignore if we can't update old record
+                }
+                
+                // Show success
+                showSuccess(`
+✅ NEW AGENT CREATED!
+
+Send this NEW link to the agent:
+${newSetupLink}
+
+Password: RealEase123
+                `.trim());
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(newSetupLink);
+                addLog('New setup link copied to clipboard', 'success');
+                
+                // Refresh search
+                searchAgent();
+                
+            } catch (error) {
+                console.error('Recreate error:', error);
+                
+                if (error.code === 'permission-denied') {
+                    showError('Permission denied. Cannot create agent.');
+                    addLog('Permission denied for create', 'error');
+                } else {
+                    showError('Recreate failed: ' + error.message);
+                    addLog(`Recreate error: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        // Utility functions
+        function showLoading(show) {
+            const loadingMsg = document.getElementById('loadingMessage');
+            if (loadingMsg) {
+                loadingMsg.textContent = show ? 'Loading...' : 'Enter search terms to find agents...';
+            }
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => errorEl.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => successEl.style.display = 'none', 5000);
+        }
+
+        function showLoginError(message) {
+            const errorEl = document.getElementById('loginError');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => errorEl.style.display = 'none', 5000);
+        }
+
+        function showLoginSuccess(message) {
+            const successEl = document.getElementById('loginSuccess');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => successEl.style.display = 'none', 3000);
+        }
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = { timestamp, message, type };
+            actionLog.push(logEntry);
+            
+            const logDiv = document.getElementById('actionLog');
+            const logEntryDiv = document.createElement('div');
+            logEntryDiv.className = `log-entry ${type}`;
+            logEntryDiv.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntryDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            const logDiv = document.getElementById('actionLog');
+            logDiv.innerHTML = '';
+            actionLog.length = 0;
+        }
+
+        // Other functions (simplified for permissions)
+        window.checkAllProblemAgents = async function() {
+            if (!currentUser) {
+                showError('Please login first');
+                return;
+            }
+            
+            addLog('Scanning for problem agents...', 'info');
+            
+            try {
+                const agentsRef = collection(db, "agents");
+                const brokerQuery = query(agentsRef, where("brokerId", "==", currentUser.uid));
+                const snapshot = await getDocs(brokerQuery);
+                
+                const problems = [];
+                snapshot.forEach(doc => {
+                    const agent = { id: doc.id, ...doc.data() };
+                    
+                    if (agent.status === 'active' && !agent.authUid) {
+                        problems.push({ ...agent, issue: 'Active but no Auth UID' });
+                    } else if (agent.lastError && agent.lastError.includes('auth')) {
+                        problems.push({ ...agent, issue: 'Has auth error' });
+                    }
+                });
+                
+                if (problems.length === 0) {
+                    addLog('No problem agents found', 'success');
+                    showSuccess('All your agents look good!');
+                } else {
+                    let report = `Found ${problems.length} problem agent(s):\n\n`;
+                    problems.forEach((agent, index) => {
+                        report += `${index + 1}. ${agent.firstName} ${agent.lastName}\n`;
+                        report += `   Email: ${agent.email}\n`;
+                        report += `   Issue: ${agent.issue}\n\n`;
+                    });
+                    
+                    alert(report);
+                    addLog(`Found ${problems.length} problem agents`, 'warning');
+                }
+                
+            } catch (error) {
+                console.error('Scan error:', error);
+                showError('Scan failed: ' + error.message);
+                addLog(`Scan error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testFirebaseConnection = async function() {
+            addLog('Testing Firebase connections...', 'info');
+            
+            try {
+                // Test Auth
+                if (currentUser) {
+                    addLog(`✅ Auth OK - User: ${currentUser.email}`, 'success');
+                } else {
+                    addLog('⚠️ Not authenticated', 'warning');
+                }
+                
+                // Test Firestore with a simple query
+                try {
+                    const agentsRef = collection(db, "agents");
+                    const querySnapshot = await getDocs(query(agentsRef, where("brokerId", "==", currentUser?.uid || 'test')));
+                    addLog('✅ Firestore connection OK', 'success');
+                } catch (error) {
+                    addLog(`⚠️ Firestore limited access: ${error.message}`, 'warning');
+                }
+                
+                showSuccess('Firebase connections tested');
+                
+            } catch (error) {
+                addLog(`❌ Test failed: ${error.message}`, 'error');
+                showError('Test failed: ' + error.message);
+            }
+        };
+
+        window.generateReport = function() {
+            if (!currentAgent) {
+                showError('Select an agent first');
+                return;
+            }
+            
+            const report = `
+AGENT PROBLEM REPORT
+Generated: ${new Date().toLocaleString()}
+Broker: ${currentUser?.email || 'Unknown'}
+
+AGENT INFORMATION:
+• Name: ${currentAgent.firstName} ${currentAgent.lastName}
+• Email: ${currentAgent.email}
+• Agent ID: ${currentAgent.id}
+• Status: ${currentAgent.status}
+• Auth UID: ${currentAgent.authUid || 'None'}
+
+ISSUE ANALYSIS:
+Agent cannot login with temporary password "RealEase123".
+
+RECOMMENDED ACTIONS:
+1. Send password reset email
+2. If fails, recreate agent record
+3. Provide new setup link
+
+SETUP LINK:
+${window.location.origin}/agent_profile_setup.html?id=${currentAgent.id}
+
+TEMPORARY PASSWORD:
+RealEase123
+            `.trim();
+            
+            navigator.clipboard.writeText(report).then(() => {
+                showSuccess('Report copied to clipboard');
+                addLog('Report generated', 'success');
+            }).catch(err => {
+                alert(report);
+            });
+        };
+
+        // Initialize
+        console.log('🚀 Admin Fix Tool Loaded');
+    </script>
+</body>
+</html>

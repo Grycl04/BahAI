@@ -114,6 +114,7 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       overflow: hidden;
       cursor: pointer;
+      position: relative;
     }
 
 
@@ -217,6 +218,8 @@
       display: flex;
       gap: 10px;
       margin-top: 15px;
+      position: relative;
+      z-index: 10;
     }
 
 
@@ -255,6 +258,19 @@
       background: #dc2626;
       color: white;
       transform: translateY(-1px);
+    }
+
+
+    /* Card Link Overlay */
+    .card-link-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 60px); /* Exclude action buttons area */
+      z-index: 1;
+      opacity: 0;
+      cursor: pointer;
     }
 
 
@@ -313,416 +329,10 @@
     }
 
 
-    /* Enhanced Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-      backdrop-filter: blur(5px);
-    }
-
-
-    .modal-content {
-      background: white;
-      border-radius: 20px;
-      width: 95%;
-      max-width: 1200px;
-      max-height: 95vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      flex-direction: column;
-    }
-
-
-    .modal-header {
-      padding: 30px 40px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);
-    }
-
-
-    .modal-title-section {
-      flex: 1;
-    }
-
-
-    .modal-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-
-
-    .modal-subtitle {
-      font-size: 16px;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-
-    .modal-price {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--primary);
-      text-align: right;
-      margin-bottom: 8px;
-    }
-
-
-    .modal-status {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-
-    .close-modal {
-      background: none;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      color: var(--text-light);
-      padding: 5px;
-      transition: all 0.3s ease;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
-
-
-    .close-modal:hover {
-      color: var(--text-dark);
-      background: var(--bg-light);
-    }
-
-
-    .modal-body {
-      padding: 0;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-
-    /* Enhanced Gallery */
-    .listing-gallery {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 15px;
-      padding: 30px 40px;
-      border-bottom: 1px solid var(--border);
-    }
-
-
-    .main-image {
-      border-radius: 16px;
-      overflow: hidden;
-      background: var(--bg-light);
-      position: relative;
-    }
-
-
-    .main-image img {
-      width: 100%;
-      height: 400px;
-      object-fit: cover;
-      display: block;
-    }
-
-
-    .thumbnails {
-      display: grid;
-      grid-template-rows: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-
-    .thumbnail {
-      border-radius: 12px;
-      overflow: hidden;
-      cursor: pointer;
-      background: var(--bg-light);
-      transition: all 0.3s ease;
-      border: 2px solid transparent;
-    }
-
-
-    .thumbnail:hover {
-      transform: scale(1.05);
-      border-color: var(--primary);
-    }
-
-
-    .thumbnail.active {
-      border-color: var(--primary);
-    }
-
-
-    .thumbnail img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-
-    /* Enhanced Details Layout */
-    .details-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      padding: 30px 40px;
-    }
-
-
-    .detail-section {
-      margin-bottom: 30px;
-    }
-
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--border);
-    }
-
-
-    .section-header h3 {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-dark);
-    }
-
-
-    .section-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      color: white;
-    }
-
-
-    .details-grid {
-      display: grid;
-      gap: 16px;
-    }
-
-
-    .detail-card {
-      background: var(--bg-light);
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      transition: all 0.3s ease;
-    }
-
-
-    .detail-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-
-
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-
-
-    .detail-label {
-      color: var(--text-light);
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-
-    .detail-value {
-      color: var(--text-dark);
-      font-weight: 600;
-      text-align: right;
-    }
-
-
-    .highlight-value {
-      color: var(--primary);
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-
-    /* Amenities Styles */
-    .amenities-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-top: 15px;
-    }
-
-
-    .amenity-item {
-      background: white;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s ease;
-    }
-
-
-    .amenity-item:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-      border-color: var(--primary);
-    }
-
-
-    .amenity-icon {
-      width: 24px;
-      height: 24px;
-      background: var(--primary-light);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: white;
-    }
-
-
-    /* Description Styles */
-    .description-content {
-      background: var(--bg-light);
-      padding: 25px;
-      border-radius: 12px;
-      line-height: 1.7;
-      color: var(--text-dark);
-      border: 1px solid var(--border);
-    }
-
-
-    /* Modal Actions */
-    .modal-actions {
-      display: flex;
-      gap: 15px;
-      padding: 25px 40px;
-      border-top: 1px solid var(--border);
-      background: var(--bg-light);
-    }
-
-
-    .modal-btn {
-      flex: 1;
-      padding: 16px 24px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-
-    .modal-edit-btn {
-      background: linear-gradient(135deg, var(--secondary), #1565c0);
-      color: white;
-      box-shadow: var(--shadow);
-    }
-
-
-    .modal-edit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-
-    .modal-close-btn {
-      background: white;
-      color: var(--text-dark);
-      border: 2px solid var(--border);
-    }
-
-
-    .modal-close-btn:hover {
-      background: var(--bg-light);
-      border-color: var(--text-light);
-    }
-
-
-    /* Photo Counter */
-    .photo-counter {
-      position: absolute;
-      bottom: 15px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      backdrop-filter: blur(10px);
-    }
-
-
     /* Responsive Design */
     @media (max-width: 1024px) {
       .container {
         margin-left: 240px;
-      }
-      .details-container {
-        grid-template-columns: 1fr;
-        gap: 30px;
-      }
-      .listing-gallery {
-        grid-template-columns: 1fr;
-        height: auto;
-      }
-      .thumbnails {
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: auto;
       }
     }
 
@@ -743,23 +353,8 @@
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      .modal-header {
+      .listing-actions {
         flex-direction: column;
-        gap: 15px;
-        text-align: center;
-      }
-      .modal-price {
-        text-align: center;
-      }
-      .modal-actions {
-        flex-direction: column;
-      }
-      .listing-gallery,
-      .details-container {
-        padding: 20px;
-      }
-      .main-image img {
-        height: 300px;
       }
     }
 
@@ -771,17 +366,6 @@
       .stats-grid {
         grid-template-columns: 1fr;
       }
-      .listing-actions {
-        flex-direction: column;
-      }
-      .modal-content {
-        width: 100%;
-        border-radius: 0;
-        max-height: 100vh;
-      }
-      .modal-overlay {
-        padding: 0;
-      }
     }
 </style>
 </head>
@@ -790,31 +374,6 @@
 <body>
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
-
-
-<!-- Enhanced Listing Detail Modal -->
-<div class="modal-overlay" id="listingModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title-section">
-        <h2 class="modal-title" id="modalTitle">Property Details</h2>
-        <div class="modal-subtitle">
-          <span>📍</span>
-          <span id="modalLocation">Loading location...</span>
-        </div>
-      </div>
-      <div class="modal-price-section">
-        <div class="modal-price" id="modalPrice">₱0</div>
-        <div class="modal-status" id="modalStatus">Active</div>
-      </div>
-      <button class="close-modal" id="closeModal">&times;</button>
-    </div>
-   
-    <div class="modal-body" id="modalBody">
-      <!-- Content will be loaded dynamically -->
-    </div>
-  </div>
-</div>
 
 
 <!-- Main -->
@@ -943,9 +502,20 @@ async function loadListings() {
   }
 }
 
-// Event delegation for delete buttons
-document.addEventListener('click', async function(e) {
-  // Check if delete button was clicked
+
+// Event delegation for click handling
+document.addEventListener('click', function(e) {
+  // Handle card overlay click (redirect to property details)
+  if (e.target.classList.contains('card-link-overlay') || e.target.closest('.card-link-overlay')) {
+    const card = e.target.closest('.listing-card');
+    const listingId = card ? card.getAttribute('data-listing-id') : null;
+    
+    if (listingId) {
+      window.location.href = `property_details.html?id=${listingId}`;
+    }
+  }
+  
+  // Handle delete button clicks
   if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {
     e.preventDefault();
     e.stopPropagation();
@@ -955,11 +525,11 @@ document.addEventListener('click', async function(e) {
     const listingId = card ? card.getAttribute('data-listing-id') : null;
     
     if (listingId) {
-      await deleteListing(listingId, e);
+      deleteListing(listingId, e);
     }
   }
   
-  // Check if edit button was clicked
+  // Handle edit button clicks
   if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
     e.preventDefault();
     e.stopPropagation();
@@ -974,7 +544,8 @@ document.addEventListener('click', async function(e) {
   }
 });
 
-// Update your displayListings function to include data attributes:
+
+// Update your displayListings function
 function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
  
@@ -1016,7 +587,9 @@ function displayListings(listings) {
     const area = listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A';
     
     return `
-    <div class="listing-card" data-listing-id="${listing.id}" onclick="showListingDetails('${listing.id}')">
+    <div class="listing-card" data-listing-id="${listing.id}">
+      <a href="property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${listing.title}"></a>
+      
       <img src="${listing.photos && listing.photos.length > 0 ? listing.photos[0] : 'https://via.placeholder.com/400x200?text=No+Image'}"
            alt="${listing.title}" class="listing-image">
       <div class="listing-content">
@@ -1079,13 +652,13 @@ function updateStats(listings) {
 
 
 // Global functions for buttons
-window.editListing = function(id) {
+function editListing(id) {
   // Redirect to edit page with the listing ID
   window.location.href = `edit_property.html?id=${id}`;
-};
+}
 
 
-window.deleteListing = async function(id, event) {
+async function deleteListing(id, event) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -1128,207 +701,7 @@ window.deleteListing = async function(id, event) {
       deleteBtn.disabled = false;
     }
   }
-};
-
-window.showListingDetails = function(id) {
-  const listing = currentListings.find(l => l.id === id);
-  if (!listing) return;
-
-
-  const modal = document.getElementById('listingModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalLocation = document.getElementById('modalLocation');
-  const modalPrice = document.getElementById('modalPrice');
-  const modalStatus = document.getElementById('modalStatus');
-  const modalBody = document.getElementById('modalBody');
-
-
-  // Update header info
-  modalTitle.textContent = listing.title;
-  modalLocation.textContent = listing.location || 'Location not specified';
-  modalPrice.textContent = `₱${listing.pricing?.toLocaleString() || '0'}`;
-  modalStatus.textContent = listing.status || 'active';
-  modalStatus.className = `modal-status status-${listing.status || 'active'}`;
-
-
-  // Create enhanced modal content
-  const photos = listing.photos || [];
-  const mainPhoto = photos.length > 0 ? photos[0] : 'https://via.placeholder.com/800x600?text=No+Image+Available';
-  const thumbnailPhotos = photos.slice(1, 5); // Show up to 4 thumbnails
-
-
-  modalBody.innerHTML = `
-    <!-- Photo Gallery -->
-    <div class="listing-gallery">
-      <div class="main-image">
-        <img src="${mainPhoto}" alt="${listing.title}" id="mainImage">
-        ${photos.length > 0 ? `<div class="photo-counter">${photos.length} photos</div>` : ''}
-      </div>
-      <div class="thumbnails">
-        ${thumbnailPhotos.map((photo, index) => `
-          <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeMainImage('${photo}', this)">
-            <img src="${photo}" alt="Thumbnail ${index + 2}">
-          </div>
-        `).join('')}
-        ${Array.from({length: 4 - thumbnailPhotos.length}).map(() => `
-          <div class="thumbnail" style="background: var(--bg-light); display: flex; align-items: center; justify-content: center; color: var(--text-light);">
-            No Image
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-
-    <!-- Details Sections -->
-    <div class="details-container">
-      <!-- Left Column -->
-      <div class="left-column">
-        <!-- Basic Information -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">📋</div>
-            <h3>Basic Information</h3>
-          </div>
-          <div class="detail-card">
-            <div class="detail-row">
-              <span class="detail-label">Property Type</span>
-              <span class="detail-value">${listing.propertyType || 'Not specified'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Location</span>
-              <span class="detail-value">${listing.location || 'Not specified'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Square Footage</span>
-              <span class="detail-value">${listing.squareFootage || 'Not specified'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Listed On</span>
-              <span class="detail-value">${listing.createdAt ? new Date(listing.createdAt.seconds * 1000).toLocaleDateString() : 'Not specified'}</span>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- Property Features -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">🏠</div>
-            <h3>Property Features</h3>
-          </div>
-          <div class="detail-card">
-            <div class="detail-row">
-              <span class="detail-label">Bedrooms</span>
-              <span class="detail-value highlight-value">${listing.bedrooms || 0}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Bathrooms</span>
-              <span class="detail-value highlight-value">${listing.bathrooms || 0}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Total Rooms</span>
-              <span class="detail-value highlight-value">${(listing.bedrooms || 0) + (listing.bathrooms || 0)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- Right Column -->
-      <div class="right-column">
-        <!-- Amenities -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">⭐</div>
-            <h3>Amenities & Features</h3>
-          </div>
-          <div class="amenities-grid">
-            ${listing.amenities && listing.amenities.length > 0
-              ? listing.amenities.map(amenity => `
-                <div class="amenity-item">
-                  <div class="amenity-icon">✓</div>
-                  <span>${amenity}</span>
-                </div>
-              `).join('')
-              : `
-                <div class="amenity-item">
-                  <div class="amenity-icon">ℹ️</div>
-                  <span>No amenities listed</span>
-                </div>
-              `
-            }
-          </div>
-        </div>
-
-
-        <!-- Description -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">📝</div>
-            <h3>Description</h3>
-          </div>
-          <div class="description-content">
-            ${listing.description || 'No description provided for this property.'}
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Action Buttons -->
-    <div class="modal-actions">
-      <button class="modal-btn modal-edit-btn" onclick="editListing('${listing.id}')">
-        ✏️ Edit Listing
-      </button>
-      <button class="modal-btn modal-close-btn" onclick="closeModal()">
-        Close Details
-      </button>
-    </div>
-  `;
-
-
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden'; // Prevent background scrolling
-};
-
-
-window.changeMainImage = function(imageUrl, element) {
-  const mainImage = document.getElementById('mainImage');
-  if (mainImage) {
-    mainImage.src = imageUrl;
-  }
- 
-  // Update active thumbnail
-  const thumbnails = document.querySelectorAll('.thumbnail');
-  thumbnails.forEach(thumb => thumb.classList.remove('active'));
-  if (element) {
-    element.classList.add('active');
-  }
-};
-
-
-window.closeModal = function() {
-  const modal = document.getElementById('listingModal');
-  modal.style.display = 'none';
-  document.body.style.overflow = 'auto'; // Restore scrolling
-};
-
-
-// Modal event listeners
-document.getElementById('closeModal').addEventListener('click', closeModal);
-document.getElementById('listingModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeModal();
-  }
-});
-
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    closeModal();
-  }
-});
+}
 
 
 // Require login and load listings

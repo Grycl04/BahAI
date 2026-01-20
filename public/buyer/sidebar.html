@@ -1,539 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sidebar - Buyer</title>
-    <style>
-        :root {
-            --primary: #0b2e52;
-            --primary-dark: #001F3F;
-            --primary-light: #002f3f;
-            --secondary: #1976d2;
-            --accent: #ff9800;
-            --text-dark: #1a202c;
-            --text-light: #718096;
-            --bg-light: #f7fafc;
-            --bg-white: #ffffff;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --danger: #ef4444;
-            --success: #10b981;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sidebar</title>
 
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 30px 0;
-            box-shadow: var(--shadow-lg);
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
+  <style>
+    :root {
+      --primary: #0b2e52;
+      --primary-dark: #001f3f;
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
 
-        .logo {
-            padding: 0 25px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-        }
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 30px 0;
+      box-shadow: var(--shadow-lg);
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .logo h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .logo {
+      padding: 0 25px 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
 
-        .logo p {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-left: 34px;
-        }
+    .logo h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
 
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex: 1;
-        }
+    .logo p {
+      font-size: 12px;
+      opacity: 0.8;
+    }
 
-        .sidebar li {
-            margin: 5px 15px;
-            display: flex;
-        }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex: 1;
+    }
 
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            width: 100%;
-            position: relative;
-        }
+    .sidebar li {
+      margin: 5px 15px;
+    }
 
-        .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transform: translateX(5px);
-        }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
 
-        .sidebar a.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            font-weight: 600;
-        }
+    .sidebar a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
 
-        .sidebar a.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: var(--accent);
-            border-radius: 0 2px 2px 0;
-        }
+    .sidebar a.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      font-weight: 600;
+    }
 
-        .sidebar a i {
-            margin-right: 12px;
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
+    .sidebar a i {
+      margin-right: 12px;
+      font-size: 18px;
+    }
 
-        /* User Profile Section */
-        .user-profile {
-            padding: 15px 25px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+    /* Logout */
+    .sidebar-footer {
+      padding: 20px 25px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: white;
-            font-size: 16px;
-        }
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-        .user-info h3 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 2px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 160px;
-        }
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(5px);
+    }
 
-        .user-info p {
-            font-size: 12px;
-            opacity: 0.7;
-            margin: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 160px;
-        }
+    .logout-btn i {
+      margin-right: 12px;
+      font-size: 18px;
+    }
 
-        /* Status badge */
-        .status-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-            margin-top: 4px;
-        }
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 240px;
+      }
+    }
 
-        .status-verified {
-            background: var(--success);
-            color: white;
-        }
-
-        .status-pending {
-            background: #fbbf24;
-            color: #000;
-        }
-
-        .status-not-verified {
-            background: #6b7280;
-            color: white;
-        }
-
-        /* Badge styling */
-        .sidebar-badge {
-            background: var(--danger);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-left: auto;
-            min-width: 20px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .ai-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Logout button styling */
-        .sidebar-footer {
-            padding: 0 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 20px;
-            margin-top: auto;
-        }
-
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            text-decoration: none;
-            color: white;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 14px;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-        }
-
-        .logout-btn i {
-            margin-right: 12px;
-            font-size: 18px;
-        }
-
-        /* Loading state */
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        /* Mobile Menu Toggle */
-        .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 10px;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 260px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-            }
-            
-            .sidebar.active {
-                transform: translateX(0);
-                box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
-            }
-            
-            .mobile-toggle {
-                display: flex;
-            }
-        }
-
-        /* Pulse animation for liked count */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .sidebar-badge.pulse {
-            animation: pulse 0.5s ease;
-        }
-
-        /* Tooltip for AI badge */
-        .sidebar a:hover .ai-badge {
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-        }
-    </style>
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-toggle" id="mobileToggle">☰</button>
 
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="logo">
-            <h1>
-                <span>🤖</span>
-                BahAI
-            </h1>
-            <p>Smart Real Estate Platform</p>
-        </div>
-
-        <!-- User Profile -->
-        <div class="user-profile">
-            <div class="avatar" id="userAvatar">
-                <span id="userInitials">👤</span>
-            </div>
-            <div class="user-info">
-                <h3 id="userName">Loading...</h3>
-                <p id="userEmail">Loading...</p>
-                <div id="userStatus" class="status-badge status-not-verified">Not Verified</div>
-            </div>
-        </div>
-
-        <!-- Navigation Links -->
-        <ul>
-            <li>
-                <a href="buyer_dashboard.html" class="sidebar-link" id="dashboardLink">
-                    <i>🏠</i> Dashboard
-                    <span class="ai-badge">🤖 AI</span>
-                </a>
-            </li>
-            <li>
-                <a href="liked_properties.html" class="sidebar-link" id="likedLink">
-                    <i>❤️</i> Liked Properties
-                    <span class="sidebar-badge" id="likedCountBadge" style="display: none;">0</span>
-                </a>
-            </li>
-            <li>
-                <a href="profile.html" class="sidebar-link" id="profileLink">
-                    <i>👤</i> Profile
-                </a>
-            </li>
-            <li>
-                <a href="settings.html" class="sidebar-link" id="settingsLink">
-                    <i>⚙️</i> Settings
-                </a>
-            </li>
-        </ul>
-
-        <!-- Logout Button -->
-        <div class="sidebar-footer">
-            <button id="logoutBtn" class="logout-btn">
-                <i>🚪</i> Logout
-            </button>
-        </div>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <h1>BahAI</h1>
+      <p>Real Estate Platform</p>
     </div>
 
-    <!-- Simple Script for Sidebar Functionality -->
-    <script>
-        console.log('=== Sidebar Script Loading ===');
-        
-        // Get DOM elements
-        const userNameElement = document.getElementById('userName');
-        const userEmailElement = document.getElementById('userEmail');
-        const userInitialsElement = document.getElementById('userInitials');
-        const userStatusElement = document.getElementById('userStatus');
-        const likedCountBadge = document.getElementById('likedCountBadge');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const mobileToggle = document.getElementById('mobileToggle');
-        const sidebar = document.getElementById('sidebar');
+    <ul>
+      <li>
+        <a href="buyer_dashboard.html" class="sidebar-link">
+          <i>🏠︎</i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="messages.html" class="sidebar-link">
+          <i>✉︎</i> Messages
+        </a>
+      </li>
+      <li>
+        <a href="settings.html" class="sidebar-link">
+          <i>⚙️</i> Settings
+        </a>
+      </li>
+      <li>
+        <a href="liked_properties.html" class="sidebar-link">
+          <i>❤️</i> Likes
+        </a>
+      </li>
+    </ul>
 
-        // Function to get user initials
-        function getInitials(name) {
-            if (!name || name === 'Loading...') return '👤';
-            
-            return name
-                .split(' ')
-                .map(word => word.charAt(0))
-                .join('')
-                .toUpperCase()
-                .substring(0, 2);
-        }
+    <!-- Logout Button -->
+    <div class="sidebar-footer">
+      <button id="logoutBtn" class="logout-btn">
+        <i>🚪</i> Logout
+      </button>
+    </div>
+  </div>
 
-        // Function to update user info from main dashboard
-        function updateUserInfo(userData) {
-            console.log('Sidebar: Updating user info with:', userData);
-            
-            if (userData && userData.fullName) {
-                userNameElement.textContent = userData.fullName;
-                userEmailElement.textContent = userData.email || 'No email';
-                userInitialsElement.textContent = getInitials(userData.fullName);
-                
-                // Update KYC status
-                if (userData.kycStatus) {
-                    updateKYCStatus(userData.kycStatus);
-                }
-            }
-        }
+  <!-- Logout Script -->
+  <script>
+    const logoutBtn = document.getElementById("logoutBtn");
 
-        // Function to update KYC status
-        function updateKYCStatus(kycStatus) {
-            if (!userStatusElement) return;
-            
-            switch(kycStatus) {
-                case 'approved':
-                    userStatusElement.textContent = '✅ Verified';
-                    userStatusElement.className = 'status-badge status-verified';
-                    break;
-                case 'pending':
-                    userStatusElement.textContent = '⏳ Pending';
-                    userStatusElement.className = 'status-badge status-pending';
-                    break;
-                case 'rejected':
-                    userStatusElement.textContent = '❌ Rejected';
-                    userStatusElement.className = 'status-badge status-not-verified';
-                    break;
-                default:
-                    userStatusElement.textContent = '🔒 Not Verified';
-                    userStatusElement.className = 'status-badge status-not-verified';
-                    break;
-            }
-        }
+    logoutBtn.addEventListener("click", function (e) {
+      e.preventDefault();
 
-        // Function to update liked count
-        function updateLikedCount(count) {
-            if (!likedCountBadge) return;
-            
-            likedCountBadge.textContent = count;
-            
-            if (count > 0) {
-                likedCountBadge.style.display = 'flex';
-                likedCountBadge.classList.add('pulse');
-                
-                // Remove pulse animation class after animation completes
-                setTimeout(() => {
-                    likedCountBadge.classList.remove('pulse');
-                }, 500);
-            } else {
-                likedCountBadge.style.display = 'none';
-            }
-        }
+      // Redirect to PHP session logout
+      window.location.href = "logout.php";
+    });
+  </script>
 
-        // Mobile toggle functionality
-        mobileToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-        });
-
-        // Close sidebar when clicking outside (mobile)
-        document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 768) {
-                if (!sidebar.contains(event.target) && !mobileToggle.contains(event.target)) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
-
-        // Highlight current page
-        function highlightCurrentPage() {
-            const currentPage = window.location.pathname.split('/').pop();
-            const links = document.querySelectorAll('.sidebar-link');
-            
-            links.forEach(link => {
-                link.classList.remove('active');
-                const href = link.getAttribute('href');
-                if (href === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        }
-
-        // Auto-close sidebar on mobile when clicking a link
-        document.querySelectorAll('.sidebar-link').forEach(link => {
-            link.addEventListener('click', function() {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                }
-            });
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('active');
-            }
-        });
-
-        // Logout functionality - will be handled by main dashboard
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            // The main dashboard will handle the actual logout
-            if (window.firebaseAuth && window.firebaseSignOut) {
-                // Trigger logout from main page
-                const logoutEvent = new CustomEvent('sidebarLogoutRequest');
-                window.parent.document.dispatchEvent(logoutEvent);
-            } else {
-                alert('Please logout from the main page.');
-            }
-        });
-
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Sidebar DOM fully loaded');
-            highlightCurrentPage();
-            
-            // Try to get user data from parent window
-            setTimeout(() => {
-                if (window.parent && window.parent.currentUserData) {
-                    updateUserInfo(window.parent.currentUserData);
-                }
-            }, 1000);
-        });
-
-        // Export functions to be called from main dashboard
-        window.sidebarFunctions = {
-            updateUserInfo: updateUserInfo,
-            updateLikedCount: updateLikedCount,
-            updateKYCStatus: updateKYCStatus,
-            getInitials: getInitials
-        };
-
-        console.log('=== Sidebar Script Loaded ===');
-    </script>
 </body>
 </html>

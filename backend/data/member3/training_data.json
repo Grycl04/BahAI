@@ -1,0 +1,110 @@
+json
+{
+"member_id": "member3",
+"assigned_questions": [
+"Question 3: Find properties for [family/space] needs in [location]",
+"Question 5: Show me [property feature/amenity] with [good price]",
+"Question 8: Steps, costs, timeline for [property type]",
+"Question 10: What properties match my [lifestyle/budget] needs?"
+],
+"training_samples": [
+{
+"query": "find properties for family needs in batangas city",
+"intent": "family_needs",
+"entities": {
+"need": "family",
+"location": "Batangas City"
+},
+"variations": [
+"spacious houses for family in batangas",
+"family friendly properties batangas city",
+"homes suitable for families batangas",
+"properties for big family batangas",
+"family homes in batangas city",
+"houses for family living batangas",
+"family-oriented properties batangas",
+"properties good for families batangas",
+"homes with space for family batangas",
+"family suitable houses batangas city"
+],
+"response_template": "Properties suitable for {need} in {location}. Features include:
+{features}",
+"family_features": ["spacious", "child-friendly", "safe neighborhood", "near schools", "play
+area"]
+},
+{
+"query": "show me pool with good price",
+"intent": "feature_price",
+"entities": {
+"feature": "pool",
+"price_quality": "good price"
+},
+"variations": [
+"properties with swimming pool affordable",
+"houses with pool reasonable price",
+"apartments with pool good value",
+"pool properties at fair price",
+"houses featuring pool affordable",
+"properties having pool good price",
+"pool included properties reasonable",
+"houses with swimming pool cheap",
+"properties with pool budget-friendly",
+"pool amenity properties affordable"
+],
+"response_template": "Properties with {feature} at {price_quality}:",
+"features": ["pool", "garden", "parking", "elevator", "security", "wifi"],
+"price_quality_terms": ["good price", "reasonable", "affordable", "cheap", "budget-friendly"]
+},
+{
+"query": "steps for buying a house",
+"intent": "process_info",
+"entities": {
+"process_type": "steps",
+"property_type": "house"
+},
+"variations": [
+"process of buying a house",
+"how to buy a house steps",
+"house purchase procedure",
+"steps to acquire a house",
+"buying house process details",
+"house buying steps explained",
+"procedure for purchasing house",
+"steps involved in buying house",
+"home purchase process steps",
+"acquiring a house process"
+],
+"response_template": "For {property_type}: Steps: {steps}, Costs: {costs}, Timeline:
+{timeline}",
+"process_data": {
+"steps": ["1. Property search", "2. Due diligence", "3. Offer and negotiation", "4. Financing
+approval", "5. Closing"],
+"costs": ["Downpayment: 20%", "Processing fees: ₱50,000-₱100,000", "Transfer taxes:
+1-3%", "Notarial fees"],
+"timeline": "30-60 days"
+}
+},
+{
+"query": "what properties match my family lifestyle needs",
+"intent": "personalized_match",
+"entities": {
+"need": "family lifestyle"
+},
+"variations": [
+"properties suitable for my family lifestyle",
+"match properties to my lifestyle family",
+"homes for my family lifestyle",
+"properties fitting family lifestyle",
+"match my family lifestyle properties",
+"homes matching family lifestyle needs",
+"properties for our family lifestyle",
+"family lifestyle matching properties",
+"homes for our lifestyle family",
+"properties that suit family lifestyle"
+],
+"response_template": "Based on your {need}, here are matching properties:",
+"lifestyle_types": ["family lifestyle", "single lifestyle", "professional lifestyle", "retiree lifestyle",
+"student lifestyle"]
+}
+]
+}

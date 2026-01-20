@@ -3,140 +3,665 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BahAI - Login</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>BahAI Real Estate - Premium Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #0B3D61; /* Dark blue - luxury primary */
+      --primary-dark: #082A47;
+      --primary-light: #1A5276;
+      --accent: #D4AF37; /* Gold accent */
+      --accent-dark: #B8941F;
+      --neutral-light: #F8F9FA;
+      --neutral-medium: #E9ECEF;
+      --neutral-dark: #6C757D;
+      --text-dark: #212529;
+      --text-light: #495057;
+      --success: #28A745;
+      --error: #DC3545;
+      --white: #FFFFFF;
+      --beige: #F5F0E6;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 30px;
+      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: "Poppins", sans-serif;
-      background: #f7f9fc;
+      font-family: 'Poppins', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--neutral-light) 0%, var(--beige) 100%);
+      color: var(--text-dark);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    /* Login Container */
+    .login-wrapper {
+      width: 100%;
+      max-width: 1200px;
+      min-height: 700px;
+      display: flex;
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Visual Side */
+    .visual-side {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
       overflow: hidden;
     }
-    .login-container {
-      background: #fff;
-      padding: 2rem 3rem;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .visual-side::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      max-width: 400px;
-      max-height: 95vh;
-      overflow-y: auto;
-      scrollbar-width: none;
+      height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%231A5276' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
+      opacity: 0.2;
     }
-    .login-container::-webkit-scrollbar {
-      display: none;
+
+    .visual-content {
+      position: relative;
+      z-index: 1;
+      max-width: 500px;
     }
-    .logo h1 {
-      text-align: center;
-      color: #2e7d32;
-      margin-bottom: 1rem;
+
+    .visual-title {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      line-height: 1.2;
     }
-    h2 {
-      text-align: center;
-      margin-bottom: 0.5rem;
+
+    .visual-subtitle {
+      font-size: 20px;
+      font-weight: 300;
+      margin-bottom: 40px;
+      opacity: 0.9;
     }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
+
+    .visual-features {
+      list-style: none;
+      margin-top: 40px;
     }
-    .form-group {
-      margin-bottom: 1rem;
+
+    .visual-features li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+      font-size: 16px;
     }
-    label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 0.4rem;
+
+    .visual-features i {
+      color: var(--accent);
+      margin-right: 15px;
+      font-size: 20px;
+      flex-shrink: 0;
     }
-    input {
-      width: 100%;
-      padding: 0.6rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
+
+    /* Form Side */
+    .form-side {
+      flex: 1;
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--white);
     }
-    .btn {
-      width: 100%;
-      padding: 0.7rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 40px;
     }
-    .btn-primary {
-      background: #2e7d32;
-      color: #fff;
-      margin-top: 0.5rem;
-    }
-    .btn-google {
-      background: #fff;
-      border: 1px solid #ccc;
-      color: #444;
+
+    .logo-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      margin-top: 0.6rem;
+      margin-right: 15px;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
     }
-    .btn-google img {
-      width: 20px;
-      height: 20px;
+
+    .logo-text {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
     }
+
+    .logo-text span {
+      color: var(--accent);
+    }
+
+    .login-header {
+      margin-bottom: 40px;
+    }
+
+    .login-title {
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 12px;
+    }
+
+    .login-subtitle {
+      color: var(--text-light);
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .login-subtitle strong {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Form Styles */
+    .login-form {
+      width: 100%;
+    }
+
+    .form-group {
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+
+    .input-container {
+      position: relative;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 18px 20px;
+      border: 2px solid var(--neutral-medium);
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-family: 'Poppins', sans-serif;
+      transition: var(--transition);
+      background: var(--neutral-light);
+      color: var(--text-dark);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--white);
+      box-shadow: 0 0 0 4px rgba(11, 61, 97, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: var(--neutral-dark);
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--neutral-dark);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 5px;
+      transition: var(--transition);
+    }
+
+    .password-toggle:hover {
+      color: var(--primary);
+    }
+
+    .forgot-password {
+      display: inline-block;
+      text-align: right;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 15px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .forgot-password:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 18px;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: 'Poppins', sans-serif;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 30px 0;
+      color: var(--neutral-dark);
+      font-size: 14px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--neutral-medium);
+    }
+
+    .divider span {
+      padding: 0 15px;
+    }
+
+    .btn-google {
+      background: var(--white);
+      border: 2px solid var(--neutral-medium);
+      color: var(--text-dark);
+      font-weight: 500;
+    }
+
+    .btn-google:hover {
+      border-color: var(--primary);
+      background: var(--neutral-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-google i {
+      color: #DB4437;
+      font-size: 18px;
+    }
+
     .signup-link {
       text-align: center;
-      margin-top: 1rem;
-      font-size: 0.9rem;
+      margin-top: 40px;
+      font-size: 15px;
+      color: var(--text-light);
+      padding-top: 30px;
+      border-top: 1px solid var(--neutral-medium);
     }
+
     .signup-link a {
-      color: #2e7d32;
+      color: var(--primary);
       text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+      margin-left: 5px;
+    }
+
+    .signup-link a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    /* Error Styling */
+    .error-message {
+      color: var(--error);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-message.show {
+      display: flex;
+    }
+
+    .form-input.error {
+      border-color: var(--error);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .login-wrapper {
+        max-width: 900px;
+        min-height: 650px;
+      }
+      
+      .visual-side,
+      .form-side {
+        padding: 50px 40px;
+      }
+      
+      .visual-title {
+        font-size: 36px;
+      }
+      
+      .login-title {
+        font-size: 32px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .login-wrapper {
+        flex-direction: column;
+        max-width: 600px;
+      }
+      
+      .visual-side {
+        padding: 40px 30px;
+        text-align: center;
+      }
+      
+      .visual-content {
+        max-width: 100%;
+      }
+      
+      .visual-features {
+        display: none;
+      }
+      
+      .form-side {
+        padding: 40px 30px;
+      }
+      
+      .logo-container {
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .login-wrapper {
+        border-radius: var(--radius-lg);
+      }
+      
+      .visual-side,
+      .form-side {
+        padding: 35px 25px;
+      }
+      
+      .visual-title {
+        font-size: 32px;
+      }
+      
+      .visual-subtitle {
+        font-size: 18px;
+      }
+      
+      .login-title {
+        font-size: 28px;
+      }
+      
+      .login-subtitle {
+        font-size: 15px;
+      }
+      
+      .form-input {
+        padding: 16px 18px;
+        font-size: 15px;
+      }
+      
+      .btn {
+        padding: 16px;
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+      
+      .login-wrapper {
+        border-radius: var(--radius-lg);
+      }
+      
+      .visual-side,
+      .form-side {
+        padding: 30px 20px;
+      }
+      
+      .logo-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+      }
+      
+      .logo-text {
+        font-size: 24px;
+      }
+      
+      .visual-title {
+        font-size: 28px;
+      }
+      
+      .login-title {
+        font-size: 24px;
+      }
+      
+      .form-group {
+        margin-bottom: 24px;
+      }
+      
+      .signup-link {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .visual-side,
+      .form-side {
+        padding: 25px 15px;
+      }
+      
+      .visual-title {
+        font-size: 24px;
+      }
+      
+      .login-title {
+        font-size: 22px;
+      }
+    }
+
+    /* Accessibility Focus Styles */
+    .form-input:focus,
+    .btn:focus,
+    .forgot-password:focus,
+    .signup-link a:focus,
+    .password-toggle:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Animation for form elements */
+    .form-group {
+      animation: slideUp 0.5s ease-out forwards;
+      opacity: 0;
+    }
+
+    .form-group:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .form-group:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .form-actions {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="logo"><h1>BahAI</h1></div>
-    <h2>Welcome Back</h2>
-    <p class="subtitle">Login to continue your real estate journey</p>
-
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input 
-          type="email" 
-          id="email" 
-          placeholder="Enter your email" 
-          required 
-          aria-label="Email Address" 
-        />
+  <div class="login-wrapper">
+    <!-- Visual Side -->
+    <div class="visual-side">
+      <div class="visual-content">
+        <h1 class="visual-title">Your Real Estate Journey Begins Here</h1>
+        <p class="visual-subtitle">Access premium tools for agents, brokers, and landlords to manage properties, connect with clients, and grow your business.</p>
+        
+        <ul class="visual-features">
+          <li><i class="fas fa-home"></i> Manage multiple property listings with ease</li>
+          <li><i class="fas fa-chart-line"></i> Track performance with advanced analytics</li>
+          <li><i class="fas fa-handshake"></i> Connect with verified clients and partners</li>
+          <li><i class="fas fa-shield-alt"></i> Bank-level security for your sensitive data</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Form Side -->
+    <div class="form-side">
+      <div class="logo-container">
+        <div class="logo-icon">B</div>
+        <div class="logo-text">Bah<span>AI</span> Real Estate</div>
+      </div>
+      
+      <div class="login-header">
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Login to your account.</p>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          placeholder="Enter your password" 
-          required 
-          aria-label="Password" 
-        />
-      </div>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-container">
+            <input 
+              type="email" 
+              id="email" 
+              class="form-input"
+              placeholder="you@example.com" 
+              required 
+              aria-label="Email Address"
+              autocomplete="email"
+            />
+          </div>
+          <div id="emailError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Please enter a valid email address</span>
+          </div>
+        </div>
 
-      <button type="submit" class="btn btn-primary">Login</button>
-      <button type="button" id="googleLoginBtn" class="btn btn-google">
-        <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo" />
-        Continue with Google
-      </button>
-    </form>
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-container">
+            <input 
+              type="password" 
+              id="password" 
+              class="form-input"
+              placeholder="Enter your password" 
+              required 
+              aria-label="Password"
+              autocomplete="current-password"
+            />
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <div id="passwordError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Password must be at least 8 characters</span>
+          </div>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
 
-    <p class="signup-link">
-      Don't have an account? <a href="signup.html">Sign up here</a>
-    </p>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i>
+            Login to Dashboard
+          </button>
+        </div>
+
+        <div class="divider">
+          <span>Or continue with</span>
+        </div>
+
+        <div class="form-group">
+          <button type="button" id="googleLoginBtn" class="btn btn-google">
+            <i class="fab fa-google"></i>
+            Continue with Google
+          </button>
+        </div>
+      </form>
+
+      <p class="signup-link">
+        Don't have an account?
+        <a href="signup.html">Sign up here</a>
+      </p>
+    </div>
   </div>
 
   <!-- Firebase + Role Redirect Script -->
@@ -156,11 +681,61 @@
 
     const googleProvider = new GoogleAuthProvider();
 
-    // ✅ Email/Password Login + KYC Verification
+    // Form validation
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const togglePassword = document.getElementById('togglePassword');
+    
+    // Password visibility toggle
+    togglePassword.addEventListener('click', function() {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+    
+    // Input validation
+    emailInput.addEventListener('input', function() {
+      if (this.validity.valid) {
+        this.classList.remove('error');
+        emailError.classList.remove('show');
+      }
+    });
+    
+    passwordInput.addEventListener('input', function() {
+      if (this.value.length >= 8) {
+        this.classList.remove('error');
+        passwordError.classList.remove('show');
+      }
+    });
+    
+    // Form submission with validation
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+      
+      let isValid = true;
+      
+      // Validate email
+      if (!emailInput.value || !emailInput.validity.valid) {
+        emailInput.classList.add('error');
+        emailError.classList.add('show');
+        isValid = false;
+      }
+      
+      // Validate password
+      if (!passwordInput.value || passwordInput.value.length < 8) {
+        passwordInput.classList.add('error');
+        passwordError.classList.add('show');
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        return;
+      }
+      
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
 
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -168,7 +743,7 @@
         const docSnap = await getDoc(doc(db, "users", user.uid));
 
         if (!docSnap.exists()) {
-          alert("⚠️ User data not found!");
+          showError("⚠️ User data not found!");
           return;
         }
 
@@ -176,7 +751,7 @@
 
         // 🚫 Only block login if status is pending (waiting for approval)
         if (data.kycStatus === "pending") {
-          alert("🕒 Your KYC is still pending approval. Please wait for verification to complete.");
+          showError("🕒 Your KYC is still pending approval. Please wait for verification to complete.");
           return;
         }
 
@@ -186,7 +761,7 @@
         window.location.href = getRedirectPage(role);
 
       } catch (error) {
-        alert("❌ Login failed: " + error.message);
+        showError("❌ Login failed: " + error.message);
       }
     });
 
@@ -209,8 +784,10 @@
             createdAt: serverTimestamp()
           };
           await setDoc(userRef, data);
-          alert("✅ Account created! Please complete KYC verification to post properties.");
-          window.location.href = getRedirectPage(role);
+          showSuccess("✅ Account created! Please complete KYC verification to post properties.");
+          setTimeout(() => {
+            window.location.href = getRedirectPage(role);
+          }, 1500);
           return;
         } else {
           data = docSnap.data();
@@ -218,14 +795,18 @@
 
         // 🚫 Only block if pending
         if (data.kycStatus === "pending") {
-          alert("🕒 Your KYC is still pending approval. You can access your dashboard but cannot post properties yet.");
+          showInfo("🕒 Your KYC is still pending approval. You can access your dashboard but cannot post properties yet.");
+          setTimeout(() => {
+            window.location.href = getRedirectPage(data.role);
+          }, 2000);
+          return;
         }
 
         // ✅ Allow login regardless of KYC status
         window.location.href = getRedirectPage(data.role);
 
       } catch (error) {
-        alert("❌ Google sign-in failed: " + error.message);
+        showError("❌ Google sign-in failed: " + error.message);
       }
     });
 
@@ -237,9 +818,9 @@
         case "buyer":
           return "buyer/buyer_dashboard.html";
         case "broker":
-          return "broker_dashboard.html";
+          return "broker/broker_dashboard.html";
         case "agent":
-          return "agent_dashboard.html";
+          return "broker/agent_dashboard.html";
         case "landlord":
           return "landlord/landlord_dashboard.html";
         case "admin":
@@ -248,6 +829,94 @@
           return "login.html";
       }
     }
+    
+    // UI feedback functions
+    function showError(message) {
+      // Create a temporary error message
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--error);
+        color: white;
+        padding: 15px 25px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      errorDiv.textContent = message;
+      document.body.appendChild(errorDiv);
+      
+      setTimeout(() => {
+        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(errorDiv), 300);
+      }, 4000);
+    }
+    
+    function showSuccess(message) {
+      const successDiv = document.createElement('div');
+      successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--success);
+        color: white;
+        padding: 15px 25px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      successDiv.textContent = message;
+      document.body.appendChild(successDiv);
+      
+      setTimeout(() => {
+        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(successDiv), 300);
+      }, 4000);
+    }
+    
+    function showInfo(message) {
+      const infoDiv = document.createElement('div');
+      infoDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 15px 25px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      infoDiv.textContent = message;
+      document.body.appendChild(infoDiv);
+      
+      setTimeout(() => {
+        infoDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(infoDiv), 300);
+      }, 4000);
+    }
+    
+    // Add CSS for notifications
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>

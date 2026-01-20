@@ -450,10 +450,10 @@ body {
   color: var(--danger);
 }
 
-/* Stats Grid */
+/* Stats Grid - Updated to 3 cards (removed featured) */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
   margin-bottom: 35px;
 }
@@ -737,6 +737,7 @@ body {
   border: 1px solid var(--border);
 }
 
+/* Updated Quick Stats Grid - removed bedrooms/bathrooms */
 .quick-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -822,7 +823,7 @@ body {
 }
 
 .toast.error {
-  border-left-color: var(--danger);
+  border-left-color: var(--danger); 
 }
 
 .toast.info {
@@ -1706,12 +1707,13 @@ body {
           <span class="user-name" id="userName">Admin User</span>
           <span class="user-role">System Admin</span>
         </div>
-        <i ></i>
+        <i class="fas fa-chevron-down"></i>
       </div>
     </div>
   </div>
 
   <div class="stats-grid">
+    <!-- Total Users Card -->
     <div class="stat-card">
       <div class="stat-header">
         <span class="stat-title">Total Users</span>
@@ -1723,6 +1725,7 @@ body {
       </div>
     </div>
 
+    <!-- Total Properties Card -->
     <div class="stat-card">
       <div class="stat-header">
         <span class="stat-title">Total Properties</span>
@@ -1734,6 +1737,7 @@ body {
       </div>
     </div>
 
+    <!-- Active Listings Card -->
     <div class="stat-card">
       <div class="stat-header">
         <span class="stat-title">Active Listings</span>
@@ -1744,20 +1748,10 @@ body {
         <span id="listingsGrowth">Loading...</span>
       </div>
     </div>
-
-    <div class="stat-card">
-      <div class="stat-header">
-        <span class="stat-title">Featured Properties</span>
-        <div class="stat-icon purple"><i class="fas fa-star"></i></div>
-      </div>
-      <div class="stat-value" id="featuredProperties">0</div>
-      <div class="stat-growth positive">
-        <span id="revenueGrowth">Loading...</span>
-      </div>
-    </div>
   </div>
 
   <div class="content-grid">
+    <!-- Recent Properties Card -->
     <div class="card">
       <div class="card-header">
         <div class="card-title-group">
@@ -1788,6 +1782,7 @@ body {
       </div>
     </div>
 
+    <!-- Platform Statistics Card -->
     <div class="card">
       <div class="card-header">
         <div class="card-title-group">
@@ -1797,6 +1792,7 @@ body {
       </div>
       <div class="card-content">
         <div class="quick-stats-grid" id="quickStats">
+          <!-- Property Types -->
           <div class="quick-stat-item">
             <div class="quick-stat-header">
               <div class="quick-stat-icon"><i class="fas fa-home"></i></div>
@@ -1806,6 +1802,7 @@ body {
             <div class="quick-stat-detail">different types</div>
           </div>
           
+          <!-- Locations -->
           <div class="quick-stat-item">
             <div class="quick-stat-header">
               <div class="quick-stat-icon"><i class="fas fa-map-marker-alt"></i></div>
@@ -1815,6 +1812,7 @@ body {
             <div class="quick-stat-detail">unique areas</div>
           </div>
           
+          <!-- Average Price -->
           <div class="quick-stat-item">
             <div class="quick-stat-header">
               <div class="quick-stat-icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -1824,24 +1822,7 @@ body {
             <div class="quick-stat-detail">per property</div>
           </div>
           
-          <div class="quick-stat-item">
-            <div class="quick-stat-header">
-              <div class="quick-stat-icon"><i class="fas fa-bed"></i></div>
-              <span class="quick-stat-name">Avg. Bedrooms</span>
-            </div>
-            <div class="quick-stat-value" id="avgBedrooms">0.0</div>
-            <div class="quick-stat-detail">per property</div>
-          </div>
-          
-          <div class="quick-stat-item">
-            <div class="quick-stat-header">
-              <div class="quick-stat-icon"><i class="fas fa-bath"></i></div>
-              <span class="quick-stat-name">Avg. Bathrooms</span>
-            </div>
-            <div class="quick-stat-value" id="avgBathrooms">0.0</div>
-            <div class="quick-stat-detail">per property</div>
-          </div>
-          
+          <!-- Recent Activity -->
           <div class="quick-stat-item">
             <div class="quick-stat-header">
               <div class="quick-stat-icon"><i class="fas fa-history"></i></div>
@@ -2092,7 +2073,6 @@ async function loadDashboardData() {
     document.getElementById('totalUsers').textContent = '...';
     document.getElementById('totalProperties').textContent = '...';
     document.getElementById('activeListings').textContent = '...';
-    document.getElementById('featuredProperties').textContent = '...';
     
     // Load users and properties
     await Promise.all([
@@ -2179,10 +2159,6 @@ function calculateAllStatistics() {
     prop.status !== 'sold' && prop.status !== 'archived'
   ).length;
   
-  const featuredProperties = allProperties.filter(prop => 
-    prop.featured === true
-  ).length;
-  
   const newPropertiesLast7Days = allProperties.filter(prop => {
     const propDate = getDateFromFirestore(prop.createdAt);
     const weekAgo = new Date();
@@ -2194,7 +2170,6 @@ function calculateAllStatistics() {
   document.getElementById('totalUsers').textContent = totalUsers;
   document.getElementById('totalProperties').textContent = totalProperties;
   document.getElementById('activeListings').textContent = activeListings;
-  document.getElementById('featuredProperties').textContent = featuredProperties;
   
   // Update growth indicators
   document.getElementById('userGrowth').textContent = `${newUsersLast7Days} new this week`;
@@ -2204,15 +2179,10 @@ function calculateAllStatistics() {
     Math.round((activeListings / totalProperties) * 100) : 0;
   document.getElementById('listingsGrowth').textContent = `${activePercentage}% active`;
   
-  const featuredPercentage = totalProperties > 0 ? 
-    Math.round((featuredProperties / totalProperties) * 100) : 0;
-  document.getElementById('revenueGrowth').textContent = `${featuredPercentage}% featured`;
-  
   console.log('✅ Statistics calculated:', {
     totalUsers,
     totalProperties,
-    activeListings,
-    featuredProperties
+    activeListings
   });
 }
 
@@ -2229,13 +2199,8 @@ function updatePropertyStats() {
     prop.status !== 'sold' && prop.status !== 'archived'
   ).length;
   
-  const featuredProperties = allProperties.filter(prop => 
-    prop.featured === true
-  ).length;
-  
   document.getElementById('totalProperties').textContent = totalProperties;
   document.getElementById('activeListings').textContent = activeListings;
-  document.getElementById('featuredProperties').textContent = featuredProperties;
 }
 
 // Update platform statistics
@@ -2272,29 +2237,7 @@ function updatePlatformStatistics() {
     
     document.getElementById('averagePrice').textContent = `₱${avgPrice.toLocaleString()}`;
 
-    // 4. Calculate average bedrooms
-    const validBedrooms = allProperties
-      .map(p => parseInt(p.bedrooms) || 0)
-      .filter(bedrooms => bedrooms > 0);
-    
-    const avgBedrooms = validBedrooms.length > 0 
-      ? (validBedrooms.reduce((sum, b) => sum + b, 0) / validBedrooms.length).toFixed(1)
-      : '0.0';
-    
-    document.getElementById('avgBedrooms').textContent = avgBedrooms;
-
-    // 5. Calculate average bathrooms
-    const validBathrooms = allProperties
-      .map(p => parseInt(p.bathrooms) || 0)
-      .filter(bathrooms => bathrooms > 0);
-    
-    const avgBathrooms = validBathrooms.length > 0 
-      ? (validBathrooms.reduce((sum, b) => sum + b, 0) / validBathrooms.length).toFixed(1)
-      : '0.0';
-    
-    document.getElementById('avgBathrooms').textContent = avgBathrooms;
-
-    // 6. Recent activity (properties added in last 7 days)
+    // 4. Recent activity (properties added in last 7 days)
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     
@@ -2315,8 +2258,6 @@ function resetPlatformStats() {
   document.getElementById('propertyTypes').textContent = '0';
   document.getElementById('uniqueLocations').textContent = '0';
   document.getElementById('averagePrice').textContent = '₱0';
-  document.getElementById('avgBedrooms').textContent = '0.0';
-  document.getElementById('avgBathrooms').textContent = '0.0';
   document.getElementById('recentActivity').textContent = '0';
 }
 
@@ -2375,9 +2316,6 @@ function displayRecentProperties(properties) {
     if (prop.status === 'sold' || prop.sold) {
       status = 'success';
       statusText = 'SOLD';
-    } else if (prop.featured) {
-      status = 'completed';
-      statusText = 'FEATURED';
     } else if (prop.status === 'active' || prop.status === 'available') {
       status = 'approved';
       statusText = 'ACTIVE';
@@ -2585,9 +2523,6 @@ function updateNotificationBadge() {
   }
 }
 
-   
-    
-  
 // Display notifications in panel with accurate dates
 function displayNotifications(notifications) {
   const container = document.getElementById('notificationList');
@@ -2637,10 +2572,6 @@ function displayNotifications(notifications) {
     `;
   }).join('');
 }
-
-
-    
-    
 
 // Helper: Get date from Firestore timestamp
 function getDateFromFirestore(timestamp) {
@@ -2703,11 +2634,6 @@ function formatDateTime(date) {
   };
   
   return date.toLocaleDateString('en-US', options);
-}
-
-// Helper: Format time ago (for backward compatibility)
-function getTimeAgo(date) {
-  return formatDateTime(date);
 }
 
 // UI Functions

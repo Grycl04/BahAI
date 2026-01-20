@@ -1,0 +1,95 @@
+{
+  "member_id": "member1",
+  "assigned_questions": [
+    "Question 1: Find [type] in [location]",
+    "Question 7: Properties that accept [financing type] + documents needed",
+    "Question 9: Tell me about [location/neighborhood]"
+  ],
+  "training_samples": [
+    {
+      "query": "find apartments in batangas city",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "apartment",
+        "location": "Batangas City"
+      },
+      "variations": [
+        "look for apartments in batangas city",
+        "search for apartments in batangas",
+        "show me apartments in batangas city",
+        "i need apartments in batangas city",
+        "can you find apartments in batangas city",
+        "please locate apartments in batangas",
+        "i'm looking for apartments in batangas city",
+        "help me find apartments in batangas",
+        "find me apartments in batangas city",
+        "apartments in batangas city please"
+      ],
+      "response_template": "I found {count} apartments in {location}. Here are some options: {properties}",
+      "entity_patterns": {
+        "property_type": ["apartment", "condo", "house", "villa"],
+        "location": ["Batangas City", "Lipa City", "Tanauan City"]
+      }
+    },
+    {
+      "query": "properties that accept bank financing",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "bank financing",
+        "needs_documents": true
+      },
+      "variations": [
+        "show me properties that accept bank loans",
+        "find houses with bank financing",
+        "properties with bank mortgage options",
+        "apartments that accept bank financing",
+        "houses that allow bank financing",
+        "properties with bank loan approval",
+        "real estate with bank financing",
+        "bank financing properties in batangas",
+        "properties accepting bank loans",
+        "bank financed properties available"
+      ],
+      "response_template": "Here are properties that accept {financing_type}. Required documents: {documents_list}",
+      "documents": [
+        "Valid ID",
+        "Proof of income",
+        "Bank statements (3 months)",
+        "ITR (Income Tax Return)",
+        "Certificate of Employment"
+      ]
+    },
+    {
+      "query": "tell me about lipa city",
+      "intent": "location_info",
+      "entities": {
+        "location": "Lipa City"
+      },
+      "variations": [
+        "information about lipa city",
+        "describe lipa city",
+        "what is lipa city like",
+        "tell me about life in lipa",
+        "lipa city information please",
+        "can you describe lipa city",
+        "what's it like in lipa city",
+        "lipa city lifestyle information",
+        "about lipa city",
+        "lipa city details please"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {rents}. Key features: {features}",
+      "location_data": {
+        "description": "Lipa City is known as the 'Little Rome of the Philippines' and the coffee capital. It has a cool climate and is an educational hub.",
+        "average_rents": "₱7,000-₱18,000",
+        "key_features": ["Coffee plantations", "Educational institutions", "Cool climate", "Historical churches"],
+        "popular_areas": ["Banay-banay", "Sabang", "Antipolo", "San Carlos"]
+      }
+    }
+  ],
+  "entity_dictionary": {
+    "property_types": ["apartment", "condo", "condominium", "house", "villa", "townhouse", "bungalow", "duplex", "lot", "land"],
+    "locations": ["Batangas City", "Lipa City", "Tanauan City", "Bauan", "Balayan", "Nasugbu", "San Juan", "Taal"],
+    "financing_types": ["bank financing", "pag-ibig", "in-house financing", "cash", "installment", "mortgage", "loan"],
+    "document_terms": ["documents needed", "requirements", "papers required", "what documents", "necessary documents"]
+  }
+}

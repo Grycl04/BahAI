@@ -1,0 +1,48 @@
+{
+  "verbs": {
+    "find": ["look for", "search for", "locate", "discover", "seek", "hunt for"],
+    "show": ["display", "present", "list", "give me", "tell me about", "provide"],
+    "need": ["want", "require", "am looking for", "desire", "seek"],
+    "tell": ["inform", "describe", "explain", "share", "give information about"]
+  },
+  
+  "property_terms": {
+    "apartment": ["condo", "condominium", "flat", "unit", "studio", "apartment unit"],
+    "house": ["home", "residence", "dwelling", "villa", "bungalow", "house and lot"],
+    "property": ["real estate", "house", "apartment", "unit", "space", "home"]
+  },
+  
+  "location_terms": {
+    "in": ["within", "inside", "at", "located in", "situated in"],
+    "near": ["close to", "around", "beside", "next to", "in the vicinity of", "adjacent to"],
+    "area": ["location", "place", "neighborhood", "vicinity", "zone"]
+  },
+  
+  "price_terms": {
+    "under": ["below", "less than", "within", "maximum", "up to", "not exceeding"],
+    "good": ["reasonable", "affordable", "fair", "decent", "acceptable", "competitive"],
+    "cheap": ["inexpensive", "low-cost", "budget-friendly", "economical", "value for money"]
+  },
+  
+  "feature_terms": {
+    "with": ["having", "featuring", "that has", "including", "equipped with"],
+    "pool": ["swimming pool", "pool area", "pool facility"],
+    "garden": ["yard", "outdoor space", "landscaped area", "green space"]
+  },
+  
+  "process_terms": {
+    "steps": ["process", "procedure", "method", "way", "approach"],
+    "costs": ["expenses", "fees", "charges", "price", "amount"],
+    "timeline": ["duration", "timeframe", "schedule", "how long", "time period"]
+  },
+  
+  "filler_words": {
+    "starters": ["Can you", "Please", "I need to", "I want to", "Could you", "Would you"],
+    "politeness": ["please", "kindly", "if possible", "if you could", "would appreciate"],
+    "uncertainty": ["maybe", "perhaps", "possibly", "I think", "I believe"]
+  },
+  
+  "negation_words": ["not", "no", "without", "except", "excluding", "other than"],
+  
+  "question_words": ["what", "which", "where", "when", "how", "why", "can", "could", "would"]
+}

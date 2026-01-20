@@ -1,0 +1,92 @@
+<!-- sidebar.html -->
+<div class="sidebar">
+  <div class="logo">
+    <h1>BahAI</h1>
+    <p>Real Estate Platform</p>
+  </div>
+  <ul>
+    <li><a href="agent_dashboard.html" class="sidebar-link"><i>🏠︎</i> Dashboard</a></li>
+    <li><a href="agent_listings.html" class="sidebar-link"><i>📃</i> My Listings</a></li>
+    <li><a href="agent_add_property.html" class="sidebar-link"><i>✚</i> Add Property</a></li>
+    <li><a href="agent_inquiries.html" class="sidebar-link"><i>💬</i> Inquiries</a></li>
+    <li><a href="agent_details.html"sidebar-link"><i>⚙️</i> Profile</a></li>
+  </ul>
+</div>
+
+<style>
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 30px 0;
+  box-shadow: var(--shadow-lg);
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+}
+
+.logo {
+  padding: 0 25px 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+.logo h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.logo p {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar li {
+  margin: 5px 15px;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.sidebar a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-weight: 600;
+}
+
+.sidebar a i {
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+}
+</style>
