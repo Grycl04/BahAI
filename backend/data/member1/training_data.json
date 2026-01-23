@@ -2,8 +2,8 @@
   "member_id": "member1",
   "assigned_questions": [
     "Question 1: Find [type] in [location]",
-    "Question 7: Properties that accept [financing type] + documents needed",
-    "Question 9: Tell me about [location/neighborhood]"
+    "Question 7: Show me properties that accept [financing type/payment method] + documents needed",
+    "Question 9: Tell me about the [location/neighborhood] and what it's like to live there"
   ],
   "training_samples": [
     {
@@ -23,41 +23,462 @@
         "i'm looking for apartments in batangas city",
         "help me find apartments in batangas",
         "find me apartments in batangas city",
-        "apartments in batangas city please"
+        "apartment for rent in batangas city",
+        "condo in batangas city",
+        "houses available in batangas city",
+        "townhouse in batangas",
+        "may apartment ba sa batangas city",
+        "bahay sa batangas city"
       ],
-      "response_template": "I found {count} apartments in {location}. Here are some options: {properties}",
-      "entity_patterns": {
-        "property_type": ["apartment", "condo", "house", "villa"],
-        "location": ["Batangas City", "Lipa City", "Tanauan City"]
-      }
+      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
     },
     {
-      "query": "properties that accept bank financing",
+      "query": "find house in lipa city",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "house",
+        "location": "Lipa City"
+      },
+      "variations": [
+        "houses for sale in lipa city",
+        "find houses in lipa",
+        "show me houses in lipa city",
+        "bahay sa lipa city",
+        "may bahay ba sa lipa",
+        "house available in lipa",
+        "townhouse in lipa city",
+        "condo in lipa",
+        "properties in lipa city",
+        "looking for a house in lipa"
+      ],
+      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+    },
+    {
+      "query": "show me condos in tanauan city",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "condo",
+        "location": "Tanauan City"
+      },
+      "variations": [
+        "find condominiums in tanauan",
+        "look for condos in tanauan city",
+        "condominium units in tanauan",
+        "condo for rent in tanauan",
+        "condo for sale in tanauan city",
+        "show condos available in tanauan",
+        "search condos in tanauan city",
+        "condo properties in tanauan",
+        "may condo ba sa tanauan",
+        "condominium sa tanauan city"
+      ],
+      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+    },
+    {
+      "query": "find townhouse in san juan",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "townhouse",
+        "location": "San Juan"
+      },
+      "variations": [
+        "townhouses in san juan batangas",
+        "look for townhouse in san juan",
+        "show me townhouses in san juan",
+        "townhouse for sale in san juan",
+        "townhouse for rent in san juan",
+        "townhouse properties in san juan",
+        "find townhouse san juan batangas",
+        "search townhouse in san juan",
+        "may townhouse ba sa san juan",
+        "townhouse sa san juan"
+      ],
+      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+    },
+    {
+      "query": "looking for commercial space in batangas city",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "commercial",
+        "location": "Batangas City"
+      },
+      "variations": [
+        "find commercial property in batangas",
+        "commercial space for rent in batangas city",
+        "commercial building in batangas",
+        "office space in batangas city",
+        "retail space in batangas",
+        "show me commercial properties in batangas",
+        "business space in batangas city",
+        "commercial lot in batangas",
+        "commercial units in batangas",
+        "may commercial space ba sa batangas"
+      ],
+      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+    },
+    {
+      "query": "find apartments with 2 bedrooms",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "apartment",
+        "bedrooms": 2
+      },
+      "variations": [
+        "2 bedroom apartments",
+        "apartments with 2 beds",
+        "show me 2 bedroom apartments",
+        "two bedroom apartments for rent",
+        "apartments with two bedrooms",
+        "2br apartments available",
+        "dalawang bedroom na apartment",
+        "2 bedroom condo",
+        "apartment with 2 rooms",
+        "2 bedroom housing"
+      ],
+      "response_template": "I found {count} {property_type} properties with {bedrooms} bedrooms. Here are some options: {properties}"
+    },
+    {
+      "query": "properties under 3 million pesos",
+      "intent": "find_property",
+      "entities": {
+        "max_price": 3000000
+      },
+      "variations": [
+        "houses below 3M",
+        "properties under 3M",
+        "show me properties under 3 million",
+        "affordable properties under 3M",
+        "cheap houses under 3 million",
+        "properties below 3 million pesos",
+        "bahay under 3M",
+        "3 million budget properties",
+        "properties within 3M budget",
+        "mga property na under 3M"
+      ],
+      "response_template": "I found {count} properties under {max_price}. Here are some options: {properties}"
+    },
+    {
+      "query": "find properties near the beach",
+      "intent": "find_property",
+      "entities": {
+        "landmark": "beach",
+        "landmark_type": "natural"
+      },
+      "variations": [
+        "houses near beach",
+        "beachfront properties",
+        "properties close to the beach",
+        "beach side properties",
+        "houses by the beach",
+        "properties near shoreline",
+        "bahay malapit sa beach",
+        "beach area properties",
+        "near beach properties",
+        "coastal properties"
+      ],
+      "response_template": "I found {count} properties near {landmark}. Here are some options: {properties}"
+    },
+    {
+      "query": "show me properties that accept bank financing",
       "intent": "financing",
       "entities": {
         "financing_type": "bank financing",
         "needs_documents": true
       },
       "variations": [
-        "show me properties that accept bank loans",
-        "find houses with bank financing",
-        "properties with bank mortgage options",
-        "apartments that accept bank financing",
-        "houses that allow bank financing",
-        "properties with bank loan approval",
+        "properties that accept bank loans",
+        "houses with bank financing",
+        "bank financed properties",
+        "can i use bank loan to buy a house",
+        "properties payable via bank",
+        "bank mortgage properties",
+        "what documents are needed for bank financing",
+        "bank loan requirements for property",
+        "properties with bank payment option",
         "real estate with bank financing",
-        "bank financing properties in batangas",
-        "properties accepting bank loans",
-        "bank financed properties available"
+        "bank financing available properties",
+        "show me houses with bank loan",
+        "properties accepting bank mortgage",
+        "bank loan for property purchase",
+        "how to get bank financing for house"
       ],
-      "response_template": "Here are properties that accept {financing_type}. Required documents: {documents_list}",
+      "response_template": "Here are properties that accept {financing_type}. Required documents include: {documents_list}",
+      "documents": [
+        "Valid ID (passport, driver's license, etc.)",
+        "Proof of Income (3 months payslips)",
+        "Certificate of Employment",
+        "ITR (Income Tax Return)",
+        "Bank statements (last 3-6 months)",
+        "Proof of Billing",
+        "Post-dated checks"
+      ]
+    },
+    {
+      "query": "show me properties that accept pag-ibig financing",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "pag-ibig",
+        "needs_documents": true
+      },
+      "variations": [
+        "pag-ibig financed properties",
+        "houses that accept pag ibig",
+        "pag ibig housing loan properties",
+        "can i use pag ibig to buy a house",
+        "pag ibig payment property",
+        "properties with pag-ibig loan",
+        "pag ibig requirements for house",
+        "pag ibig financing options",
+        "real estate payable via pag ibig",
+        "pag ibig accepted properties",
+        "properties for pag ibig loan",
+        "pag ibig housing",
+        "how to use pag ibig for property",
+        "pag ibig loan requirements",
+        "pag ibig financing for house"
+      ],
+      "response_template": "Here are properties that accept {financing_type}. Required documents include: {documents_list}",
       "documents": [
         "Valid ID",
+        "Pag-IBIG MID Number",
         "Proof of income",
-        "Bank statements (3 months)",
-        "ITR (Income Tax Return)",
-        "Certificate of Employment"
+        "Certificate of Employment",
+        "ITR",
+        "Marriage Certificate (if married)",
+        "Birth Certificate of dependents"
       ]
+    },
+    {
+      "query": "properties with in-house financing",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "in-house financing",
+        "needs_documents": true
+      },
+      "variations": [
+        "in-house financing properties",
+        "developer financing options",
+        "properties with developer financing",
+        "in-house payment scheme",
+        "direct financing from developer",
+        "properties with installment plan",
+        "developer loan properties",
+        "in-house loan for property",
+        "properties with flexible payment",
+        "direct developer financing",
+        "developer in-house financing",
+        "installment payment properties",
+        "properties with payment terms",
+        "in-house mortgage options",
+        "developer financing requirements"
+      ],
+      "response_template": "Here are properties that accept {financing_type}. Required documents include: {documents_list}",
+      "documents": [
+        "Valid ID",
+        "Proof of Income",
+        "Downpayment (usually 20-30%)",
+        "Post-dated checks",
+        "Employment Certificate"
+      ]
+    },
+    {
+      "query": "what documents are needed for bank financing",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "bank financing",
+        "needs_documents": true
+      },
+      "variations": [
+        "bank financing requirements",
+        "documents for bank loan",
+        "bank mortgage documents needed",
+        "what papers for bank financing",
+        "requirements for bank loan",
+        "bank loan documentary requirements",
+        "documents required for bank financing",
+        "bank financing paperwork",
+        "what do i need for bank loan",
+        "bank financing prerequisites",
+        "bank loan application documents",
+        "bank mortgage requirements",
+        "documents for housing loan",
+        "bank financing checklist",
+        "requirements for property loan"
+      ],
+      "response_template": "For {financing_type}, you need: {documents_list}",
+      "documents": [
+        "Valid ID",
+        "Proof of Income (3 months)",
+        "Bank Statements (3-6 months)",
+        "ITR",
+        "Certificate of Employment",
+        "Proof of Billing",
+        "Marriage Contract (if applicable)"
+      ]
+    },
+    {
+      "query": "how to get a mortgage for a house",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "mortgage",
+        "needs_process": true
+      },
+      "variations": [
+        "mortgage application process",
+        "how to apply for mortgage",
+        "getting a housing loan",
+        "mortgage loan process",
+        "how to secure mortgage",
+        "mortgage application steps",
+        "housing loan application",
+        "process of getting mortgage",
+        "mortgage loan requirements",
+        "how to obtain mortgage",
+        "mortgage application procedure",
+        "steps for mortgage loan",
+        "housing loan process",
+        "mortgage acquisition process",
+        "how mortgage works"
+      ],
+      "response_template": "For getting a {financing_type}: {process_steps}. Required: {documents_list}",
+      "process_steps": [
+        "1. Property appraisal",
+        "2. Submit loan application",
+        "3. Document verification",
+        "4. Credit investigation",
+        "5. Loan approval",
+        "6. Signing of documents",
+        "7. Release of funds"
+      ],
+      "documents": [
+        "Valid ID",
+        "Proof of Income",
+        "Property Documents",
+        "ITR",
+        "Bank Statements"
+      ]
+    },
+    {
+      "query": "condos with installment payment",
+      "intent": "financing",
+      "entities": {
+        "property_type": "condo",
+        "financing_type": "installment",
+        "needs_documents": false
+      },
+      "variations": [
+        "condos on installment plan",
+        "condominium with installment",
+        "installment payment for condo",
+        "condo with monthly installment",
+        "condos with payment terms",
+        "installment basis condos",
+        "condo installment scheme",
+        "condos with flexible payment",
+        "installment condo units",
+        "condo payable in installments",
+        "condos with easy payment",
+        "condo installment options",
+        "condo with payment plan",
+        "installment condo purchase",
+        "condo with terms"
+      ],
+      "response_template": "Here are {property_type} properties with {financing_type} options: {properties}"
+    },
+    {
+      "query": "properties that accept cash payment",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "cash",
+        "needs_documents": false
+      },
+      "variations": [
+        "cash basis properties",
+        "properties for cash payment",
+        "cash transaction properties",
+        "properties payable in cash",
+        "cash purchase properties",
+        "properties accepting cash",
+        "cash only properties",
+        "properties with cash discount",
+        "cash payment real estate",
+        "properties for cash buyers",
+        "cash deal properties",
+        "properties with cash option",
+        "cash basis real estate",
+        "cash purchase available",
+        "properties for cash sale"
+      ],
+      "response_template": "Here are properties that accept {financing_type} payment: {properties}"
+    },
+    {
+      "query": "what are the requirements for pag ibig loan",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "pag-ibig",
+        "needs_documents": true,
+        "needs_process": true
+      },
+      "variations": [
+        "pag ibig loan documents needed",
+        "requirements for pag ibig housing loan",
+        "pag ibig loan prerequisites",
+        "documents for pag ibig loan",
+        "pag ibig loan requirements list",
+        "what do i need for pag ibig loan",
+        "pag ibig loan application documents",
+        "pag ibig housing loan requirements",
+        "pag ibig loan documentary requirements",
+        "pag ibig loan paperwork",
+        "pag ibig loan checklist",
+        "requirements for pag ibig financing",
+        "pag ibig loan application requirements",
+        "pag ibig loan needed documents",
+        "pag ibig loan prerequisites"
+      ],
+      "response_template": "For {financing_type} loan, you need: {documents_list}. Process: {process_steps}",
+      "documents": [
+        "Pag-IBIG Membership ID",
+        "Valid ID",
+        "Proof of Income",
+        "Certificate of Employment",
+        "ITR",
+        "Proof of Billing",
+        "Marriage Certificate (if applicable)"
+      ],
+      "process_steps": [
+        "1. Submit loan application",
+        "2. Property appraisal",
+        "3. Document verification",
+        "4. Loan evaluation",
+        "5. Approval/Disapproval",
+        "6. Loan takeout"
+      ]
+    },
+    {
+      "query": "tell me about batangas city",
+      "intent": "location_info",
+      "entities": {
+        "location": "Batangas City"
+      },
+      "variations": [
+        "what is batangas city like",
+        "is batangas city a good place to live",
+        "tell me about living in batangas city",
+        "how is life in batangas city",
+        "describe batangas city",
+        "kamusta tumira sa batangas city",
+        "ano meron sa batangas city",
+        "living in batangas city pros and cons",
+        "batangas city lifestyle",
+        "about batangas city",
+        "information about batangas city",
+        "batangas city description",
+        "what's it like in batangas city",
+        "batangas city living conditions",
+        "batangas city overview"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
     },
     {
       "query": "tell me about lipa city",
@@ -66,30 +487,285 @@
         "location": "Lipa City"
       },
       "variations": [
-        "information about lipa city",
-        "describe lipa city",
         "what is lipa city like",
-        "tell me about life in lipa",
-        "lipa city information please",
-        "can you describe lipa city",
-        "what's it like in lipa city",
-        "lipa city lifestyle information",
+        "is lipa city a good place to live",
+        "tell me about living in lipa",
+        "how is life in lipa city",
+        "describe lipa city",
+        "kamusta tumira sa lipa",
+        "ano meron sa lipa city",
+        "lipa city lifestyle",
         "about lipa city",
-        "lipa city details please"
+        "living in lipa city",
+        "information about lipa city",
+        "lipa city description",
+        "what's it like in lipa city",
+        "lipa city living conditions",
+        "lipa city overview"
       ],
-      "response_template": "About {location}: {description}. Average rents: {rents}. Key features: {features}",
-      "location_data": {
-        "description": "Lipa City is known as the 'Little Rome of the Philippines' and the coffee capital. It has a cool climate and is an educational hub.",
-        "average_rents": "₱7,000-₱18,000",
-        "key_features": ["Coffee plantations", "Educational institutions", "Cool climate", "Historical churches"],
-        "popular_areas": ["Banay-banay", "Sabang", "Antipolo", "San Carlos"]
-      }
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+    },
+    {
+      "query": "tell me about tanauan city",
+      "intent": "location_info",
+      "entities": {
+        "location": "Tanauan City"
+      },
+      "variations": [
+        "what is tanauan city like",
+        "is tanauan city a good place to live",
+        "tell me about living in tanauan",
+        "how is life in tanauan city",
+        "describe tanauan city",
+        "kamusta tumira sa tanauan",
+        "ano meron sa tanauan city",
+        "tanauan city lifestyle",
+        "about tanauan city",
+        "living in tanauan city",
+        "information about tanauan city",
+        "tanauan city description",
+        "what's it like in tanauan city",
+        "tanauan city living conditions",
+        "tanauan city overview"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+    },
+    {
+      "query": "what is nasugbu like",
+      "intent": "location_info",
+      "entities": {
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "tell me about nasugbu",
+        "living in nasugbu",
+        "how is life in nasugbu",
+        "describe nasugbu batangas",
+        "nasugbu lifestyle",
+        "about nasugbu",
+        "what's nasugbu like",
+        "nasugbu living conditions",
+        "information about nasugbu",
+        "kamusta sa nasugbu",
+        "ano meron sa nasugbu",
+        "nasugbu description",
+        "nasugbu batangas overview",
+        "living in nasugbu batangas",
+        "nasugbu community"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+    },
+    {
+      "query": "tell me about san juan batangas",
+      "intent": "location_info",
+      "entities": {
+        "location": "San Juan"
+      },
+      "variations": [
+        "what is san juan batangas like",
+        "living in san juan batangas",
+        "how is life in san juan",
+        "describe san juan batangas",
+        "san juan batangas lifestyle",
+        "about san juan batangas",
+        "what's san juan like",
+        "san juan living conditions",
+        "information about san juan batangas",
+        "kamusta sa san juan batangas",
+        "ano meron sa san juan",
+        "san juan description",
+        "san juan batangas overview",
+        "living in san juan",
+        "san juan community"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+    },
+    {
+      "query": "what's it like to live in taal",
+      "intent": "location_info",
+      "entities": {
+        "location": "Taal"
+      },
+      "variations": [
+        "tell me about taal",
+        "living in taal batangas",
+        "how is life in taal",
+        "describe taal batangas",
+        "taal lifestyle",
+        "about taal",
+        "taal living conditions",
+        "information about taal",
+        "kamusta sa taal",
+        "ano meron sa taal",
+        "taal description",
+        "taal batangas overview",
+        "living in taal town",
+        "taal community",
+        "taal batangas lifestyle"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+    },
+    {
+      "query": "is calatagan a good place to live",
+      "intent": "location_info",
+      "entities": {
+        "location": "Calatagan"
+      },
+      "variations": [
+        "tell me about calatagan",
+        "living in calatagan",
+        "how is life in calatagan",
+        "describe calatagan batangas",
+        "calatagan lifestyle",
+        "about calatagan",
+        "what's calatagan like",
+        "calatagan living conditions",
+        "information about calatagan",
+        "kamusta sa calatagan",
+        "ano meron sa calatagan",
+        "calatagan description",
+        "calatagan batangas overview",
+        "living in calatagan batangas",
+        "calatagan community"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+    },
+    {
+      "query": "describe mabini batangas",
+      "intent": "location_info",
+      "entities": {
+        "location": "Mabini"
+      },
+      "variations": [
+        "tell me about mabini",
+        "what is mabini batangas like",
+        "living in mabini",
+        "how is life in mabini",
+        "mabini lifestyle",
+        "about mabini batangas",
+        "mabini living conditions",
+        "information about mabini",
+        "kamusta sa mabini",
+        "ano meron sa mabini",
+        "mabini description",
+        "mabini batangas overview",
+        "living in mabini batangas",
+        "mabini community",
+        "mabini batangas lifestyle"
+      ],
+      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
     }
   ],
   "entity_dictionary": {
-    "property_types": ["apartment", "condo", "condominium", "house", "villa", "townhouse", "bungalow", "duplex", "lot", "land"],
-    "locations": ["Batangas City", "Lipa City", "Tanauan City", "Bauan", "Balayan", "Nasugbu", "San Juan", "Taal"],
-    "financing_types": ["bank financing", "pag-ibig", "in-house financing", "cash", "installment", "mortgage", "loan"],
-    "document_terms": ["documents needed", "requirements", "papers required", "what documents", "necessary documents"]
+    "property_types": [
+      "apartment",
+      "condo",
+      "condominium",
+      "house",
+      "villa",
+      "townhouse",
+      "bungalow",
+      "duplex",
+      "lot",
+      "land",
+      "commercial",
+      "office",
+      "retail",
+      "warehouse",
+      "studio",
+      "room",
+      "boarding_house",
+      "dormitory",
+      "penthouse",
+      "residential",
+      "industrial"
+    ],
+    "locations": [
+      "Batangas City",
+      "Lipa City",
+      "Tanauan City",
+      "Bauan",
+      "Balayan",
+      "Nasugbu",
+      "San Juan",
+      "Taal",
+      "Calatagan",
+      "Mabini",
+      "Rosario",
+      "Sto. Tomas City",
+      "Malvar",
+      "Ibaan",
+      "Tuy",
+      "Lian",
+      "Taysan",
+      "San Luis",
+      "Padre Garcia",
+      "Laurel",
+      "Agoncillo",
+      "San Pascual",
+      "Cuenca",
+      "Alitagtag",
+      "Santo Tomas",
+      "Lobo",
+      "San Nicolas",
+      "Mataasnakahoy",
+      "Talisay",
+      "La Paz",
+      "Lemery"
+    ],
+    "financing_types": [
+      "bank financing",
+      "bank loan",
+      "pag-ibig",
+      "in-house financing",
+      "cash",
+      "installment",
+      "mortgage",
+      "loan",
+      "developer financing",
+      "housing loan",
+      "home loan",
+      "property loan"
+    ],
+    "document_terms": [
+      "documents needed",
+      "requirements",
+      "papers required",
+      "what documents",
+      "necessary documents",
+      "documentary requirements",
+      "needed papers",
+      "prerequisites",
+      "checklist",
+      "requirements list"
+    ],
+    "price_terms": [
+      "under",
+      "below",
+      "less than",
+      "maximum",
+      "budget",
+      "affordable",
+      "cheap",
+      "expensive",
+      "price",
+      "cost"
+    ]
+  },
+  "response_templates": {
+    "find_property": "I found {count} {property_type} properties in {location}. {property_details}",
+    "financing": "Properties that accept {financing_type}: {property_list}. Required documents: {documents}",
+    "location_info": "📍 **{location}**\\n\\n{description}\\n\\n**Average Rents:** {average_rents}\\n**Lifestyle:** {lifestyle}\\n**Key Landmarks:** {landmarks}"
+  },
+  "metadata": {
+    "total_samples": 24,
+    "intent_distribution": {
+      "find_property": 8,
+      "financing": 8,
+      "location_info": 8
+    },
+    "created_date": "2024-01-22",
+    "version": "2.0",
+    "training_notes": "Expanded to 8 samples per intent with comprehensive variations"
   }
 }

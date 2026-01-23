@@ -680,6 +680,7 @@ document.getElementById('mobileMenuToggle').addEventListener('click', function()
 });
 
 // Load sidebar
+// Load sidebar
 fetch('sidebar.html')
   .then(response => response.text())
   .then(html => {
@@ -690,6 +691,37 @@ fetch('sidebar.html')
         link.classList.add('active');
       }
     });
+    
+    // ✅ Firebase logout handler
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (confirm("Are you sure you want to log out?")) {
+          try {
+            // Import Firebase auth functions
+            const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js");
+            const auth = getAuth();
+            
+            await signOut(auth);
+            console.log("✅ User signed out from Firebase");
+            
+            // Clear any local storage
+            localStorage.removeItem('user');
+            sessionStorage.clear();
+            
+            // Redirect to login page
+            window.location.href = "../login.html";
+          } catch (error) {
+            console.error("❌ Firebase logout error:", error);
+            // Fallback to direct redirect
+            window.location.href = "../login.html";
+          }
+        }
+      });
+    }
   })
   .catch(error => console.error('Error loading sidebar:', error));
 </script>

@@ -241,7 +241,7 @@
 
     .form-select {
       appearance: none;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%230B3D61%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%230B3D61%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8%205.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
       background-position: right 20px top 50%;
       background-size: 14px auto;
@@ -761,7 +761,7 @@
         </div>
 
         <div class="form-group">
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" id="signupBtn" class="btn btn-primary">
             <i class="fas fa-user-plus"></i>
             Create Account
           </button>
@@ -787,9 +787,21 @@
   </div>
 
   <script type="module">
-    import { auth, db } from './firebase-common.js';
-    import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { 
+      auth, 
+      db 
+    } from './firebase-common.js';
+    import { 
+      createUserWithEmailAndPassword, 
+      signInWithPopup, 
+      GoogleAuthProvider 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { 
+      doc, 
+      setDoc, 
+      getDoc,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
     const el = id => document.getElementById(id);
     const googleProvider = new GoogleAuthProvider();
@@ -987,7 +999,7 @@
         
       } catch (err) {
         showError('❌ Sign up failed: ' + (err.message || 'Unknown error'));
-        const signupBtn = document.querySelector('.btn-primary');
+        const signupBtn = el('signupBtn');
         signupBtn.disabled = false;
         signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
       }
@@ -1003,7 +1015,7 @@
 
         let data;
         if (!docSnap.exists()) {
-          const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
+          const role = prompt("Enter your role (broker/agent/seller/landlord):").toLowerCase();
           data = {
             fullName: user.displayName,
             email: user.email,

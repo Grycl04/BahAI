@@ -171,24 +171,28 @@
   </div>
 
   <!-- Logout Script -->
-  <script>
-    // Get the logout button
-    const logoutBtn = document.getElementById("logoutBtn");
+ // Logout Script
+<script>
+  const logoutBtn = document.getElementById("logoutBtn");
 
-    // Add click event listener
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
 
-        // Ask for confirmation
-        if (confirm("Are you sure you want to log out?")) {
-          // Redirect to PHP logout page
-          window.location.href = "../logout.php";
-        }
-      });
-    }
-  </script>
+      console.log("Logout button clicked"); // Debug log
+
+      if (confirm("Are you sure you want to log out?")) {
+        console.log("Redirecting to logout.php"); // Debug log
+        
+        // Redirect to PHP logout page
+        window.location.href = "../logout.php";
+      }
+    });
+  } else {
+    console.error("Logout button not found!"); // Debug log
+  }
+</script>
 
 </body>
 </html>

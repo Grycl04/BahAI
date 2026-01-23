@@ -1,0 +1,124 @@
+{
+  "additional_samples": [
+    {
+      "text": "properties with swimming pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "houses with pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "apartments with swimming pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "condos with pool facility",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "homes with swimming pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties featuring pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "pool properties for sale",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "houses with private pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties with garden",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "homes with backyard",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties with parking space",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "houses with garage",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "apartments with elevator",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties with security",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "houses with wifi",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties near batangas port",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "houses close to malls",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "apartments near hospitals",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "condos near schools",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "properties around universities",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "how to get bank loan",
+      "intent": "financing"
+    },
+    {
+      "text": "pag-ibig financing requirements",
+      "intent": "financing"
+    },
+    {
+      "text": "mortgage application process",
+      "intent": "financing"
+    },
+    {
+      "text": "bank financing options",
+      "intent": "financing"
+    },
+    {
+      "text": "in-house financing terms",
+      "intent": "financing"
+    },
+    {
+      "text": "steps for property purchase",
+      "intent": "process_info"
+    },
+    {
+      "text": "buying process timeline",
+      "intent": "process_info"
+    },
+    {
+      "text": "property acquisition steps",
+      "intent": "process_info"
+    },
+    {
+      "text": "how to buy a condo",
+      "intent": "process_info"
+    },
+    {
+      "text": "house purchase procedure",
+      "intent": "process_info"
+    }
+  ]
+}

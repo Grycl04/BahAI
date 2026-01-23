@@ -2624,31 +2624,34 @@ function addDemoPrompts() {
         demoSection.style.cssText = `
             margin-top: 15px;
             padding: 15px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
             border-radius: 12px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.15);
             animation: fadeIn 0.5s ease;
         `;
         
         demoSection.innerHTML = `
-            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600; margin-bottom: 10px;">
+            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-lightbulb"></i> Try these quick prompts:
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <div class="demo-prompts-buttons">
                 <button class="demo-prompt-btn" data-prompt="Find apartments in Batangas City">
-                    🏢 Find apartments
+                    🏢 Apartments
                 </button>
                 <button class="demo-prompt-btn" data-prompt="Find houses in Lipa City">
-                    🏠 Find houses
+                    🏠 Houses
                 </button>
                 <button class="demo-prompt-btn" data-prompt="Tell me about Batangas City">
                     ℹ️ About Batangas
                 </button>
                 <button class="demo-prompt-btn" data-prompt="Properties that accept bank financing">
-                    💰 Bank financing
+                    💰 Financing
                 </button>
                 <button class="demo-prompt-btn" data-prompt="Find condos in Tanauan City">
-                    🏙️ Find condos
+                    🏙️ Condos
+                </button>
+                <button class="demo-prompt-btn" data-prompt="Show me affordable properties">
+                    💸 Affordable
                 </button>
             </div>
         `;

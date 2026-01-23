@@ -1,48 +1,58 @@
 {
-  "verbs": {
-    "find": ["look for", "search for", "locate", "discover", "seek", "hunt for"],
-    "show": ["display", "present", "list", "give me", "tell me about", "provide"],
-    "need": ["want", "require", "am looking for", "desire", "seek"],
-    "tell": ["inform", "describe", "explain", "share", "give information about"]
+  "phrases": {
+    "property_search": [
+      "I'm looking for properties",
+      "Show me available units",
+      "Find me a place to live",
+      "Search for real estate",
+      "Help me find a property"
+    ],
+    "price_inquiry": [
+      "How much does it cost?",
+      "What's the price range?",
+      "Tell me about pricing",
+      "What are the rates?",
+      "How expensive is it?"
+    ],
+    "location_specific": [
+      "In Batangas City",
+      "Around Lipa area",
+      "Near the beach",
+      "Close to schools",
+      "In a quiet neighborhood"
+    ],
+    "feature_requests": [
+      "With parking space",
+      "Must have a pool",
+      "Needs to be furnished",
+      "Should be near transport",
+      "With good security"
+    ],
+    "process_questions": [
+      "How do I apply?",
+      "What are the requirements?",
+      "What's the process?",
+      "How long does it take?",
+      "What documents do I need?"
+    ]
   },
   
-  "property_terms": {
-    "apartment": ["condo", "condominium", "flat", "unit", "studio", "apartment unit"],
-    "house": ["home", "residence", "dwelling", "villa", "bungalow", "house and lot"],
-    "property": ["real estate", "house", "apartment", "unit", "space", "home"]
+  "slang_informal": {
+    "property": ["place", "pad", "crib", "digs", "home", "spot", "joint"],
+    "cheap": ["dirt cheap", "steal", "bargain", "good deal", "value", "affordable"],
+    "expensive": ["pricey", "costly", "high-end", "luxe", "posh", "fancy"],
+    "good": ["awesome", "great", "solid", "decent", "nice", "cool"],
+    "bad": ["lousy", "terrible", "awful", "no good", "poor", "weak"],
+    "quickly": ["ASAP", "pronto", "right now", "stat", "fast", "quick"]
   },
   
-  "location_terms": {
-    "in": ["within", "inside", "at", "located in", "situated in"],
-    "near": ["close to", "around", "beside", "next to", "in the vicinity of", "adjacent to"],
-    "area": ["location", "place", "neighborhood", "vicinity", "zone"]
-  },
-  
-  "price_terms": {
-    "under": ["below", "less than", "within", "maximum", "up to", "not exceeding"],
-    "good": ["reasonable", "affordable", "fair", "decent", "acceptable", "competitive"],
-    "cheap": ["inexpensive", "low-cost", "budget-friendly", "economical", "value for money"]
-  },
-  
-  "feature_terms": {
-    "with": ["having", "featuring", "that has", "including", "equipped with"],
-    "pool": ["swimming pool", "pool area", "pool facility"],
-    "garden": ["yard", "outdoor space", "landscaped area", "green space"]
-  },
-  
-  "process_terms": {
-    "steps": ["process", "procedure", "method", "way", "approach"],
-    "costs": ["expenses", "fees", "charges", "price", "amount"],
-    "timeline": ["duration", "timeframe", "schedule", "how long", "time period"]
-  },
-  
-  "filler_words": {
-    "starters": ["Can you", "Please", "I need to", "I want to", "Could you", "Would you"],
-    "politeness": ["please", "kindly", "if possible", "if you could", "would appreciate"],
-    "uncertainty": ["maybe", "perhaps", "possibly", "I think", "I believe"]
-  },
-  
-  "negation_words": ["not", "no", "without", "except", "excluding", "other than"],
-  
-  "question_words": ["what", "which", "where", "when", "how", "why", "can", "could", "would"]
+  "tagalog_mix": {
+    "property": ["bahay", "lupa", "property", "tirahan", "pamayanan"],
+    "rent": ["upa", "renta", "arkila", "paupahan"],
+    "buy": ["bili", "bumili", "bilhin", "pagkakitaan"],
+    "sell": ["benta", "ipagbili", "ibenta", "pagbebenta"],
+    "how_much": ["magkano", "ilan ang halaga", "ano ang presyo", "gaano kamahal"],
+    "where": ["saan", "nasaang lugar", "saang area", "saang barangay"],
+    "beautiful": ["maganda", "magandang lugar", "kaaya-aya", "malinis"]
+  }
 }

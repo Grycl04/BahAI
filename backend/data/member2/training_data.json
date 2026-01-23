@@ -1,88 +1,833 @@
-json
 {
-"member_id": "member2",
-"assigned_questions": [
-"Question 2: Show me [type] under [price] with [bedroom/bath]",
-"Question 4: Properties near [landmark/amenity]",
-"Question 6: Find [ready to move in] properties for [needs] in [location]"
-],
-"training_samples": [
-{
-"query": "show me houses under 3M with 3 bedrooms",
-"intent": "type_price_features",
-"entities": {
-"property_type": "house",
-"max_price": "3M",
-"bedrooms": "3"
-},
-"variations": [
-"find houses below 3 million with 3 bedrooms",
-"houses under 3m 3 bed",
-"show me 3 bedroom houses under 3 million",
-"houses for sale under 3m with 3 bedrooms",
-"3 bedroom houses below 3 million pesos",
-"properties under 3m 3br",
-"find me houses under 3m 3 bedrooms",
-"looking for 3 bedroom house under 3m",
-"houses under 3 million pesos 3 bedrooms",
-"3 bed houses under 3m"
-],
-"response_template": "Here are {property_type} properties under {price} with {bedrooms}
-bedrooms:",
-"price_ranges": ["1M", "2M", "3M", "5M", "10M"],
-"bedroom_options": ["1", "2", "3", "4", "5+"]
-},
-{
-"query": "properties near schools",
-"intent": "near_landmark",
-"entities": {
-"landmark_type": "school",
-"landmark": "schools"
-},
-"variations": [
-"houses close to schools",
-"apartments near universities",
-"properties around campuses",
-"real estate near educational institutions",
-"houses beside schools",
-"properties in school areas",
-"apartments near colleges",
-"houses near batangas state university",
-"properties close to dlsu",
-"real estate near up lipa"
-],
-"response_template": "Here are properties near {landmark} in {location}:",
-"landmark_types": {
-"school": ["school", "university", "college", "campus", "learning center"],
-"hospital": ["hospital", "medical center", "clinic", "health center"],
-"mall": ["mall", "shopping center", "supermarket", "market"],
-"church": ["church", "cathedral", "chapel", "mosque"]
-}
-},
-{
-"query": "find ready to move in properties for family in lipa",
-"intent": "ready_to_move",
-"entities": {
-"ready_status": true,
-"need": "family",
-"location": "Lipa City"
-},
-"variations": [
-"available now properties for family in lipa",
-"ready for occupancy houses for family lipa",
-"immediate move in properties family lipa",
-"properties ready now for family lipa city",
-"move in ready houses for family in lipa",
-"available properties for family lipa",
-"ready to occupy family homes lipa",
-"immediate occupancy family properties lipa",
-"properties available immediately family lipa",
-"ready houses for family lipa city"
-],
-"response_template": "Ready to move in properties for {need} in {location}:",
-"ready_terms": ["ready to move in", "ready for occupancy", "available now", "immediate
-occupancy", "move in ready"],
-"needs": ["family", "couple", "single", "students", "professionals"]
-}
-]
+  "member_id": "member2",
+  "assigned_questions": [
+    "Question 2: Show me [type] under [price] with [bedroom/bath]",
+    "Question 4: Properties near [landmark/amenity]",
+    "Question 6: Find [ready to move in] properties for [needs] in [location]"
+  ],
+  "training_samples": [
+    {
+      "query": "show me houses under 3M with 3 bedrooms",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "house",
+        "max_price": 3000000,
+        "bedrooms": 3
+      },
+      "variations": [
+        "find houses below 3 million with 3 bedrooms",
+        "houses under 3m 3 bed",
+        "3 bedroom houses under 3 million",
+        "show me houses under 3M 3BR",
+        "house for sale under 3m with 3 bedrooms",
+        "properties below 3m 3 bedrooms",
+        "3 bedroom house under 3 million pesos",
+        "bahay under 3m 3 bedrooms",
+        "may bahay ba under 3m na 3 kwarto",
+        "looking for 3 bedroom house below 3m",
+        "houses less than 3M 3 bedrooms",
+        "affordable houses with 3 bedrooms under 3M",
+        "3 bedroom homes under 3 million budget",
+        "cheap houses with 3 rooms under 3M",
+        "house hunting 3 bedroom under 3 million"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} with {bedrooms} bedrooms:"
+    },
+    {
+      "query": "show me condos under 5M with 2 bathrooms",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "condo",
+        "max_price": 5000000,
+        "bathrooms": 2
+      },
+      "variations": [
+        "condo below 5m with 2 baths",
+        "2 bathroom condos under 5 million",
+        "condominium under 5m 2 bath",
+        "show me condos with 2 bathrooms below 5m",
+        "condo for sale under 5 million pesos",
+        "2 bath condo below 5m",
+        "condo under 5m dalawang banyo",
+        "may condo ba under 5m 2 bathroom",
+        "looking for condo under 5m with 2 baths",
+        "condos less than 5M with 2 bathrooms",
+        "2 bathroom condominium under 5 million",
+        "affordable condo with 2 baths under 5M",
+        "condo units with 2 bathrooms under 5M budget",
+        "2 bath condominium units below 5 million"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} with {bathrooms} bathrooms:"
+    },
+    {
+      "query": "apartments under 2M with 2 bedrooms",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "apartment",
+        "max_price": 2000000,
+        "bedrooms": 2
+      },
+      "variations": [
+        "2 bedroom apartments below 2 million",
+        "apartments under 2m 2 bed",
+        "find apartments less than 2M with 2 bedrooms",
+        "show me 2 bedroom apartments under 2M",
+        "affordable apartments with 2 rooms under 2M",
+        "2 bedroom apartment units under 2 million",
+        "apartments for sale under 2m 2 bedrooms",
+        "may apartment ba under 2m 2 kwarto",
+        "looking for 2 bedroom apartment below 2M",
+        "cheap apartments with 2 bedrooms under 2M",
+        "2 bedroom flats under 2 million budget",
+        "apartments with 2 rooms under 2M price",
+        "2 bedroom rental apartments under 2M",
+        "budget apartments 2 bedrooms under 2 million"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} with {bedrooms} bedrooms:"
+    },
+    {
+      "query": "townhouses under 4M with 3 bedrooms and 2 baths",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "townhouse",
+        "max_price": 4000000,
+        "bedrooms": 3,
+        "bathrooms": 2
+      },
+      "variations": [
+        "3 bedroom 2 bath townhouses below 4 million",
+        "townhouses under 4m 3 bed 2 bath",
+        "find townhouses less than 4M with 3 bedrooms 2 baths",
+        "3 bed 2 bath townhouse under 4M",
+        "townhouse units under 4 million 3 bedrooms",
+        "affordable townhouses with 3 rooms 2 baths under 4M",
+        "townhouse for sale under 4m 3 bedrooms",
+        "may townhouse ba under 4m 3 kwarto 2 banyo",
+        "looking for townhouse 3 bedroom 2 bath under 4M",
+        "3 bedroom townhomes with 2 bathrooms under 4M",
+        "townhouse properties under 4 million budget",
+        "3BR 2Bath townhouses below 4M",
+        "townhouse with 3 rooms and 2 baths under 4M",
+        "cheap townhouses 3 bedrooms under 4 million"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} with {bedrooms} bedrooms and {bathrooms} bathrooms:"
+    },
+    {
+      "query": "houses under 10M with swimming pool",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "house",
+        "max_price": 10000000,
+        "feature": "swimming pool"
+      },
+      "variations": [
+        "homes with pool under 10 million",
+        "houses below 10M with swimming pool",
+        "properties with pool under 10M",
+        "show me houses with swimming pool under 10M",
+        "house with pool for sale under 10 million",
+        "may bahay ba with pool under 10m",
+        "looking for house with pool below 10M",
+        "pool houses under 10 million budget",
+        "house featuring swimming pool under 10M",
+        "homes with private pool under 10M",
+        "residential properties with pool under 10 million",
+        "houses with swimming facility under 10M",
+        "pool-equipped houses under 10 million",
+        "homes including pool under 10M"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} with {feature}:"
+    },
+    {
+      "query": "condos under 1.5M studio type",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "condo",
+        "max_price": 1500000,
+        "bedrooms": "studio"
+      },
+      "variations": [
+        "studio condos below 1.5 million",
+        "condo units under 1.5M studio",
+        "studio type condominium under 1.5M",
+        "affordable studio condos under 1.5 million",
+        "condo studio units under 1.5M",
+        "show me studio condos under 1.5M",
+        "studio condo for sale under 1.5 million",
+        "may studio condo ba under 1.5m",
+        "looking for studio condo below 1.5M",
+        "cheap studio condos under 1.5M",
+        "studio condominium units under 1.5 million",
+        "budget studio condo under 1.5M",
+        "small condo units under 1.5M studio",
+        "studio type condos under 1.5M price"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} {bedrooms} type:"
+    },
+    {
+      "query": "commercial spaces under 8M with parking",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "commercial",
+        "max_price": 8000000,
+        "feature": "parking"
+      },
+      "variations": [
+        "business spaces below 8M with parking",
+        "commercial properties under 8M with parking space",
+        "commercial units with parking under 8 million",
+        "show me commercial spaces with parking under 8M",
+        "commercial for sale under 8M with parking",
+        "may commercial space ba under 8m with parking",
+        "looking for commercial property with parking below 8M",
+        "commercial buildings with parking under 8M",
+        "retail spaces with parking under 8 million",
+        "office spaces with parking under 8M",
+        "commercial lots with parking under 8M",
+        "business properties with parking under 8 million",
+        "commercial units including parking under 8M",
+        "commercial real estate with parking under 8M"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price} with {feature}:"
+    },
+    {
+      "query": "lots under 500k per square meter",
+      "intent": "find_property_with_criteria",
+      "entities": {
+        "property_type": "lot",
+        "max_price_per_sqm": 500000
+      },
+      "variations": [
+        "land below 500k per sqm",
+        "lots under 500k per square meter",
+        "land for sale under 500k per sqm",
+        "affordable lots under 500k per square meter",
+        "show me lots under 500k per sqm",
+        "land properties under 500k per square meter",
+        "vacant lots under 500k per sqm",
+        "may lote ba under 500k per square meter",
+        "looking for lot below 500k per sqm",
+        "cheap lots under 500k per sqm",
+        "land parcels under 500k per square meter",
+        "lots with price under 500k per sqm",
+        "land lots under 500k per square meter price",
+        "affordable land under 500k per sqm"
+      ],
+      "response_template": "Here are {property_type} properties under {max_price_per_sqm} per square meter:"
+    },
+    {
+      "query": "properties near schools",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark_type": "school"
+      },
+      "variations": [
+        "houses close to schools",
+        "apartments near universities",
+        "properties around campuses",
+        "real estate near educational institutions",
+        "houses beside schools",
+        "properties near batangas state university",
+        "apartments near dlsu lipa",
+        "condos near colleges",
+        "bahay malapit sa school",
+        "properties near campus",
+        "residential near universities",
+        "housing near educational centers",
+        "properties adjacent to schools",
+        "real estate in school districts",
+        "homes near learning institutions"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near malls",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark_type": "mall"
+      },
+      "variations": [
+        "houses near shopping malls",
+        "apartments close to malls",
+        "properties near sm batangas",
+        "real estate near robinsons",
+        "condos near shopping centers",
+        "bahay malapit sa mall",
+        "properties around malls",
+        "near commercial centers",
+        "properties near market area",
+        "homes near sm city lipa",
+        "residential near shopping districts",
+        "properties adjacent to malls",
+        "real estate near commercial hubs",
+        "housing near retail centers",
+        "condos near sm city batangas"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near hospitals",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark_type": "hospital"
+      },
+      "variations": [
+        "houses close to hospitals",
+        "apartments near medical centers",
+        "properties around hospitals",
+        "real estate near healthcare facilities",
+        "condos near clinics",
+        "bahay malapit sa hospital",
+        "properties near batangas medical center",
+        "housing near health institutions",
+        "residential near medical facilities",
+        "properties adjacent to hospitals",
+        "homes near mary mediatrix medical center",
+        "real estate in hospital vicinity",
+        "apartments near metro lipa medical center",
+        "properties near st. patrick hospital",
+        "housing close to healthcare centers"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near batangas port",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark": "Batangas Port",
+        "landmark_type": "transport"
+      },
+      "variations": [
+        "houses close to batangas port",
+        "apartments near the port",
+        "properties around batangas port area",
+        "real estate near port facilities",
+        "condos near batangas pier",
+        "bahay malapit sa pantalan",
+        "properties near sea port",
+        "housing near port terminal",
+        "residential near shipping port",
+        "properties adjacent to batangas port",
+        "homes near port area",
+        "real estate in port vicinity",
+        "apartments near ferry terminal",
+        "properties near batangas international port",
+        "housing close to port facilities"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near taal volcano",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark": "Taal Volcano",
+        "landmark_type": "natural"
+      },
+      "variations": [
+        "houses close to taal volcano",
+        "apartments near taal lake",
+        "properties around taal volcano area",
+        "real estate with taal view",
+        "condos with volcano view",
+        "bahay malapit sa taal volcano",
+        "properties with taal volcano view",
+        "housing near taal lake",
+        "residential with volcano scenery",
+        "properties adjacent to taal",
+        "homes with taal view",
+        "real estate near taal view sites",
+        "apartments near taal vista",
+        "properties with taal volcano scenery",
+        "housing with volcano panorama"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near beaches",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark_type": "beach"
+      },
+      "variations": [
+        "houses close to beaches",
+        "apartments near the beach",
+        "properties around beach areas",
+        "real estate near shoreline",
+        "condos with beach access",
+        "bahay malapit sa beach",
+        "properties with beach proximity",
+        "housing near coastal areas",
+        "residential near beachfront",
+        "properties adjacent to beaches",
+        "homes with beach access",
+        "real estate in beach communities",
+        "apartments near laiya beach",
+        "properties near matabungkay beach",
+        "housing close to beach resorts"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near churches",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark_type": "church"
+      },
+      "variations": [
+        "houses close to churches",
+        "apartments near cathedrals",
+        "properties around church areas",
+        "real estate near religious institutions",
+        "condos near chapels",
+        "bahay malapit sa simbahan",
+        "properties near lipa cathedral",
+        "housing near batangas cathedral",
+        "residential near places of worship",
+        "properties adjacent to churches",
+        "homes near religious centers",
+        "real estate in church vicinity",
+        "apartments near basilica",
+        "properties near taal basilica",
+        "housing close to san sebastian cathedral"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "properties near industrial parks",
+      "intent": "find_near_landmark",
+      "entities": {
+        "landmark_type": "industrial"
+      },
+      "variations": [
+        "houses close to industrial zones",
+        "apartments near factories",
+        "properties around industrial areas",
+        "real estate near business parks",
+        "condos near industrial estates",
+        "bahay malapit sa industrial park",
+        "properties near first philippine industrial park",
+        "housing near industrial complexes",
+        "residential near manufacturing areas",
+        "properties adjacent to industrial parks",
+        "homes near business districts",
+        "real estate in industrial vicinity",
+        "apartments near fpip",
+        "properties near malvar industrial park",
+        "housing close to economic zones"
+      ],
+      "response_template": "Here are properties near {landmark} in {location}:"
+    },
+    {
+      "query": "find ready to move in properties for family in lipa city",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "need": "family",
+        "location": "Lipa City"
+      },
+      "variations": [
+        "ready for occupancy houses for family in lipa",
+        "move in ready family homes lipa city",
+        "available now properties for family in lipa",
+        "immediate occupancy family houses lipa",
+        "ready houses for family lipa",
+        "may bahay ba ready to move in sa lipa",
+        "family house ready na lipa",
+        "available immediately family homes lipa",
+        "ready to occupy properties family lipa",
+        "houses ready now for family lipa city",
+        "family-ready properties available now lipa",
+        "move-in ready homes for families lipa",
+        "immediate move in family properties lipa",
+        "family residences ready for occupancy lipa",
+        "ready to live in homes for family lipa"
+      ],
+      "response_template": "Here are ready to move in properties for {need} in {location}:"
+    },
+    {
+      "query": "find ready to move in apartments for students in batangas city",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "need": "students",
+        "location": "Batangas City"
+      },
+      "variations": [
+        "move in ready apartments for students batangas",
+        "ready for occupancy student apartments batangas city",
+        "available now apartments near universities batangas",
+        "immediate move in student housing batangas",
+        "student apartments ready now batangas city",
+        "ready dorms for students batangas",
+        "may apartment ba ready for students sa batangas",
+        "available student housing batangas city",
+        "ready to occupy student apartments batangas",
+        "apartments ready now for students batangas",
+        "student-ready apartments available now batangas",
+        "move-in ready student housing batangas",
+        "immediate occupancy student apartments batangas",
+        "student residences ready for occupancy batangas",
+        "ready to live in apartments for students batangas"
+      ],
+      "response_template": "Here are ready to move in properties for {need} in {location}:"
+    },
+    {
+      "query": "ready to move in condos for professionals in tanauan city",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "need": "professionals",
+        "location": "Tanauan City"
+      },
+      "variations": [
+        "move in ready condos for professionals tanauan",
+        "ready for occupancy condominiums for professionals",
+        "available now condos for working people tanauan",
+        "immediate occupancy condo units for professionals",
+        "condos ready now for professionals tanauan city",
+        "ready condominium for professionals tanauan",
+        "may condo ba ready for professionals sa tanauan",
+        "available condos for workers tanauan",
+        "ready to occupy condos for professionals tanauan",
+        "condo units ready now for professionals",
+        "professional-ready condos available now tanauan",
+        "move-in ready condominiums for professionals",
+        "immediate move in condos for professionals tanauan",
+        "professional residences ready for occupancy tanauan",
+        "ready to live in condos for professionals"
+      ],
+      "response_template": "Here are ready to move in properties for {need} in {location}:"
+    },
+    {
+      "query": "available now houses for couples in nasugbu",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "need": "couple",
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "ready to move in houses for couples nasugbu",
+        "move in ready homes for couples",
+        "immediate occupancy houses for couples nasugbu",
+        "ready houses for couples now nasugbu",
+        "houses available immediately for couples",
+        "may bahay ba available now for couples sa nasugbu",
+        "couple-ready houses available now nasugbu",
+        "ready for occupancy homes for couples",
+        "houses ready now for couples nasugbu",
+        "available immediately couple homes nasugbu",
+        "move-in ready houses for couples",
+        "immediate move in homes for couples nasugbu",
+        "couple residences ready for occupancy nasugbu",
+        "ready to live in houses for couples",
+        "houses ready to occupy for couples nasugbu"
+      ],
+      "response_template": "Here are ready to move in properties for {need} in {location}:"
+    },
+    {
+      "query": "immediate occupancy commercial spaces in sto tomas city",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "property_type": "commercial",
+        "location": "Sto. Tomas City"
+      },
+      "variations": [
+        "ready to move in commercial spaces sto tomas",
+        "available now commercial properties sto tomas city",
+        "move in ready commercial units sto tomas",
+        "commercial spaces ready now sto tomas",
+        "ready for occupancy business spaces sto tomas",
+        "may commercial space ba ready now sa sto tomas",
+        "commercial properties available immediately",
+        "ready to operate commercial spaces sto tomas",
+        "commercial units ready for business sto tomas",
+        "available now business premises sto tomas city",
+        "move-in ready commercial properties sto tomas",
+        "immediate move in commercial spaces",
+        "commercial establishments ready for occupancy",
+        "ready to use commercial spaces sto tomas",
+        "business spaces ready now sto tomas"
+      ],
+      "response_template": "Here are ready to move in {property_type} properties in {location}:"
+    },
+    {
+      "query": "ready to move in apartments with furniture",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "property_type": "apartment",
+        "feature": "furnished"
+      },
+      "variations": [
+        "move in ready furnished apartments",
+        "available now apartments with furniture",
+        "immediate occupancy furnished apartments",
+        "apartments ready now with furniture",
+        "ready for occupancy furnished units",
+        "may apartment ba ready na furnished",
+        "furnished apartments available immediately",
+        "ready to live in furnished apartments",
+        "apartments with furniture ready now",
+        "furnished units ready for move in",
+        "move-in ready furnished apartments",
+        "immediate move in furnished apartments",
+        "fully furnished apartments ready now",
+        "ready to occupy furnished apartments",
+        "furnished apartments available now"
+      ],
+      "response_template": "Here are ready to move in {property_type} properties with {feature}:"
+    },
+    {
+      "query": "available now properties near schools",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "landmark": "schools"
+      },
+      "variations": [
+        "ready to move in properties near schools",
+        "move in ready homes near universities",
+        "immediate occupancy properties near campuses",
+        "properties ready now near schools",
+        "ready for occupancy near educational institutions",
+        "may property ba ready na malapit sa school",
+        "properties available immediately near schools",
+        "ready to occupy near universities",
+        "homes ready now near schools",
+        "properties near schools available now",
+        "move-in ready properties near campuses",
+        "immediate move in near educational centers",
+        "properties ready for occupancy near schools",
+        "ready to live in near universities",
+        "available immediately near school properties"
+      ],
+      "response_template": "Here are ready to move in properties near {landmark}:"
+    },
+    {
+      "query": "ready to move in properties with parking space",
+      "intent": "find_ready_property",
+      "entities": {
+        "ready_status": true,
+        "feature": "parking"
+      },
+      "variations": [
+        "move in ready properties with parking",
+        "available now homes with parking space",
+        "immediate occupancy properties with parking",
+        "properties ready now with parking",
+        "ready for occupancy with parking space",
+        "may property ba ready na may parking",
+        "properties available immediately with parking",
+        "ready to occupy with parking",
+        "homes ready now with parking",
+        "properties with parking available now",
+        "move-in ready with parking space",
+        "immediate move in with parking",
+        "properties ready for occupancy with parking",
+        "ready to live in with parking space",
+        "available immediately with parking properties"
+      ],
+      "response_template": "Here are ready to move in properties with {feature}:"
+    }
+  ],
+  "entity_dictionary": {
+    "property_types": [
+      "house",
+      "condo",
+      "condominium",
+      "apartment",
+      "townhouse",
+      "bungalow",
+      "duplex",
+      "commercial",
+      "lot",
+      "land",
+      "office",
+      "retail",
+      "warehouse",
+      "studio",
+      "room",
+      "boarding_house",
+      "dormitory"
+    ],
+    "price_terms": [
+      "under",
+      "below",
+      "less than",
+      "maximum",
+      "up to",
+      "within",
+      "not exceeding",
+      "affordable",
+      "cheap",
+      "budget"
+    ],
+    "price_ranges": [
+      "500k",
+      "1M",
+      "1.5M",
+      "2M",
+      "2.5M",
+      "3M",
+      "4M",
+      "5M",
+      "8M",
+      "10M",
+      "15M"
+    ],
+    "bedroom_options": [
+      "studio",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5+"
+    ],
+    "bathroom_options": [
+      "1",
+      "2",
+      "3",
+      "4+"
+    ],
+    "landmark_types": {
+      "school": [
+        "school",
+        "university",
+        "college",
+        "campus",
+        "learning center",
+        "educational institution"
+      ],
+      "hospital": [
+        "hospital",
+        "medical center",
+        "clinic",
+        "health center",
+        "healthcare facility"
+      ],
+      "mall": [
+        "mall",
+        "shopping center",
+        "market",
+        "supermarket",
+        "commercial center",
+        "retail hub"
+      ],
+      "church": [
+        "church",
+        "cathedral",
+        "chapel",
+        "basilica",
+        "place of worship",
+        "religious center"
+      ],
+      "transport": [
+        "terminal",
+        "port",
+        "bus station",
+        "ferry terminal",
+        "transport hub",
+        "pier"
+      ],
+      "natural": [
+        "beach",
+        "volcano",
+        "lake",
+        "mountain",
+        "shoreline",
+        "coastal area"
+      ],
+      "industrial": [
+        "industrial park",
+        "factory",
+        "business park",
+        "economic zone",
+        "manufacturing area"
+      ]
+    },
+    "ready_terms": [
+      "ready to move in",
+      "ready for occupancy",
+      "available now",
+      "immediate occupancy",
+      "move in ready",
+      "ready now",
+      "available immediately",
+      "ready to occupy",
+      "immediate move in",
+      "ready for move in"
+    ],
+    "needs": [
+      "family",
+      "students",
+      "professionals",
+      "couple",
+      "single",
+      "workers",
+      "business",
+      "investors"
+    ],
+    "features": [
+      "swimming pool",
+      "parking",
+      "garden",
+      "furnished",
+      "security",
+      "elevator",
+      "wifi",
+      "gym",
+      "backyard"
+    ],
+    "locations": [
+      "Batangas City",
+      "Lipa City",
+      "Tanauan City",
+      "Bauan",
+      "Balayan",
+      "Nasugbu",
+      "San Juan",
+      "Taal",
+      "Calatagan",
+      "Mabini",
+      "Rosario",
+      "Sto. Tomas City",
+      "Malvar",
+      "Ibaan",
+      "Tuy",
+      "Lian",
+      "Taysan",
+      "San Luis",
+      "Padre Garcia",
+      "Laurel",
+      "Agoncillo",
+      "San Pascual",
+      "Cuenca",
+      "Alitagtag",
+      "Santo Tomas",
+      "Lobo",
+      "San Nicolas",
+      "Mataasnakahoy",
+      "Talisay",
+      "La Paz",
+      "Lemery"
+    ]
+  },
+  "response_templates": {
+    "find_property_with_criteria": "Here are {property_type} properties under {max_price} with {bedrooms} bedrooms: {property_list}",
+    "find_near_landmark": "📍 Properties near {landmark} in {location}: {property_list}",
+    "find_ready_property": "✅ Ready to move in properties for {need} in {location}: {property_list}"
+  },
+  "metadata": {
+    "total_samples": 24,
+    "intent_distribution": {
+      "find_property_with_criteria": 8,
+      "find_near_landmark": 8,
+      "find_ready_property": 8
+    },
+    "created_date": "2024-01-22",
+    "version": "2.0",
+    "training_notes": "Expanded to 8 samples per intent with comprehensive variations covering all Batangas locations"
+  }
 }
