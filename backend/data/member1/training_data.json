@@ -24,13 +24,18 @@
         "help me find apartments in batangas",
         "find me apartments in batangas city",
         "apartment for rent in batangas city",
-        "condo in batangas city",
-        "houses available in batangas city",
-        "townhouse in batangas",
+        "apartment for sale in batangas",
+        "apartment units in batangas city",
         "may apartment ba sa batangas city",
-        "bahay sa batangas city"
+        "apartamento sa batangas city",
+        "apartment properties in batangas",
+        "apartment living in batangas",
+        "rent apartment in batangas city",
+        "apartment lease in batangas"
       ],
-      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average rent:** {average_rent}",
+      "location_description": "Batangas City is the capital with major ports, universities, and commercial centers.",
+      "average_rent": "₱8,000-₱15,000/month for apartments"
     },
     {
       "query": "find house in lipa city",
@@ -43,15 +48,26 @@
         "houses for sale in lipa city",
         "find houses in lipa",
         "show me houses in lipa city",
+        "houses for rent in lipa",
+        "house available in lipa",
+        "looking for a house in lipa",
+        "family house in lipa",
+        "residential houses in lipa",
+        "homes for sale in lipa",
+        "real estate houses in lipa city",
+        "buy house in lipa",
+        "rent house in lipa city",
         "bahay sa lipa city",
         "may bahay ba sa lipa",
-        "house available in lipa",
-        "townhouse in lipa city",
-        "condo in lipa",
-        "properties in lipa city",
-        "looking for a house in lipa"
+        "bahay para sa pamilya sa lipa",
+        "family home in lipa",
+        "single detached house in lipa",
+        "bungalow in lipa city",
+        "duplex in lipa"
       ],
-      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average price:** {average_price}",
+      "location_description": "Lipa City is known as the 'Little Rome of the Philippines' with cool climate and educational institutions.",
+      "average_price": "₱2.5M-₱6M for houses"
     },
     {
       "query": "show me condos in tanauan city",
@@ -70,123 +86,113 @@
         "search condos in tanauan city",
         "condo properties in tanauan",
         "may condo ba sa tanauan",
-        "condominium sa tanauan city"
+        "condominium sa tanauan city",
+        "condo units in tanauan",
+        "apartment condos in tanauan",
+        "condo living in tanauan",
+        "condo for lease in tanauan",
+        "condominium for rent tanauan",
+        "buy condo in tanauan",
+        "rent condo in tanauan city",
+        "condo investments in tanauan"
       ],
-      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average rent:** {average_rent}",
+      "location_description": "Tanauan City offers historical sites and views of Taal Lake.",
+      "average_rent": "₱8,000-₱18,000/month for condos"
     },
     {
-      "query": "find townhouse in san juan",
+      "query": "find condos in lipa city",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "condo",
+        "location": "Lipa City"
+      },
+      "variations": [
+        "look for condos in lipa city",
+        "search for condos in lipa",
+        "show me condos in lipa city",
+        "i need condos in lipa city",
+        "can you find condos in lipa city",
+        "please locate condos in lipa",
+        "i'm looking for condos in lipa city",
+        "help me find condos in lipa",
+        "find me condos in lipa city",
+        "condo for rent in lipa city",
+        "condominiums in lipa",
+        "condo units in lipa city",
+        "may condo ba sa lipa city",
+        "condominium sa lipa",
+        "condo properties in lipa city",
+        "apartment condos in lipa",
+        "condo living in lipa",
+        "condo for lease in lipa city",
+        "condominium for rent lipa",
+        "buy condo in lipa city",
+        "condo for sale lipa"
+      ],
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average rent:** {average_rent}",
+      "location_description": "Lipa City is known as the 'Little Rome of the Philippines' with cool climate and educational institutions.",
+      "average_rent": "₱10,000-₱25,000/month for condos"
+    },
+    {
+      "query": "find townhouses in sto. tomas",
       "intent": "find_property",
       "entities": {
         "property_type": "townhouse",
-        "location": "San Juan"
+        "location": "Sto. Tomas City"
       },
       "variations": [
-        "townhouses in san juan batangas",
-        "look for townhouse in san juan",
-        "show me townhouses in san juan",
-        "townhouse for sale in san juan",
-        "townhouse for rent in san juan",
-        "townhouse properties in san juan",
-        "find townhouse san juan batangas",
-        "search townhouse in san juan",
-        "may townhouse ba sa san juan",
-        "townhouse sa san juan"
+        "look for townhouses in sto tomas",
+        "search for townhouses in sto. tomas city",
+        "show me townhouses in santo tomas",
+        "townhouse for rent in sto tomas",
+        "townhouse for sale in sto. tomas",
+        "townhouse units in sto tomas city",
+        "may townhouse ba sa sto tomas",
+        "townhouse properties in sto. tomas",
+        "townhouse living in sto tomas",
+        "row house in sto tomas",
+        "townhouse investments in sto. tomas city"
       ],
-      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average price:** {average_price}",
+      "location_description": "Sto. Tomas City is a growing industrial and residential area with proximity to Metro Manila.",
+      "average_price": "₱1.8M-₱3.5M for townhouses"
     },
     {
-      "query": "looking for commercial space in batangas city",
+      "query": "find commercial spaces in batangas city",
       "intent": "find_property",
       "entities": {
         "property_type": "commercial",
         "location": "Batangas City"
       },
       "variations": [
-        "find commercial property in batangas",
-        "commercial space for rent in batangas city",
-        "commercial building in batangas",
-        "office space in batangas city",
-        "retail space in batangas",
-        "show me commercial properties in batangas",
-        "business space in batangas city",
-        "commercial lot in batangas",
-        "commercial units in batangas",
-        "may commercial space ba sa batangas"
+        "look for commercial spaces in batangas city",
+        "search for commercial properties in batangas",
+        "show me commercial spaces in batangas",
+        "commercial for rent in batangas city",
+        "commercial for sale in batangas",
+        "office spaces in batangas city",
+        "retail spaces in batangas",
+        "business spaces in batangas city",
+        "may commercial space ba sa batangas",
+        "commercial properties in batangas city",
+        "establishment space in batangas",
+        "store for rent in batangas city",
+        "office for lease in batangas"
       ],
-      "response_template": "I found {count} {property_type} properties in {location}. Here are some options: {properties}"
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average rent:** {average_rent}",
+      "location_description": "Batangas City has thriving commercial districts perfect for businesses.",
+      "average_rent": "₱15,000-₱50,000/month for commercial spaces"
     },
     {
-      "query": "find apartments with 2 bedrooms",
-      "intent": "find_property",
-      "entities": {
-        "property_type": "apartment",
-        "bedrooms": 2
-      },
-      "variations": [
-        "2 bedroom apartments",
-        "apartments with 2 beds",
-        "show me 2 bedroom apartments",
-        "two bedroom apartments for rent",
-        "apartments with two bedrooms",
-        "2br apartments available",
-        "dalawang bedroom na apartment",
-        "2 bedroom condo",
-        "apartment with 2 rooms",
-        "2 bedroom housing"
-      ],
-      "response_template": "I found {count} {property_type} properties with {bedrooms} bedrooms. Here are some options: {properties}"
-    },
-    {
-      "query": "properties under 3 million pesos",
-      "intent": "find_property",
-      "entities": {
-        "max_price": 3000000
-      },
-      "variations": [
-        "houses below 3M",
-        "properties under 3M",
-        "show me properties under 3 million",
-        "affordable properties under 3M",
-        "cheap houses under 3 million",
-        "properties below 3 million pesos",
-        "bahay under 3M",
-        "3 million budget properties",
-        "properties within 3M budget",
-        "mga property na under 3M"
-      ],
-      "response_template": "I found {count} properties under {max_price}. Here are some options: {properties}"
-    },
-    {
-      "query": "find properties near the beach",
-      "intent": "find_property",
-      "entities": {
-        "landmark": "beach",
-        "landmark_type": "natural"
-      },
-      "variations": [
-        "houses near beach",
-        "beachfront properties",
-        "properties close to the beach",
-        "beach side properties",
-        "houses by the beach",
-        "properties near shoreline",
-        "bahay malapit sa beach",
-        "beach area properties",
-        "near beach properties",
-        "coastal properties"
-      ],
-      "response_template": "I found {count} properties near {landmark}. Here are some options: {properties}"
-    },
-    {
-      "query": "show me properties that accept bank financing",
+      "query": "properties that accept bank financing",
       "intent": "financing",
       "entities": {
         "financing_type": "bank financing",
         "needs_documents": true
       },
       "variations": [
-        "properties that accept bank loans",
+        "show me properties that accept bank loans",
         "houses with bank financing",
         "bank financed properties",
         "can i use bank loan to buy a house",
@@ -200,17 +206,37 @@
         "show me houses with bank loan",
         "properties accepting bank mortgage",
         "bank loan for property purchase",
-        "how to get bank financing for house"
+        "how to get bank financing for house",
+        "properties that allow bank financing",
+        "houses you can buy with bank loan",
+        "properties with bank loan option",
+        "bank financing properties available",
+        "real estate accepting bank loans",
+        "properties with bank financing scheme",
+        "home loan properties",
+        "housing loan available properties",
+        "properties with bank assistance"
       ],
-      "response_template": "Here are properties that accept {financing_type}. Required documents include: {documents_list}",
-      "documents": [
-        "Valid ID (passport, driver's license, etc.)",
-        "Proof of Income (3 months payslips)",
-        "Certificate of Employment",
-        "ITR (Income Tax Return)",
-        "Bank statements (last 3-6 months)",
-        "Proof of Billing",
-        "Post-dated checks"
+      "response_template": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
+      "documents_list": [
+        "1. Valid ID (passport, driver's license, etc.)",
+        "2. Proof of Income (3 months payslips)",
+        "3. Certificate of Employment",
+        "4. ITR (Income Tax Return)",
+        "5. Bank statements (last 3-6 months)",
+        "6. Proof of Billing",
+        "7. Post-dated checks",
+        "8. Property Documents (if available)",
+        "9. Marriage Certificate (if married)",
+        "10. Tax Identification Number (TIN)"
+      ],
+      "requirements_list": [
+        "• At least 2 years continuous employment",
+        "• Good credit history",
+        "• Property appraisal required",
+        "• 20-30% downpayment usually required",
+        "• Must be of legal age (at least 21 years old)",
+        "• Filipino citizen or resident alien"
       ]
     },
     {
@@ -235,50 +261,37 @@
         "pag ibig housing",
         "how to use pag ibig for property",
         "pag ibig loan requirements",
-        "pag ibig financing for house"
+        "pag ibig financing for house",
+        "properties accepting pag-ibig fund",
+        "houses with pag-ibig financing",
+        "pag-ibig eligible properties",
+        "properties for pag-ibig members",
+        "pag-ibig loan properties available",
+        "properties with pag-ibig housing loan",
+        "pagibig financing properties",
+        "pag-ibig housing loan eligible properties",
+        "properties with pag-ibig mortgage"
       ],
-      "response_template": "Here are properties that accept {financing_type}. Required documents include: {documents_list}",
-      "documents": [
-        "Valid ID",
-        "Pag-IBIG MID Number",
-        "Proof of income",
-        "Certificate of Employment",
-        "ITR",
-        "Marriage Certificate (if married)",
-        "Birth Certificate of dependents"
-      ]
-    },
-    {
-      "query": "properties with in-house financing",
-      "intent": "financing",
-      "entities": {
-        "financing_type": "in-house financing",
-        "needs_documents": true
-      },
-      "variations": [
-        "in-house financing properties",
-        "developer financing options",
-        "properties with developer financing",
-        "in-house payment scheme",
-        "direct financing from developer",
-        "properties with installment plan",
-        "developer loan properties",
-        "in-house loan for property",
-        "properties with flexible payment",
-        "direct developer financing",
-        "developer in-house financing",
-        "installment payment properties",
-        "properties with payment terms",
-        "in-house mortgage options",
-        "developer financing requirements"
+      "response_template": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
+      "documents_list": [
+        "1. Valid ID",
+        "2. Pag-IBIG MID Number",
+        "3. Proof of income",
+        "4. Certificate of Employment",
+        "5. ITR",
+        "6. Marriage Certificate (if married)",
+        "7. Birth Certificate of dependents",
+        "8. Proof of Billing",
+        "9. Tax Identification Number (TIN)",
+        "10. Post-dated checks"
       ],
-      "response_template": "Here are properties that accept {financing_type}. Required documents include: {documents_list}",
-      "documents": [
-        "Valid ID",
-        "Proof of Income",
-        "Downpayment (usually 20-30%)",
-        "Post-dated checks",
-        "Employment Certificate"
+      "requirements_list": [
+        "• Active Pag-IBIG membership for 24+ months",
+        "• At least 24 monthly contributions",
+        "• No existing Pag-IBIG housing loan",
+        "• Property must be in approved areas",
+        "• Must be of legal age (at least 21 years old)",
+        "• Filipino citizen"
       ]
     },
     {
@@ -303,87 +316,96 @@
         "bank mortgage requirements",
         "documents for housing loan",
         "bank financing checklist",
-        "requirements for property loan"
+        "requirements for property loan",
+        "what are the documents for bank loan",
+        "bank loan documentary needs",
+        "required papers for bank financing",
+        "bank financing document checklist",
+        "what documents to prepare for bank loan",
+        "bank financing documentary",
+        "bank loan pre-requisites",
+        "documents needed for housing loan",
+        "bank financing papers"
       ],
-      "response_template": "For {financing_type}, you need: {documents_list}",
-      "documents": [
-        "Valid ID",
-        "Proof of Income (3 months)",
-        "Bank Statements (3-6 months)",
-        "ITR",
-        "Certificate of Employment",
-        "Proof of Billing",
-        "Marriage Contract (if applicable)"
-      ]
+      "response_template": "📋 **Documents for {financing_type}**\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}\n\n**Process:** {process_description}",
+      "documents_list": [
+        "1. Valid ID (passport, driver's license, etc.)",
+        "2. Proof of Income (3 months payslips)",
+        "3. Certificate of Employment",
+        "4. ITR (Income Tax Return)",
+        "5. Bank Statements (3-6 months)",
+        "6. Proof of Billing",
+        "7. Post-dated checks",
+        "8. Property Documents (if available)",
+        "9. Marriage Certificate (if married)",
+        "10. Tax Identification Number (TIN)",
+        "11. Proof of other sources of income (if any)",
+        "12. Latest 1x1 ID picture (2 copies)"
+      ],
+      "requirements_list": [
+        "• At least 2 years of continuous employment",
+        "• Good credit history",
+        "• Minimum income requirement (varies by bank)",
+        "• Property appraisal required",
+        "• 20-30% downpayment usually required",
+        "• Must be of legal age (at least 21 years old)",
+        "• Filipino citizen or resident alien with valid visa"
+      ],
+      "process_description": "1. Submit loan application 2. Property appraisal 3. Document verification 4. Credit investigation 5. Loan approval 6. Signing of documents 7. Release of funds 8. Registration of mortgage"
     },
     {
-      "query": "how to get a mortgage for a house",
+      "query": "properties with in-house financing",
       "intent": "financing",
       "entities": {
-        "financing_type": "mortgage",
-        "needs_process": true
+        "financing_type": "in-house financing",
+        "needs_documents": true
       },
       "variations": [
-        "mortgage application process",
-        "how to apply for mortgage",
-        "getting a housing loan",
-        "mortgage loan process",
-        "how to secure mortgage",
-        "mortgage application steps",
-        "housing loan application",
-        "process of getting mortgage",
-        "mortgage loan requirements",
-        "how to obtain mortgage",
-        "mortgage application procedure",
-        "steps for mortgage loan",
-        "housing loan process",
-        "mortgage acquisition process",
-        "how mortgage works"
+        "in-house financing properties",
+        "developer financing options",
+        "properties with developer financing",
+        "in-house payment scheme",
+        "direct financing from developer",
+        "properties with installment plan",
+        "developer loan properties",
+        "in-house loan for property",
+        "properties with flexible payment",
+        "direct developer financing",
+        "developer in-house financing",
+        "installment payment properties",
+        "properties with payment terms",
+        "in-house mortgage options",
+        "developer financing requirements",
+        "properties on installment basis",
+        "developer direct financing",
+        "flexible payment properties",
+        "in-house financing available",
+        "properties with easy payment terms",
+        "properties with developer loan",
+        "installment properties",
+        "properties with flexible terms",
+        "developer financing scheme properties"
       ],
-      "response_template": "For getting a {financing_type}: {process_steps}. Required: {documents_list}",
-      "process_steps": [
-        "1. Property appraisal",
-        "2. Submit loan application",
-        "3. Document verification",
-        "4. Credit investigation",
-        "5. Loan approval",
-        "6. Signing of documents",
-        "7. Release of funds"
+      "response_template": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Advantages:**\n{advantages_list}",
+      "documents_list": [
+        "1. Valid ID",
+        "2. Proof of Income",
+        "3. Downpayment (usually 20-30%)",
+        "4. Post-dated checks",
+        "5. Employment Certificate",
+        "6. Buyer Information Sheet",
+        "7. Proof of Billing",
+        "8. 2x2 ID picture (2 copies)"
       ],
-      "documents": [
-        "Valid ID",
-        "Proof of Income",
-        "Property Documents",
-        "ITR",
-        "Bank Statements"
+      "advantages_list": [
+        "• Faster approval process (1-3 days)",
+        "• Less strict credit requirements",
+        "• Flexible payment terms (up to 10 years)",
+        "• Direct dealing with developer",
+        "• Possible lower interest rates (6-9% annually)",
+        "• No bank processing fees",
+        "• Easier to negotiate terms"
       ]
-    },
-    {
-      "query": "condos with installment payment",
-      "intent": "financing",
-      "entities": {
-        "property_type": "condo",
-        "financing_type": "installment",
-        "needs_documents": false
-      },
-      "variations": [
-        "condos on installment plan",
-        "condominium with installment",
-        "installment payment for condo",
-        "condo with monthly installment",
-        "condos with payment terms",
-        "installment basis condos",
-        "condo installment scheme",
-        "condos with flexible payment",
-        "installment condo units",
-        "condo payable in installments",
-        "condos with easy payment",
-        "condo installment options",
-        "condo with payment plan",
-        "installment condo purchase",
-        "condo with terms"
-      ],
-      "response_template": "Here are {property_type} properties with {financing_type} options: {properties}"
     },
     {
       "query": "properties that accept cash payment",
@@ -393,67 +415,29 @@
         "needs_documents": false
       },
       "variations": [
-        "cash basis properties",
-        "properties for cash payment",
-        "cash transaction properties",
-        "properties payable in cash",
-        "cash purchase properties",
-        "properties accepting cash",
-        "cash only properties",
-        "properties with cash discount",
-        "cash payment real estate",
+        "cash payment properties",
         "properties for cash buyers",
-        "cash deal properties",
+        "cash basis properties",
+        "properties accepting straight cash",
+        "cash only properties",
+        "properties payable in cash",
+        "cash sale properties",
         "properties with cash option",
-        "cash basis real estate",
-        "cash purchase available",
-        "properties for cash sale"
+        "outright cash properties",
+        "cash purchase properties",
+        "ready for cash payment",
+        "properties for cash transaction"
       ],
-      "response_template": "Here are properties that accept {financing_type} payment: {properties}"
-    },
-    {
-      "query": "what are the requirements for pag ibig loan",
-      "intent": "financing",
-      "entities": {
-        "financing_type": "pag-ibig",
-        "needs_documents": true,
-        "needs_process": true
-      },
-      "variations": [
-        "pag ibig loan documents needed",
-        "requirements for pag ibig housing loan",
-        "pag ibig loan prerequisites",
-        "documents for pag ibig loan",
-        "pag ibig loan requirements list",
-        "what do i need for pag ibig loan",
-        "pag ibig loan application documents",
-        "pag ibig housing loan requirements",
-        "pag ibig loan documentary requirements",
-        "pag ibig loan paperwork",
-        "pag ibig loan checklist",
-        "requirements for pag ibig financing",
-        "pag ibig loan application requirements",
-        "pag ibig loan needed documents",
-        "pag ibig loan prerequisites"
+      "response_template": "💰 **Properties Accepting {financing_type} Payment**\n\nI found {count} properties that accept {financing_type} payment. Here are some options:\n\n{property_list}\n\n**Advantages of Cash Payment:**\n{advantages_list}\n\n**Requirements:** {requirements}",
+      "advantages_list": [
+        "• Fastest transaction (1-2 weeks)",
+        "• Usually get 5-10% discount",
+        "• No interest payments",
+        "• No bank processing fees",
+        "• Stronger negotiating position",
+        "• No credit checks required"
       ],
-      "response_template": "For {financing_type} loan, you need: {documents_list}. Process: {process_steps}",
-      "documents": [
-        "Pag-IBIG Membership ID",
-        "Valid ID",
-        "Proof of Income",
-        "Certificate of Employment",
-        "ITR",
-        "Proof of Billing",
-        "Marriage Certificate (if applicable)"
-      ],
-      "process_steps": [
-        "1. Submit loan application",
-        "2. Property appraisal",
-        "3. Document verification",
-        "4. Loan evaluation",
-        "5. Approval/Disapproval",
-        "6. Loan takeout"
-      ]
+      "requirements": "Valid ID, Tax Identification Number (TIN), and proof of fund source"
     },
     {
       "query": "tell me about batangas city",
@@ -476,9 +460,39 @@
         "batangas city description",
         "what's it like in batangas city",
         "batangas city living conditions",
-        "batangas city overview"
+        "batangas city overview",
+        "batangas city information",
+        "describe living in batangas city",
+        "batangas city community",
+        "life in batangas city",
+        "batangas city details",
+        "paano ang buhay sa batangas city",
+        "maganda ba tumira sa batangas city",
+        "batangas city living experience",
+        "residing in batangas city",
+        "batangas city environment"
       ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Batangas City is the capital city of Batangas province, known for its strategic port, educational institutions, and commercial centers. It serves as a major transportation hub with the Batangas International Port.",
+      "lifestyle": "Urban city living with access to major ports, universities (Batangas State University), hospitals (Batangas Medical Center), and shopping malls (SM City Batangas, Robinsons Place). Mix of urban amenities with provincial charm.",
+      "key_features": [
+        "• Major seaport for domestic and international travel",
+        "• Educational hub with multiple universities and colleges",
+        "• Healthcare facilities including Batangas Medical Center",
+        "• Commercial centers and business districts",
+        "• Accessible transportation network",
+        "• Growing real estate market",
+        "• Cultural and historical sites"
+      ],
+      "average_prices": [
+        "🏢 Apartments: ₱8,000 - ₱15,000/month",
+        "🏙️ Condos: ₱12,000 - ₱25,000/month",
+        "🏠 Houses: ₱15,000 - ₱30,000/month",
+        "🏘️ Townhouses: ₱2M - ₱4.5M",
+        "🏡 Residential Lots: ₱5,000 - ₱12,000/sqm"
+      ],
+      "ideal_for": "Students, professionals, port workers, business owners, families seeking urban amenities",
+      "property_types": "Apartments, condominiums, boarding houses, commercial spaces, residential lots, townhouses"
     },
     {
       "query": "tell me about lipa city",
@@ -489,21 +503,164 @@
       "variations": [
         "what is lipa city like",
         "is lipa city a good place to live",
-        "tell me about living in lipa",
+        "tell me about living in lipa city",
         "how is life in lipa city",
         "describe lipa city",
-        "kamusta tumira sa lipa",
+        "kamusta tumira sa lipa city",
         "ano meron sa lipa city",
+        "living in lipa city pros and cons",
         "lipa city lifestyle",
         "about lipa city",
-        "living in lipa city",
         "information about lipa city",
         "lipa city description",
         "what's it like in lipa city",
         "lipa city living conditions",
-        "lipa city overview"
+        "lipa city overview",
+        "lipa city information",
+        "describe living in lipa city",
+        "lipa city community",
+        "life in lipa city",
+        "lipa city details",
+        "paano ang buhay sa lipa city",
+        "maganda ba tumira sa lipa city",
+        "lipa city living experience",
+        "residing in lipa city",
+        "lipa city environment",
+        "why live in lipa city",
+        "benefits of living in lipa"
       ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Lipa City is known as the 'Little Rome of the Philippines' with numerous churches and educational institutions. It's a highly urbanized city with a cool climate and strong religious heritage.",
+      "lifestyle": "Urban living with a mix of modern amenities and religious traditions. Known for its educational hubs, religious sites, and cool climate throughout the year. Strong sense of community and family-oriented environment.",
+      "key_features": [
+        "• Educational hub with multiple universities (DLSL, UB, LPU)",
+        "• Numerous churches including the famous Lipa Cathedral",
+        "• Cool climate compared to other Batangas areas",
+        "• Commercial centers and shopping malls (SM Lipa, Robinsons Lipa)",
+        "• Well-developed transportation network",
+        "• Growing business process outsourcing (BPO) industry",
+        "• Religious and cultural festivals",
+        "• Healthcare facilities (Mary Mediatrix Medical Center)"
+      ],
+      "average_prices": [
+        "🏢 Apartments: ₱6,000 - ₱12,000/month",
+        "🏙️ Condos: ₱10,000 - ₱20,000/month",
+        "🏠 Houses: ₱12,000 - ₱25,000/month",
+        "🏘️ Townhouses: ₱1.8M - ₱4M",
+        "🏡 Residential Lots: ₱4,500 - ₱10,000/sqm"
+      ],
+      "ideal_for": "Students, religious families, educators, BPO workers, retirees seeking cool climate, young professionals",
+      "property_types": "Apartments, condominiums, boarding houses, religious retreat houses, commercial spaces, residential lots, townhouses, dormitories"
+    },
+    {
+      "query": "tell me about nasugbu",
+      "intent": "location_info",
+      "entities": {
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "what is nasugbu like",
+        "is nasugbu a good place to live",
+        "tell me about living in nasugbu",
+        "how is life in nasugbu",
+        "describe nasugbu",
+        "kamusta tumira sa nasugbu",
+        "ano meron sa nasugbu",
+        "living in nasugbu pros and cons",
+        "nasugbu lifestyle",
+        "about nasugbu",
+        "information about nasugbu",
+        "nasugbu description",
+        "what's it like in nasugbu",
+        "nasugbu living conditions",
+        "nasugbu overview",
+        "nasugbu information",
+        "describe living in nasugbu",
+        "nasugbu community",
+        "life in nasugbu",
+        "nasugbu details",
+        "paano ang buhay sa nasugbu",
+        "maganda ba tumira sa nasugbu",
+        "beach living in nasugbu",
+        "coastal lifestyle nasugbu"
+      ],
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Nasugbu is a first-class municipality in Batangas known for its beautiful beaches, luxury resorts, and coastal lifestyle. It's a popular tourist destination with both natural and man-made attractions.",
+      "lifestyle": "Beachside living with resort communities, golf courses, and tourism-based economy. More relaxed pace compared to urban centers, with a focus on leisure and tourism activities. Perfect for those seeking a vacation-like lifestyle.",
+      "key_features": [
+        "• Famous beaches like Punta Fuego, Calayo Beach, and Tali Beach",
+        "• Luxury resorts and country clubs (Punta Fuego, Hamilo Coast)",
+        "• Mountain hiking trails (Mt. Batulao, Mt. Talamitam)",
+        "• Tourism and hospitality industry",
+        "• Agricultural areas for crops and livestock",
+        "• Scenic coastal roads and views",
+        "• Golf courses and recreational facilities",
+        "• Fishing industry and fresh seafood"
+      ],
+      "average_prices": [
+        "🏢 Apartments: ₱8,000 - ₱15,000/month",
+        "🏠 Houses: ₱12,000 - ₱30,000/month",
+        "🏖️ Beachfront Properties: ₱20,000 - ₱50,000/month",
+        "🏡 Residential Lots: ₱6,000 - ₱15,000/sqm",
+        "🏰 Luxury Villas: ₱10M - ₱30M+"
+      ],
+      "ideal_for": "Retirees, vacation homeowners, resort investors, tourism workers, beach lovers, foreign expats, nature enthusiasts",
+      "property_types": "Beachfront properties, resorts, vacation homes, farms, luxury villas, condotels, agricultural lands"
+    },
+    {
+      "query": "what's it like to live in taal",
+      "intent": "location_info",
+      "entities": {
+        "location": "Taal"
+      },
+      "variations": [
+        "tell me about taal",
+        "is taal a good place to live",
+        "tell me about living in taal",
+        "how is life in taal",
+        "describe taal",
+        "kamusta tumira sa taal",
+        "ano meron sa taal",
+        "living in taal pros and cons",
+        "taal lifestyle",
+        "about taal",
+        "information about taal",
+        "taal description",
+        "what's it like in taal",
+        "taal living conditions",
+        "taal overview",
+        "taal information",
+        "describe living in taal",
+        "taal community",
+        "life in taal",
+        "taal details",
+        "paano ang buhay sa taal",
+        "maganda ba tumira sa taal",
+        "historical living in taal",
+        "heritage town living"
+      ],
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Taal is a historic town known for its Spanish colonial architecture, heritage houses, and the famous Taal Basilica. It's part of the Taal Lake area with views of the Taal Volcano.",
+      "lifestyle": "Historic town living with rich cultural heritage, tourism-oriented economy, and traditional crafts (balisong/barong production). Quiet, traditional community with strong historical roots. Slow-paced lifestyle with emphasis on preservation.",
+      "key_features": [
+        "• Taal Basilica (Asia's largest Catholic church)",
+        "• Heritage houses and Spanish colonial architecture",
+        "• Views of Taal Lake and Taal Volcano",
+        "• Traditional crafts (balisong/barong making)",
+        "• Cultural and historical tourism",
+        "• Agricultural areas near the lake",
+        "• Religious and cultural festivals",
+        "• Close-knit community atmosphere"
+      ],
+      "average_prices": [
+        "🏢 Apartments: ₱5,000 - ₱10,000/month",
+        "🏠 Houses: ₱8,000 - ₱20,000/month",
+        "🏛️ Heritage Properties: ₱2M - ₱5M",
+        "🏡 Residential Lots: ₱3,500 - ₱9,000/sqm",
+        "🌅 Lakeview Properties: ₱12,000 - ₱35,000/sqm"
+      ],
+      "ideal_for": "History enthusiasts, cultural tourists, retirees seeking quiet living, heritage property investors, artists, writers seeking inspiration",
+      "property_types": "Heritage houses, residential properties, lakeview homes, tourist accommodations, commercial spaces for tourism, bed and breakfasts"
     },
     {
       "query": "tell me about tanauan city",
@@ -514,146 +671,92 @@
       "variations": [
         "what is tanauan city like",
         "is tanauan city a good place to live",
-        "tell me about living in tanauan",
+        "tell me about living in tanauan city",
         "how is life in tanauan city",
         "describe tanauan city",
-        "kamusta tumira sa tanauan",
+        "kamusta tumira sa tanauan city",
         "ano meron sa tanauan city",
+        "living in tanauan city pros and cons",
         "tanauan city lifestyle",
         "about tanauan city",
-        "living in tanauan city",
         "information about tanauan city",
         "tanauan city description",
         "what's it like in tanauan city",
         "tanauan city living conditions",
-        "tanauan city overview"
+        "tanauan city overview",
+        "tanauan city information",
+        "describe living in tanauan city",
+        "tanauan city community",
+        "life in tanauan city",
+        "tanauan city details"
       ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Tanauan City is a growing urban center known for its historical significance and scenic views of Taal Lake. It's strategically located along major transportation routes.",
+      "lifestyle": "Balanced urban-rural living with access to modern amenities while maintaining proximity to natural attractions. Growing commercial and residential development.",
+      "key_features": [
+        "• Historical sites (Apolinario Mabini Shrine)",
+        "• Scenic views of Taal Lake and Taal Volcano",
+        "• Strategic location along STAR Tollway",
+        "• Growing commercial centers",
+        "• Educational institutions",
+        "• Industrial and economic zones",
+        "• Agricultural areas for fruits and vegetables"
+      ],
+      "average_prices": [
+        "🏢 Apartments: ₱6,000 - ₱12,000/month",
+        "🏙️ Condos: ₱8,000 - ₱18,000/month",
+        "🏠 Houses: ₱10,000 - ₱22,000/month",
+        "🏘️ Townhouses: ₱1.5M - ₱3.5M",
+        "🏡 Residential Lots: ₱4,000 - ₱9,000/sqm"
+      ],
+      "ideal_for": "Commuters to Metro Manila, young families, professionals, history buffs, those seeking lake views",
+      "property_types": "Apartments, condominiums, houses, townhouses, commercial spaces, lakeview properties"
     },
     {
-      "query": "what is nasugbu like",
+      "query": "tell me about sto. tomas city",
       "intent": "location_info",
       "entities": {
-        "location": "Nasugbu"
+        "location": "Sto. Tomas City"
       },
       "variations": [
-        "tell me about nasugbu",
-        "living in nasugbu",
-        "how is life in nasugbu",
-        "describe nasugbu batangas",
-        "nasugbu lifestyle",
-        "about nasugbu",
-        "what's nasugbu like",
-        "nasugbu living conditions",
-        "information about nasugbu",
-        "kamusta sa nasugbu",
-        "ano meron sa nasugbu",
-        "nasugbu description",
-        "nasugbu batangas overview",
-        "living in nasugbu batangas",
-        "nasugbu community"
+        "what is sto. tomas city like",
+        "is sto tomas a good place to live",
+        "tell me about living in sto. tomas",
+        "how is life in sto tomas city",
+        "describe sto tomas",
+        "kamusta tumira sa sto tomas",
+        "ano meron sa sto. tomas city",
+        "living in sto tomas pros and cons",
+        "sto tomas lifestyle",
+        "about sto. tomas city",
+        "information about sto tomas",
+        "sto tomas description",
+        "what's it like in sto. tomas",
+        "sto tomas living conditions",
+        "sto tomas overview",
+        "sto tomas information"
       ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
-    },
-    {
-      "query": "tell me about san juan batangas",
-      "intent": "location_info",
-      "entities": {
-        "location": "San Juan"
-      },
-      "variations": [
-        "what is san juan batangas like",
-        "living in san juan batangas",
-        "how is life in san juan",
-        "describe san juan batangas",
-        "san juan batangas lifestyle",
-        "about san juan batangas",
-        "what's san juan like",
-        "san juan living conditions",
-        "information about san juan batangas",
-        "kamusta sa san juan batangas",
-        "ano meron sa san juan",
-        "san juan description",
-        "san juan batangas overview",
-        "living in san juan",
-        "san juan community"
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Sto. Tomas City is a fast-growing city known as the 'Northern Gateway to Batangas'. It's becoming a major residential and industrial hub with proximity to Metro Manila.",
+      "lifestyle": "Fast-growing urban community with mix of residential, commercial, and industrial developments. Strategic location makes it ideal for Metro Manila commuters.",
+      "key_features": [
+        "• Strategic location near Metro Manila",
+        "• Growing industrial parks and economic zones",
+        "• Major transportation hub (SLEX, STAR Tollway)",
+        "• Educational institutions",
+        "• Commercial and business districts",
+        "• Residential subdivisions",
+        "• Healthcare facilities"
       ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
-    },
-    {
-      "query": "what's it like to live in taal",
-      "intent": "location_info",
-      "entities": {
-        "location": "Taal"
-      },
-      "variations": [
-        "tell me about taal",
-        "living in taal batangas",
-        "how is life in taal",
-        "describe taal batangas",
-        "taal lifestyle",
-        "about taal",
-        "taal living conditions",
-        "information about taal",
-        "kamusta sa taal",
-        "ano meron sa taal",
-        "taal description",
-        "taal batangas overview",
-        "living in taal town",
-        "taal community",
-        "taal batangas lifestyle"
+      "average_prices": [
+        "🏢 Apartments: ₱7,000 - ₱14,000/month",
+        "🏙️ Condos: ₱9,000 - ₱20,000/month",
+        "🏠 Houses: ₱12,000 - ₱28,000/month",
+        "🏘️ Townhouses: ₱1.8M - ₱3.5M",
+        "🏡 Residential Lots: ₱4,500 - ₱10,000/sqm"
       ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
-    },
-    {
-      "query": "is calatagan a good place to live",
-      "intent": "location_info",
-      "entities": {
-        "location": "Calatagan"
-      },
-      "variations": [
-        "tell me about calatagan",
-        "living in calatagan",
-        "how is life in calatagan",
-        "describe calatagan batangas",
-        "calatagan lifestyle",
-        "about calatagan",
-        "what's calatagan like",
-        "calatagan living conditions",
-        "information about calatagan",
-        "kamusta sa calatagan",
-        "ano meron sa calatagan",
-        "calatagan description",
-        "calatagan batangas overview",
-        "living in calatagan batangas",
-        "calatagan community"
-      ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
-    },
-    {
-      "query": "describe mabini batangas",
-      "intent": "location_info",
-      "entities": {
-        "location": "Mabini"
-      },
-      "variations": [
-        "tell me about mabini",
-        "what is mabini batangas like",
-        "living in mabini",
-        "how is life in mabini",
-        "mabini lifestyle",
-        "about mabini batangas",
-        "mabini living conditions",
-        "information about mabini",
-        "kamusta sa mabini",
-        "ano meron sa mabini",
-        "mabini description",
-        "mabini batangas overview",
-        "living in mabini batangas",
-        "mabini community",
-        "mabini batangas lifestyle"
-      ],
-      "response_template": "About {location}: {description}. Average rents: {average_rents}. Lifestyle: {lifestyle}"
+      "ideal_for": "Metro Manila commuters, factory workers, young professionals, investors in industrial properties",
+      "property_types": "Apartments, condominiums, houses, townhouses, industrial lots, commercial spaces"
     }
   ],
   "entity_dictionary": {
@@ -678,7 +781,19 @@
       "dormitory",
       "penthouse",
       "residential",
-      "industrial"
+      "industrial",
+      "farm",
+      "beachfront",
+      "lakeview",
+      "heritage",
+      "resort",
+      "villa",
+      "commercial space",
+      "office space",
+      "retail space",
+      "industrial space",
+      "agricultural land",
+      "vacant lot"
     ],
     "locations": [
       "Batangas City",
@@ -693,6 +808,8 @@
       "Mabini",
       "Rosario",
       "Sto. Tomas City",
+      "Sto Tomas",
+      "Santo Tomas",
       "Malvar",
       "Ibaan",
       "Tuy",
@@ -711,12 +828,15 @@
       "Mataasnakahoy",
       "Talisay",
       "La Paz",
-      "Lemery"
+      "Lemery",
+      "San Jose",
+      "Tingloy"
     ],
     "financing_types": [
       "bank financing",
       "bank loan",
       "pag-ibig",
+      "pagibig",
       "in-house financing",
       "cash",
       "installment",
@@ -725,7 +845,12 @@
       "developer financing",
       "housing loan",
       "home loan",
-      "property loan"
+      "property loan",
+      "bank mortgage",
+      "developer loan",
+      "cash payment",
+      "straight cash",
+      "outright cash"
     ],
     "document_terms": [
       "documents needed",
@@ -737,35 +862,754 @@
       "needed papers",
       "prerequisites",
       "checklist",
-      "requirements list"
+      "requirements list",
+      "documents required",
+      "paperwork needed",
+      "document checklist",
+      "required papers",
+      "documents to prepare",
+      "documentary",
+      "papers needed",
+      "documents checklist"
     ],
-    "price_terms": [
-      "under",
-      "below",
-      "less than",
-      "maximum",
-      "budget",
-      "affordable",
-      "cheap",
-      "expensive",
-      "price",
-      "cost"
+    "location_info_terms": [
+      "tell me about",
+      "what is",
+      "describe",
+      "about the",
+      "information about",
+      "living in",
+      "like to live",
+      "what's it like",
+      "is it good",
+      "lifestyle",
+      "overview",
+      "details about",
+      "information on",
+      "tell me more about",
+      "how is life in",
+      "describe living in",
+      "about living in",
+      "residing in"
     ]
   },
   "response_templates": {
-    "find_property": "I found {count} {property_type} properties in {location}. {property_details}",
-    "financing": "Properties that accept {financing_type}: {property_list}. Required documents: {documents}",
-    "location_info": "📍 **{location}**\\n\\n{description}\\n\\n**Average Rents:** {average_rents}\\n**Lifestyle:** {lifestyle}\\n**Key Landmarks:** {landmarks}"
+    "find_property": "📍 **Found Properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location Highlights:** {location_description}\n**Average Price/Rent:** {average_price}",
+    "financing": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
+    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}"
+  },
+  "location_profiles": {
+    "Batangas City": {
+      "description": "The capital city of Batangas province, known for its strategic port, educational institutions, and commercial centers. It serves as a major transportation hub with the Batangas International Port.",
+      "lifestyle": "Urban city living with access to major ports, universities (Batangas State University), hospitals (Batangas Medical Center), and shopping malls (SM City Batangas, Robinsons Place). Mix of urban amenities with provincial charm.",
+      "key_features": [
+        "Major seaport for domestic and international travel",
+        "Educational hub with multiple universities and colleges",
+        "Healthcare facilities including Batangas Medical Center",
+        "Commercial centers and business districts",
+        "Accessible transportation network",
+        "Growing real estate market",
+        "Cultural and historical sites"
+      ],
+      "average_prices": [
+        "Apartments: ₱8,000 - ₱15,000/month",
+        "Condos: ₱12,000 - ₱25,000/month",
+        "Houses: ₱15,000 - ₱30,000/month",
+        "Townhouses: ₱2M - ₱4.5M",
+        "Residential Lots: ₱5,000 - ₱12,000/sqm"
+      ],
+      "ideal_for": [
+        "Students",
+        "professionals",
+        "port workers",
+        "business owners",
+        "families seeking urban amenities"
+      ],
+      "property_types": [
+        "Apartments",
+        "condominiums",
+        "boarding houses",
+        "commercial spaces",
+        "residential lots",
+        "townhouses"
+      ]
+    },
+    "Lipa City": {
+      "description": "Lipa City is one of the most progressive cities in Batangas, known as the 'Little Rome of the Philippines' because of its strong religious heritage. It offers a cooler climate, highly urbanized districts, and a balanced city lifestyle.",
+      "lifestyle": "Comfortable urban living with a relaxed provincial feel. Residents enjoy modern malls, schools, hospitals, and restaurants while still experiencing less congestion than Metro Manila. The city has a strong family-oriented and student-friendly environment.",
+      "key_features": [
+        "Major educational hub (De La Salle Lipa, University of Batangas, LPU)",
+        "Cooler climate compared to nearby cities",
+        "Large malls like SM City Lipa and Robinsons Place Lipa",
+        "Strong BPO and business presence",
+        "Well-developed road network and public transport",
+        "Safe residential communities and gated subdivisions"
+      ],
+      "ideal_for": [
+        "Students",
+        "Young professionals",
+        "Families",
+        "Retirees",
+        "Investors looking for rental demand"
+      ]
+    },
+    "Nasugbu": {
+      "description": "A first-class municipality known for its beautiful beaches, luxury resorts, and coastal lifestyle. It's a popular tourist destination with both natural and man-made attractions.",
+      "lifestyle": "Beachside living with resort communities, golf courses, and tourism-based economy. More relaxed pace compared to urban centers, with a focus on leisure and tourism activities. Perfect for those seeking a vacation-like lifestyle.",
+      "key_features": [
+        "Famous beaches like Punta Fuego, Calayo Beach, and Tali Beach",
+        "Luxury resorts and country clubs (Punta Fuego, Hamilo Coast)",
+        "Mountain hiking trails (Mt. Batulao, Mt. Talamitam)",
+        "Tourism and hospitality industry",
+        "Agricultural areas for crops and livestock",
+        "Scenic coastal roads and views",
+        "Golf courses and recreational facilities",
+        "Fishing industry and fresh seafood"
+      ],
+      "average_prices": [
+        "Apartments: ₱8,000 - ₱15,000/month",
+        "Houses: ₱12,000 - ₱30,000/month",
+        "Beachfront Properties: ₱20,000 - ₱50,000/month",
+        "Residential Lots: ₱6,000 - ₱15,000/sqm",
+        "Luxury Villas: ₱10M - ₱30M+"
+      ],
+      "ideal_for": [
+        "Retirees",
+        "vacation homeowners",
+        "resort investors",
+        "tourism workers",
+        "beach lovers",
+        "foreign expats",
+        "nature enthusiasts"
+      ],
+      "property_types": [
+        "Beachfront properties",
+        "resorts",
+        "vacation homes",
+        "farms",
+        "luxury villas",
+        "condotels",
+        "agricultural lands"
+      ]
+    },
+    "Taal": {
+      "description": "Historic town known for its Spanish colonial architecture, heritage houses, and the famous Taal Basilica. It's part of the Taal Lake area with views of the Taal Volcano.",
+      "lifestyle": "Historic town living with rich cultural heritage, tourism-oriented economy, and traditional crafts (balisong/barong production). Quiet, traditional community with strong historical roots. Slow-paced lifestyle with emphasis on preservation.",
+      "key_features": [
+        "Taal Basilica (Asia's largest Catholic church)",
+        "Heritage houses and Spanish colonial architecture",
+        "Views of Taal Lake and Taal Volcano",
+        "Traditional crafts (balisong/barong making)",
+        "Cultural and historical tourism",
+        "Agricultural areas near the lake",
+        "Religious and cultural festivals",
+        "Close-knit community atmosphere"
+      ],
+      "average_prices": [
+        "Apartments: ₱5,000 - ₱10,000/month",
+        "Houses: ₱8,000 - ₱20,000/month",
+        "Heritage Properties: ₱2M - ₱5M",
+        "Residential Lots: ₱3,500 - ₱9,000/sqm",
+        "Lakeview Properties: ₱12,000 - ₱35,000/sqm"
+      ],
+      "ideal_for": [
+        "History enthusiasts",
+        "cultural tourists",
+        "retirees seeking quiet living",
+        "heritage property investors",
+        "artists",
+        "writers seeking inspiration"
+      ],
+      "property_types": [
+        "Heritage houses",
+        "residential properties",
+        "lakeview homes",
+        "tourist accommodations",
+        "commercial spaces for tourism",
+        "bed and breakfasts"
+      ]
+    },
+    "Tanauan City": {
+      "description": "Tanauan City is a growing urban center known for its historical significance and scenic views of Taal Lake. It's strategically located along major transportation routes.",
+      "lifestyle": "Balanced urban-rural living with access to modern amenities while maintaining proximity to natural attractions. Growing commercial and residential development.",
+      "key_features": [
+        "Historical sites (Apolinario Mabini Shrine)",
+        "Scenic views of Taal Lake and Taal Volcano",
+        "Strategic location along STAR Tollway",
+        "Growing commercial centers",
+        "Educational institutions",
+        "Industrial and economic zones",
+        "Agricultural areas for fruits and vegetables"
+      ],
+      "average_prices": [
+        "Apartments: ₱6,000 - ₱12,000/month",
+        "Condos: ₱8,000 - ₱18,000/month",
+        "Houses: ₱10,000 - ₱22,000/month",
+        "Townhouses: ₱1.5M - ₱3.5M",
+        "Residential Lots: ₱4,000 - ₱9,000/sqm"
+      ],
+      "ideal_for": [
+        "Commuters to Metro Manila",
+        "young families",
+        "professionals",
+        "history buffs",
+        "those seeking lake views"
+      ],
+      "property_types": [
+        "Apartments",
+        "condominiums",
+        "houses",
+        "townhouses",
+        "commercial spaces",
+        "lakeview properties"
+      ]
+    },
+    "Tuy": {
+      "aliases": [
+        "Tuy Batangas"
+      ],
+      "description": "Tuy is a quiet, agricultural municipality in western Batangas known for its farms, open land, and rural atmosphere.",
+      "lifestyle": "Peaceful provincial living with strong agricultural roots. Life here is slower and more community-based compared to urban Batangas cities.",
+      "key_features": [
+        "Wide agricultural lands",
+        "Low property prices",
+        "Minimal traffic and congestion",
+        "Close to Balayan and Nasugbu"
+      ],
+      "average_prices": [
+        "Houses: ₱6,000 - ₱12,000/month",
+        "Residential Lots: ₱2,000 - ₱4,500/sqm",
+        "Agricultural Lands: ₱1,200 - ₱3,500/sqm"
+      ],
+      "ideal_for": [
+        "farm lot buyers",
+        "retirees",
+        "families seeking quiet living",
+        "buyers looking for affordable land"
+      ],
+      "property_types": [
+        "Agricultural lands",
+        "farm houses",
+        "residential lots",
+        "vacant properties"
+      ]
+    },
+    "Lian": {
+      "aliases": [
+        "Lian Batangas"
+      ],
+      "description": "Lian is a coastal municipality in western Batangas known for its fishing industry, beaches, and agricultural lands.",
+      "lifestyle": "Simple coastal and agricultural living. Focus on fishing, farming, and local community life with access to nearby commercial centers.",
+      "key_features": [
+        "Fishing industry",
+        "Agricultural production",
+        "Beach areas",
+        "Close to Nasugbu and Calatagan"
+      ],
+      "average_prices": [
+        "Houses: ₱5,500 - ₱11,000/month",
+        "Residential Lots: ₱2,200 - ₱5,000/sqm",
+        "Agricultural Lands: ₱1,000 - ₱3,000/sqm"
+      ],
+      "ideal_for": [
+        "fishermen",
+        "farmers",
+        "retirees on budget",
+        "local residents"
+      ],
+      "property_types": [
+        "Agricultural lands",
+        "residential properties",
+        "fishing-related properties"
+      ]
+    },
+    "Taysan": {
+      "aliases": [
+        "Taysan Batangas"
+      ],
+      "description": "Taysan is an inland municipality in Batangas known for its agricultural production, peaceful rural setting, and affordable living.",
+      "lifestyle": "Simple rural living focused on agriculture and local community. Far from urban congestion with basic amenities available.",
+      "key_features": [
+        "Agricultural production area",
+        "Peaceful rural environment",
+        "Very affordable property prices",
+        "Basic local amenities"
+      ],
+      "average_prices": [
+        "Houses: ₱5,000 - ₱10,000/month",
+        "Residential Lots: ₱1,800 - ₱4,000/sqm",
+        "Agricultural Lands: ₱800 - ₱2,500/sqm"
+      ],
+      "ideal_for": [
+        "farmers",
+        "very budget-conscious buyers",
+        "those seeking isolation",
+        "agricultural investors"
+      ],
+      "property_types": [
+        "Agricultural lands",
+        "basic residential properties",
+        "farm lots"
+      ]
+    },
+    "Malvar": {
+      "aliases": [
+        "Malvar Batangas",
+        "Municipality of Malvar"
+      ],
+      "description": "Malvar is a rapidly developing municipality in Batangas known for its strong industrial presence and growing residential communities.",
+      "lifestyle": "Balanced industrial and suburban living. Many residents work in nearby industrial parks while enjoying quieter residential neighborhoods compared to nearby cities.",
+      "key_features": [
+        "Multiple industrial parks and factories",
+        "Close to Lipa City and Sto. Tomas City",
+        "Growing residential subdivisions",
+        "Accessible public transportation",
+        "Stable local economy"
+      ],
+      "average_prices": [
+        "Apartments: ₱6,000 - ₱12,000/month",
+        "Houses: ₱10,000 - ₱22,000/month",
+        "Townhouses: ₱1.6M - ₱3.2M",
+        "Residential Lots: ₱3,500 - ₱8,000/sqm"
+      ],
+      "ideal_for": [
+        "factory workers",
+        "young families",
+        "industrial employees",
+        "budget-conscious buyers"
+      ],
+      "property_types": [
+        "Apartments",
+        "houses",
+        "townhouses",
+        "residential lots",
+        "industrial lots"
+      ]
+    },
+    "Calatagan": {
+      "aliases": [
+        "Calatagan Batangas"
+      ],
+      "description": "Calatagan is a coastal municipality in Batangas known for its white-sand beaches, luxury residential developments, and private beach communities.",
+      "lifestyle": "Exclusive and leisure-focused living. Popular for vacation homes, private resorts, and upscale beach communities.",
+      "key_features": [
+        "White-sand beaches",
+        "Luxury subdivisions and beach clubs",
+        "High-end resort developments",
+        "Ideal for vacation properties",
+        "Peaceful coastal environment"
+      ],
+      "average_prices": [
+        "Beachfront Lots: ₱18,000 - ₱45,000/sqm",
+        "Residential Lots: ₱8,000 - ₱20,000/sqm",
+        "Luxury Houses: ₱8M - ₱30M"
+      ],
+      "ideal_for": [
+        "luxury buyers",
+        "vacation homeowners",
+        "resort investors",
+        "high-net-worth individuals"
+      ],
+      "property_types": [
+        "Beachfront lots",
+        "luxury houses",
+        "resort properties",
+        "residential lots"
+      ]
+    },
+    "Lemery": {
+      "aliases": [
+        "Lemery Batangas"
+      ],
+      "description": "Lemery is a major commercial and transport hub in Batangas, serving as a gateway between western Batangas, Tagaytay, and Metro Manila.",
+      "lifestyle": "Busy town center with strong commercial activity. Residents benefit from accessibility, public transport, and active local trade.",
+      "key_features": [
+        "Major public transport terminals",
+        "Active commercial districts",
+        "Gateway to Tagaytay and Taal Lake",
+        "Markets, banks, and retail centers",
+        "Strong rental demand near town center"
+      ],
+      "average_prices": [
+        "Apartments: ₱6,000 - ₱12,000/month",
+        "Houses: ₱9,000 - ₱20,000/month",
+        "Commercial Spaces: ₱15,000 - ₱40,000/month",
+        "Residential Lots: ₱4,000 - ₱9,000/sqm"
+      ],
+      "ideal_for": [
+        "business owners",
+        "commuters",
+        "traders",
+        "rental investors"
+      ],
+      "property_types": [
+        "Apartments",
+        "houses",
+        "commercial spaces",
+        "mixed-use properties"
+      ]
+    },
+    "Bauan": {
+      "aliases": [
+        "Bauan Batangas"
+      ],
+      "description": "Bauan is a first-class municipality in Batangas known for its industrial zones, strategic port location, and growing residential communities. It's located near Batangas City and serves as an industrial hub.",
+      "lifestyle": "Mix of industrial and residential living with growing commercial areas. Many residents work in nearby factories while enjoying affordable housing options.",
+      "key_features": [
+        "Industrial zones and factories",
+        "Proximity to Batangas City",
+        "Growing residential subdivisions",
+        "Access to Batangas Port",
+        "Affordable property prices"
+      ],
+      "average_prices": [
+        "Apartments: ₱5,000 - ₱10,000/month",
+        "Houses: ₱9,000 - ₱18,000/month",
+        "Residential Lots: ₱3,500 - ₱7,500/sqm"
+      ],
+      "ideal_for": [
+        "factory workers",
+        "budget-conscious families",
+        "industrial employees",
+        "first-time homebuyers"
+      ],
+      "property_types": [
+        "Apartments",
+        "houses",
+        "residential lots",
+        "industrial properties"
+      ]
+    },
+    "Balayan": {
+      "aliases": [
+        "Balayan Batangas"
+      ],
+      "description": "Balayan is a historic town and first-class municipality in Batangas known for its cultural heritage, Parada ng Lechon festival, and traditional town center.",
+      "lifestyle": "Traditional town living with strong cultural roots and community activities. More laid-back compared to urban centers with a focus on local traditions.",
+      "key_features": [
+        "Historic town center",
+        "Famous Parada ng Lechon festival",
+        "Traditional markets and commerce",
+        "Agricultural production area",
+        "Close to beaches and resorts"
+      ],
+      "average_prices": [
+        "Apartments: ₱4,500 - ₱9,000/month",
+        "Houses: ₱8,000 - ₱16,000/month",
+        "Commercial Spaces: ₱8,000 - ₱25,000/month",
+        "Residential Lots: ₱3,000 - ₱6,500/sqm"
+      ],
+      "ideal_for": [
+        "those seeking traditional town life",
+        "cultural enthusiasts",
+        "retirees",
+        "local business owners"
+      ],
+      "property_types": [
+        "Heritage houses",
+        "commercial spaces",
+        "residential properties",
+        "agricultural lands"
+      ]
+    },
+    "San Juan": {
+      "aliases": [
+        "San Juan Batangas"
+      ],
+      "description": "San Juan is a coastal municipality famous for Laiya beach resorts, white sand beaches, and vibrant tourism industry. It's one of the top beach destinations in Batangas.",
+      "lifestyle": "Tourism-focused coastal living with weekend beach crowds and quieter weekdays. Popular for vacation homes and resort investments.",
+      "key_features": [
+        "Laiya white sand beaches",
+        "Numerous beach resorts and hotels",
+        "Growing tourism infrastructure",
+        "Weekend destination from Manila",
+        "Beachfront property developments"
+      ],
+      "average_prices": [
+        "Beachfront Lots: ₱12,000 - ₱30,000/sqm",
+        "Residential Lots: ₱5,000 - ₱12,000/sqm",
+        "Resort Properties: ₱5M - ₱20M",
+        "Houses: ₱15,000 - ₱40,000/month"
+      ],
+      "ideal_for": [
+        "vacation homeowners",
+        "resort investors",
+        "tourism business owners",
+        "beach lovers"
+      ],
+      "property_types": [
+        "Beachfront properties",
+        "resorts",
+        "vacation homes",
+        "commercial tourism properties"
+      ]
+    },
+    "Rosario": {
+      "aliases": [
+        "Rosario Batangas",
+        "Rosario Town"
+      ],
+      "description": "Rosario is a developing municipality in Batangas known for its affordable housing options and expanding residential subdivisions.",
+      "lifestyle": "Quiet suburban lifestyle with a strong community feel. Ideal for families seeking affordability while remaining accessible to nearby towns and cities.",
+      "key_features": [
+        "Affordable housing and land prices",
+        "New and expanding subdivisions",
+        "Accessible to Lipa City",
+        "Low traffic congestion",
+        "Family-friendly communities"
+      ],
+      "average_prices": [
+        "Apartments: ₱5,000 - ₱10,000/month",
+        "Houses: ₱8,000 - ₱18,000/month",
+        "Townhouses: ₱1.4M - ₱2.8M",
+        "Residential Lots: ₱2,800 - ₱6,500/sqm"
+      ],
+      "ideal_for": [
+        "first-time homebuyers",
+        "young families",
+        "budget renters",
+        "OFW families"
+      ],
+      "property_types": [
+        "Apartments",
+        "houses",
+        "townhouses",
+        "residential lots"
+      ]
+    },
+    "Laurel": {
+      "description": "Laurel is a lakeside municipality near Taal Lake offering scenic views and cooler surroundings.",
+      "lifestyle": "Quiet, nature-oriented living with a mix of residential and tourism activities.",
+      "key_features": [
+        "Taal Lake views",
+        "Resort and rest house developments",
+        "Peaceful environment",
+        "Near Tagaytay"
+      ],
+      "ideal_for": [
+        "Nature lovers",
+        "Rest house buyers",
+        "Investors",
+        "Retirees"
+      ]
+    },
+    "Mabini": {
+      "aliases": [
+        "Mabini Batangas",
+        "Anilao",
+        "Anilao Mabini"
+      ],
+      "description": "Mabini is a coastal municipality in Batangas famous for Anilao, one of the top diving destinations in the Philippines. It offers stunning marine biodiversity and resort communities.",
+      "lifestyle": "Diving and resort-focused coastal living. International tourism presence with a mix of local community life and vacation home developments.",
+      "key_features": [
+        "World-class diving sites",
+        "Tourism and resort economy",
+        "Coastal and mountain views",
+        "Growing vacation home market",
+        "Peaceful seaside communities"
+      ],
+      "average_prices": [
+        "Apartments: ₱7,000 - ₱15,000/month",
+        "Houses: ₱12,000 - ₱30,000/month",
+        "Resort Properties: ₱6M - ₱25M",
+        "Residential Lots: ₱5,000 - ₱15,000/sqm"
+      ],
+      "ideal_for": [
+        "diving enthusiasts",
+        "resort investors",
+        "retirees",
+        "vacation homeowners"
+      ],
+      "property_types": [
+        "Houses",
+        "resort properties",
+        "beachfront lots",
+        "residential lots"
+      ]
+    },
+    "Ibaan": {
+      "aliases": [
+        "Ibaan Batangas"
+      ],
+      "description": "Ibaan is a municipality in Batangas known for its agricultural lands, peaceful rural atmosphere, and proximity to Lipa City.",
+      "lifestyle": "Quiet rural living with agricultural roots. Close enough to Lipa City for urban amenities while maintaining a peaceful countryside environment.",
+      "key_features": [
+        "Agricultural lands and farming",
+        "Peaceful rural atmosphere",
+        "Proximity to Lipa City",
+        "Affordable land prices",
+        "Less traffic congestion"
+      ],
+      "average_prices": [
+        "Houses: ₱7,000 - ₱15,000/month",
+        "Residential Lots: ₱2,500 - ₱5,500/sqm",
+        "Agricultural Lands: ₱1,500 - ₱4,000/sqm"
+      ],
+      "ideal_for": [
+        "farmers",
+        "retirees seeking peace",
+        "those wanting rural living",
+        "budget land buyers"
+      ],
+      "property_types": [
+        "Agricultural lands",
+        "residential properties",
+        "farm houses",
+        "vacant lots"
+      ]
+    },
+    "Sto. Tomas City": {
+      "aliases": [
+        "Santo Tomas",
+        "Sto Tomas",
+        "Sto. Tomas",
+        "Santo Tomas City",
+        "STC"
+      ],
+      "description": "Sto. Tomas City is a fast-growing city known as the 'Northern Gateway to Batangas'. It's becoming a major residential and industrial hub with proximity to Metro Manila.",
+      "lifestyle": "Fast-growing urban community with mix of residential, commercial, and industrial developments. Strategic location makes it ideal for Metro Manila commuters.",
+      "key_features": [
+        "Strategic location near Metro Manila",
+        "Growing industrial parks and economic zones",
+        "Major transportation hub (SLEX, STAR Tollway)",
+        "Educational institutions",
+        "Commercial and business districts",
+        "Residential subdivisions",
+        "Healthcare facilities"
+      ],
+      "average_prices": [
+        "Apartments: ₱7,000 - ₱14,000/month",
+        "Condos: ₱9,000 - ₱20,000/month",
+        "Houses: ₱12,000 - ₱28,000/month",
+        "Townhouses: ₱1.8M - ₱3.5M",
+        "Residential Lots: ₱4,500 - ₱10,000/sqm"
+      ],
+      "ideal_for": [
+        "Metro Manila commuters",
+        "factory workers",
+        "young professionals",
+        "investors in industrial properties"
+      ],
+      "property_types": [
+        "Apartments",
+        "condominiums",
+        "houses",
+        "townhouses",
+        "industrial lots",
+        "commercial spaces"
+      ]
+    }
+  },
+  "financing_info": {
+    "bank_financing": {
+      "documents": [
+        "Valid ID (passport, driver's license, etc.)",
+        "Proof of Income (3 months payslips)",
+        "Certificate of Employment",
+        "ITR (Income Tax Return)",
+        "Bank statements (last 3-6 months)",
+        "Proof of Billing",
+        "Post-dated checks",
+        "Property Documents (if available)",
+        "Marriage Certificate (if married)",
+        "Tax Identification Number (TIN)",
+        "Proof of other sources of income (if any)",
+        "Latest 1x1 ID picture (2 copies)"
+      ],
+      "requirements": [
+        "At least 2 years of continuous employment",
+        "Good credit history",
+        "Minimum income requirement (varies by bank)",
+        "Property appraisal required",
+        "20-30% downpayment usually required",
+        "Must be of legal age (at least 21 years old)",
+        "Filipino citizen or resident alien with valid visa"
+      ],
+      "process": [
+        "Submit loan application",
+        "Property appraisal",
+        "Document verification",
+        "Credit investigation",
+        "Loan approval",
+        "Signing of documents",
+        "Release of funds",
+        "Registration of mortgage"
+      ]
+    },
+    "pag_ibig": {
+      "documents": [
+        "Valid ID",
+        "Pag-IBIG MID Number",
+        "Proof of income",
+        "Certificate of Employment",
+        "ITR",
+        "Marriage Certificate (if married)",
+        "Birth Certificate of dependents",
+        "Proof of Billing",
+        "Tax Identification Number (TIN)",
+        "Post-dated checks"
+      ],
+      "requirements": [
+        "Active Pag-IBIG membership for at least 24 months",
+        "At least 24 monthly contributions",
+        "No existing Pag-IBIG housing loan",
+        "Property must be in approved areas",
+        "Must be of legal age (at least 21 years old)",
+        "Filipino citizen"
+      ]
+    },
+    "in_house_financing": {
+      "documents": [
+        "Valid ID",
+        "Proof of Income",
+        "Downpayment (usually 20-30%)",
+        "Post-dated checks",
+        "Employment Certificate",
+        "Buyer Information Sheet",
+        "Proof of Billing",
+        "2x2 ID picture (2 copies)"
+      ],
+      "requirements": [
+        "Legal age (21 years old)",
+        "Proof of financial capacity",
+        "Downpayment ready",
+        "Good payment history (if any existing loans)"
+      ],
+      "advantages": [
+        "Faster approval process (1-3 days)",
+        "Less strict credit requirements",
+        "Flexible payment terms (up to 10 years)",
+        "Direct dealing with developer",
+        "Possible lower interest rates (6-9% annually)",
+        "No bank processing fees",
+        "Easier to negotiate terms"
+      ]
+    },
+    "cash": {
+      "documents": [
+        "Valid ID",
+        "Tax Identification Number (TIN)",
+        "Proof of fund source"
+      ],
+      "advantages": [
+        "Fastest transaction (1-2 weeks)",
+        "Usually get 5-10% discount",
+        "No interest payments",
+        "No bank processing fees",
+        "Stronger negotiating position",
+        "No credit checks required"
+      ]
+    }
   },
   "metadata": {
-    "total_samples": 24,
+    "total_samples": 16,
     "intent_distribution": {
-      "find_property": 8,
-      "financing": 8,
-      "location_info": 8
+      "find_property": 6,
+      "financing": 5,
+      "location_info": 5
     },
-    "created_date": "2024-01-22",
-    "version": "2.0",
-    "training_notes": "Expanded to 8 samples per intent with comprehensive variations"
+    "created_date": "2024-01-24",
+    "version": "4.0",
+    "training_notes": "Comprehensive enhanced version with expanded property types, more locations, detailed financing info, and complete location profiles. Covers all member1 questions (1, 7, 9) with extensive variations and detailed response templates. Added specific condo in Lipa City query and expanded entity dictionary."
   }
 }

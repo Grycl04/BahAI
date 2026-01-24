@@ -963,12 +963,8 @@ async function loadSidebarBasedOnRole(userRole) {
         sidebarFile = 'agent_sidebar.html';
     } else if (userRole === 'broker') {
         sidebarFile = 'broker_sidebar.html';
-    } else if (userRole === 'buyer') {
-        sidebarFile = 'sidebar.html'; // Use default sidebar for buyers
-    } else if (userRole === 'public') {
-        // For public users, either use a public sidebar or none
-        sidebarFile = 'sidebar_public.html';
     }
+    // For other roles (admin, landlord, user) use default sidebar
     
     try {
         const response = await fetch(sidebarFile);
@@ -978,17 +974,12 @@ async function loadSidebarBasedOnRole(userRole) {
         const html = await response.text();
         document.getElementById('sidebar-container').innerHTML = html;
         
-        // Setup logout button only if user is logged in
-        if (userRole !== 'public') {
-            setupLogoutButton();
-        }
+        // Setup logout button
+        setupLogoutButton();
         
         console.log(`✅ Loaded sidebar: ${sidebarFile} for role: ${userRole}`);
     } catch (error) {
         console.error('Error loading sidebar:', error);
-        // Fallback handling...
-    }
-}
         // Fallback to default sidebar
         try {
             const fallbackResponse = await fetch('sidebar.html');
@@ -1020,15 +1011,10 @@ function updateBackButton(userRole) {
         backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Landlord Dashboard';
     } else if (userRole === 'admin') {
         backButton.href = '../admin/admin_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Admin Dashboard';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Buyer Dashboard';
     } else if (userRole === 'buyer') {
-        // For buyers, go back to buyer dashboard
-        backButton.href = '../buyer_dashboard.html';
+        backButton.href = '../buyer/buyer_dashboard.html';
         backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Dashboard';
-    } else if (userRole === 'public') {
-        // For non-logged in users, go to home page
-        backButton.href = '../index.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Home';
     } else {
         // Default for other roles
         backButton.href = '../index.html';
@@ -1553,20 +1539,7 @@ function showCalculatorError(message) {
     `;
     showCalculatorResults(results);
 }
-// Function to load public sidebar (for non-logged in users)
-async function loadPublicSidebar() {
-    try {
-        const response = await fetch('sidebar_public.html');
-        const html = await response.text();
-        document.getElementById('sidebar-container').innerHTML = html;
-    } catch (error) {
-        console.error('Error loading public sidebar:', error);
-        // Hide sidebar container for public users
-        document.getElementById('sidebar-container').innerHTML = '';
-        document.querySelector('.mobile-menu-toggle').style.display = 'none';
-        document.querySelector('.container').style.marginLeft = '0';
-    }
-}
+
 // --- GOOGLE MAPS FUNCTIONS ---
 
 async function loadGoogleMapsAPI() {
@@ -2395,6 +2368,10 @@ function displayError(message) {
         backLink = 'broker_dashboard.html';
         backText = 'Back to Broker Dashboard';
     }
+    else if (currentUserRole === 'buyer') {
+        backLink = 'buyer_dashboard.html';
+        backText = 'Back to Buyer Dashboard';
+    }
     
     container.innerHTML = `
     <div class="error-state">
@@ -2414,7 +2391,7 @@ async function getUserRole(userId) {
         const userDoc = await getDoc(doc(db, "users", userId));
         if (userDoc.exists()) {
             const userData = userDoc.data();
-            return userData.role || userData.userType || 'buyer'; // Default to 'buyer'
+            return userData.role || userData.userType || 'user';
         } else {
             // Check brokers collection
             const brokerDoc = await getDoc(doc(db, "brokers", userId));
@@ -2426,43 +2403,35 @@ async function getUserRole(userId) {
     } catch (error) {
         console.error("Error getting user role:", error);
     }
-    return 'buyer'; // Default role is now 'buyer'
+    return 'user'; // Default role
 }
 
 // --- INITIALIZATION ---
 
 // Check authentication and load property details
 onAuthStateChanged(auth, async (user) => {
-    let userRole = 'buyer'; // Default role for non-logged in users
-    
-    if (user) {
-        // User is logged in, get their role
-        try {
-            userRole = await getUserRole(user.uid);
-            console.log(`👤 User role detected: ${userRole}`);
-        } catch (error) {
-            console.error("Error getting user role:", error);
-            userRole = 'buyer'; // Fallback to buyer
-        }
-        
-        // Load appropriate sidebar
-        await window.loadSidebarBasedOnRole(userRole);
-    } else {
-        // User is not logged in - show public view
-        console.log("👤 User not logged in, showing public view");
-        userRole = 'public';
-        
-        // Load public sidebar or no sidebar
-        await loadPublicSidebar();
+    if (!user) {
+        window.location.href = "login.html";
+        return;
     }
     
-    currentUserRole = userRole;
-    
-    // Update back button based on role
-    window.updateBackButton(currentUserRole);
-    
-    // Load property details
-    await loadPropertyDetails();
+    try {
+        // Get user role
+        currentUserRole = await getUserRole(user.uid);
+        console.log(`👤 User role detected: ${currentUserRole}`);
+        
+        // Load appropriate sidebar
+        await window.loadSidebarBasedOnRole(currentUserRole);
+        
+        // Update back button based on role
+        window.updateBackButton(currentUserRole);
+        
+        // Load property details
+        await loadPropertyDetails();
+    } catch (error) {
+        console.error("Error in initialization:", error);
+        displayError("Failed to load property details. Please refresh the page.");
+    }
 });
 
 // Export for global use if needed

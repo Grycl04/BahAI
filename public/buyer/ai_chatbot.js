@@ -228,7 +228,7 @@ function displayPropertiesInChat(properties) {
                         ${area && area !== 'N/A' ? `<span>📐 ${area} sqm</span>` : ''}
                     </div>
                     <p class="price">${price}</p>
-                    <a href="../broker/property_details.html?id=${prop.id}" target="_blank" class="view-btn">View Details</a>
+                    <a href="property_details.html?id=${prop.id}" target="_blank" class="view-btn">View Details</a>
                 </div>
             </div>
         `;
@@ -409,8 +409,9 @@ function addDemoPrompts() {
         `;
     }
     
-    demoSection.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+demoSection.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <div style="font-size: 14px; color: var(--text-dark); font-weight: 600;">
                 <i class="fas fa-bolt"></i> Quick Prompts
             </div>
@@ -418,13 +419,17 @@ function addDemoPrompts() {
                 All 10 Questions Covered
             </div>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            ${buttonsHTML}
+        <div style="font-size: 11px; color: #888;">
+            Click any prompt to try
         </div>
-        <div style="margin-top: 12px; font-size: 11px; color: #888; text-align: center;">
-            Click any prompt to try • Prompts change on refresh
-        </div>
-    `;
+    </div>
+    <div style="display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: thin;">
+        ${buttonsHTML}
+    </div>
+    <div style="margin-top: 8px; font-size: 11px; color: #888; text-align: center;">
+        Prompts change on refresh
+    </div>
+`;
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     

@@ -1,87 +1,19 @@
 {
   "additional_samples": [
     {
-      "text": "properties with swimming pool",
-      "intent": "find_with_feature"
+      "text": "properties that accept bank financing",
+      "intent": "financing"
     },
     {
-      "text": "houses with pool",
-      "intent": "find_with_feature"
+      "text": "houses that accept bank loans",
+      "intent": "financing"
     },
     {
-      "text": "apartments with swimming pool",
-      "intent": "find_with_feature"
+      "text": "how to get bank financing",
+      "intent": "financing"
     },
     {
-      "text": "condos with pool facility",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "homes with swimming pool",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "properties featuring pool",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "pool properties for sale",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "houses with private pool",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "properties with garden",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "homes with backyard",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "properties with parking space",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "houses with garage",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "apartments with elevator",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "properties with security",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "houses with wifi",
-      "intent": "find_with_feature"
-    },
-    {
-      "text": "properties near batangas port",
-      "intent": "find_near_landmark"
-    },
-    {
-      "text": "houses close to malls",
-      "intent": "find_near_landmark"
-    },
-    {
-      "text": "apartments near hospitals",
-      "intent": "find_near_landmark"
-    },
-    {
-      "text": "condos near schools",
-      "intent": "find_near_landmark"
-    },
-    {
-      "text": "properties around universities",
-      "intent": "find_near_landmark"
-    },
-    {
-      "text": "how to get bank loan",
+      "text": "bank financing requirements",
       "intent": "financing"
     },
     {
@@ -89,36 +21,104 @@
       "intent": "financing"
     },
     {
-      "text": "mortgage application process",
-      "intent": "financing"
+      "text": "ready to move in properties",
+      "intent": "find_ready_property"
     },
     {
-      "text": "bank financing options",
-      "intent": "financing"
+      "text": "available now properties",
+      "intent": "find_ready_property"
     },
     {
-      "text": "in-house financing terms",
-      "intent": "financing"
+      "text": "immediate occupancy houses",
+      "intent": "find_ready_property"
     },
     {
-      "text": "steps for property purchase",
+      "text": "move in ready condos",
+      "intent": "find_ready_property"
+    },
+    {
+      "text": "ready for occupancy apartments",
+      "intent": "find_ready_property"
+    },
+    {
+      "text": "steps for buying",
       "intent": "process_info"
     },
     {
-      "text": "buying process timeline",
+      "text": "how to buy a property",
       "intent": "process_info"
     },
     {
-      "text": "property acquisition steps",
+      "text": "property purchase process",
       "intent": "process_info"
     },
     {
-      "text": "how to buy a condo",
+      "text": "timeline for buying a house",
       "intent": "process_info"
     },
     {
-      "text": "house purchase procedure",
+      "text": "requirements for property purchase",
       "intent": "process_info"
+    },
+    {
+      "text": "properties with swimming pool",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "houses with garden",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "apartments with parking",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "condos with security",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties with wifi",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "properties near schools",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "houses near malls",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "apartments near hospitals",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "condos near beaches",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "properties near churches",
+      "intent": "find_near_landmark"
+    },
+    {
+      "text": "tell me about batangas city",
+      "intent": "location_info"
+    },
+    {
+      "text": "what is lipa city like",
+      "intent": "location_info"
+    },
+    {
+      "text": "describe tanauan city",
+      "intent": "location_info"
+    },
+    {
+      "text": "information about nasugbu",
+      "intent": "location_info"
+    },
+    {
+      "text": "living in san juan",
+      "intent": "location_info"
     }
   ]
 }

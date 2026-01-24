@@ -2922,6 +2922,71 @@ button.save-property-btn:not(.listing-card-image-container button) {
   animation: slideUp 0.5s ease;
 }
 
+/* Quick Prompts Horizontal Layout */
+.demo-prompts-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: flex-start !important;
+}
+
+.demo-prompt-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+}
+
+/* Make sure the demo prompts section doesn't have any flex column styling */
+.demo-prompts {
+    display: block !important;
+}
+
+.demo-prompts > div:first-child {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+}
+
+/* Horizontal grid layout for the buttons */
+.demo-prompts-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Alternative: Flexbox horizontal scrolling if you want them in a single row */
+@media (min-width: 768px) {
+    .demo-prompts-buttons {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        padding-bottom: 10px !important;
+        scrollbar-width: thin !important;
+    }
+    
+    .demo-prompts-buttons::-webkit-scrollbar {
+        height: 6px !important;
+    }
+    
+    .demo-prompts-buttons::-webkit-scrollbar-track {
+        background: rgba(102, 126, 234, 0.1) !important;
+        border-radius: 3px !important;
+    }
+    
+    .demo-prompts-buttons::-webkit-scrollbar-thumb {
+        background: rgba(102, 126, 234, 0.3) !important;
+        border-radius: 3px !important;
+    }
+    
+    .demo-prompts-buttons::-webkit-scrollbar-thumb:hover {
+        background: rgba(102, 126, 234, 0.5) !important;
+    }
+}
+
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

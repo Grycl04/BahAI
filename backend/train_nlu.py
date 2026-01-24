@@ -5,7 +5,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 import pickle
 import os
 import glob
@@ -34,8 +34,8 @@ class TeamNLUTrainer:
         # Create pipeline with improved parameters
         self.pipeline = Pipeline([
             ('tfidf', TfidfVectorizer(
-                ngram_range=(1, 3),  # Changed from (1,2) to (1,3)
-                max_features=2000,    # Increased from 1500
+                ngram_range=(1, 3),
+                max_features=2500,
                 stop_words='english',
                 min_df=2,
                 max_df=0.8
@@ -44,8 +44,8 @@ class TeamNLUTrainer:
                 kernel='linear',
                 probability=True,
                 random_state=42,
-                C=1.0,  # Added regularization parameter
-                class_weight='balanced'  # Handle class imbalance
+                C=1.0,
+                class_weight='balanced'
             ))
         ])
         
@@ -56,7 +56,7 @@ class TeamNLUTrainer:
             'member3': ['find_property_for_need', 'find_with_feature', 'process_info', 'match_needs']
         }
         
-        # Template to intent mapping (updated with correct mapping)
+        # Template to intent mapping
         self.template_intent_map = {
             'question_1': 'find_property',
             'question_2': 'find_property_with_criteria',
@@ -83,12 +83,43 @@ class TeamNLUTrainer:
             'financing_info': 'financing',
             'financing': 'financing',
             'find_property': 'find_property',
-            
-            # Add these for better classification
-            'villa': 'find_property',  # "properties with villa" should be find_property
-            'steps': 'process_info',   # "steps for buying" should be process_info
-            'how to': 'process_info',  # "how to get mortgage" should be financing or process_info
-            'ready': 'find_ready_property',  # "ready to move" should be find_ready_property
+        }
+        
+        # Intent keywords for better classification
+        self.intent_keywords = {
+            'financing': ['accept bank financing', 'accept financing', 'bank loan', 
+                         'mortgage', 'pag-ibig', 'payment method', 'financing type',
+                         'documents needed', 'requirements for', 'how to get',
+                         'what documents', 'loan requirements', 'bank financing'],
+            'find_ready_property': ['ready to move in', 'ready for occupancy', 
+                                   'available now', 'immediate occupancy', 
+                                   'move in ready', 'ready now', 'ready to occupy',
+                                   'immediate move in', 'available immediately'],
+            'process_info': ['steps for', 'how to', 'process of', 'procedure', 
+                            'timeline', 'requirements', 'documents', 'steps to',
+                            'how do i', 'what are the steps', 'costs for',
+                            'timeline for', 'process for'],
+            'find_with_feature': ['with swimming pool', 'with pool', 'with garden', 
+                                 'with parking', 'with elevator', 'with security',
+                                 'with wifi', 'with furniture', 'with aircon',
+                                 'with feature', 'featuring', 'having'],
+            'find_near_landmark': ['near schools', 'near mall', 'near hospital', 
+                                  'near port', 'near beach', 'near church',
+                                  'near landmark', 'close to', 'around',
+                                  'beside', 'next to', 'adjacent to'],
+            'location_info': ['tell me about', 'what is', 'describe', 'about the',
+                             'information about', 'living in', 'like to live',
+                             'what\'s it like', 'is it good', 'lifestyle'],
+            'find_property': ['find', 'search for', 'show me', 'looking for',
+                             'need', 'want', 'locate', 'discover'],
+            'find_property_for_need': ['for family', 'for students', 'for professionals',
+                                      'for couple', 'for retirees', 'for business',
+                                      'for investors', 'for single', 'for workers'],
+            'find_property_with_criteria': ['under', 'below', 'less than', 'with bedrooms',
+                                           'with bathroom', 'with price', 'budget',
+                                           'affordable', 'cheap', 'maximum'],
+            'match_needs': ['match my', 'suitable for', 'fitting my', 'appropriate for',
+                           'compatible with', 'what matches', 'recommendations for']
         }
         
         # Load Batangas data for location training
@@ -113,7 +144,6 @@ class TeamNLUTrainer:
     def clean_json_file(self, filepath):
         """Fix JSON file by properly loading and saving it"""
         try:
-            # Read the file
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             
@@ -121,45 +151,19 @@ class TeamNLUTrainer:
             content = re.sub(r',\s*}', '}', content)
             content = re.sub(r',\s*]', ']', content)
             
-            # Fix comment lines (remove // comments)
-            lines = content.split('\n')
-            cleaned_lines = []
-            for line in lines:
-                # Remove // comments
-                if '//' in line:
-                    line = line.split('//')[0]
-                cleaned_lines.append(line.strip())
-            
-            # Join lines
-            content = '\n'.join(cleaned_lines)
-            
             # Parse the JSON
             try:
                 data = json.loads(content)
-            except json.JSONDecodeError as e:
-                logger.error(f"❌ JSON parsing failed for {filepath}: {e}")
-                
+            except json.JSONDecodeError:
                 # Try to fix by finding the problematic section
-                # Remove any empty lines
-                content = '\n'.join([line for line in content.split('\n') if line.strip()])
-                
-                # Try to load it as a string and manually parse
-                # Look for specific patterns that might be causing issues
-                content = re.sub(r'(\w+):', r'"\1":', content)  # Add quotes to unquoted keys
-                
-                try:
-                    data = json.loads(content)
-                except:
-                    # Last resort: create minimal valid JSON
-                    logger.warning(f"⚠️ Creating minimal valid JSON for {filepath}")
-                    data = {
-                        "member_id": "member1",
-                        "assigned_questions": [],
-                        "training_samples": [],
-                        "entity_dictionary": {},
-                        "response_templates": {},
-                        "metadata": {}
-                    }
+                lines = content.split('\n')
+                cleaned_lines = []
+                for line in lines:
+                    if '//' in line:
+                        line = line.split('//')[0]
+                    cleaned_lines.append(line.strip())
+                content = '\n'.join(cleaned_lines)
+                data = json.loads(content)
             
             # Write it back with proper formatting
             with open(filepath, 'w', encoding='utf-8') as f:
@@ -177,50 +181,41 @@ class TeamNLUTrainer:
         if not text:
             return ""
         
+        original_text = text.lower()
         text = str(text).lower()
         
-        # Preserve important intent keywords
-        intent_keywords = {
-            'process_info': ['steps', 'process', 'procedure', 'timeline', 'how to', 'buying', 'purchase'],
-            'financing': ['financing', 'mortgage', 'loan', 'pag-ibig', 'bank', 'payment', 'installment'],
-            'find_with_feature': ['with', 'featuring', 'having', 'includes', 'equipped'],
-            'find_near_landmark': ['near', 'close to', 'around', 'beside', 'adjacent to'],
-            'find_ready_property': ['ready', 'available now', 'immediate', 'move in'],
-            'location_info': ['about', 'describe', 'tell me about', 'what is', 'like to live'],
-        }
-        
-        # Keep original text for important keywords
-        preserved_text = text
+        # First, preserve important intent patterns by marking them
+        text = self.mark_intent_keywords(text, original_text)
         
         # Remove special characters but keep spaces and basic punctuation
-        text = re.sub(r'[^\w\s\?\.]', ' ', text)
+        text = re.sub(r'[^\w\s\?\.\-\:]', ' ', text)
         
         # Remove extra spaces
         text = re.sub(r'\s+', ' ', text).strip()
         
-        # If spaCy is loaded, do lemmatization but preserve intent keywords
+        # If spaCy is loaded, do lemmatization
         if self.nlp:
             doc = self.nlp(text)
             tokens = []
             for token in doc:
-                token_text = token.text.lower()
-                
-                # Check if this token is an important keyword
-                is_important = False
-                for intent, keywords in intent_keywords.items():
-                    if any(keyword in preserved_text for keyword in keywords):
-                        # If the query contains important keywords for this intent,
-                        # preserve the original words
-                        is_important = True
-                        break
-                
-                if is_important and token_text in preserved_text:
-                    tokens.append(token_text)  # Keep original
-                elif not token.is_stop and not token.is_punct:
+                if not token.is_stop and not token.is_punct:
                     tokens.append(token.lemma_)
             return ' '.join(tokens)
         
         return text
+    
+    def mark_intent_keywords(self, text, original_text):
+        """Mark intent keywords in the text"""
+        marked_text = text
+        
+        # Check each intent for keywords
+        for intent, keywords in self.intent_keywords.items():
+            for keyword in keywords:
+                if keyword in original_text:
+                    # Replace with marked version
+                    marked_text = marked_text.replace(keyword, f"{keyword}_INTENT_{intent}")
+        
+        return marked_text
 
     def load_member_data(self, base_path='data'):
         """Load training data from all team members"""
@@ -266,23 +261,97 @@ class TeamNLUTrainer:
                 
                 print(f"   ✅ Loaded {len(samples)} samples from {member_name}")
                 
-            except json.JSONDecodeError as e:
-                print(f"   ❌ JSON Error in {member_file}: {e}")
-                # Try alternative loading
-                try:
-                    with open(member_file, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        # Remove problematic characters more aggressively
-                        content = re.sub(r'[^\x20-\x7E]', ' ', content)
-                        data = json.loads(content)
-                    
-                    samples = data.get('training_samples', [])
-                    print(f"   ✅ Loaded {len(samples)} samples after cleaning")
-                except Exception as e2:
-                    print(f"   ❌ Failed to load {member_file}: {e2}")
             except Exception as e:
                 print(f"   ❌ Error loading {member_file}: {e}")
         
+        return texts, intents
+
+    def add_corrective_training_samples(self):
+        """Add specific training samples to fix common misclassifications"""
+        print("\n🔧 Adding corrective training samples...")
+        
+        corrective_samples = [
+            # Financing intent fixes
+            ("properties that accept bank financing", "financing"),
+            ("show me properties that accept bank financing", "financing"),
+            ("houses that accept bank loans", "financing"),
+            ("properties with bank financing options", "financing"),
+            ("real estate that accepts pag-ibig", "financing"),
+            ("condos with in-house financing", "financing"),
+            ("how to get bank financing for a house", "financing"),
+            ("what documents for pag-ibig loan", "financing"),
+            ("bank financing requirements", "financing"),
+            ("properties accepting cash payment", "financing"),
+            
+            # Ready to move property fixes
+            ("find ready to move in properties for students in batangas city", "find_ready_property"),
+            ("ready to occupy apartments for students", "find_ready_property"),
+            ("available now properties for family", "find_ready_property"),
+            ("immediate occupancy houses", "find_ready_property"),
+            ("move in ready condos for professionals", "find_ready_property"),
+            ("properties ready now for couples", "find_ready_property"),
+            ("ready for occupancy commercial spaces", "find_ready_property"),
+            ("available immediately near schools", "find_ready_property"),
+            ("ready to move in with furniture", "find_ready_property"),
+            ("properties ready for move in", "find_ready_property"),
+            
+            # Process info fixes
+            ("steps for buying a condo", "process_info"),
+            ("how to buy a house step by step", "process_info"),
+            ("process of purchasing property", "process_info"),
+            ("timeline for renting an apartment", "process_info"),
+            ("requirements for commercial space lease", "process_info"),
+            ("documents needed for house purchase", "process_info"),
+            ("procedure for getting a mortgage", "process_info"),
+            ("what are the steps to invest in real estate", "process_info"),
+            ("how does the property buying process work", "process_info"),
+            ("steps costs timeline for townhouse", "process_info"),
+            
+            # With feature fixes
+            ("properties with swimming pool", "find_with_feature"),
+            ("houses with garden", "find_with_feature"),
+            ("apartments with parking space", "find_with_feature"),
+            ("condos with security", "find_with_feature"),
+            ("properties featuring pool", "find_with_feature"),
+            ("homes with private pool", "find_with_feature"),
+            ("units with elevator", "find_with_feature"),
+            ("properties with wifi included", "find_with_feature"),
+            ("houses with home office", "find_with_feature"),
+            ("apartments with furniture", "find_with_feature"),
+            
+            # Near landmark fixes
+            ("properties near schools", "find_near_landmark"),
+            ("houses close to malls", "find_near_landmark"),
+            ("apartments near hospitals", "find_near_landmark"),
+            ("condos near batangas port", "find_near_landmark"),
+            ("properties around universities", "find_near_landmark"),
+            ("real estate near beaches", "find_near_landmark"),
+            ("housing near industrial parks", "find_near_landmark"),
+            ("properties adjacent to churches", "find_near_landmark"),
+            ("homes near business districts", "find_near_landmark"),
+            ("apartments near transport hubs", "find_near_landmark"),
+            
+            # Location info fixes
+            ("tell me about batangas city", "location_info"),
+            ("what is lipa city like", "location_info"),
+            ("describe tanauan city", "location_info"),
+            ("information about nasugbu", "location_info"),
+            ("living in san juan batangas", "location_info"),
+            ("about calatagan", "location_info"),
+            ("what's it like to live in taal", "location_info"),
+            ("describe mabini batangas", "location_info"),
+            ("is sto tomas a good place to live", "location_info"),
+            ("tell me about the lifestyle in malvar", "location_info"),
+        ]
+        
+        texts = []
+        intents = []
+        
+        for text, intent in corrective_samples:
+            texts.append(self.preprocess_text(text))
+            intents.append(intent)
+        
+        print(f"   ✅ Added {len(texts)} corrective samples")
         return texts, intents
 
     def load_shared_questions(self, shared_path='data/shared'):
@@ -317,15 +386,9 @@ class TeamNLUTrainer:
                     templates_loaded += 1
                 
                 # Add templates
-                templates = q_data.get('templates', [])
-                if isinstance(templates, list):
-                    for template in templates:
-                        if isinstance(template, str) and template.strip():
-                            texts.append(self.preprocess_text(template))
-                            intents.append(intent)
-                            templates_loaded += 1
-                elif isinstance(templates, str) and templates.strip():
-                    texts.append(self.preprocess_text(templates))
+                template = q_data.get('template', '')
+                if template:
+                    texts.append(self.preprocess_text(template))
                     intents.append(intent)
                     templates_loaded += 1
             
@@ -360,11 +423,6 @@ class TeamNLUTrainer:
                 'location_specific': 'location_info',
                 'feature_requests': 'find_with_feature',
                 'process_questions': 'process_info',
-                'property_inquiry': 'find_property',
-                'budget_planning': 'financing',
-                'area_info': 'location_info',
-                'amenity_requests': 'find_with_feature',
-                'buying_process': 'process_info'
             }
             
             # Use phrases section
@@ -372,47 +430,10 @@ class TeamNLUTrainer:
             for category, phrase_list in phrases.items():
                 if isinstance(phrase_list, list):
                     intent = phrase_intent_map.get(category, 'find_property')
-                    for phrase in phrase_list[:10]:  # Limit to 10 per category
+                    for phrase in phrase_list[:5]:
                         if isinstance(phrase, str) and phrase.strip():
                             texts.append(self.preprocess_text(phrase))
                             intents.append(intent)
-            
-            # Use synonyms to generate variations
-            synonyms = data.get('synonyms', {})
-            base_queries = [
-                "find apartments in batangas",
-                "show me houses for sale",
-                "properties near school",
-                "how much is the rent",
-                "tell me about lipa city",
-                "steps for buying a house",
-                "ready to move in properties"
-            ]
-            
-            for query in base_queries:
-                # Map query to intent
-                query_intent = 'find_property'
-                if 'how much' in query or 'rent' in query:
-                    query_intent = 'financing'
-                elif 'tell me about' in query:
-                    query_intent = 'location_info'
-                elif 'steps' in query:
-                    query_intent = 'process_info'
-                elif 'ready to move' in query:
-                    query_intent = 'find_ready_property'
-                
-                # Add base query
-                texts.append(self.preprocess_text(query))
-                intents.append(query_intent)
-                
-                # Generate variations with synonyms
-                for category, synonym_list in synonyms.items():
-                    if isinstance(synonym_list, list):
-                        for synonym in synonym_list[:3]:  # Limit to 3 synonyms per category
-                            if isinstance(synonym, str):
-                                variation = query.replace(category, synonym)
-                                texts.append(self.preprocess_text(variation))
-                                intents.append(query_intent)
             
             print(f"   ✅ Generated {len(texts)} samples from synonyms")
             
@@ -433,58 +454,25 @@ class TeamNLUTrainer:
         
         # Get locations from batangas data
         locations = self.batangas_data.get('batangas_locations', {})
-        landmark_categories = self.batangas_data.get('landmark_categories', {})
         
         # Generate location-specific queries
         for location_name, location_data in locations.items():
-            # Location info queries
-            texts.append(f"tell me about {location_name.lower()}")
-            intents.append('location_info')
-            
-            texts.append(f"information about {location_name.lower()}")
-            intents.append('location_info')
-            
-            texts.append(f"what's in {location_name.lower()}")
-            intents.append('location_info')
-            
-            # Find property queries with specific locations
-            texts.append(f"find properties in {location_name.lower()}")
-            intents.append('find_property')
-            
-            texts.append(f"show me houses in {location_name.lower()}")
-            intents.append('find_property')
-            
-            texts.append(f"apartments for rent in {location_name.lower()}")
-            intents.append('find_property')
-            
-            # Add variations with different property types
-            property_types = location_data.get('property_types_common', [])
-            for prop_type in property_types[:3]:  # Limit to 3 property types
-                if isinstance(prop_type, str):
-                    texts.append(f"find {prop_type} in {location_name.lower()}")
-                    intents.append('find_property')
-        
-        # Generate landmark-related queries
-        for category, landmarks in landmark_categories.items():
-            for landmark in landmarks[:5]:  # Limit to 5 landmarks per category
-                if isinstance(landmark, str):
-                    texts.append(f"properties near {landmark.lower()}")
-                    intents.append('find_near_landmark')
-                    
-                    texts.append(f"houses close to {landmark.lower()}")
-                    intents.append('find_near_landmark')
-                    
-                    texts.append(f"apartments around {landmark.lower()}")
-                    intents.append('find_near_landmark')
-        
-        # Generate property feature queries
-        property_categories = self.batangas_data.get('property_categories', {})
-        residential_types = property_categories.get('residential', [])
-        
-        for prop_type in residential_types[:5]:
-            if isinstance(prop_type, str):
-                texts.append(f"properties with {prop_type}")
-                intents.append('find_with_feature')
+            if isinstance(location_name, str):
+                loc_name = location_name.lower()
+                
+                # Location info queries
+                texts.append(f"tell me about {loc_name}")
+                intents.append('location_info')
+                
+                texts.append(f"what is {loc_name} like")
+                intents.append('location_info')
+                
+                # Find property queries
+                texts.append(f"find properties in {loc_name}")
+                intents.append('find_property')
+                
+                texts.append(f"show me houses in {loc_name}")
+                intents.append('find_property')
         
         print(f"   ✅ Generated {len(texts)} samples from Batangas data")
         return texts, intents
@@ -520,31 +508,29 @@ class TeamNLUTrainer:
         new_texts = []
         new_intents = []
         
-        # Common variations to generate (limit to first 50 to avoid too many)
-        for i, (text, intent) in enumerate(zip(texts[:50], intents[:50])):
-            # Add question mark variations
+        # Limit to avoid too many samples
+        limit = min(50, len(texts))
+        
+        for i in range(limit):
+            text = texts[i]
+            intent = intents[i]
+            
+            # Add question variation
             if not text.endswith('?'):
                 new_texts.append(text + '?')
                 new_intents.append(intent)
             
-            # Add "please" variations
-            if not text.startswith('please'):
-                new_texts.append('please ' + text)
-                new_intents.append(intent)
-            
-            # Add "can you" variations
-            if not text.startswith('can you'):
-                new_texts.append('can you ' + text)
-                new_intents.append(intent)
-            
-            # Add "i need" variations
-            new_texts.append('i need ' + text)
+            # Add "please" variation
+            new_texts.append('please ' + text)
             new_intents.append(intent)
             
-            # Add "looking for" variations for find intents
-            if intent.startswith('find'):
-                new_texts.append('looking for ' + text.replace('find ', '').replace('show me ', '').replace('search for ', ''))
-                new_intents.append(intent)
+            # Add "can you" variation
+            new_texts.append('can you ' + text)
+            new_intents.append(intent)
+            
+            # Add "i need" variation
+            new_texts.append('i need ' + text)
+            new_intents.append(intent)
         
         return new_texts, new_intents
 
@@ -562,42 +548,57 @@ class TeamNLUTrainer:
         member_texts, member_intents = self.load_member_data(base_path)
         all_texts.extend(member_texts)
         all_intents.extend(member_intents)
+        print(f"   ✅ Loaded {len(member_texts)} samples")
         print(f"   Total so far: {len(all_texts)} samples")
         
-        # 2. Load shared questions
-        print("\n📁 Source 2: Shared Question Templates")
+        # 2. Add corrective training samples (FIX for your issues)
+        print("\n📁 Source 2: Corrective Training Samples")
+        corrective_texts, corrective_intents = self.add_corrective_training_samples()
+        all_texts.extend(corrective_texts)
+        all_intents.extend(corrective_intents)
+        print(f"   ✅ Added {len(corrective_texts)} corrective samples")
+        print(f"   Total so far: {len(all_texts)} samples")
+        
+        # 3. Load shared questions
+        print("\n📁 Source 3: Shared Question Templates")
         shared_path = os.path.join(base_path, 'shared')
         question_texts, question_intents = self.load_shared_questions(shared_path)
         all_texts.extend(question_texts)
         all_intents.extend(question_intents)
+        print(f"   ✅ Generated {len(question_texts)} samples")
         print(f"   Total so far: {len(all_texts)} samples")
         
-        # 3. Load synonyms as training data
-        print("\n📁 Source 3: Synonyms and Phrases")
+        # 4. Load synonyms as training data
+        print("\n📁 Source 4: Synonyms and Phrases")
         synonym_texts, synonym_intents = self.load_synonyms_as_training(shared_path)
         all_texts.extend(synonym_texts)
         all_intents.extend(synonym_intents)
+        print(f"   ✅ Generated {len(synonym_texts)} samples")
         print(f"   Total so far: {len(all_texts)} samples")
         
-        # 4. Load Batangas data for training
-        print("\n📁 Source 4: Batangas Location Data")
+        # 5. Load Batangas data for training
+        print("\n📁 Source 5: Batangas Location Data")
         batangas_texts, batangas_intents = self.load_batangas_training()
         all_texts.extend(batangas_texts)
         all_intents.extend(batangas_intents)
+        print(f"   ✅ Generated {len(batangas_texts)} samples")
         print(f"   Total so far: {len(all_texts)} samples")
         
-        # 5. Load additional training data
-        print("\n📁 Source 5: Additional Training Data")
+        # 6. Load additional training data
+        print("\n📁 Source 6: Additional Training Data")
         additional_texts, additional_intents = self.load_additional_training()
         all_texts.extend(additional_texts)
         all_intents.extend(additional_intents)
+        if additional_texts:
+            print(f"   ✅ Loaded {len(additional_texts)} samples")
         print(f"   Total so far: {len(all_texts)} samples")
         
-        # 6. Generate additional variations
-        print("\n📁 Source 6: Generated Variations")
+        # 7. Generate additional variations
+        print("\n📁 Source 7: Generated Variations")
         generated_texts, generated_intents = self.generate_additional_variations(all_texts, all_intents)
         all_texts.extend(generated_texts)
         all_intents.extend(generated_intents)
+        print(f"   ✅ Generated {len(generated_texts)} variations")
         
         print("="*60)
         print(f"📊 FINAL TRAINING DATA STATISTICS")
@@ -634,8 +635,9 @@ class TeamNLUTrainer:
         balanced_texts = []
         balanced_intents = []
         
-        # Find maximum class count
-        max_count = max(intent_counts.values())
+        # Find target count (average of top 3 classes)
+        sorted_counts = sorted(intent_counts.values(), reverse=True)
+        target_count = int(np.mean(sorted_counts[:3]))
         
         for intent in intent_counts:
             # Get all samples for this intent
@@ -643,24 +645,16 @@ class TeamNLUTrainer:
                              for text, intent_label in zip(training_texts, training_intents) 
                              if intent_label == intent]
             
+            # Add original samples
+            for text, intent_label in intent_samples:
+                balanced_texts.append(text)
+                balanced_intents.append(intent_label)
+            
             # If this class has fewer samples, oversample it
-            if len(intent_samples) < max_count:
-                # Calculate how many additional samples needed
-                needed = max_count - len(intent_samples)
-                
-                # Add original samples
-                for text, intent_label in intent_samples:
-                    balanced_texts.append(text)
-                    balanced_intents.append(intent_label)
-                
-                # Add oversampled samples
+            if len(intent_samples) < target_count:
+                needed = target_count - len(intent_samples)
                 for _ in range(needed):
                     text, intent_label = random.choice(intent_samples)
-                    balanced_texts.append(text)
-                    balanced_intents.append(intent_label)
-            else:
-                # Add all samples as is
-                for text, intent_label in intent_samples:
                     balanced_texts.append(text)
                     balanced_intents.append(intent_label)
         
@@ -689,6 +683,19 @@ class TeamNLUTrainer:
         print(f"📈 Training accuracy: {train_accuracy:.2%}")
         print(f"📈 Validation accuracy: {val_accuracy:.2%}")
         
+        # Show classification report for problematic intents
+        problem_intents = ['financing', 'find_ready_property', 'process_info']
+        problem_mask = [y in problem_intents for y in y_val]
+        
+        if any(problem_mask):
+            X_val_problem = [X_val[i] for i in range(len(X_val)) if problem_mask[i]]
+            y_val_problem = [y_val[i] for i in range(len(y_val)) if problem_mask[i]]
+            
+            if X_val_problem:
+                val_problem_predictions = self.pipeline.predict(X_val_problem)
+                print(f"\n🔍 Classification report for problem intents:")
+                print(classification_report(y_val_problem, val_problem_predictions))
+        
         # Show misclassified examples
         misclassified = []
         for i, (true, pred) in enumerate(zip(y_val, val_predictions)):
@@ -701,8 +708,10 @@ class TeamNLUTrainer:
         
         if misclassified:
             print(f"\n⚠️  Found {len(misclassified)} misclassified validation samples:")
-            for i, case in enumerate(misclassified[:5]):  # Show first 5
-                print(f"   {i+1}. '{case['text'][:50]}...' → True: {case['true']}, Pred: {case['pred']}")
+            for i, case in enumerate(misclassified[:10]):
+                display_text = case['text'][:60] + '...' if len(case['text']) > 60 else case['text']
+                print(f"   {i+1}. '{display_text}'")
+                print(f"       → True: {case['true']}, Pred: {case['pred']}")
         
         return True
 
@@ -712,11 +721,12 @@ class TeamNLUTrainer:
             'vectorizer': self.pipeline.named_steps['tfidf'],
             'classifier': self.pipeline.named_steps['classifier'],
             'classes': self.pipeline.classes_.tolist(),
-            'version': '3.3',  # Updated version
+            'version': '3.4',  # Updated version
             'training_date': datetime.now().isoformat(),
             'feature_count': len(self.pipeline.named_steps['tfidf'].get_feature_names_out()),
             'intent_mapping': self.intent_mapping,
             'template_intent_map': self.template_intent_map,
+            'intent_keywords': self.intent_keywords,
             'batangas_data_loaded': bool(self.batangas_data)
         }
         
@@ -736,12 +746,26 @@ class TeamNLUTrainer:
         return model_path
 
 def test_predictions(trainer, test_queries):
-    """Test model predictions"""
+    """Test model predictions with the specific problematic queries"""
     print("\n" + "="*60)
-    print("🧪 TESTING PREDICTIONS")
+    print("🧪 TESTING PROBLEMATIC QUERIES")
     print("="*60)
     
-    for query in test_queries:
+    # Test the specific queries that were misclassified
+    specific_queries = [
+        "Properties that accept bank financing",
+        "Find ready to move in properties for students in Batangas City",
+        "Steps for buying a condo",
+        "properties with swimming pool",
+        "properties near schools",
+        "how to get mortgage",
+        "tell me about lipa city",
+        "available now apartments",
+        "houses for big family",
+        "condos near malls"
+    ]
+    
+    for query in specific_queries:
         try:
             intent = trainer.pipeline.predict([query])[0]
             proba = trainer.pipeline.predict_proba([query])[0]
@@ -759,44 +783,57 @@ def test_predictions(trainer, test_queries):
                     if idx != intent_idx:
                         intent_name = trainer.pipeline.classes_[idx]
                         intent_prob = proba[idx] * 100
-                        print(f"     • {intent_name}: {intent_prob:.1f}%")
+                        if intent_prob > 10:  # Only show significant alternatives
+                            print(f"     • {intent_name}: {intent_prob:.1f}%")
+            print()
         except Exception as e:
             print(f"❌ Error predicting '{query}': {e}")
 
 def create_additional_training_file():
-    """Create additional training data file to fix common issues"""
+    """Create/update additional training data file"""
     additional_data = {
         "additional_samples": [
-            {"text": "properties with swimming pool", "intent": "find_with_feature"},
-            {"text": "houses with pool", "intent": "find_with_feature"},
-            {"text": "apartments with swimming pool", "intent": "find_with_feature"},
-            {"text": "condos with pool facility", "intent": "find_with_feature"},
-            {"text": "homes with swimming pool", "intent": "find_with_feature"},
-            {"text": "properties featuring pool", "intent": "find_with_feature"},
-            {"text": "pool properties for sale", "intent": "find_with_feature"},
-            {"text": "houses with private pool", "intent": "find_with_feature"},
-            {"text": "properties with garden", "intent": "find_with_feature"},
-            {"text": "homes with backyard", "intent": "find_with_feature"},
-            {"text": "properties with parking space", "intent": "find_with_feature"},
-            {"text": "houses with garage", "intent": "find_with_feature"},
-            {"text": "apartments with elevator", "intent": "find_with_feature"},
-            {"text": "properties with security", "intent": "find_with_feature"},
-            {"text": "houses with wifi", "intent": "find_with_feature"},
-            {"text": "properties near batangas port", "intent": "find_near_landmark"},
-            {"text": "houses close to malls", "intent": "find_near_landmark"},
-            {"text": "apartments near hospitals", "intent": "find_near_landmark"},
-            {"text": "condos near schools", "intent": "find_near_landmark"},
-            {"text": "properties around universities", "intent": "find_near_landmark"},
-            {"text": "how to get bank loan", "intent": "financing"},
+            # Financing samples
+            {"text": "properties that accept bank financing", "intent": "financing"},
+            {"text": "houses that accept bank loans", "intent": "financing"},
+            {"text": "how to get bank financing", "intent": "financing"},
+            {"text": "bank financing requirements", "intent": "financing"},
             {"text": "pag-ibig financing requirements", "intent": "financing"},
-            {"text": "mortgage application process", "intent": "financing"},
-            {"text": "bank financing options", "intent": "financing"},
-            {"text": "in-house financing terms", "intent": "financing"},
-            {"text": "steps for property purchase", "intent": "process_info"},
-            {"text": "buying process timeline", "intent": "process_info"},
-            {"text": "property acquisition steps", "intent": "process_info"},
-            {"text": "how to buy a condo", "intent": "process_info"},
-            {"text": "house purchase procedure", "intent": "process_info"}
+            
+            # Ready property samples
+            {"text": "ready to move in properties", "intent": "find_ready_property"},
+            {"text": "available now properties", "intent": "find_ready_property"},
+            {"text": "immediate occupancy houses", "intent": "find_ready_property"},
+            {"text": "move in ready condos", "intent": "find_ready_property"},
+            {"text": "ready for occupancy apartments", "intent": "find_ready_property"},
+            
+            # Process info samples
+            {"text": "steps for buying", "intent": "process_info"},
+            {"text": "how to buy a property", "intent": "process_info"},
+            {"text": "property purchase process", "intent": "process_info"},
+            {"text": "timeline for buying a house", "intent": "process_info"},
+            {"text": "requirements for property purchase", "intent": "process_info"},
+            
+            # With feature samples
+            {"text": "properties with swimming pool", "intent": "find_with_feature"},
+            {"text": "houses with garden", "intent": "find_with_feature"},
+            {"text": "apartments with parking", "intent": "find_with_feature"},
+            {"text": "condos with security", "intent": "find_with_feature"},
+            {"text": "properties with wifi", "intent": "find_with_feature"},
+            
+            # Near landmark samples
+            {"text": "properties near schools", "intent": "find_near_landmark"},
+            {"text": "houses near malls", "intent": "find_near_landmark"},
+            {"text": "apartments near hospitals", "intent": "find_near_landmark"},
+            {"text": "condos near beaches", "intent": "find_near_landmark"},
+            {"text": "properties near churches", "intent": "find_near_landmark"},
+            
+            # Location info samples
+            {"text": "tell me about batangas city", "intent": "location_info"},
+            {"text": "what is lipa city like", "intent": "location_info"},
+            {"text": "describe tanauan city", "intent": "location_info"},
+            {"text": "information about nasugbu", "intent": "location_info"},
+            {"text": "living in san juan", "intent": "location_info"}
         ]
     }
     
@@ -804,14 +841,15 @@ def create_additional_training_file():
     with open('data/additional_training.json', 'w', encoding='utf-8') as f:
         json.dump(additional_data, f, indent=2)
     
-    print("✅ Created additional_training.json with 30 samples")
+    print("✅ Created/updated additional_training.json with specific samples")
 
 def main():
     print("="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT TRAINING SYSTEM v3.3")
+    print("🚀 BAH.AI PROPERTY CHATBOT TRAINING SYSTEM v3.4")
+    print("   (With intent classification fixes)")
     print("="*60)
     
-    # Create additional training data file
+    # Create/update additional training data file
     create_additional_training_file()
     
     # Initialize trainer
@@ -824,35 +862,47 @@ def main():
         if trainer.train(texts, intents):
             trainer.save_model()
             
-            # Test predictions with common queries (including Batangas locations)
-            test_queries = [
-                "find apartments in batangas city",
-                "show me properties with bank financing",
-                "tell me about lipa city",
-                "properties near schools",
-                "houses under 3M with 3 bedrooms",
-                "ready to move in properties for family",
-                "steps for buying a house",
+            # Test with the specific problematic queries
+            test_predictions(trainer, [
+                "Properties that accept bank financing",
+                "Find ready to move in properties for students in Batangas City",
+                "Steps for buying a condo",
                 "properties with swimming pool",
-                "best properties for family lifestyle",
-                "cheap houses for sale",
-                "condos near malls",
+                "properties near schools",
                 "how to get mortgage",
+                "tell me about lipa city",
                 "available now apartments",
-                "properties with garden",
-                "what documents for pag-ibig loan",
                 "houses for big family",
-                "properties in tanauan city",
-                "apartments with parking",
-                "bank financing requirements",
-                "ready to occupy houses",
-                "tell me about nasugbu",
-                "properties near taal volcano",
-                "houses in san juan",
-                "apartments near batangas state university",
-                "condos in sto tomas city"
+                "condos near malls"
+            ])
+            
+            # Also test with some general queries
+            print("\n" + "="*60)
+            print("🧪 TESTING GENERAL QUERIES")
+            print("="*60)
+            
+            general_queries = [
+                "find apartments in batangas city",
+                "show me houses under 3M with 3 bedrooms",
+                "properties for family needs in lipa",
+                "ready to move in condos",
+                "how to get a pag-ibig loan",
+                "tell me about tanauan city",
+                "properties with garden at reasonable cost",
+                "match properties to my budget as single professional",
+                "houses under 10M with swimming pool",
+                "what documents are needed for bank financing"
             ]
-            test_predictions(trainer, test_queries)
+            
+            for query in general_queries:
+                try:
+                    intent = trainer.pipeline.predict([query])[0]
+                    proba = trainer.pipeline.predict_proba([query])[0]
+                    confidence = max(proba) * 100
+                    print(f"🔍 '{query}'")
+                    print(f"   → Intent: {intent} ({confidence:.1f}% confidence)")
+                except Exception as e:
+                    print(f"❌ Error predicting '{query}': {e}")
     else:
         print("❌ No training data found!")
         print("💡 Make sure your data folder structure is:")

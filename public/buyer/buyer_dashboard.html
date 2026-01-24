@@ -1607,7 +1607,7 @@ async function displayListings(listings) {
     
     return `
 <div class="listing-card-wrapper">
-    <a href="../broker/property_details.html?id=${listing.id}" class="listing-card-link">
+    <a href="property_details.html?id=${listing.id}" class="listing-card-link">
         <div class="listing-card">
             <div class="listing-card-image-container">
                 <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
@@ -2383,7 +2383,7 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             
             return `
                 <div class="listing-card-wrapper">
-                    <a href="../broker/property_details.html?id=${property.id}" class="listing-card-link">
+                    <a href="property_details.html?id=${property.id}" class="listing-card-link">
                         <div class="listing-card">
                             <div class="listing-card-image-container" style="position: relative;">
                                 <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
