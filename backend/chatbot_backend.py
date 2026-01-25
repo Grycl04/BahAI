@@ -1,19 +1,24 @@
-# backend/chatbot_backend.py - UPDATED VERSION
+# backend/chatbot_backend.py - UPDATED VERSION WITH WORKING FIREBASE
 from flask import Flask, request, jsonify
+from pathlib import Path
 from flask_cors import CORS
 import pickle
 import firebase_admin
+import warnings
 from firebase_admin import credentials, firestore
 import re
 import json
 import os
 from datetime import datetime
 import logging
+from google.cloud.firestore_v1 import FieldFilter, ArrayRemove, ArrayUnion
 from typing import Dict, List, Any, Optional
 import spacy
 import numpy as np
 import random
+import sys
 
+warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -33,19 +38,60 @@ nlp = None
 model_classes = []  # Store model classes separately
 training_data = {}  # Store training data for response templates
 
+print("\n" + "="*60)
+print("🔥 FIREBASE CONNECTION")
+print("="*60)
+
 # Initialize Firebase
 try:
-    cred_path = '../serviceAccountKey.json'
+    # Get absolute path to serviceAccountKey.json in root
+    current_dir = os.path.dirname(os.path.abspath(__file__))  # backend directory
+    root_dir = os.path.dirname(current_dir)                    # project root
+    cred_path = os.path.join(root_dir, 'serviceAccountKey.json')
+    
+    print(f"🔑 Key path: {cred_path}")
+    
     if os.path.exists(cred_path):
+        # Load credentials
         cred = credentials.Certificate(cred_path)
-        firebase_admin.initialize_app(cred)
+        
+        # Initialize Firebase
+        firebase_admin.initialize_app(cred, {
+            'projectId': 'bahai-1b76d',
+        })
+        
+        # Get Firestore client
         db = firestore.client()
-        logger.info("✅ Firebase connected successfully")
+        print("✅ Firebase connected successfully!")
+        
+        # Test connection by counting properties
+        try:
+            properties_ref = db.collection('properties')
+            docs = list(properties_ref.limit(5).get())
+            print(f"📊 Found {len(docs)} properties in database")
+            
+            # Show property types for debugging
+            property_types = set()
+            for doc in docs:
+                data = doc.to_dict()
+                prop_type = data.get('propertyType', data.get('type', 'unknown'))
+                property_types.add(prop_type)
+            
+            if property_types:
+                print(f"🔍 Property types found: {', '.join(property_types)}")
+            
+        except Exception as e:
+            print(f"⚠️ Database query warning: {e}")
+            
     else:
-        logger.warning(f"⚠️ Firebase service account file not found: {cred_path}")
+        print(f"❌ ERROR: serviceAccountKey.json not found!")
         db = None
+        
 except Exception as e:
-    logger.error(f"❌ Firebase connection failed: {e}")
+    print(f"❌ Firebase connection failed: {e}")
+    import traceback
+    traceback.print_exc()
+    print("\n⚠️  Switching to mock data mode")
     db = None
 
 # Initialize spaCy for entity extraction
@@ -70,8 +116,6 @@ def load_training_data():
             # Debug: Check if location profiles have descriptions and lifestyle
             if 'location_profiles' in training_data:
                 logger.info(f"📊 Found {len(training_data['location_profiles'])} location profiles")
-                for location, profile in training_data['location_profiles'].items():
-                    logger.info(f"  📍 {location}: desc={bool(profile.get('description'))}, lifestyle={bool(profile.get('lifestyle'))}")
         else:
             logger.warning(f"⚠️ Training data file not found: {TRAINING_DATA_PATH}")
             training_data = {}
@@ -126,58 +170,83 @@ def preprocess_text(text):
     
     return text
 
-# Entity extraction - FIXED VERSION
+# Entity extraction - UPDATED FOR YOUR FIRESTORE STRUCTURE
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
         'property_type': None,
         'location': None,
         'landmark': None,
-        'feature': None,  # Fixed typo: was 'feature': Nonee
-        'price_range': None,  # Fixed typo: was 'priice_range': None
+        'feature': None,  
+        'price_range': None, 
         'bedrooms': None,
         'bathrooms': None,
-        'financing_type': None
+        'financing_type': None,
+        'listing_type': None  # rent, sale, lease
     }
     
     query_lower = query.lower()
     
-    # Property type detection
-    property_types = ['apartment', 'condo', 'condominium', 'house', 'villa', 'townhouse', 
-                     'bungalow', 'duplex', 'commercial', 'office', 'retail',
-                     'warehouse', 'studio', 'room', 'boarding house', 'dormitory',
-                     'penthouse', 'residential', 'industrial', 'farm', 'beachfront',
-                     'lakeview', 'heritage', 'resort']
+    # Detect listing type
+    if 'for rent' in query_lower or 'rental' in query_lower:
+        entities['listing_type'] = 'rent'
+    elif 'for sale' in query_lower or 'buy' in query_lower:
+        entities['listing_type'] = 'sale'
+    elif 'for lease' in query_lower:
+        entities['listing_type'] = 'lease'
     
-    for prop_type in property_types:
-        if prop_type in query_lower:
-            entities['property_type'] = prop_type
+    # Property type detection - updated for your categories
+    property_type_map = {
+        'apartment': 'apartment',
+        'condo': 'condo', 'condominium': 'condo',
+        'house': 'house', 'villa': 'house', 'bungalow': 'house',
+        'townhouse': 'townhouse',
+        'commercial': 'commercial_building',
+        'office': 'office_unit',
+        'retail': 'retail_space',
+        'warehouse': 'warehouse',
+        'land': 'residential_lot', 'lot': 'residential_lot',
+        'beachfront': 'beachfront',
+        'resort': 'resort_property'
+    }
+    
+    for key, value in property_type_map.items():
+        if key in query_lower:
+            entities['property_type'] = value
             break
     
-    # Location detection - More comprehensive
-    batangas_locations = [
-        'batangas city', 'lipa city', 'tanauan city', 'bauan', 'balayan',
-        'nasugbu', 'san juan', 'taal', 'calatagan', 'mabini', 'rosario',
-        'sto. tomas', 'sto tomas', 'santo tomas', 'malvar', 'ibaan', 'tuy', 
-        'lian', 'taysan', 'san luis', 'padre garcia', 'laurel', 'agoncillo',
-        'san pascual', 'cuenca', 'alitagtag', 'lobo', 'san nicolas',
-        'mataasnakahoy', 'talisay', 'la paz', 'lemery'
-    ]
+    # Location detection - Batangas locations (from your database)
+    batangas_locations = {
+        'batangas city': 'Batangas City',
+        'lipa': 'Lipa City', 'lipa city': 'Lipa City',
+        'nasugbu': 'Nasugbu',
+        'tanauan': 'Tanauan City', 'tanauan city': 'Tanauan City',
+        'taal': 'Taal',
+        'calatagan': 'Calatagan',
+        'mabini': 'Mabini',
+        'malvar': 'Malvar',
+        'mataas na kahoy': 'Mataas Na Kahoy', 'mataasnakahoy': 'Mataas Na Kahoy',
+        'bauan': 'Bauan',
+        'balayan': 'Balayan',
+        'san juan': 'San Juan',
+        'sto tomas': 'Sto. Tomas City', 'santo tomas': 'Sto. Tomas City',
+        'sto. tomas': 'Sto. Tomas City'
+    }
     
-    for location in batangas_locations:
-        if location in query_lower:
-            entities['location'] = location.title()
+    for location_key, location_value in batangas_locations.items():
+        if location_key in query_lower:
+            entities['location'] = location_value
             break
     
     # Feature detection
-    features = ['swimming pool', 'pool', 'garden', 'parking', 'elevator', 
-                'security', 'wifi', 'furnished', 'aircon', 'parking space',
-                'home office', 'furniture', 'private pool', 'backyard']
-    
-    for feature in features:
-        if feature in query_lower:
-            entities['feature'] = feature
-            break
+    if 'with swimming pool' in query_lower or 'with pool' in query_lower:
+        entities['feature'] = 'swimming pool'
+    elif 'with garden' in query_lower:
+        entities['feature'] = 'garden'
+    elif 'with parking' in query_lower:
+        entities['feature'] = 'parking'
+    elif 'furnished' in query_lower:
+        entities['feature'] = 'furnished'
     
     # Landmark detection
     if 'near' in query_lower or 'close to' in query_lower or 'around' in query_lower or 'beside' in query_lower:
@@ -191,8 +260,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         (r'under\s+(\d+[kKmM]?)', 'under'),
         (r'below\s+(\d+[kKmM]?)', 'below'),
         (r'less than\s+(\d+[kKmM]?)', 'less than'),
-        (r'(\d+[kKmM]?)\s+(pesos|php|million|m)', 'exact'),
-        (r'(\d+)\s+million', 'million'),
+        (r'(\d+[kKmM]?)\s+(million|m|m\b)', 'million'),
         (r'(\d+)\s+k', 'thousand')
     ]
     
@@ -214,89 +282,443 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     if bath_match:
         entities['bathrooms'] = int(bath_match.group(1))
     
-    # Financing type detection
-    financing_types = ['bank financing', 'bank loan', 'pag-ibig', 'in-house financing', 
-                      'cash', 'installment', 'mortgage', 'loan', 'developer financing',
-                      'housing loan', 'home loan', 'property loan', 'pagibig']
+    # Financing type detection - check for your financing options
+    financing_keywords = {
+        'bank financing': 'bank_financing',
+        'bdo': 'BDO',
+        'metrobank': 'Metrobank',
+        'unionbank': 'UnionBank',
+        'rcbc': 'RCBC',
+        'pag-ibig': 'pag_ibig',
+        'housing loan': 'housing_loan'
+    }
     
-    for financing in financing_types:
-        if financing in query_lower:
-            entities['financing_type'] = financing
+    for keyword, financing_type in financing_keywords.items():
+        if keyword in query_lower:
+            entities['financing_type'] = financing_type
             break
     
     return entities
 
-# Firestore queries
+# Standardize property data from Firestore
+def standardize_property_data(property_data: Dict) -> Dict:
+    """Standardize property data from Firestore to chatbot format"""
+    # Extract basic info
+    title = property_data.get('title', 'Untitled Property')
+    property_type = property_data.get('propertyType', property_data.get('type', 'unknown'))
+    city = property_data.get('city', 'Unknown')
+    province = property_data.get('province', 'Batangas')
+    
+    # Format price based on listing type
+    listing_type = property_data.get('type', property_data.get('listingType', 'unknown'))
+    price_str = "Price not available"
+    
+    if listing_type == 'rent' and 'monthlyRent' in property_data:
+        price = property_data['monthlyRent']
+        price_str = f"₱{price:,.0f}/month"
+    elif listing_type == 'sale' and 'salePrice' in property_data:
+        price = property_data['salePrice']
+        if price >= 1000000:
+            price_str = f"₱{price/1000000:.1f}M"
+        else:
+            price_str = f"₱{price:,.0f}"
+    elif listing_type == 'lease' and 'annualRent' in property_data:
+        price = property_data['annualRent']
+        price_str = f"₱{price:,.0f}/year"
+    
+    # Extract features
+    features = []
+    if property_data.get('furnishing'):
+        features.append(property_data['furnishing'])
+    if property_data.get('amenities'):
+        features.extend(property_data['amenities'][:3])  # First 3 amenities
+    if property_data.get('bedrooms'):
+        features.append(f"{property_data['bedrooms']} bedroom{'s' if property_data['bedrooms'] != '1' else ''}")
+    if property_data.get('bathrooms'):
+        features.append(f"{property_data['bathrooms']} bathroom{'s' if property_data['bathrooms'] != '1' else ''}")
+    
+    # Get description or create one
+    description = property_data.get('description', '')
+    if not description:
+        description = f"A {property_type.replace('_', ' ')} located in {city}, {province}."
+    
+    standardized = {
+        'id': property_data.get('id', ''),
+        'title': title,
+        'type': property_type,
+        'location': f"{city}, {province}",
+        'price': price_str,
+        'bedrooms': property_data.get('bedrooms', 'Not specified'),
+        'bathrooms': property_data.get('bathrooms', 'Not specified'),
+        'features': features,
+        'description': description,
+        'listing_type': listing_type,
+        'status': property_data.get('status', 'unknown'),
+        'address': property_data.get('address', ''),
+        'imageUrls': property_data.get('imageUrls', []) or property_data.get('photos', []),
+        'videoUrls': property_data.get('videoUrls', []),
+        'hasVideos': property_data.get('hasVideos', False),
+        'floorArea': property_data.get('floorArea', None),
+        'lotArea': property_data.get('lotArea', None),
+        'financingOptions': property_data.get('financingOptions', [])
+    }
+    
+    return standardized
+
+# Get mock properties when Firebase is not connected
+def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Generate mock properties for testing when Firebase is not connected"""
+    mock_properties = []
+    
+    # Base mock data matching your Firestore structure
+    base_properties = [
+        {
+            'id': 'mock_1',
+            'title': 'Modern House in Nasugbu',
+            'propertyType': 'house',
+            'type': 'rent',
+            'city': 'Nasugbu',
+            'province': 'Batangas',
+            'address': '123 Beach Road, Nasugbu',
+            'monthlyRent': 25000,
+            'bedrooms': '3',
+            'bathrooms': '2',
+            'floorArea': 120,
+            'description': 'Beautiful modern house near the beach',
+            'imageUrls': [],
+            'status': 'available',
+            'amenities': ['Swimming Pool', 'Garden', 'Parking']
+        },
+        {
+            'id': 'mock_2',
+            'title': 'Beachfront Condo Unit',
+            'propertyType': 'condo',
+            'type': 'sale',
+            'city': 'Nasugbu',
+            'province': 'Batangas',
+            'address': '456 Coastal Avenue, Nasugbu',
+            'salePrice': 3500000,
+            'bedrooms': '2',
+            'bathrooms': '2',
+            'floorArea': 80,
+            'description': 'Luxury beachfront condo with ocean view',
+            'imageUrls': [],
+            'status': 'available',
+            'financingOptions': ['Bank Financing - BDO', 'Pag-IBIG Housing Loan']
+        },
+        {
+            'id': 'mock_3',
+            'title': 'Commercial Space in Lipa',
+            'propertyType': 'commercial_building',
+            'type': 'lease',
+            'city': 'Lipa City',
+            'province': 'Batangas',
+            'address': '789 Business District, Lipa',
+            'annualRent': 1200000,
+            'description': 'Prime commercial space for business',
+            'imageUrls': [],
+            'status': 'available'
+        }
+    ]
+    
+    # Filter mock properties based on entities
+    for prop in base_properties:
+        matches = True
+        
+        # Filter by location
+        if entities.get('location'):
+            location = entities['location'].lower()
+            prop_city = prop.get('city', '').lower()
+            if 'nasugbu' in location and 'nasugbu' not in prop_city:
+                matches = False
+            elif 'lipa' in location and 'lipa' not in prop_city:
+                matches = False
+            elif 'batangas' in location and 'batangas' not in prop.get('province', '').lower():
+                matches = False
+        
+        # Filter by property type
+        if entities.get('property_type') and matches:
+            requested_type = entities['property_type'].lower()
+            prop_type = prop.get('propertyType', '').lower()
+            
+            type_mapping = {
+                'house': ['house', 'bungalow', 'duplex'],
+                'condo': ['condo', 'condominium', 'penthouse', 'studio'],
+                'apartment': ['apartment', 'room', 'boarding_house'],
+                'commercial': ['commercial', 'office', 'retail', 'warehouse']
+            }
+            
+            if requested_type in type_mapping:
+                if prop_type not in type_mapping[requested_type]:
+                    matches = False
+        
+        if matches:
+            mock_properties.append(standardize_property_data(prop))
+    
+    return mock_properties
+
+# Firestore queries - UPDATED FOR YOUR DATABASE STRUCTURE
 def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search properties in Firestore based on entities"""
     properties = []
     
     if not db:
         logger.warning("⚠️ Firebase not connected, returning mock data")
-        # Return mock data for testing
-        mock_locations = {
-            'Batangas City': ['Pallocan', 'Kumintang', 'Bolinao'],
-            'Lipa City': ['Banay-banay', 'Antipolo', 'Sabang'],
-            'Tanauan City': ['Pantay', 'Sambat', 'Trapiche'],
-            'Nasugbu': ['Calayo', 'Wawa', 'Bucana'],
-            'Taal': ['Poblacion', 'Caysasay', 'San Isidro']
-        }
-        
-        location = entities.get('location', 'Batangas City')
-        property_type = entities.get('property_type', 'house')
-        
-        # Generate mock properties based on entities
-        for i in range(3):
-            area = mock_locations.get(location, ['Unknown Area'])[i % len(mock_locations.get(location, ['Unknown Area']))]
-            properties.append({
-                'id': f'mock_{i+1}',
-                'title': f'{property_type.title()} in {area}',
-                'type': property_type,
-                'location': location,
-                'price': f'₱{random.randint(2, 10)}.{random.randint(0, 99)}M',
-                'bedrooms': entities.get('bedrooms', random.randint(2, 4)),
-                'bathrooms': entities.get('bathrooms', random.randint(1, 3)),
-                'features': [entities.get('feature', 'parking')] if entities.get('feature') else ['parking', 'garden'],
-                'description': f'Beautiful {property_type} located in {area}, {location}. Perfect for {entities.get("property_type", "residential")} use.'
-            })
-        return properties
+        return get_mock_properties(entities)
     
     try:
+        from google.cloud.firestore_v1 import FieldFilter
+        
         properties_ref = db.collection('properties')
         
-        # Build query filters based on entities
-        query_filters = []
-        
-        if entities.get('property_type'):
-            query_filters.append(('property_type', '==', entities['property_type']))
-        
-        if entities.get('location'):
-            query_filters.append(('location', '==', entities['location']))
-        
-        if entities.get('bedrooms'):
-            query_filters.append(('bedrooms', '==', entities['bedrooms']))
-        
-        # Apply filters
+        # Build query based on available entities
         query = properties_ref
-        for field, op, value in query_filters:
-            query = query.where(field, op, value)
         
-        # Execute query
+        # Always filter by available status
+        query = query.where(filter=FieldFilter('status', '==', 'available'))
+        
+        # Filter by location if specified
+        if entities.get('location'):
+            location = entities['location']
+            
+            # Map chatbot locations to your Firestore city values
+            location_map = {
+                'Batangas City': 'Batangas City',
+                'Lipa City': 'Lipa City',
+                'Nasugbu': 'Nasugbu',
+                'Malvar': 'Malvar',
+                'Mataas Na Kahoy': 'Mataas Na Kahoy',
+                'Tanauan City': 'Tanauan City',
+                'Taal': 'Taal',
+                'Calatagan': 'Calatagan',
+                'Mabini': 'Mabini',
+                'Bauan': 'Bauan',
+                'Balayan': 'Balayan',
+                'San Juan': 'San Juan',
+                'Sto. Tomas City': 'Sto. Tomas City',
+                'Santo Tomas': 'Sto. Tomas City',
+                'Sto Tomas': 'Sto. Tomas City'
+            }
+            
+            if location in location_map:
+                query = query.where(filter=FieldFilter('city', '==', location_map[location]))
+                logger.info(f"🔍 Filtering by city: {location_map[location]}")
+            else:
+                # Try case-insensitive match
+                location_lower = location.lower()
+                for map_key, map_value in location_map.items():
+                    if map_key.lower() == location_lower:
+                        query = query.where(filter=FieldFilter('city', '==', map_value))
+                        logger.info(f"🔍 Filtering by city (case-insensitive): {map_value}")
+                        break
+        
+        # Filter by property type if specified
+        if entities.get('property_type'):
+            property_type = entities['property_type']
+            
+            # Map chatbot property types to your Firestore propertyType values
+            type_map = {
+                'apartment': 'apartment',
+                'condo': 'condo_unit',  # Your database uses 'condo_unit'
+                'condominium': 'condo_unit',
+                'house': 'house',
+                'townhouse': 'townhouse',
+                'commercial': 'commercial_building',
+                'commercial_building': 'commercial_building',
+                'office': 'office_unit',
+                'retail': 'retail_space',
+                'warehouse': 'warehouse',
+                'land': 'residential_lot',
+                'lot': 'residential_lot',
+                'residential_lot': 'residential_lot',
+                'beachfront': 'beachfront',
+                'resort': 'resort_property',
+                'resort_property': 'resort_property'
+            }
+            
+            if property_type in type_map:
+                mapped_type = type_map[property_type]
+                query = query.where(filter=FieldFilter('propertyType', '==', mapped_type))
+                logger.info(f"🔍 Filtering by property type: {mapped_type}")
+            else:
+                # Try case-insensitive match
+                prop_type_lower = property_type.lower()
+                for map_key, map_value in type_map.items():
+                    if map_key.lower() == prop_type_lower:
+                        query = query.where(filter=FieldFilter('propertyType', '==', map_value))
+                        logger.info(f"🔍 Filtering by property type (case-insensitive): {map_value}")
+                        break
+        
+        # Filter by bedrooms if specified
+        if entities.get('bedrooms'):
+            try:
+                bedrooms = entities['bedrooms']
+                if isinstance(bedrooms, int):
+                    if bedrooms <= 5:
+                        bed_str = str(bedrooms)
+                    else:
+                        bed_str = '5+'
+                else:
+                    bed_str = str(bedrooms)
+                
+                query = query.where(filter=FieldFilter('bedrooms', '==', bed_str))
+                logger.info(f"🔍 Filtering by bedrooms: {bed_str}")
+            except Exception as bed_error:
+                logger.warning(f"⚠️ Could not filter by bedrooms: {bed_error}")
+        
+        # Filter by price range if specified
+        if entities.get('price_range'):
+            price_range = entities['price_range']
+            logger.info(f"🔍 Attempting to filter by price range: {price_range}")
+            
+            # Try to parse different price formats
+            try:
+                import re
+                
+                # Common patterns
+                patterns = [
+                    (r'under\s+(\d+(?:\.\d+)?)\s*([kKmM])?', 'under'),
+                    (r'below\s+(\d+(?:\.\d+)?)\s*([kKmM])?', 'below'),
+                    (r'less than\s+(\d+(?:\.\d+)?)\s*([kKmM])?', 'less than'),
+                    (r'(\d+(?:\.\d+)?)\s*([kKmM])\b', 'exact'),
+                    (r'(\d+(?:\.\d+)?)\s+million', 'million'),
+                    (r'(\d+)\s*k\b', 'thousand')
+                ]
+                
+                for pattern, price_type in patterns:
+                    match = re.search(pattern, price_range.lower())
+                    if match:
+                        number = float(match.group(1))
+                        unit = match.group(2).lower() if match.group(2) else ''
+                        
+                        # Convert to pesos
+                        if unit == 'm' or price_type == 'million':
+                            max_price = number * 1000000
+                        elif unit == 'k' or price_type == 'thousand':
+                            max_price = number * 1000
+                        else:
+                            max_price = number
+                        
+                        # Apply price filter - check multiple price fields
+                        try:
+                            # Try monthly rent first (most common)
+                            query = query.where(filter=FieldFilter('monthlyRent', '<=', max_price))
+                            logger.info(f"🔍 Filtering by max monthly rent: ₱{max_price:,.0f}")
+                            break
+                        except:
+                            try:
+                                # Try sale price
+                                query = query.where(filter=FieldFilter('salePrice', '<=', max_price))
+                                logger.info(f"🔍 Filtering by max sale price: ₱{max_price:,.0f}")
+                                break
+                            except:
+                                logger.warning(f"⚠️ Could not apply price filter for ₱{max_price:,.0f}")
+            except Exception as price_error:
+                logger.warning(f"⚠️ Could not parse price range: {price_error}")
+        
+        # Filter by financing if specified
+        if entities.get('financing_type'):
+            financing_type = entities['financing_type'].lower()
+            logger.info(f"🔍 Looking for financing: {financing_type}")
+            
+            # Try different financing options
+            financing_terms = []
+            if 'bank' in financing_type:
+                financing_terms.extend(['Bank Financing', 'bank', 'loan'])
+            if 'pag' in financing_type or 'ibig' in financing_type:
+                financing_terms.extend(['Pag-IBIG', 'pagibig', 'housing loan'])
+            if 'in-house' in financing_type:
+                financing_terms.extend(['In-House', 'developer financing'])
+            
+            if financing_terms:
+                # Try to find properties with any of these financing options
+                for term in financing_terms[:3]:  # Try first 3 terms
+                    try:
+                        temp_query = query.where(filter=FieldFilter('financingOptions', 'array_contains', term))
+                        # Test if this query would return results
+                        test_docs = list(temp_query.limit(1).get())
+                        if test_docs:
+                            query = temp_query
+                            logger.info(f"🔍 Filtering by financing term: {term}")
+                            break
+                    except:
+                        continue
+        
+        # Execute query with limit
+        logger.info("🔍 Executing Firestore query...")
         docs = query.limit(10).get()
         
+        found_count = 0
         for doc in docs:
             property_data = doc.to_dict()
             property_data['id'] = doc.id
-            properties.append(property_data)
             
-        logger.info(f"🔍 Found {len(properties)} properties in Firestore")
+            # Standardize property data for chatbot response
+            standardized_property = standardize_property_data(property_data)
+            properties.append(standardized_property)
+            found_count += 1
+        
+        logger.info(f"🔍 Found {found_count} properties matching criteria")
+        
+        # If no properties found, try a broader search
+        if found_count == 0:
+            logger.info("🔄 No exact matches found, trying broader search...")
+            
+            # Broaden search: remove some filters but keep status=available
+            broad_query = properties_ref.where(filter=FieldFilter('status', '==', 'available'))
+            
+            # Keep location filter if it exists (most important)
+            if entities.get('location'):
+                location = entities['location']
+                for map_key, map_value in location_map.items():
+                    if location.lower() == map_key.lower():
+                        broad_query = broad_query.where(filter=FieldFilter('city', '==', map_value))
+                        break
+            
+            # Get 5 random available properties
+            broad_docs = broad_query.limit(5).get()
+            
+            for doc in broad_docs:
+                property_data = doc.to_dict()
+                property_data['id'] = doc.id
+                
+                # Check if property type matches (loosely)
+                if entities.get('property_type'):
+                    prop_type = property_data.get('propertyType', '').lower()
+                    requested_type = entities['property_type'].lower()
+                    
+                    type_groups = {
+                        'house': ['house', 'bungalow', 'villa'],
+                        'condo': ['condo', 'condo_unit', 'condominium', 'penthouse'],
+                        'apartment': ['apartment', 'studio', 'room'],
+                        'commercial': ['commercial', 'office', 'retail', 'warehouse']
+                    }
+                    
+                    matches = False
+                    for group, types in type_groups.items():
+                        if requested_type in group and prop_type in types:
+                            matches = True
+                            break
+                    
+                    if not matches:
+                        continue
+                
+                standardized_property = standardize_property_data(property_data)
+                properties.append(standardized_property)
+            
+            logger.info(f"🔄 Found {len(properties)} properties in broader search")
         
     except Exception as e:
         logger.error(f"❌ Error searching Firestore: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        # Fall back to mock data on error
+        properties = get_mock_properties(entities)
     
     return properties
 
-# Generate response from training data templates - IMPROVED VERSION
+# Generate response from training data templates
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
     

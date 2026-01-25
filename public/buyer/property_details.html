@@ -6,6 +6,8 @@
 <title>Property Details - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 <style>
     :root {
       --primary: #0b2e52;
@@ -399,7 +401,7 @@
     /* Amenities Grid */
     .amenities-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 15px;
     }
 
@@ -807,6 +809,221 @@
       to { transform: translateX(100%); opacity: 0; }
     }
 
+    /* Property Information Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: var(--bg-light);
+      border-radius: 10px;
+    }
+
+    .info-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .info-content {
+      flex: 1;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    /* Bank Financing Grid */
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .bank-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: var(--bg-light);
+      border-radius: 8px;
+      border: 2px solid var(--border);
+    }
+
+    .bank-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    .bank-name {
+      font-weight: 500;
+      color: var(--text-dark);
+      flex: 1;
+    }
+
+    /* Sale/Layout Specific Styles */
+    .detail-section {
+      margin-bottom: 30px;
+    }
+
+    .detail-section h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .detail-value {
+      color: var(--text-dark);
+      font-weight: 600;
+    }
+
+    /* Sale Type Badge */
+    .sale-type-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+
+    .badge-outright {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-installment {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-bank-financing {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    /* Lease Specific Styles */
+    .lease-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .lease-item {
+      background: var(--bg-white);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .lease-item h5 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lease-item p {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+
+    /* Tabs for Sale/Lease Specific Info */
+    .info-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .info-tab {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-light);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .info-tab:hover {
+      background: var(--bg-light);
+      color: var(--text-dark);
+    }
+
+    .info-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     /* Responsive Design */
     @media (max-width: 1024px) {
       .container {
@@ -839,6 +1056,14 @@
       .result-details {
         grid-template-columns: 1fr;
       }
+      
+      .info-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+      
+      .bank-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
     }
 
     @media (max-width: 768px) {
@@ -869,6 +1094,18 @@
       .calculator-widget {
         padding: 20px;
       }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .bank-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .lease-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 480px) {
@@ -882,6 +1119,10 @@
       
       .main-image-container {
         height: 250px;
+      }
+      
+      .info-tabs {
+        flex-direction: column;
       }
     }
 </style>
@@ -1011,10 +1252,7 @@ function updateBackButton(userRole) {
         backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Landlord Dashboard';
     } else if (userRole === 'admin') {
         backButton.href = '../admin/admin_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Buyer Dashboard';
-    } else if (userRole === 'buyer') {
-        backButton.href = '../buyer/buyer_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Dashboard';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Admin Dashboard';
     } else {
         // Default for other roles
         backButton.href = '../index.html';
@@ -1081,6 +1319,137 @@ let currentMediaIndex = 0;
 let mediaUrls = [];
 let currentListing = null;
 let currentUserRole = null;
+
+// Property Type Mappings (from add_property.html)
+const salePropertyTypes = {
+    residential: [
+        { value: "house", label: "House" },
+        { value: "townhouse", label: "Townhouse" },
+        { value: "bungalow", label: "Bungalow" },
+        { value: "duplex", label: "Duplex" },
+        { value: "village_lot", label: "Village Lot" }
+    ],
+    commercial: [
+        { value: "commercial_building", label: "Commercial Building" },
+        { value: "office_space", label: "Office Space" },
+        { value: "retail_space", label: "Retail Space" },
+        { value: "warehouse", label: "Warehouse" },
+        { value: "showroom", label: "Showroom" }
+    ],
+    land: [
+        { value: "residential_lot", label: "Residential Lot" },
+        { value: "commercial_lot", label: "Commercial Lot" },
+        { value: "agricultural_land", label: "Agricultural Land" },
+        { value: "industrial_lot", label: "Industrial Lot" },
+        { value: "beachfront", label: "Beachfront Property" }
+    ],
+    condo: [
+        { value: "condo_unit", label: "Condominium Unit" },
+        { value: "penthouse", label: "Penthouse" },
+        { value: "studio", label: "Studio Unit" },
+        { value: "loft", label: "Loft Unit" }
+    ]
+};
+
+const leasePropertyTypes = {
+    commercial: [
+        { value: "office_floor", label: "Office Floor" },
+        { value: "retail_space_lease", label: "Retail Space" },
+        { value: "building_lease", label: "Building Lease" },
+        { value: "commercial_unit", label: "Commercial Unit" },
+        { value: "showroom_lease", label: "Showroom" },
+        { value: "warehouse_lease", label: "Warehouse" }
+    ],
+    land: [
+        { value: "commercial_lot", label: "Commercial Lot" },
+        { value: "agricultural_land", label: "Agricultural Land" },
+        { value: "development_land", label: "Development Land" },
+        { value: "industrial_lot", label: "Industrial Lot" },
+        { value: "residential_lot", label: "Residential Lot" },
+        { value: "vacant_lot", label: "Vacant Lot" }
+    ],
+    special: [
+        { value: "resort_property", label: "Resort Property" },
+        { value: "event_venue", label: "Event Venue" },
+        { value: "parking_area", label: "Parking Area" },
+        { value: "school_property", label: "School Property" },
+        { value: "hospitality", label: "Hospitality Property" },
+        { value: "sports_facility", label: "Sports Facility" }
+    ]
+};
+
+// Property Category Labels
+const propertyCategoryLabels = {
+    residential: "Residential Property",
+    commercial: "Commercial Property",
+    land: "Land / Lot",
+    condo: "Condominium",
+    special: "Special Purpose Property"
+};
+
+// Furnishing Labels
+const furnishingLabels = {
+    furnished: "Fully Furnished",
+    "semi-furnished": "Semi-Furnished",
+    unfurnished: "Unfurnished"
+};
+
+// Lease Type Labels
+const leaseTypeLabels = {
+    gross: "Gross Lease",
+    net: "Net Lease",
+    "triple-net": "Triple Net (NNN)"
+};
+
+// Payment Terms Labels
+const paymentTermsLabels = {
+    monthly: "Monthly",
+    quarterly: "Quarterly",
+    "semi-annual": "Semi-Annual",
+    annual: "Annual"
+};
+
+// Topography Labels
+const topographyLabels = {
+    flat: "Flat",
+    sloping: "Sloping",
+    hilly: "Hilly",
+    mountainous: "Mountainous"
+};
+
+// Access Road Labels
+const accessRoadLabels = {
+    concrete: "Concrete",
+    asphalt: "Asphalt",
+    gravel: "Gravel",
+    dirt: "Dirt Road"
+};
+
+// Maintenance Labels
+const maintenanceLabels = {
+    landlord: "Landlord",
+    tenant: "Tenant",
+    shared: "Shared"
+};
+
+// Zoning Labels
+const zoningLabels = {
+    commercial: "Commercial",
+    industrial: "Industrial",
+    residential: "Residential",
+    agricultural: "Agricultural",
+    mixed_use: "Mixed Use",
+    tourism: "Tourism"
+};
+
+// Bank Logos Mapping
+const bankLogos = {
+    "Bank Financing - BDO": "../../financing_logo/3.png",
+    "Bank Financing - Metrobank": "../../financing_logo/1.png",
+    "Bank Financing - UnionBank": "../../financing_logo/2.png",
+    "Bank Financing - RCBC": "../../financing_logo/4.png",
+    "Pag-IBIG Housing Loan": "../../financing_logo/5.png"
+};
 
 // --- HELPER FUNCTIONS ---
 
@@ -1191,6 +1560,110 @@ function isVideoFile(url) {
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
+}
+
+// --- PROPERTY TYPE DISPLAY FUNCTIONS ---
+
+function getPropertyCategoryDisplay(category) {
+    return propertyCategoryLabels[category] || category;
+}
+
+function getPropertyTypeDisplay(category, typeValue) {
+    // Check sale property types
+    if (salePropertyTypes[category]) {
+        const type = salePropertyTypes[category].find(t => t.value === typeValue);
+        if (type) return type.label;
+    }
+    
+    // Check lease property types
+    if (leasePropertyTypes[category]) {
+        const type = leasePropertyTypes[category].find(t => t.value === typeValue);
+        if (type) return type.label;
+    }
+    
+    // Return the value if no match found
+    return typeValue || 'Not specified';
+}
+
+function getFurnishingDisplay(furnishing) {
+    return furnishingLabels[furnishing] || furnishing;
+}
+
+function getLeaseTypeDisplay(leaseType) {
+    return leaseTypeLabels[leaseType] || leaseType;
+}
+
+function getPaymentTermsDisplay(paymentTerms) {
+    return paymentTermsLabels[paymentTerms] || paymentTerms;
+}
+
+function getTopographyDisplay(topography) {
+    return topographyLabels[topography] || topography;
+}
+
+function getAccessRoadDisplay(accessRoad) {
+    return accessRoadLabels[accessRoad] || accessRoad;
+}
+
+function getMaintenanceDisplay(maintenance) {
+    return maintenanceLabels[maintenance] || maintenance;
+}
+
+function getZoningDisplay(zoning) {
+    return zoningLabels[zoning] || zoning;
+}
+
+function getSaleTypeBadge(saleType) {
+    switch(saleType) {
+        case 'outright':
+            return '<span class="sale-type-badge badge-outright">Outright Sale</span>';
+        case 'installment':
+            return '<span class="sale-type-badge badge-installment">Installment</span>';
+        case 'bank_financing':
+            return '<span class="sale-type-badge badge-bank-financing">Bank Financing</span>';
+        default:
+            return '';
+    }
+}
+
+// --- BANK FINANCING DISPLAY ---
+function renderBankFinancing(financingOptions) {
+    if (!financingOptions || !Array.isArray(financingOptions) || financingOptions.length === 0) {
+        return '<p style="color: var(--text-light); font-style: italic;">No bank financing options specified</p>';
+    }
+    
+    let bankItems = '';
+    let otherOptions = [];
+    
+    financingOptions.forEach(option => {
+        if (bankLogos[option]) {
+            bankItems += `
+            <div class="bank-item">
+                <img src="${bankLogos[option]}" alt="${option}" class="bank-logo">
+                <span class="bank-name">${option.replace('Bank Financing - ', '')}</span>
+            </div>`;
+        } else {
+            otherOptions.push(option);
+        }
+    });
+    
+    let result = '';
+    
+    if (bankItems) {
+        result += `<div class="bank-grid">${bankItems}</div>`;
+    }
+    
+    if (otherOptions.length > 0) {
+        result += `
+        <div style="margin-top: 15px;">
+            <h5 style="font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px;">
+                <i class="bi bi-bank"></i> Other Financing Options
+            </h5>
+            <p style="color: var(--text-light);">${otherOptions.join(', ')}</p>
+        </div>`;
+    }
+    
+    return result || '<p style="color: var(--text-light); font-style: italic;">No bank financing options specified</p>';
 }
 
 // --- UNIVERSAL CALCULATOR FUNCTIONS ---
@@ -1784,6 +2257,181 @@ async function loadPropertyDetails() {
     }
 }
 
+function renderSalePropertyDetails(listing) {
+    return `
+    <div class="detail-section">
+        <h4><i class="bi bi-cash-coin"></i> Sale Information</h4>
+        <div class="detail-row">
+            <span class="detail-label">Sale Price:</span>
+            <span class="detail-value">₱${(listing.salePrice || listing.pricing || 0).toLocaleString()}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Price Negotiable:</span>
+            <span class="detail-value">${listing.priceNegotiable === 'yes' ? 'Yes' : 'No'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Sale Type:</span>
+            <span class="detail-value">${getSaleTypeBadge(listing.saleType || 'outright')}</span>
+        </div>
+    </div>
+    
+    ${listing.saleType === 'bank_financing' ? `
+    <div class="detail-section">
+        <h4><i class="bi bi-bank"></i> Bank Financing Options</h4>
+        ${renderBankFinancing(listing.financingOptions || [])}
+    </div>
+    ` : ''}
+    
+    <div class="detail-section">
+        <h4><i class="bi bi-briefcase"></i> Broker Commission</h4>
+        <div class="detail-row">
+            <span class="detail-label">Commission Type:</span>
+            <span class="detail-value">${listing.commissionType === 'percentage' ? 'Percentage of Sale Price' : 'Fixed Amount'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Commission Value:</span>
+            <span class="detail-value">
+                ${listing.commissionType === 'percentage' ? 
+                    `${listing.commissionValue || 0}%` : 
+                    `₱${(listing.commissionValue || 0).toLocaleString()}`
+                }
+            </span>
+        </div>
+    </div>`;
+}
+
+function renderLeasePropertyDetails(listing) {
+    return `
+    <div class="detail-section">
+        <h4><i class="bi bi-file-text"></i> Lease Information</h4>
+        <div class="detail-row">
+            <span class="detail-label">Annual Rent:</span>
+            <span class="detail-value">₱${(listing.annualRent || 0).toLocaleString()}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Lease Type:</span>
+            <span class="detail-value">${getLeaseTypeDisplay(listing.leaseType)}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Lease Duration:</span>
+            <span class="detail-value">${listing.leaseDuration || 'Not specified'} years</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Renewal Option:</span>
+            <span class="detail-value">${listing.renewalOption || 'Not specified'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Payment Terms:</span>
+            <span class="detail-value">${getPaymentTermsDisplay(listing.paymentTerms)}</span>
+        </div>
+    </div>
+    
+    <div class="detail-section">
+        <h4><i class="bi bi-cash-stack"></i> Financial Details</h4>
+        <div class="detail-row">
+            <span class="detail-label">Security Bond:</span>
+            <span class="detail-value">${listing.securityBond ? `₱${listing.securityBond.toLocaleString()}` : 'Not specified'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Advance Payment:</span>
+            <span class="detail-value">${listing.advancePayment || 1} month(s)</span>
+        </div>
+    </div>
+    
+    <div class="detail-section">
+        <h4><i class="bi bi-briefcase"></i> Broker Commission</h4>
+        <div class="detail-row">
+            <span class="detail-label">Commission Type:</span>
+            <span class="detail-value">${listing.commissionType === 'percentage' ? 'Percentage of Annual Rent' : 'Fixed Amount'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Commission Value:</span>
+            <span class="detail-value">
+                ${listing.commissionType === 'percentage' ? 
+                    `${listing.commissionValue || 0}%` : 
+                    `₱${(listing.commissionValue || 0).toLocaleString()}`
+                }
+            </span>
+        </div>
+    </div>
+    
+    <div class="detail-section">
+        <h4><i class="bi bi-tools"></i> Property Features</h4>
+        <div class="info-grid">
+            ${listing.accessRoad ? `
+            <div class="info-item">
+                <div class="info-icon"><i class="bi bi-signpost"></i></div>
+                <div class="info-content">
+                    <div class="info-label">Access Road</div>
+                    <div class="info-value">${getAccessRoadDisplay(listing.accessRoad)}</div>
+                </div>
+            </div>
+            ` : ''}
+            
+            ${listing.frontage ? `
+            <div class="info-item">
+                <div class="info-icon"><i class="bi bi-arrows-expand"></i></div>
+                <div class="info-content">
+                    <div class="info-label">Frontage</div>
+                    <div class="info-value">${listing.frontage} meters</div>
+                </div>
+            </div>
+            ` : ''}
+            
+            ${listing.topography ? `
+            <div class="info-item">
+                <div class="info-icon"><i class="bi bi-mountains"></i></div>
+                <div class="info-content">
+                    <div class="info-label">Topography</div>
+                    <div class="info-value">${getTopographyDisplay(listing.topography)}</div>
+                </div>
+            </div>
+            ` : ''}
+            
+            ${listing.zoning ? `
+            <div class="info-item">
+                <div class="info-icon"><i class="bi bi-buildings"></i></div>
+                <div class="info-content">
+                    <div class="info-label">Zoning</div>
+                    <div class="info-value">${getZoningDisplay(listing.zoning)}</div>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    </div>
+    
+    ${listing.restrictions ? `
+    <div class="detail-section">
+        <h4><i class="bi bi-file-earmark-lock"></i> Restrictions & Conditions</h4>
+        <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--warning);">
+            <p style="color: var(--text-dark); line-height: 1.6;">${listing.restrictions}</p>
+        </div>
+    </div>
+    ` : ''}
+    
+    ${listing.maintenance ? `
+    <div class="detail-section">
+        <h4><i class="bi bi-tools"></i> Maintenance Responsibility</h4>
+        <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+            <p style="color: var(--text-dark); line-height: 1.6; font-weight: 500;">${getMaintenanceDisplay(listing.maintenance)}</p>
+        </div>
+    </div>
+    ` : ''}
+    
+    ${listing.utilities ? `
+    <div class="detail-section">
+        <h4><i class="bi bi-lightning-charge"></i> Available Utilities</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+            ${listing.utilities.split(',').map(util => `
+                <span style="background: var(--bg-white); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 14px;">
+                    ${util.trim()}
+                </span>
+            `).join('')}
+        </div>
+    </div>
+    ` : ''}`;
+}
+
 function displayPropertyDetails(listing, userInfo) {
     const container = document.getElementById('propertyDetailsContainer');
     
@@ -1827,57 +2475,9 @@ function displayPropertyDetails(listing, userInfo) {
     if (listing.status === 'active') badgeClass = 'badge-active';
     if (listing.status === 'pending') badgeClass = 'badge-pending';
     
-    // Pricing details
-    let pricingDetails = "";
-    if (listingType === 'rent') {
-        pricingDetails = `
-        <div class="pricing-item">
-            <span class="pricing-label">Monthly Rent:</span>
-            <span class="pricing-value" style="color: var(--success); font-weight: 600;">
-                ₱${(listing.monthlyRent || 0).toLocaleString()}
-            </span>
-        </div>
-        ${listing.securityDeposit ? `
-        <div class="pricing-item">
-            <span class="pricing-label">Security Deposit:</span>
-            <span class="pricing-value">${listing.securityDeposit.toLocaleString()}</span>
-        </div>
-        ` : ''}
-        ${listing.minimumStay ? `
-        <div class="pricing-item">
-            <span class="pricing-label">Minimum Stay:</span>
-            <span class="pricing-value">${listing.minimumStay} month(s)</span>
-        </div>
-        ` : ''}`;
-    } else if (listingType === 'lease') {
-        pricingDetails = `
-        <div class="pricing-item">
-            <span class="pricing-label">Annual Rent:</span>
-            <span class="pricing-value" style="color: var(--warning); font-weight: 600;">
-                ₱${(listing.annualRent || 0).toLocaleString()}
-            </span>
-        </div>
-        ${listing.securityBond ? `
-        <div class="pricing-item">
-            <span class="pricing-label">Security Bond:</span>
-            <span class="pricing-value">${listing.securityBond.toLocaleString()}</span>
-        </div>
-        ` : ''}
-        ${listing.leaseDuration ? `
-        <div class="pricing-item">
-            <span class="pricing-label">Lease Duration:</span>
-            <span class="pricing-value">${listing.leaseDuration} year(s)</span>
-        </div>
-        ` : ''}`;
-    } else {
-        pricingDetails = `
-        <div class="pricing-item">
-            <span class="pricing-label">Sale Price:</span>
-            <span class="pricing-value" style="color: var(--secondary); font-weight: 600;">
-                ₱${(listing.pricing || listing.salePrice || 0).toLocaleString()}
-            </span>
-        </div>`;
-    }
+    // Get property category and type display
+    const propertyCategory = getPropertyCategoryDisplay(listing.propertyCategory);
+    const propertyType = getPropertyTypeDisplay(listing.propertyCategory, listing.propertyType);
     
     // Get amenities
     const amenities = listing.amenities || [];
@@ -1921,6 +2521,15 @@ function displayPropertyDetails(listing, userInfo) {
                     <span class="stat-value">${listing.floorArea || listing.totalArea || 'N/A'} sqm</span>
                 </div>
             </div>
+            ${listing.lotArea ? `
+            <div class="stat-item">
+                <i class="bi bi-map stat-icon"></i>
+                <div class="stat-content">
+                    <span class="stat-label">Lot Area</span>
+                    <span class="stat-value">${listing.lotArea} sqm</span>
+                </div>
+            </div>
+            ` : ''}
         </div>
         
         <div class="price-section">
@@ -1998,7 +2607,53 @@ function displayPropertyDetails(listing, userInfo) {
                 </div>
             </div>
 
-            <!-- Property Features -->
+            <!-- Basic Information -->
+            <div class="property-section">
+                <h3 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Basic Information
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-buildings"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">Property Category</div>
+                            <div class="info-value">${propertyCategory}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-house-door"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">Property Type</div>
+                            <div class="info-value">${propertyType}</div>
+                        </div>
+                    </div>
+                    ${listing.furnishing ? `
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-house-check"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">Furnishing</div>
+                            <div class="info-value">${getFurnishingDisplay(listing.furnishing)}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${listing.yearBuilt ? `
+                    <div class="info-item">
+                        <div class="info-icon"><i class="bi bi-calendar"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">Year Built</div>
+                            <div class="info-value">${listing.yearBuilt}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Sale or Lease Specific Information -->
+            ${listingType === 'sale' ? renderSalePropertyDetails(listing) : ''}
+            ${listingType === 'lease' ? renderLeasePropertyDetails(listing) : ''}
+
+            <!-- Property Features & Amenities -->
             ${amenities.length > 0 ? `
             <div class="property-section">
                 <h3 class="section-title">
@@ -2056,14 +2711,33 @@ function displayPropertyDetails(listing, userInfo) {
                 </button>
             </div>
 
-            <!-- Pricing Card -->
-            <div class="pricing-card">
+            <!-- Location Details -->
+            <div class="pricing-card" style="margin-top: 20px;">
                 <h3 class="pricing-title">
-                    <i class="fas fa-money-bill-wave"></i>
-                    Pricing Details
+                    <i class="bi bi-geo-alt"></i>
+                    Location Details
                 </h3>
                 <div class="pricing-details">
-                    ${pricingDetails}
+                    <div class="pricing-item">
+                        <span class="pricing-label">Address</span>
+                        <span class="pricing-value" style="font-size: 14px; text-align: right;">${listing.address || 'Not specified'}</span>
+                    </div>
+                    <div class="pricing-item">
+                        <span class="pricing-label">City</span>
+                        <span class="pricing-value">${listing.city || 'Not specified'}</span>
+                    </div>
+                    <div class="pricing-item">
+                        <span class="pricing-label">Province</span>
+                        <span class="pricing-value">${listing.province || 'Not specified'}</span>
+                    </div>
+                    ${listing.latitude && listing.longitude ? `
+                    <div class="pricing-item">
+                        <span class="pricing-label">Coordinates</span>
+                        <span class="pricing-value" style="font-size: 12px;">
+                            ${listing.latitude.toFixed(6)}, ${listing.longitude.toFixed(6)}
+                        </span>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         </div>
@@ -2367,10 +3041,6 @@ function displayError(message) {
     } else if (currentUserRole === 'broker') {
         backLink = 'broker_dashboard.html';
         backText = 'Back to Broker Dashboard';
-    }
-    else if (currentUserRole === 'buyer') {
-        backLink = 'buyer_dashboard.html';
-        backText = 'Back to Buyer Dashboard';
     }
     
     container.innerHTML = `

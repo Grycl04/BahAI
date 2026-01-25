@@ -441,6 +441,159 @@
       accent-color: var(--primary);
     }
 
+    /* ===== SALE TYPE GRID ===== */
+    .sale-type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .sale-option {
+      background: var(--bg-white);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .sale-option:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .sale-option.active {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(11, 46, 82, 0.05), rgba(0, 47, 63, 0.05));
+    }
+
+    /* ===== BANK FINANCING OPTIONS ===== */
+    .bank-options-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: var(--bg-light);
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .bank-options-section.active {
+      display: block;
+    }
+
+    .bank-options-section h4 {
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bank-options-section h4 i {
+      color: var(--primary);
+    }
+
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .bank-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 15px;
+      background: var(--bg-white);
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .bank-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .bank-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .bank-item label {
+      margin: 0;
+      font-weight: 500;
+      color: var(--text-dark);
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .bank-item label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.bank-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+
+    .bank-item .bank-logo {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-light);
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .other-banks-input {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border);
+    }
+
+    .other-banks-input label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 14px;
+    }
+
+    .other-banks-input input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .other-banks-input small {
+      display: block;
+      margin-top: 5px;
+      color: var(--text-light);
+      font-size: 12px;
+    }
+
     /* ===== IMAGE UPLOAD ===== */
     .image-upload-area {
       border: 2px dashed var(--border);
@@ -715,35 +868,6 @@
       font-family: 'Courier New', monospace;
     }
 
-    /* ===== SALE SPECIFIC STYLES ===== */
-    .sale-type-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-      margin-top: 10px;
-    }
-
-    .sale-option {
-      background: var(--bg-white);
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .sale-option:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-
-    .sale-option.active {
-      border-color: var(--primary);
-      background: linear-gradient(135deg, rgba(11, 46, 82, 0.05), rgba(0, 47, 63, 0.05));
-    }
-
     /* ===== LEASE SPECIFIC STYLES ===== */
     .lease-term-grid {
       display: grid;
@@ -865,7 +989,8 @@
       }
       
       .sale-type-grid,
-      .lease-term-grid {
+      .lease-term-grid,
+      .bank-grid {
         grid-template-columns: 1fr;
       }
       
@@ -1108,6 +1233,60 @@
               </div>
             </div>
             <input type="hidden" id="saleTypeInput" name="saleType" required>
+          </div>
+        </div>
+        
+        <!-- Bank Financing Options (Hidden by default) -->
+    <div id="bankOptionsSection" class="bank-options-section">
+      <h4><i class="bi bi-bank"></i> Available Bank Financing Options</h4>
+
+      <div class="bank-grid">
+        <div class="bank-item">
+          <input type="checkbox" id="bank_bdo" name="bankOptions" value="Bank Financing - BDO">
+          <label for="bank_bdo">
+            <img src="../../financing_logo/3.png" alt="BDO Logo" class="bank-logo">
+            BDO Unibank
+          </label>
+        </div>
+
+        <div class="bank-item">
+          <input type="checkbox" id="bank_metrobank" name="bankOptions" value="Bank Financing - Metrobank">
+          <label for="bank_metrobank">
+            <img src="../../financing_logo/1.png" alt="Metrobank Logo" class="bank-logo">
+            Metrobank
+          </label>
+        </div>
+
+        <div class="bank-item">
+          <input type="checkbox" id="bank_unionbank" name="bankOptions" value="Bank Financing - UnionBank">
+          <label for="bank_unionbank">
+            <img src="../../financing_logo/2.png" alt="UnionBank Logo" class="bank-logo">
+            UnionBank
+          </label>
+        </div>
+
+        <div class="bank-item">
+          <input type="checkbox" id="bank_rcbc" name="bankOptions" value="Bank Financing - RCBC">
+          <label for="bank_rcbc">
+            <img src="../../financing_logo/4.png" alt="RCBC Logo" class="bank-logo">
+            RCBC
+          </label>
+        </div>
+
+        <div class="bank-item">
+          <input type="checkbox" id="bank_pagibig" name="bankOptions" value="Pag-IBIG Housing Loan">
+          <label for="bank_pagibig">
+            <img src="../../financing_logo/5.png" alt="Pag-IBIG Logo" class="bank-logo">
+            Pag-IBIG Fund
+          </label>
+        </div>
+      </div>
+    </div>
+
+          <div class="other-banks-input">
+            <label for="otherBanks">Other Financing Options</label>
+            <input type="text" id="otherBanks" placeholder="e.g., Developer financing, Other banks (comma-separated)">
+            <small>List any other financing options not included above</small>
           </div>
         </div>
         
@@ -1884,6 +2063,16 @@
       });
     });
     
+    // Initialize bank options checkboxes
+    document.querySelectorAll('.bank-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        if (e.target.type !== 'checkbox') {
+          const checkbox = this.querySelector('input[type="checkbox"]');
+          checkbox.checked = !checkbox.checked;
+        }
+      });
+    });
+    
     // Initialize map when Google Maps loads
     if (window.google && window.google.maps) {
       initSaleMapPicker();
@@ -1927,6 +2116,14 @@
     });
     
     event.currentTarget.classList.add('active');
+    
+    // Show/hide bank financing options
+    const bankOptionsSection = document.getElementById('bankOptionsSection');
+    if (type === 'bank_financing') {
+      bankOptionsSection.classList.add('active');
+    } else {
+      bankOptionsSection.classList.remove('active');
+    }
   }
 
   // ===== LEASE FORM FUNCTIONS =====
@@ -2706,6 +2903,17 @@
       return false;
     }
     
+    // Additional validation for bank financing
+    if (selectedSaleType === 'bank_financing') {
+      const selectedBanks = document.querySelectorAll('input[name="bankOptions"]:checked');
+      const otherBanks = document.getElementById('otherBanks').value.trim();
+      
+      if (selectedBanks.length === 0 && !otherBanks) {
+        showMessage('Please select at least one bank financing option or specify other options', 'error');
+        return false;
+      }
+    }
+    
     if (selectedSaleImages.length === 0) {
       showMessage('Please upload at least 1 property image', 'error');
       return false;
@@ -2766,6 +2974,24 @@
     const commissionType = document.getElementById('commissionType').value;
     const commissionValue = parseFloat(document.getElementById('commissionValue').value);
     
+    // Collect bank financing options if bank_financing is selected
+    const financingOptions = [];
+    if (selectedSaleType === 'bank_financing') {
+      // Get selected banks
+      document.querySelectorAll('input[name="bankOptions"]:checked').forEach(checkbox => {
+        financingOptions.push(checkbox.value);
+      });
+      
+      // Get other financing options
+      const otherBanks = document.getElementById('otherBanks').value;
+      if (otherBanks) {
+        otherBanks.split(',').forEach(item => {
+          const trimmed = item.trim();
+          if (trimmed) financingOptions.push(trimmed);
+        });
+      }
+    }
+    
     return {
       title: document.getElementById('saleTitle').value,
       propertyCategory: document.getElementById('salePropertyCategory').value,
@@ -2781,6 +3007,8 @@
       salePrice: parseFloat(document.getElementById('salePrice').value),
       priceNegotiable: document.getElementById('priceNegotiable').value,
       saleType: document.getElementById('saleTypeInput').value,
+      // Add financing options if bank_financing is selected
+      financingOptions: selectedSaleType === 'bank_financing' ? financingOptions : [],
       commissionType: commissionType,
       commissionValue: commissionValue,
       address: document.getElementById('saleAddress').value,
@@ -2876,6 +3104,13 @@
       selectedSaleImages = [];
       selectedSaleType = null;
       updateSalePropertyTypes();
+      
+      // Reset bank options
+      document.querySelectorAll('input[name="bankOptions"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      document.getElementById('otherBanks').value = '';
+      document.getElementById('bankOptionsSection').classList.remove('active');
       
       // Reset file input
       document.getElementById('saleImages').value = '';

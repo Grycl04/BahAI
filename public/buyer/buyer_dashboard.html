@@ -1912,17 +1912,208 @@ function setupListingEventListeners() {
 
 // --- RECOMMENDATIONS FUNCTIONS (USING PYTHON BACKEND) ---
 
+async function getActualSavedCount(userId) {
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef, where('userId', '==', userId));
+        const snapshot = await getDocs(q);
+        return snapshot.size;
+    } catch (error) {
+        console.error('Error getting saved count:', error);
+        return 0;
+    }
+}
+
+async function getUserSavedProperties(userId) {
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef, where('userId', '==', userId));
+        const snapshot = await getDocs(q);
+        
+        const savedIds = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.propertyId) {
+                savedIds.push(data.propertyId);
+            }
+        });
+        
+        // Get the actual property data
+        const savedProperties = allListings.filter(listing => 
+            savedIds.includes(listing.id)
+        );
+        
+        return savedProperties;
+    } catch (error) {
+        console.error('Error getting saved properties:', error);
+        return [];
+    }
+}
+
+function analyzeSavedPatterns(savedProperties) {
+    const patterns = {
+        propertyTypes: new Set(),
+        categories: new Set(),
+        locations: [],
+        minPrice: Infinity,
+        maxPrice: 0,
+        avgPrice: 0
+    };
+    
+    let totalPrice = 0;
+    let priceCount = 0;
+    
+    savedProperties.forEach(prop => {
+        // Property types
+        if (prop.propertyType) {
+            patterns.propertyTypes.add(prop.propertyType);
+        }
+        
+        // Categories
+        if (prop.propertyCategory) {
+            patterns.categories.add(prop.propertyCategory);
+        }
+        
+        // Locations
+        if (prop.city) {
+            patterns.locations.push(prop.city);
+        } else if (prop.location) {
+            patterns.locations.push(prop.location.split(',')[0].trim());
+        }
+        
+        // Prices
+        const price = prop.pricing || prop.salePrice || prop.monthlyRent || 0;
+        if (price > 0) {
+            patterns.minPrice = Math.min(patterns.minPrice, price);
+            patterns.maxPrice = Math.max(patterns.maxPrice, price);
+            totalPrice += price;
+            priceCount++;
+        }
+    });
+    
+    if (priceCount > 0) {
+        patterns.avgPrice = totalPrice / priceCount;
+    } else {
+        patterns.minPrice = 0;
+    }
+    
+    // Remove duplicates from locations
+    patterns.locations = [...new Set(patterns.locations)];
+    
+    return patterns;
+}
+
+async function generateLocalRecommendations(userId, savedCount) {
+    try {
+        console.log(`🔄 Generating local recommendations based on ${savedCount} saved properties`);
+        
+        // Get user's saved properties
+        const savedProperties = await getUserSavedProperties(userId);
+        if (savedProperties.length === 0) return [];
+        
+        // Analyze saved properties to find patterns
+        const patterns = analyzeSavedPatterns(savedProperties);
+        
+        // Get all active properties
+        const activeProperties = allListings.filter(listing => 
+            listing.status === 'active' ||
+            listing.status === 'available' ||
+            listing.status === 'Active' ||
+            (listing.status === undefined && listing.isActive !== false)
+        );
+        
+        // Score properties based on patterns
+        const scoredProperties = activeProperties
+            .filter(prop => !savedProperties.some(saved => saved.id === prop.id)) // Exclude already saved
+            .map(prop => {
+                let score = 0;
+                let reasons = [];
+                
+                // Property type match
+                if (patterns.propertyTypes.has(prop.propertyType)) {
+                    score += 30;
+                    reasons.push(`Similar property type: ${prop.propertyType}`);
+                }
+                
+                // Location match
+                const propLocation = prop.city || prop.location || '';
+                if (patterns.locations.some(loc => propLocation.includes(loc))) {
+                    score += 25;
+                    reasons.push(`Similar location`);
+                }
+                
+                // Price range match
+                const propPrice = prop.pricing || prop.salePrice || prop.monthlyRent || 0;
+                if (propPrice >= patterns.minPrice && propPrice <= patterns.maxPrice) {
+                    score += 20;
+                    reasons.push(`Similar price range`);
+                }
+                
+                // Property category match
+                if (patterns.categories.has(prop.propertyCategory)) {
+                    score += 15;
+                    reasons.push(`Same category: ${prop.propertyCategory}`);
+                }
+                
+                return {
+                    ...prop,
+                    recoScore: score,
+                    similar_to: reasons[0] || 'Similar to your saved properties',
+                    is_local_recommendation: true
+                };
+            })
+            .filter(prop => prop.recoScore > 30) // Only include decent matches
+            .sort((a, b) => b.recoScore - a.recoScore)
+            .slice(0, 5);
+        
+        console.log(`✅ Generated ${scoredProperties.length} local recommendations`);
+        return scoredProperties;
+        
+    } catch (error) {
+        console.error('Error generating local recommendations:', error);
+        return [];
+    }
+}
+
+async function getRecentPropertiesForAIUser(savedCount) {
+    try {
+        // Get recent active properties
+        const activeListings = allListings.filter(listing => 
+            listing.status === 'active' ||
+            listing.status === 'available' ||
+            listing.status === 'Active' ||
+            (listing.status === undefined && listing.isActive !== false)
+        );
+        
+        // Sort by date (newest first)
+        const recentListings = activeListings
+            .sort((a, b) => {
+                const dateA = a.createdAt || a.uploadedAt || 0;
+                const dateB = b.createdAt || b.uploadedAt || 0;
+                return dateB - dateA;
+            })
+            .slice(0, 5);
+        
+        console.log(`📅 Found ${recentListings.length} recent properties for AI user`);
+        return recentListings;
+        
+    } catch (error) {
+        console.error('Error getting recent properties:', error);
+        return [];
+    }
+}
+
 async function loadRecommendationsFromPython() {
     try {
         const currentUser = auth.currentUser;
         if (!currentUser) {
             console.log('User not authenticated, skipping recommendations');
-            showRecentPropertiesFallback('Save properties to get AI recommendations');
+            showRecentPropertiesFallback('Please login to get AI recommendations');
             return;
         }
 
         const userId = currentUser.uid;
-        console.log('Loading recommendations from Python API for user:', userId);
+        console.log('📊 Loading recommendations for user:', userId.substring(0, 8) + '...');
 
         // FIRST: Get actual saved count from Firestore (RELIABLE SOURCE)
         const actualSavedCount = await getActualSavedCount(userId);
@@ -1944,7 +2135,17 @@ async function loadRecommendationsFromPython() {
             `;
         }
 
-        // Call Python backend API with TRY-CATCH for JSON parsing
+        // CRITICAL FIX: Check saved count BEFORE calling API
+        // If user has less than 3 saved properties, show encouragement message instead of calling API
+        if (actualSavedCount < 3) {
+            console.log(`📈 User has only ${actualSavedCount} saved properties, showing encouragement`);
+            await showRecentPropertiesFallbackWithMessage(actualSavedCount);
+            return; // Stop here, don't call the Python API
+        }
+
+        // User has 3+ saved properties, proceed with Python API call
+        console.log('✅ User has 3+ saved properties, calling Python API...');
+        
         let data;
         let apiResponseText = '';
         
@@ -1964,10 +2165,9 @@ async function loadRecommendationsFromPython() {
             apiResponseText = await response.text();
             console.log('📦 Raw API response (first 500 chars):', apiResponseText.substring(0, 500));
 
-            // Debug: Check if response contains undefined
+            // Clean the response
             if (apiResponseText.includes('undefined')) {
                 console.warn('⚠️ API response contains "undefined" string');
-                // Clean the response by removing undefined
                 apiResponseText = apiResponseText.replace(/undefined/g, 'null');
             }
 
@@ -1976,9 +2176,8 @@ async function loadRecommendationsFromPython() {
                 data = JSON.parse(apiResponseText);
             } catch (parseError) {
                 console.error('❌ JSON parse error:', parseError);
-                console.error('Problematic response:', apiResponseText);
                 
-                // Try to extract just the JSON part if there's extra text
+                // Try to extract JSON part
                 const jsonMatch = apiResponseText.match(/\{.*\}/s);
                 if (jsonMatch) {
                     try {
@@ -1986,16 +2185,42 @@ async function loadRecommendationsFromPython() {
                         console.log('✅ Successfully extracted JSON from response');
                     } catch (secondError) {
                         console.error('❌ Still cannot parse JSON:', secondError);
-                        // Create fallback data
-                        data = createFallbackRecommendationData(actualSavedCount);
+                        // Create fallback data based on saved count
+                        data = {
+                            success: true,
+                            has_history: true,
+                            saved_count: actualSavedCount,
+                            recommendation_type: 'ai',
+                            message: `Analyzing your ${actualSavedCount} saved properties...`,
+                            user_message: `Based on your ${actualSavedCount} saved properties`,
+                            recommendations: []
+                        };
                     }
                 } else {
-                    data = createFallbackRecommendationData(actualSavedCount);
+                    // Create fallback data
+                    data = {
+                        success: true,
+                        has_history: true,
+                        saved_count: actualSavedCount,
+                        recommendation_type: 'ai',
+                        message: `Analyzing your ${actualSavedCount} saved properties...`,
+                        user_message: `Based on your ${actualSavedCount} saved properties`,
+                        recommendations: []
+                    };
                 }
             }
         } catch (fetchError) {
             console.error('🌐 Fetch error:', fetchError);
-            data = createFallbackRecommendationData(actualSavedCount);
+            // Create fallback data when API fails
+            data = {
+                success: true,
+                has_history: true,
+                saved_count: actualSavedCount,
+                recommendation_type: 'ai',
+                message: `Analyzing your ${actualSavedCount} saved properties...`,
+                user_message: `Based on your ${actualSavedCount} saved properties`,
+                recommendations: []
+            };
         }
 
         // Debug the response structure
@@ -2006,23 +2231,16 @@ async function loadRecommendationsFromPython() {
             actual_saved_count: actualSavedCount,
             recommendation_type: data.recommendation_type,
             recommendations_count: data.recommendations ? data.recommendations.length : 0,
-            message: data.message,
-            user_message: data.user_message
+            message: data.message
         });
 
         // IMPORTANT: Use actual saved count from Firestore instead of API's saved_count
-        // The API might be returning incorrect saved_count
         data.saved_count = actualSavedCount;
 
-        // Update the subtitle based on response
+        // Update the subtitle
         const subtitle = document.getElementById('recommendationsSubtitle');
         if (subtitle) {
-            if (data.user_message && actualSavedCount < 3) {
-                subtitle.textContent = data.user_message.replace(
-                    /saved (\d+) properties/i,
-                    `saved ${actualSavedCount} properties`
-                );
-            } else if (data.message) {
+            if (data.message) {
                 subtitle.textContent = data.message;
             } else {
                 subtitle.textContent = `Based on your ${actualSavedCount} saved properties and search history`;
@@ -2036,14 +2254,19 @@ async function loadRecommendationsFromPython() {
             // Map recommendations to actual listings
             const recommendedListings = data.recommendations
                 .map(rec => {
-                    // Find the matching listing - check both id and property_id
-                    const listing = allListings.find(l => l.id === rec.id || l.id === rec.property_id);
+                    // Find the matching listing
+                    const listing = allListings.find(l => 
+                        l.id === rec.id || 
+                        l.id === rec.property_id ||
+                        (rec.id && l.id && l.id.toString() === rec.id.toString())
+                    );
                     if (listing) {
                         return {
                             ...listing,
                             recoScore: rec.match_score || rec.similarity_score || 0,
                             similarity_score: rec.similarity_score || rec.match_score || 0,
-                            similar_to: rec.match_reason || "Similar to your preferences"
+                            similar_to: rec.match_reason || "Recommended for you",
+                            is_ai_recommended: true
                         };
                     }
                     console.warn('Could not find listing for recommendation:', rec.id || rec.property_id);
@@ -2053,15 +2276,40 @@ async function loadRecommendationsFromPython() {
                 .slice(0, 5);
 
             if (recommendedListings.length > 0) {
-                console.log(`✅ Mapped ${recommendedListings.length} recommendations to listings`);
+                console.log(`✅ Successfully mapped ${recommendedListings.length} AI recommendations to listings`);
                 displayRecommendedListingsPython(recommendedListings, 'personalized');
+                
+                // Update title for AI recommendations
+                const sectionTitle = document.querySelector('#recommendedSection .section-title');
+                if (sectionTitle) {
+                    sectionTitle.innerHTML = '<i class="fas fa-robot"></i> AI Recommendations For You';
+                }
+                
                 return;
             }
         }
         
-        // Handle partial recommendations
-        else if (data.recommendation_type === 'partial' && data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
-            console.log(`📝 Received ${data.recommendations.length} partial recommendations`);
+        // If API returned "ai" type but no recommendations, or returned empty recommendations
+        if (data.recommendation_type === 'ai' && (!data.recommendations || data.recommendations.length === 0)) {
+            console.log('⚠️ API returned AI type but no recommendations, trying to generate local recommendations');
+            
+            // Try to generate local recommendations based on saved properties
+            const localRecommendations = await generateLocalRecommendations(userId, actualSavedCount);
+            if (localRecommendations.length > 0) {
+                displayRecommendedListingsPython(localRecommendations, 'personalized');
+                
+                // Update subtitle
+                if (subtitle) {
+                    subtitle.textContent = `Based on analysis of your ${actualSavedCount} saved properties`;
+                }
+                
+                return;
+            }
+        }
+        
+        // Handle search-based recommendations (user has search history)
+        if (data.recommendation_type === 'search_based' && data.recommendations && data.recommendations.length > 0) {
+            console.log(`🔍 Received ${data.recommendations.length} search-based recommendations`);
             
             const recommendedListings = data.recommendations
                 .map(rec => {
@@ -2071,7 +2319,8 @@ async function loadRecommendationsFromPython() {
                             ...listing,
                             recoScore: rec.match_score || rec.similarity_score || 0,
                             similarity_score: rec.similarity_score || rec.match_score || 0,
-                            similar_to: `You've saved ${actualSavedCount} properties. Save ${Math.max(0, 3 - actualSavedCount)} more for AI recommendations!`
+                            similar_to: 'Based on your search patterns',
+                            is_search_based: true
                         };
                     }
                     return null;
@@ -2080,14 +2329,39 @@ async function loadRecommendationsFromPython() {
                 .slice(0, 5);
 
             if (recommendedListings.length > 0) {
-                displayRecommendedListingsPython(recommendedListings, 'partial');
+                displayRecommendedListingsPython(recommendedListings, 'search_based');
                 return;
             }
         }
         
-        // Fallback to recent properties
-        console.log('📦 No AI recommendations, showing recent properties');
-        showRecentPropertiesFallback();
+        // If we reach here, no recommendations were found
+        console.log('📦 No recommendations found from API, showing AI-powered recent properties');
+        
+        // Get recent properties but label them as AI-powered since user has 3+ saved
+        const recentListings = await getRecentPropertiesForAIUser(actualSavedCount);
+        if (recentListings.length > 0) {
+            // Add AI context to recent properties
+            const aiEnhancedListings = recentListings.map(listing => ({
+                ...listing,
+                similar_to: `Based on your ${actualSavedCount} saved properties`,
+                is_ai_context: true
+            }));
+            
+            displayRecommendedListingsPython(aiEnhancedListings, 'ai_context');
+            
+            // Update title and subtitle
+            const sectionTitle = document.querySelector('#recommendedSection .section-title');
+            if (sectionTitle) {
+                sectionTitle.innerHTML = '<i class="fas fa-robot"></i> AI-Powered Suggestions';
+            }
+            
+            if (subtitle) {
+                subtitle.textContent = `Selected based on your ${actualSavedCount} saved properties`;
+            }
+        } else {
+            // Ultimate fallback
+            showRecentPropertiesFallback('No matching properties found. Try saving different types of properties.');
+        }
 
     } catch (error) {
         console.error('💥 Error in recommendation system:', error);
@@ -2095,20 +2369,6 @@ async function loadRecommendationsFromPython() {
     }
 }
 
-// Add this helper function:
-async function getActualSavedCount(userId) {
-    try {
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef, where('userId', '==', userId));
-        const snapshot = await getDocs(q);
-        return snapshot.size;
-    } catch (error) {
-        console.error('Error getting saved count:', error);
-        return 0;
-    }
-}
-
-// Add this helper function:
 function createFallbackRecommendationData(savedCount) {
     return {
         success: true,
@@ -2240,7 +2500,7 @@ async function showRecentPropertiesFallbackWithMessage(savedCount) {
             // Update section subtitle to show progress
             const subtitle = document.getElementById('recommendationsSubtitle');
             if (subtitle) {
-                subtitle.textContent = `You've saved ${savedCount} properties. Save ${3 - savedCount} more to unlock AI recommendations!`;
+                subtitle.textContent = `You've saved ${savedCount} property${savedCount !== 1 ? 's' : ''}. Save ${3 - savedCount} more to unlock AI recommendations!`;
             }
             
             // Add a more specific prompt message

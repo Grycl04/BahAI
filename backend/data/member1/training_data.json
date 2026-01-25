@@ -185,6 +185,130 @@
       "average_rent": "₱15,000-₱50,000/month for commercial spaces"
     },
     {
+      "query": "find house in nasugbu",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "house",
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "look for house in nasugbu",
+        "search for house in nasugbu",
+        "show me houses in nasugbu",
+        "i need house in nasugbu",
+        "can you find house in nasugbu",
+        "please locate house in nasugbu",
+        "i'm looking for house in nasugbu",
+        "help me find house in nasugbu",
+        "find me house in nasugbu",
+        "house for rent in nasugbu",
+        "house for sale in nasugbu",
+        "house properties in nasugbu",
+        "may bahay ba sa nasugbu",
+        "bahay sa nasugbu",
+        "house properties in nasugbu",
+        "house living in nasugbu",
+        "rent house in nasugbu",
+        "house lease in nasugbu",
+        "beach house in nasugbu",
+        "vacation house in nasugbu",
+        "houses near beach in nasugbu",
+        "residential house in nasugbu",
+        "bungalow in nasugbu",
+        "villa in nasugbu",
+        "beachfront house in nasugbu",
+        "family house in nasugbu"
+      ],
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average price/rent:** {average_price}",
+      "location_description": "Nasugbu is known for its beautiful beaches, luxury resorts, and coastal lifestyle. Popular for vacation homes and beach properties.",
+      "average_price": "₱12,000-₱30,000/month for houses, ₱20,000-₱50,000/month for beachfront properties"
+    },
+    {
+      "query": "find beachfront properties in nasugbu",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "beachfront",
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "look for beachfront in nasugbu",
+        "search for beachfront properties in nasugbu",
+        "show me beachfront houses in nasugbu",
+        "i need beachfront property in nasugbu",
+        "beachfront for rent in nasugbu",
+        "beachfront for sale in nasugbu",
+        "beach houses in nasugbu",
+        "beach villas in nasugbu",
+        "properties near beach in nasugbu",
+        "houses by the sea in nasugbu",
+        "oceanfront properties in nasugbu"
+      ],
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average price:** {average_price}",
+      "location_description": "Nasugbu offers premium beachfront living with luxury resorts and stunning ocean views.",
+      "average_price": "₱20,000-₱50,000/month for beachfront properties, ₱10M-₱30M+ for luxury villas"
+    },
+    {
+      "query": "find apartments in nasugbu",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "apartment",
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "look for apartments in nasugbu",
+        "search for apartments in nasugbu",
+        "show me apartments in nasugbu",
+        "apartment for rent in nasugbu",
+        "apartment for sale in nasugbu",
+        "apartment units in nasugbu",
+        "condo apartments in nasugbu",
+        "rental apartments in nasugbu",
+        "affordable apartments in nasugbu"
+      ],
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average rent:** {average_rent}",
+      "location_description": "Nasugbu has apartment options for both tourists and residents seeking coastal living.",
+      "average_rent": "₱8,000-₱15,000/month for apartments"
+    },
+    {
+      "query": "find resort properties in nasugbu",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "resort",
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "look for resort in nasugbu",
+        "search for resort properties in nasugbu",
+        "show me resorts in nasugbu",
+        "resort for sale in nasugbu",
+        "beach resort properties in nasugbu",
+        "hotel properties in nasugbu",
+        "vacation resort in nasugbu"
+      ],
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average price:** {average_price}",
+      "location_description": "Nasugbu is a prime location for resort investments with established tourism industry.",
+      "average_price": "₱10M-₱50M+ for resort properties"
+    },
+    {
+      "query": "find agricultural land in nasugbu",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "agricultural",
+        "location": "Nasugbu"
+      },
+      "variations": [
+        "look for farm land in nasugbu",
+        "search for agricultural lots in nasugbu",
+        "show me farm properties in nasugbu",
+        "farm land for sale in nasugbu",
+        "agricultural lots in nasugbu",
+        "farm lots in nasugbu"
+      ],
+      "response_template": "📍 **Found properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location highlights:** {location_description}\n**Average price:** {average_price}",
+      "location_description": "Nasugbu has agricultural areas suitable for farming and crop production.",
+      "average_price": "₱1,200-₱3,500/sqm for agricultural lands"
+    },
+    {
       "query": "properties that accept bank financing",
       "intent": "financing",
       "entities": {
@@ -440,6 +564,32 @@
       "requirements": "Valid ID, Tax Identification Number (TIN), and proof of fund source"
     },
     {
+      "query": "properties that accept installment payment",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "installment",
+        "needs_documents": true
+      },
+      "variations": [
+        "installment payment properties",
+        "properties with installment plan",
+        "properties payable in installment",
+        "monthly installment properties",
+        "properties with monthly payment",
+        "installment basis properties",
+        "properties with flexible payment terms"
+      ],
+      "response_template": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type} payment. Here are some options:\n\n{property_list}\n\n**Payment Terms:**\n{payment_terms}\n\n**Requirements:** {requirements}",
+      "payment_terms": [
+        "• Usually 20-30% downpayment",
+        "• Monthly installments for 5-10 years",
+        "• Interest rates: 6-12% annually",
+        "• Post-dated checks required",
+        "• May require co-maker or guarantor"
+      ],
+      "requirements": "Valid ID, Proof of Income, Downpayment, Post-dated checks"
+    },
+    {
       "query": "tell me about batangas city",
       "intent": "location_info",
       "entities": {
@@ -582,7 +732,10 @@
         "paano ang buhay sa nasugbu",
         "maganda ba tumira sa nasugbu",
         "beach living in nasugbu",
-        "coastal lifestyle nasugbu"
+        "coastal lifestyle nasugbu",
+        "what's living in nasugbu like",
+        "is nasugbu good for retirement",
+        "vacation living in nasugbu"
       ],
       "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
       "description": "Nasugbu is a first-class municipality in Batangas known for its beautiful beaches, luxury resorts, and coastal lifestyle. It's a popular tourist destination with both natural and man-made attractions.",
@@ -757,6 +910,76 @@
       ],
       "ideal_for": "Metro Manila commuters, factory workers, young professionals, investors in industrial properties",
       "property_types": "Apartments, condominiums, houses, townhouses, industrial lots, commercial spaces"
+    },
+    {
+      "query": "tell me about calatagan",
+      "intent": "location_info",
+      "entities": {
+        "location": "Calatagan"
+      },
+      "variations": [
+        "what is calatagan like",
+        "is calatagan a good place to live",
+        "tell me about living in calatagan",
+        "how is life in calatagan",
+        "describe calatagan",
+        "calatagan lifestyle",
+        "about calatagan",
+        "information about calatagan",
+        "calatagan description"
+      ],
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Calatagan is a coastal municipality in Batangas known for its white-sand beaches, luxury residential developments, and private beach communities.",
+      "lifestyle": "Exclusive and leisure-focused living. Popular for vacation homes, private resorts, and upscale beach communities.",
+      "key_features": [
+        "• White-sand beaches",
+        "• Luxury subdivisions and beach clubs",
+        "• High-end resort developments",
+        "• Ideal for vacation properties",
+        "• Peaceful coastal environment"
+      ],
+      "average_prices": [
+        "🏖️ Beachfront Lots: ₱18,000 - ₱45,000/sqm",
+        "🏡 Residential Lots: ₱8,000 - ₱20,000/sqm",
+        "🏰 Luxury Houses: ₱8M - ₱30M"
+      ],
+      "ideal_for": "Luxury buyers, vacation homeowners, resort investors, high-net-worth individuals",
+      "property_types": "Beachfront lots, luxury houses, resort properties, residential lots"
+    },
+    {
+      "query": "tell me about mabini",
+      "intent": "location_info",
+      "entities": {
+        "location": "Mabini"
+      },
+      "variations": [
+        "what is mabini like",
+        "is mabini a good place to live",
+        "tell me about living in mabini",
+        "describe mabini",
+        "mabini lifestyle",
+        "about mabini",
+        "information about mabini",
+        "anilao mabini"
+      ],
+      "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+      "description": "Mabini is a coastal municipality in Batangas famous for Anilao, one of the top diving destinations in the Philippines. It offers stunning marine biodiversity and resort communities.",
+      "lifestyle": "Diving and resort-focused coastal living. International tourism presence with a mix of local community life and vacation home developments.",
+      "key_features": [
+        "• World-class diving sites",
+        "• Tourism and resort economy",
+        "• Coastal and mountain views",
+        "• Growing vacation home market",
+        "• Peaceful seaside communities"
+      ],
+      "average_prices": [
+        "🏢 Apartments: ₱7,000 - ₱15,000/month",
+        "🏠 Houses: ₱12,000 - ₱30,000/month",
+        "🏖️ Resort Properties: ₱6M - ₱25M",
+        "🏡 Residential Lots: ₱5,000 - ₱15,000/sqm"
+      ],
+      "ideal_for": "Diving enthusiasts, resort investors, retirees, vacation homeowners",
+      "property_types": "Houses, resort properties, beachfront lots, residential lots"
     }
   ],
   "entity_dictionary": {
@@ -1602,14 +1825,14 @@
     }
   },
   "metadata": {
-    "total_samples": 16,
+    "total_samples": 22,
     "intent_distribution": {
-      "find_property": 6,
-      "financing": 5,
-      "location_info": 5
+      "find_property": 10,
+      "financing": 6,
+      "location_info": 6
     },
     "created_date": "2024-01-24",
-    "version": "4.0",
-    "training_notes": "Comprehensive enhanced version with expanded property types, more locations, detailed financing info, and complete location profiles. Covers all member1 questions (1, 7, 9) with extensive variations and detailed response templates. Added specific condo in Lipa City query and expanded entity dictionary."
+    "version": "4.1",
+    "training_notes": "Fixed: Moved 'find house in nasugbu' from location_info to find_property intent. Added more Nasugbu property search variations (beachfront, apartments, resort, agricultural). Added additional financing sample for installment payment. Added Calatagan and Mabini location_info samples. Enhanced Nasugbu variations and added more comprehensive training data."
   }
 }
