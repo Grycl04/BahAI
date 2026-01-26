@@ -1,6 +1,66 @@
 {
   "additional_samples": [
     {
+      "text": "find apartments",
+      "intent": "find_property"
+    },
+    {
+      "text": "show me houses",
+      "intent": "find_property"
+    },
+    {
+      "text": "look for condos",
+      "intent": "find_property"
+    },
+    {
+      "text": "search for properties",
+      "intent": "find_property"
+    },
+    {
+      "text": "i need a house",
+      "intent": "find_property"
+    },
+    {
+      "text": "show me available properties",
+      "intent": "find_property"
+    },
+    {
+      "text": "find beachfront properties",
+      "intent": "find_property"
+    },
+    {
+      "text": "what apartments do you have",
+      "intent": "find_property"
+    },
+    {
+      "text": "what houses are available",
+      "intent": "find_property"
+    },
+    {
+      "text": "show me all condos",
+      "intent": "find_property"
+    },
+    {
+      "text": "do you have any apartments",
+      "intent": "find_property"
+    },
+    {
+      "text": "any houses for sale",
+      "intent": "find_property"
+    },
+    {
+      "text": "any condos for rent",
+      "intent": "find_property"
+    },
+    {
+      "text": "properties for rent",
+      "intent": "find_property"
+    },
+    {
+      "text": "properties for sale",
+      "intent": "find_property"
+    },
+    {
       "text": "show me house in nasugbu",
       "intent": "find_property"
     },

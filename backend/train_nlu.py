@@ -111,13 +111,18 @@ class TeamNLUTrainer:
                              'information about', 'living in', 'like to live',
                              'what\'s it like', 'is it good', 'lifestyle'],
             'find_property': ['find', 'search for', 'show me', 'looking for',
-                             'need', 'want', 'locate', 'discover'],
+                             'need', 'want', 'locate', 'discover', 
+                              'what apartments', 'what houses', 'what condos',  
+                     'do you have', 'any properties', 'available properties'], 
             'find_property_for_need': ['for family', 'for students', 'for professionals',
                                       'for couple', 'for retirees', 'for business',
                                       'for investors', 'for single', 'for workers'],
-            'find_property_with_criteria': ['under', 'below', 'less than', 'with bedrooms',
-                                           'with bathroom', 'with price', 'budget',
-                                           'affordable', 'cheap', 'maximum'],
+             'find_property_with_criteria': [
+        'under', 'below', 'less than', 'maximum', 'up to',
+        'with bedroom', 'with bath', 'with bathrooms',
+        'with bedrooms', 'bedroom', 'bathroom', 'rooms',
+        'price range', 'budget', 'affordable', 'cheap'
+    ],
             'match_needs': ['match my', 'suitable for', 'fitting my', 'appropriate for',
                            'compatible with', 'what matches', 'recommendations for']
         }
@@ -271,6 +276,42 @@ class TeamNLUTrainer:
         print("\n🔧 Adding corrective training samples...")
         
         corrective_samples = [
+            # Clear examples of find_property_with_criteria
+            ("houses under 30 million with 4 bedrooms", "find_property_with_criteria"),
+            ("show me properties below 20M with 3 bedrooms", "find_property_with_criteria"),
+            ("find condos under 10M with 2 baths", "find_property_with_criteria"),
+            
+            # Clear examples of find_property (no price/bedroom criteria)
+            ("find houses in nasugbu", "find_property"),
+            ("show me apartments in batangas city", "find_property"),
+            ("look for condos in lipa", "find_property"),
+            
+            # Boundary cases
+            ("houses with 4 bedrooms", "find_property_with_criteria"),  # has bedroom count
+            ("houses under 30M", "find_property_with_criteria"),  # has price
+            ("houses in batangas", "find_property"),  # only location
+            
+            # General property searches WITHOUT location
+            ("find apartments", "find_property"),
+            ("show me houses", "find_property"),
+            ("look for condos", "find_property"),
+            ("search for properties", "find_property"),
+            ("i need a house", "find_property"),
+            ("show me available properties", "find_property"),
+            ("find beachfront properties", "find_property"),
+            ("show me commercial spaces", "find_property"),
+            ("looking for townhouses", "find_property"),
+            ("need a studio", "find_property"),
+            
+            # General property type questions
+            ("what apartments do you have", "find_property"),
+            ("what houses are available", "find_property"),
+            ("show me all condos", "find_property"),
+            ("what properties do you offer", "find_property"),
+            ("do you have any apartments", "find_property"),
+            ("any houses for sale", "find_property"),
+            ("any condos for rent", "find_property"),
+            
             # Financing intent fixes
             ("properties that accept bank financing", "financing"),
             ("show me properties that accept bank financing", "financing"),
@@ -353,7 +394,7 @@ class TeamNLUTrainer:
         
         print(f"   ✅ Added {len(texts)} corrective samples")
         return texts, intents
-
+    
     def load_shared_questions(self, shared_path='data/shared'):
         """Load question templates from all_questions.json"""
         texts = []
@@ -793,9 +834,22 @@ def create_additional_training_file():
     """Create/update additional training data file"""
     additional_data = {
         "additional_samples": [
-            # ============================================
-            # CRITICAL FIXES FOR YOUR SPECIFIC ISSUE
-            # ============================================
+             # General property searches (no location)
+            {"text": "find apartments", "intent": "find_property"},
+            {"text": "show me houses", "intent": "find_property"},
+            {"text": "look for condos", "intent": "find_property"},
+            {"text": "search for properties", "intent": "find_property"},
+            {"text": "i need a house", "intent": "find_property"},
+            {"text": "show me available properties", "intent": "find_property"},
+            {"text": "find beachfront properties", "intent": "find_property"},
+            {"text": "what apartments do you have", "intent": "find_property"},
+            {"text": "what houses are available", "intent": "find_property"},
+            {"text": "show me all condos", "intent": "find_property"},
+            {"text": "do you have any apartments", "intent": "find_property"},
+            {"text": "any houses for sale", "intent": "find_property"},
+            {"text": "any condos for rent", "intent": "find_property"},
+            {"text": "properties for rent", "intent": "find_property"},
+            {"text": "properties for sale", "intent": "find_property"},
             
             # Force "find X in Y" to be find_property (not location_info)
              {"text": "show me house in nasugbu", "intent": "find_property"},

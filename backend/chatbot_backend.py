@@ -1,4 +1,4 @@
-# backend/chatbot_backend.py - UPDATED VERSION WITH WORKING FIREBASE
+# backend/chatbot_backend.py - COMPLETE UPDATED VERSION
 from flask import Flask, request, jsonify
 from pathlib import Path
 from flask_cors import CORS
@@ -17,6 +17,7 @@ import spacy
 import numpy as np
 import random
 import sys
+from collections import defaultdict
 
 warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
 # Set up logging
@@ -170,7 +171,7 @@ def preprocess_text(text):
     
     return text
 
-# Entity extraction - UPDATED FOR YOUR FIRESTORE STRUCTURE
+# Entity extraction - UPDATED FOR BETTER PRICE AND BEDROOM PARSING
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
@@ -182,10 +183,113 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'bedrooms': None,
         'bathrooms': None,
         'financing_type': None,
-        'listing_type': None  # rent, sale, lease
+        'listing_type': None,  # rent, sale, lease
+        'has_general_search': False,  # NEW: Flag for general search
+        'max_price': None,  # NEW: Numeric max price for filtering
+        'min_price': None,  # NEW: Numeric min price for filtering
+        'min_bedrooms': None,  # NEW: Numeric bedroom count for filtering
+        'exact_bedrooms': None  # NEW: Exact bedroom count
     }
     
     query_lower = query.lower()
+    
+    # ========== NEW: Parse numeric price values for filtering ==========
+    max_price = None
+    min_price = None
+    
+    # Patterns for price extraction (convert M to millions, k to thousands)
+    price_patterns = [
+        # "under 15M" or "under 15 M"
+        (r'under\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "below 15 million" or "below 15million"
+        (r'below\s+(\d+(?:\.\d+)?)\s*million\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "under ₱15M" or "below ₱15M"
+        (r'(?:under|below)\s*₱?\s*(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "under 15000000" or "below 15000000"
+        (r'(?:under|below)\s+(\d{7,})\b', lambda m: float(m.group(1)), 'max'),
+        # "less than 15M"
+        (r'less\s+than\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "maximum 15M"
+        (r'maximum\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "up to 15M"
+        (r'up\s+to\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "above 5M" or "over 5M"
+        (r'(?:above|over)\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'min'),
+        # "minimum 5M"
+        (r'minimum\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'min'),
+        # "from 5M to 10M" or "between 5M and 10M"
+        (r'(?:from|between)\s+(\d+(?:\.\d+)?)\s*([mM])?\s*(?:to|and)\s+(\d+(?:\.\d+)?)\s*([mM]?)', 
+         lambda m: (float(m.group(1)) * (1000000 if m.group(2) else 1), 
+                   float(m.group(3)) * (1000000 if m.group(4) else 1)), 'range'),
+        # Simple number with M (e.g., "15M house")
+        (r'\b(\d+(?:\.\d+)?)\s*([mM])\b(?!\s*(?:bed|bedroom|bath))', 
+         lambda m: float(m.group(1)) * 1000000, 'exact'),
+    ]
+    
+    for pattern, converter, price_type in price_patterns:
+        match = re.search(pattern, query_lower)
+        if match:
+            try:
+                if price_type == 'max':
+                    max_price = converter(match)
+                    entities['max_price'] = max_price
+                    entities['price_range'] = f"under ₱{max_price/1000000:.1f}M"
+                    logger.info(f"💰 Parsed max price: ₱{max_price:,.0f}")
+                elif price_type == 'min':
+                    min_price = converter(match)
+                    entities['min_price'] = min_price
+                    logger.info(f"💰 Parsed min price: ₱{min_price:,.0f}")
+                elif price_type == 'range':
+                    min_val, max_val = converter(match)
+                    entities['min_price'] = min_val
+                    entities['max_price'] = max_val
+                    entities['price_range'] = f"₱{min_val/1000000:.1f}M to ₱{max_val/1000000:.1f}M"
+                    logger.info(f"💰 Parsed price range: ₱{min_val:,.0f} - ₱{max_val:,.0f}")
+                elif price_type == 'exact':
+                    exact_price = converter(match)
+                    entities['price_range'] = f"around ₱{exact_price/1000000:.1f}M"
+                    logger.info(f"💰 Parsed approximate price: ₱{exact_price:,.0f}")
+                break
+            except Exception as e:
+                logger.warning(f"⚠️ Could not parse price pattern '{pattern}': {e}")
+                continue
+    
+    # ========== NEW: Parse bedroom criteria for filtering ==========
+    bedrooms = None
+    exact_bedrooms = None
+    
+    # Patterns for bedroom extraction
+    bedroom_patterns = [
+        # "with 3 bedrooms" or "with 3 bedroom"
+        (r'with\s+(\d+)\s+bedroom(?:s)?\b', lambda m: int(m.group(1))),
+        # "3 bedrooms" or "3 bedroom"
+        (r'\b(\d+)\s+bedroom(?:s)?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))),
+        # "3-bedroom" or "3br"
+        (r'(\d+)(?:-|\s*)bedroom|(\d+)br\b', lambda m: int(m.group(1)) if m.group(1) else int(m.group(2))),
+        # "3 bed"
+        (r'(\d+)\s+bed\b', lambda m: int(m.group(1))),
+        # "studio" (0 bedrooms)
+        (r'\bstudio\b', lambda m: 0),
+        # "1 bedroom apartment" pattern
+        (r'(\d+)\s+bedroom\s+(?:apartment|condo|house|unit)', lambda m: int(m.group(1))),
+    ]
+    
+    for pattern, converter in bedroom_patterns:
+        match = re.search(pattern, query_lower)
+        if match:
+            try:
+                bedrooms = converter(match)
+                entities['exact_bedrooms'] = bedrooms
+                entities['bedrooms'] = bedrooms
+                logger.info(f"🛏️ Parsed bedroom count: {bedrooms}")
+                break
+            except Exception as e:
+                logger.warning(f"⚠️ Could not parse bedroom pattern '{pattern}': {e}")
+                continue
+    
+    # Detect if this is a general search (no location specified)
+    has_location_terms = any(term in query_lower for term in ['in ', 'at ', 'within ', 'inside '])
+    has_specific_location = False
     
     # Detect listing type
     if 'for rent' in query_lower or 'rental' in query_lower:
@@ -236,6 +340,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     for location_key, location_value in batangas_locations.items():
         if location_key in query_lower:
             entities['location'] = location_value
+            has_specific_location = True
             break
     
     # Feature detection
@@ -254,28 +359,6 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         match = re.search(r'(?:near|close to|around|beside|next to)\s+(\w+\s*\w*)', query_lower)
         if match:
             entities['landmark'] = match.group(1).strip()
-    
-    # Price range detection
-    price_patterns = [
-        (r'under\s+(\d+[kKmM]?)', 'under'),
-        (r'below\s+(\d+[kKmM]?)', 'below'),
-        (r'less than\s+(\d+[kKmM]?)', 'less than'),
-        (r'(\d+[kKmM]?)\s+(million|m|m\b)', 'million'),
-        (r'(\d+)\s+k', 'thousand')
-    ]
-    
-    for pattern, price_type in price_patterns:
-        match = re.search(pattern, query_lower)
-        if match:
-            entities['price_range'] = f"{price_type} {match.group(1)}"
-            break
-    
-    # Bedroom detection
-    bed_match = re.search(r'(\d+)\s+bedroom', query_lower)
-    if bed_match:
-        entities['bedrooms'] = int(bed_match.group(1))
-    elif 'studio' in query_lower:
-        entities['bedrooms'] = 'studio'
     
     # Bathroom detection
     bath_match = re.search(r'(\d+)\s+bathroom', query_lower)
@@ -298,7 +381,46 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             entities['financing_type'] = financing_type
             break
     
+    # NEW: Determine if this is a general search (property type but no location)
+    if entities.get('property_type') and not has_specific_location:
+        entities['has_general_search'] = True
+        logger.info(f"🔍 Detected general search for {entities['property_type']} (no location specified)")
+    
     return entities
+
+# Add numeric price value to property data
+def add_price_numeric_value(property_data: Dict) -> Dict:
+    """Add numeric price value to property data for easier filtering"""
+    property_data = property_data.copy()
+    
+    listing_type = property_data.get('type', property_data.get('listingType', 'unknown'))
+    
+    if listing_type == 'rent' and 'monthlyRent' in property_data:
+        property_data['price_numeric'] = property_data['monthlyRent']
+    elif listing_type == 'sale' and 'salePrice' in property_data:
+        property_data['price_numeric'] = property_data['salePrice']
+    elif listing_type == 'lease' and 'annualRent' in property_data:
+        property_data['price_numeric'] = property_data['annualRent']
+    else:
+        # Try to extract from price string
+        price_str = str(property_data.get('price', '0'))
+        try:
+            # Extract numeric value from string like "₱10.0M" or "₱25,000"
+            match = re.search(r'[\d\.\,]+', price_str)
+            if match:
+                numeric_str = match.group().replace(',', '')
+                if 'M' in price_str or 'm' in price_str:
+                    property_data['price_numeric'] = float(numeric_str) * 1000000
+                elif 'K' in price_str or 'k' in price_str:
+                    property_data['price_numeric'] = float(numeric_str) * 1000
+                else:
+                    property_data['price_numeric'] = float(numeric_str)
+            else:
+                property_data['price_numeric'] = 0
+        except:
+            property_data['price_numeric'] = 0
+    
+    return property_data
 
 # Standardize property data from Firestore
 def standardize_property_data(property_data: Dict) -> Dict:
@@ -347,6 +469,8 @@ def standardize_property_data(property_data: Dict) -> Dict:
         'title': title,
         'type': property_type,
         'location': f"{city}, {province}",
+        'city': city,
+        'province': province,
         'price': price_str,
         'bedrooms': property_data.get('bedrooms', 'Not specified'),
         'bathrooms': property_data.get('bathrooms', 'Not specified'),
@@ -360,7 +484,8 @@ def standardize_property_data(property_data: Dict) -> Dict:
         'hasVideos': property_data.get('hasVideos', False),
         'floorArea': property_data.get('floorArea', None),
         'lotArea': property_data.get('lotArea', None),
-        'financingOptions': property_data.get('financingOptions', [])
+        'financingOptions': property_data.get('financingOptions', []),
+        'price_numeric': property_data.get('price_numeric', 0)  # Add numeric price
     }
     
     return standardized
@@ -418,6 +543,38 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'description': 'Prime commercial space for business',
             'imageUrls': [],
             'status': 'available'
+        },
+        {
+            'id': 'mock_4',
+            'title': 'Apartment in Batangas City',
+            'propertyType': 'apartment',
+            'type': 'rent',
+            'city': 'Batangas City',
+            'province': 'Batangas',
+            'address': '101 Main Street, Batangas City',
+            'monthlyRent': 12000,
+            'bedrooms': '2',
+            'bathrooms': '1',
+            'floorArea': 50,
+            'description': 'Clean and affordable apartment',
+            'imageUrls': [],
+            'status': 'available'
+        },
+        {
+            'id': 'mock_5',
+            'title': 'Townhouse in Sto. Tomas',
+            'propertyType': 'townhouse',
+            'type': 'sale',
+            'city': 'Sto. Tomas City',
+            'province': 'Batangas',
+            'address': '202 Subdivision, Sto. Tomas',
+            'salePrice': 2800000,
+            'bedrooms': '3',
+            'bathrooms': '2',
+            'floorArea': 90,
+            'description': 'Modern townhouse with garage',
+            'imageUrls': [],
+            'status': 'available'
         }
     ]
     
@@ -425,7 +582,7 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     for prop in base_properties:
         matches = True
         
-        # Filter by location
+        # Filter by location (only if specified)
         if entities.get('location'):
             location = entities['location'].lower()
             prop_city = prop.get('city', '').lower()
@@ -433,7 +590,9 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
                 matches = False
             elif 'lipa' in location and 'lipa' not in prop_city:
                 matches = False
-            elif 'batangas' in location and 'batangas' not in prop.get('province', '').lower():
+            elif 'batangas city' in location and 'batangas city' not in prop_city:
+                matches = False
+            elif 'sto tomas' in location and 'sto. tomas city' not in prop_city:
                 matches = False
         
         # Filter by property type
@@ -445,19 +604,51 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
                 'house': ['house', 'bungalow', 'duplex'],
                 'condo': ['condo', 'condominium', 'penthouse', 'studio'],
                 'apartment': ['apartment', 'room', 'boarding_house'],
-                'commercial': ['commercial', 'office', 'retail', 'warehouse']
+                'commercial': ['commercial', 'office', 'retail', 'warehouse'],
+                'townhouse': ['townhouse']
             }
             
             if requested_type in type_mapping:
                 if prop_type not in type_mapping[requested_type]:
                     matches = False
         
+        # Filter by price if specified
+        if entities.get('max_price') and matches:
+            price_numeric = 0
+            if prop.get('type') == 'rent' and 'monthlyRent' in prop:
+                price_numeric = prop['monthlyRent']
+            elif prop.get('type') == 'sale' and 'salePrice' in prop:
+                price_numeric = prop['salePrice']
+            
+            if price_numeric > entities['max_price']:
+                matches = False
+        
+        # Filter by bedrooms if specified
+        if entities.get('exact_bedrooms') is not None and matches:
+            prop_bedrooms = prop.get('bedrooms', '0')
+            try:
+                if isinstance(prop_bedrooms, str):
+                    bed_match = re.search(r'(\d+)', prop_bedrooms)
+                    if bed_match:
+                        prop_bed_num = int(bed_match.group(1))
+                    else:
+                        prop_bed_num = 0
+                else:
+                    prop_bed_num = int(prop_bedrooms)
+                
+                if prop_bed_num != entities['exact_bedrooms']:
+                    matches = False
+            except:
+                pass
+        
         if matches:
-            mock_properties.append(standardize_property_data(prop))
+            # Add numeric price value
+            prop_with_price = add_price_numeric_value(prop)
+            mock_properties.append(standardize_property_data(prop_with_price))
     
     return mock_properties
 
-# Firestore queries - UPDATED FOR YOUR DATABASE STRUCTURE
+# Firestore queries - UPDATED WITH PROPER PRICE AND BEDROOM FILTERING
 def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search properties in Firestore based on entities"""
     properties = []
@@ -476,6 +667,9 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         
         # Always filter by available status
         query = query.where(filter=FieldFilter('status', '==', 'available'))
+        
+        # NEW: Handle general searches (no location specified)
+        is_general_search = not entities.get('location') and entities.get('has_general_search')
         
         # Filter by location if specified
         if entities.get('location'):
@@ -511,6 +705,11 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                         query = query.where(filter=FieldFilter('city', '==', map_value))
                         logger.info(f"🔍 Filtering by city (case-insensitive): {map_value}")
                         break
+        else:
+            if is_general_search:
+                logger.info(f"🔍 General search for {entities.get('property_type', 'properties')} (no location filter)")
+            else:
+                logger.info("🔍 No location specified - showing properties from all locations")
         
         # Filter by property type if specified
         if entities.get('property_type'):
@@ -549,72 +748,40 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                         logger.info(f"🔍 Filtering by property type (case-insensitive): {map_value}")
                         break
         
-        # Filter by bedrooms if specified
-        if entities.get('bedrooms'):
+        # ========== APPLY PRICE FILTERS IF SPECIFIED ==========
+        if entities.get('max_price'):
+            max_price = entities['max_price']
+            logger.info(f"💰 Applying max price filter: ₱{max_price:,.0f}")
+            
+            # Try to filter by monthlyRent for rentals
             try:
-                bedrooms = entities['bedrooms']
-                if isinstance(bedrooms, int):
-                    if bedrooms <= 5:
-                        bed_str = str(bedrooms)
-                    else:
-                        bed_str = '5+'
-                else:
-                    bed_str = str(bedrooms)
-                
+                query = query.where(filter=FieldFilter('monthlyRent', '<=', max_price))
+                logger.info(f"🔍 Filtering by max monthly rent: ₱{max_price:,.0f}")
+            except Exception as rent_error:
+                logger.warning(f"⚠️ Could not filter by monthlyRent: {rent_error}")
+                # Try salePrice for sales
+                try:
+                    query = query.where(filter=FieldFilter('salePrice', '<=', max_price))
+                    logger.info(f"🔍 Filtering by max sale price: ₱{max_price:,.0f}")
+                except Exception as sale_error:
+                    logger.warning(f"⚠️ Could not filter by salePrice: {sale_error}")
+                    # Try annualRent for leases
+                    try:
+                        query = query.where(filter=FieldFilter('annualRent', '<=', max_price))
+                        logger.info(f"🔍 Filtering by max annual rent: ₱{max_price:,.0f}")
+                    except Exception as annual_error:
+                        logger.warning(f"⚠️ Could not filter by annualRent: {annual_error}")
+        
+        # ========== APPLY BEDROOM FILTER IF SPECIFIED ==========
+        if entities.get('exact_bedrooms') is not None:
+            bedrooms = entities['exact_bedrooms']
+            bed_str = str(bedrooms) if bedrooms <= 5 else '5+'
+            
+            try:
                 query = query.where(filter=FieldFilter('bedrooms', '==', bed_str))
-                logger.info(f"🔍 Filtering by bedrooms: {bed_str}")
+                logger.info(f"🛏️ Filtering by exact bedroom count: {bed_str}")
             except Exception as bed_error:
                 logger.warning(f"⚠️ Could not filter by bedrooms: {bed_error}")
-        
-        # Filter by price range if specified
-        if entities.get('price_range'):
-            price_range = entities['price_range']
-            logger.info(f"🔍 Attempting to filter by price range: {price_range}")
-            
-            # Try to parse different price formats
-            try:
-                import re
-                
-                # Common patterns
-                patterns = [
-                    (r'under\s+(\d+(?:\.\d+)?)\s*([kKmM])?', 'under'),
-                    (r'below\s+(\d+(?:\.\d+)?)\s*([kKmM])?', 'below'),
-                    (r'less than\s+(\d+(?:\.\d+)?)\s*([kKmM])?', 'less than'),
-                    (r'(\d+(?:\.\d+)?)\s*([kKmM])\b', 'exact'),
-                    (r'(\d+(?:\.\d+)?)\s+million', 'million'),
-                    (r'(\d+)\s*k\b', 'thousand')
-                ]
-                
-                for pattern, price_type in patterns:
-                    match = re.search(pattern, price_range.lower())
-                    if match:
-                        number = float(match.group(1))
-                        unit = match.group(2).lower() if match.group(2) else ''
-                        
-                        # Convert to pesos
-                        if unit == 'm' or price_type == 'million':
-                            max_price = number * 1000000
-                        elif unit == 'k' or price_type == 'thousand':
-                            max_price = number * 1000
-                        else:
-                            max_price = number
-                        
-                        # Apply price filter - check multiple price fields
-                        try:
-                            # Try monthly rent first (most common)
-                            query = query.where(filter=FieldFilter('monthlyRent', '<=', max_price))
-                            logger.info(f"🔍 Filtering by max monthly rent: ₱{max_price:,.0f}")
-                            break
-                        except:
-                            try:
-                                # Try sale price
-                                query = query.where(filter=FieldFilter('salePrice', '<=', max_price))
-                                logger.info(f"🔍 Filtering by max sale price: ₱{max_price:,.0f}")
-                                break
-                            except:
-                                logger.warning(f"⚠️ Could not apply price filter for ₱{max_price:,.0f}")
-            except Exception as price_error:
-                logger.warning(f"⚠️ Could not parse price range: {price_error}")
         
         # Filter by financing if specified
         if entities.get('financing_type'):
@@ -644,30 +811,72 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     except:
                         continue
         
-        # Execute query with limit
-        logger.info("🔍 Executing Firestore query...")
-        docs = query.limit(10).get()
+        # Execute query with appropriate limit
+        limit_count = 20 if is_general_search else 10  # More results for general searches
+        logger.info(f"🔍 Executing Firestore query (limit: {limit_count})...")
+        docs = query.limit(limit_count).get()
         
         found_count = 0
         for doc in docs:
             property_data = doc.to_dict()
             property_data['id'] = doc.id
             
+            # Add numeric price value before standardizing
+            property_data_with_price = add_price_numeric_value(property_data)
+            
             # Standardize property data for chatbot response
-            standardized_property = standardize_property_data(property_data)
+            standardized_property = standardize_property_data(property_data_with_price)
             properties.append(standardized_property)
             found_count += 1
         
         logger.info(f"🔍 Found {found_count} properties matching criteria")
         
-        # If no properties found, try a broader search
-        if found_count == 0:
+        # ========== CLIENT-SIDE FILTERING AS FALLBACK ==========
+        # If Firestore filtering didn't work properly, filter client-side
+        filtered_properties = []
+        for prop in properties:
+            matches = True
+            
+            # Apply max price filter client-side
+            if entities.get('max_price'):
+                price_numeric = prop.get('price_numeric', 0)
+                if price_numeric > entities['max_price']:
+                    matches = False
+            
+            # Apply exact bedroom filter client-side
+            if entities.get('exact_bedrooms') is not None and matches:
+                prop_bedrooms = prop.get('bedrooms', 'Not specified')
+                try:
+                    if isinstance(prop_bedrooms, str):
+                        bed_match = re.search(r'(\d+)', prop_bedrooms)
+                        if bed_match:
+                            prop_bed_num = int(bed_match.group(1))
+                        else:
+                            prop_bed_num = 0
+                    else:
+                        prop_bed_num = int(prop_bedrooms)
+                    
+                    if prop_bed_num != entities['exact_bedrooms']:
+                        matches = False
+                except:
+                    # If can't parse bedrooms, skip this filter
+                    pass
+            
+            if matches:
+                filtered_properties.append(prop)
+        
+        # Update properties with client-side filtered results
+        properties = filtered_properties
+        logger.info(f"🔍 After client-side filtering: {len(properties)} properties")
+        
+        # If no properties found and it's a general search, try broader search
+        if len(properties) == 0:
             logger.info("🔄 No exact matches found, trying broader search...")
             
             # Broaden search: remove some filters but keep status=available
             broad_query = properties_ref.where(filter=FieldFilter('status', '==', 'available'))
             
-            # Keep location filter if it exists (most important)
+            # Keep location filter if it exists
             if entities.get('location'):
                 location = entities['location']
                 for map_key, map_value in location_map.items():
@@ -675,35 +884,21 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                         broad_query = broad_query.where(filter=FieldFilter('city', '==', map_value))
                         break
             
-            # Get 5 random available properties
-            broad_docs = broad_query.limit(5).get()
+            # Keep property type filter if it exists
+            if entities.get('property_type'):
+                property_type = entities['property_type']
+                if property_type in type_map:
+                    broad_query = broad_query.where(filter=FieldFilter('propertyType', '==', type_map[property_type]))
+            
+            # Get random available properties
+            broad_docs = broad_query.limit(limit_count).get()
             
             for doc in broad_docs:
                 property_data = doc.to_dict()
                 property_data['id'] = doc.id
                 
-                # Check if property type matches (loosely)
-                if entities.get('property_type'):
-                    prop_type = property_data.get('propertyType', '').lower()
-                    requested_type = entities['property_type'].lower()
-                    
-                    type_groups = {
-                        'house': ['house', 'bungalow', 'villa'],
-                        'condo': ['condo', 'condo_unit', 'condominium', 'penthouse'],
-                        'apartment': ['apartment', 'studio', 'room'],
-                        'commercial': ['commercial', 'office', 'retail', 'warehouse']
-                    }
-                    
-                    matches = False
-                    for group, types in type_groups.items():
-                        if requested_type in group and prop_type in types:
-                            matches = True
-                            break
-                    
-                    if not matches:
-                        continue
-                
-                standardized_property = standardize_property_data(property_data)
+                property_data_with_price = add_price_numeric_value(property_data)
+                standardized_property = standardize_property_data(property_data_with_price)
                 properties.append(standardized_property)
             
             logger.info(f"🔄 Found {len(properties)} properties in broader search")
@@ -718,9 +913,138 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
     
     return properties
 
-# Generate response from training data templates
+# Generate criteria search response
+def generate_criteria_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for property searches with specific criteria"""
+    
+    # Filter properties client-side as a fallback
+    filtered_properties = []
+    for prop in properties:
+        matches = True
+        
+        # Apply price filter
+        if entities.get('max_price'):
+            price_numeric = prop.get('price_numeric', 0)
+            if price_numeric > entities['max_price']:
+                matches = False
+        
+        # Apply bedroom filter
+        if entities.get('exact_bedrooms') is not None:
+            prop_bedrooms = prop.get('bedrooms', 'Not specified')
+            # Try to extract numeric bedrooms
+            try:
+                if isinstance(prop_bedrooms, str):
+                    bed_match = re.search(r'(\d+)', str(prop_bedrooms))
+                    if bed_match:
+                        prop_bed_num = int(bed_match.group(1))
+                    else:
+                        prop_bed_num = 0
+                else:
+                    prop_bed_num = int(prop_bedrooms)
+                
+                if prop_bed_num != entities['exact_bedrooms']:
+                    matches = False
+            except:
+                # If can't parse bedrooms, don't filter
+                pass
+        
+        if matches:
+            filtered_properties.append(prop)
+    
+    # Use filtered properties
+    properties = filtered_properties
+    
+    # Build criteria description
+    criteria_parts = []
+    
+    if entities.get('property_type'):
+        prop_type = entities['property_type'].replace('_', ' ').title()
+        criteria_parts.append(f"{prop_type}")
+    else:
+        criteria_parts.append("properties")
+    
+    if entities.get('max_price'):
+        max_price = entities['max_price']
+        if max_price >= 1000000:
+            criteria_parts.append(f"under ₱{max_price/1000000:.1f}M")
+        else:
+            criteria_parts.append(f"under ₱{max_price:,.0f}")
+    
+    if entities.get('exact_bedrooms') is not None:
+        bedrooms = entities['exact_bedrooms']
+        criteria_parts.append(f"with {bedrooms} bedroom{'s' if bedrooms != 1 else ''}")
+    
+    if entities.get('location'):
+        criteria_parts.append(f"in {entities['location']}")
+    
+    criteria_desc = " ".join(criteria_parts)
+    
+    # Generate response
+    if properties:
+        # Group by location
+        properties_by_location = {}
+        for prop in properties:
+            location = prop.get('city', 'Unknown')
+            if location not in properties_by_location:
+                properties_by_location[location] = []
+            properties_by_location[location].append(prop)
+        
+        response = f"🔍 **Found {len(properties)} {criteria_desc}**\n\n"
+        
+        for location, loc_props in properties_by_location.items():
+            response += f"📍 **{location}** ({len(loc_props)} available)\n"
+            
+            for prop in loc_props[:3]:  # Show max 3 per location
+                title = prop.get('title', 'Property')
+                price = prop.get('price', 'Price not available')
+                prop_type = prop.get('type', '').replace('_', ' ')
+                
+                # Extract bedrooms for display
+                prop_bedrooms = prop.get('bedrooms', '')
+                if prop_bedrooms:
+                    bed_display = f" | 🛏️ {prop_bedrooms}"
+                else:
+                    bed_display = ""
+                
+                response += f"   • **{title}** ({prop_type}) - {price}{bed_display}\n"
+            
+            response += "\n"
+        
+        # Add summary
+        if len(properties) > 10:
+            response += f"*Showing {min(len(properties), 10)} of {len(properties)} properties.*\n\n"
+        
+        # Add tips if few results
+        if len(properties) < 3:
+            response += "💡 **Tips for more results:**\n"
+            response += "   • Expand your price range\n"
+            response += "   • Consider nearby locations\n"
+            if entities.get('exact_bedrooms'):
+                response += "   • Try different bedroom counts\n"
+        
+    else:
+        response = f"❌ **No properties found matching: {criteria_desc}**\n\n"
+        response += "💡 **Suggestions:**\n"
+        response += "   • Try a different price range\n"
+        response += "   • Consider nearby locations\n"
+        response += "   • Adjust your bedroom requirements\n"
+        response += "   • Check back later for new listings\n"
+    
+    return response
+
+# Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
+    
+    # ========== NEW: Handle criteria-based searches ==========
+    if intent == 'find_property_with_criteria':
+        return generate_criteria_search_response(entities, properties)
+    
+    # ========== Handle general property searches (no location) ==========
+    if intent == 'find_property' and entities.get('has_general_search'):
+        return generate_general_search_response(entities, properties)
+    
+    # ========== Existing code for other intents ==========
     
     # Default fallback responses
     default_responses = {
@@ -898,6 +1222,78 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     
     return response
 
+# NEW: Generate response for general searches (no location)
+def generate_general_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for general property searches without location"""
+    
+    property_type = entities.get('property_type', 'properties')
+    property_type_display = property_type.replace('_', ' ').title()
+    
+    if properties:
+        # Group properties by city for better organization
+        properties_by_city = defaultdict(list)
+        for prop in properties:
+            city = prop.get('city', 'Unknown City')
+            properties_by_city[city].append(prop)
+        
+        # Sort cities by number of properties
+        sorted_cities = sorted(properties_by_city.items(), key=lambda x: len(x[1]), reverse=True)
+        
+        response = f"🔍 **{property_type_display} Available in Batangas**\n\n"
+        response += f"I found {len(properties)} {property_type_display.lower()} across different locations:\n\n"
+        
+        # Show top locations with properties
+        displayed_count = 0
+        for city, city_props in sorted_cities[:5]:  # Top 5 cities
+            if displayed_count >= 15:  # Limit total properties shown
+                break
+                
+            response += f"**📍 {city}** ({len(city_props)} available)\n"
+            
+            # Show top 3 properties from this city
+            for i, prop in enumerate(city_props[:3]):
+                title = prop.get('title', f'{property_type_display} {i+1}')
+                price = prop.get('price', 'Price not available')
+                prop_type = prop.get('type', property_type).replace('_', ' ')
+                
+                response += f"   • **{title}** ({prop_type}) - {price}\n"
+                displayed_count += 1
+            
+            response += "\n"
+        
+        # Show summary
+        if len(properties) > displayed_count:
+            response += f"\n*Showing {displayed_count} of {len(properties)} {property_type_display.lower()}. "
+            response += f"Properties found in {len(properties_by_city)} different locations.*\n"
+        else:
+            response += f"\n*Properties found in {len(properties_by_city)} different locations.*\n"
+        
+        # Add helpful tips
+        response += "\n💡 **Tips for better results:**\n"
+        response += "   • Add a location: *'find apartments in Batangas City'*\n"
+        response += "   • Specify budget: *'find houses under 3M'*\n"
+        response += "   • Add features: *'find condos with swimming pool'*\n"
+        response += "   • Specify needs: *'find properties for family'*\n"
+        
+        # Suggest popular locations based on property type
+        if property_type in ['house', 'condo', 'apartment']:
+            response += "\n📍 **Popular locations for " + property_type_display.lower() + ":**\n"
+            response += "   • Batangas City (urban living, near port)\n"
+            response += "   • Lipa City (cool climate, educational hub)\n"
+            response += "   • Nasugbu (beachfront, vacation homes)\n"
+            response += "   • Sto. Tomas City (near Metro Manila)\n"
+            response += "   • Tanauan City (Taal Lake views)\n"
+        
+    else:
+        response = f"I couldn't find any {property_type_display.lower()} matching your criteria.\n\n"
+        response += "💡 **Try these suggestions:**\n"
+        response += "   • Check if the property type is spelled correctly\n"
+        response += "   • Try a broader search: *'find properties'*\n"
+        response += "   • Specify a location: *'find {property_type_display.lower()} in Lipa City'*\n"
+        response += "   • Check back later for new listings\n"
+    
+    return response
+
 # API ENDPOINTS
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -966,8 +1362,10 @@ def chat():
             'entities': entities,
             'response': response_text,
             'properties_found': len(properties),
-            'properties': properties[:5],  # Limit to 5 properties
-            'model_version': 'trained' if vectorizer else 'fallback'
+            'properties': properties[:10],  # Increased limit for general searches
+            'model_version': 'trained' if vectorizer else 'fallback',
+            'is_general_search': entities.get('has_general_search', False),
+            'is_criteria_search': intent == 'find_property_with_criteria'
         }
         
         return jsonify(result)
@@ -983,11 +1381,26 @@ def chat():
             'response': "I encountered an error processing your request. Please try again with a different query."
         }), 500
 
-# Simple fallback if model isn't loaded
+# Simple fallback if model isn't loaded - UPDATED
 def determine_intent_fallback(query: str) -> str:
     """Simple rule-based intent detection as fallback"""
     query_lower = query.lower()
     
+    # Check for property search terms first (general or specific)
+    has_property_terms = any(word in query_lower for word in ['find', 'search', 'show me', 'looking for', 'need', 
+                                                              'want', 'locate', 'what apartments', 'what houses', 
+                                                              'what condos', 'do you have', 'any properties'])
+    
+    # Check if it's specifically asking about property type
+    has_property_type = any(word in query_lower for word in ['apartment', 'condo', 'house', 'townhouse', 
+                                                             'commercial', 'office', 'retail', 'warehouse', 
+                                                             'land', 'lot', 'beachfront', 'resort'])
+    
+    # If it has property terms, it's likely a find_property intent
+    if has_property_terms or has_property_type:
+        return 'find_property'
+    
+    # Check other intents
     if any(word in query_lower for word in ['steps', 'process', 'procedure', 'how to', 'timeline']):
         return 'process_info'
     elif any(word in query_lower for word in ['financing', 'loan', 'mortgage', 'pag-ibig', 'bank', 'installment']):
@@ -1004,8 +1417,6 @@ def determine_intent_fallback(query: str) -> str:
         return 'find_property_with_criteria'
     elif any(word in query_lower for word in ['about', 'describe', 'tell me about', 'information about']):
         return 'location_info'
-    elif any(word in query_lower for word in ['find', 'search', 'show me', 'looking for', 'need']):
-        return 'find_property'
     
     return 'unknown'
 
@@ -1015,13 +1426,15 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.4',
+        'version': '3.6',  # Updated version
         'model_loaded': vectorizer is not None and classifier is not None,
         'training_data_loaded': bool(training_data),
         'firebase_connected': db is not None,
         'model_intents': model_classes,
         'model_features': len(vectorizer.get_feature_names_out()) if vectorizer else 0,
         'spacy_loaded': nlp is not None,
+        'supports_general_searches': True,
+        'supports_criteria_searches': True,  # NEW
         'timestamp': datetime.now().isoformat()
     })
 
@@ -1029,11 +1442,20 @@ def health_check():
 def test_endpoint():
     """Test endpoint to verify the model is working"""
     test_queries = [
+        # Criteria-based searches
+        "show me houses under 15M with 3 bedrooms",
+        "find condos below 10M with 2 bedrooms",
+        "properties under 5M with 1 bedroom",
+        
+        # General searches (no location)
+        "find apartments",
+        "show me houses",
+        "what condos do you have",
+        
+        # Location-specific searches
         "find apartments in batangas city",
         "properties near schools",
         "how to get a mortgage",
-        "tell me about lipa city",
-        "houses with swimming pool"
     ]
     
     results = []
@@ -1044,10 +1466,19 @@ def test_endpoint():
                 X = vectorizer.transform([processed])
                 intent = classifier.predict(X)[0]
                 confidence = float(classifier.predict_proba(X).max())
+                
+                # Extract entities
+                entities = extract_entities_from_query(query)
+                
                 results.append({
                     'query': query,
                     'intent': intent,
-                    'confidence': confidence
+                    'confidence': confidence,
+                    'has_location': entities.get('location') is not None,
+                    'property_type': entities.get('property_type'),
+                    'max_price': entities.get('max_price'),
+                    'exact_bedrooms': entities.get('exact_bedrooms'),
+                    'is_criteria_search': intent == 'find_property_with_criteria'
                 })
         except Exception as e:
             results.append({
@@ -1058,14 +1489,16 @@ def test_endpoint():
     return jsonify({
         'test_results': results,
         'model_status': 'loaded' if vectorizer else 'not loaded',
-        'training_data_status': 'loaded' if training_data else 'not loaded'
+        'training_data_status': 'loaded' if training_data else 'not loaded',
+        'supports_criteria_searches': True,
+        'supports_general_searches': True
     })
 
 # ==================== MAIN ====================
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.4")
-    print("   (Uses trained NLU model + response templates)")
+    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6")
+    print("   (Supports price & bedroom criteria filtering)")
     print("="*60)
     
     # Load the trained model
@@ -1078,6 +1511,8 @@ if __name__ == '__main__':
     print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
     print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
     print(f"📊 spaCy: {'✅ Loaded' if nlp else '❌ Not loaded'}")
+    print(f"🔍 General Searches: {'✅ Supported'}")
+    print(f"🔍 Criteria Searches: {'✅ Supported'}")
     
     if vectorizer:
         print(f"📊 Model intents: {len(model_classes)} intents")
@@ -1093,6 +1528,14 @@ if __name__ == '__main__':
     print("   POST /api/chat   - Chatbot endpoint")
     print("   GET  /api/health - Health check")
     print("   GET  /api/test   - Test model predictions")
+    
+    print("\n🔍 Example queries to try:")
+    print("   • 'show me houses under 15M with 3 bedrooms' (criteria search)")
+    print("   • 'find condos below 10M with 2 bedrooms' (criteria search)")
+    print("   • 'find apartments' (general search)")
+    print("   • 'show me houses' (general search)")
+    print("   • 'find apartments in batangas city' (location-specific)")
+    
     print("="*60 + "\n")
     
     app.run(host='0.0.0.0', port=5000, debug=True)
