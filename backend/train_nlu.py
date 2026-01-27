@@ -834,6 +834,40 @@ def create_additional_training_file():
     """Create/update additional training data file"""
     additional_data = {
         "additional_samples": [
+                        # Force "find [property] in [location]" to be find_property
+            {"text": "find apartments in batangas city", "intent": "find_property"},
+            {"text": "find apartment in batangas city", "intent": "find_property"},
+            {"text": "find apartments in batangas", "intent": "find_property"},
+            {"text": "search apartments in batangas city", "intent": "find_property"},
+            {"text": "look for apartments in batangas city", "intent": "find_property"},
+            {"text": "show me apartments in batangas city", "intent": "find_property"},
+            
+            # Make "tell me about" clearly location_info
+            {"text": "tell me about batangas city apartments", "intent": "location_info"},
+            {"text": "information about apartments in batangas", "intent": "location_info"},
+            {"text": "what is batangas city like for apartments", "intent": "location_info"},
+            
+            # Clear distinction between the two patterns:
+            # Pattern 1: "find X in Y" = find_property
+            {"text": "find house in lipa", "intent": "find_property"},
+            {"text": "search house in lipa city", "intent": "find_property"},
+            {"text": "look for house in lipa", "intent": "find_property"},
+            {"text": "show me houses in lipa city", "intent": "find_property"},
+            
+            # Pattern 2: "tell me about Y" = location_info
+            {"text": "tell me about lipa city houses", "intent": "location_info"},
+            {"text": "what is lipa city like for houses", "intent": "location_info"},
+            {"text": "information about houses in lipa", "intent": "location_info"},
+            
+            # Negative examples - what should NOT be location_info
+            {"text": "find apartments in the city", "intent": "find_property"},
+            {"text": "search for properties in that city", "intent": "find_property"},
+            {"text": "looking for houses in the city", "intent": "find_property"},
+            
+            # Additional problematic patterns from your logs
+            {"text": "search property nasugbu", "intent": "find_property"},
+            {"text": "condo living in tanauan", "intent": "find_property"},
+            
              # General property searches (no location)
             {"text": "find apartments", "intent": "find_property"},
             {"text": "show me houses", "intent": "find_property"},

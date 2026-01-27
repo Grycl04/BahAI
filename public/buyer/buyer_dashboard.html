@@ -2567,6 +2567,7 @@ async function showRecentPropertiesFallbackWithMessage(savedCount) {
 }
 
 // Function to display recommendations from Python
+// Function to display recommendations from Python
 function displayRecommendedListingsPython(recommendations, type = 'personalized') {
     const recoContainer = document.getElementById('recommendedListingsContainer');
     const sectionTitle = document.querySelector('#recommendedSection .section-title');
@@ -2625,20 +2626,17 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             const typeBadgeText = getTypeBadgeText(property);
             
             const photo = property.photos?.[0] || property.imageUrls?.[0] || `https://via.placeholder.com/400x200/0b2e52/white?text=${encodeURIComponent(property.title || 'Property')}`;
-            const matchScore = property.recoScore ? Math.round(property.recoScore) : null;
             
             const bedrooms = property.bedrooms || (listingType === 'rent' && property.propertyType === 'studio' ? 'Studio' : 0);
             const bathrooms = property.bathrooms || 0;
             const area = property.floorArea || property.totalArea || 'N/A';
             
-            // Add different badge for AI vs Recent vs Partial
-            let recommendationBadge = "";
-            if (type === 'personalized') {
-                recommendationBadge = '<div class="listing-ai-badge">✨ AI Pick</div>';
-            } else if (type === 'partial') {
-                recommendationBadge = '<div class="listing-partial-badge" style="position: absolute; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">SAVE MORE</div>';
-            } else {
-                recommendationBadge = '<div class="listing-recent-badge" style="position: absolute; top: 10px; right: 10px; background: #6b7280; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">RECENT</div>';
+            // Alternative badges for non-personalized recommendations
+            let otherBadge = '';
+            if (type === 'partial') {
+                otherBadge = '<div class="listing-partial-badge">SAVE MORE</div>';
+            } else if (type === 'recent' || type === 'ai_context') {
+                otherBadge = '<div class="listing-recent-badge">RECENT</div>';
             }
             
             return `
@@ -2647,12 +2645,9 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
                         <div class="listing-card">
                             <div class="listing-card-image-container" style="position: relative;">
                                 <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
-                                ${matchScore && matchScore > 50 ? `
-                                    <div class="listing-match-badge">
-                                        ${matchScore}% Match
-                                    </div>
-                                ` : ''}
-                                ${recommendationBadge}
+                                
+                                <!-- REMOVED: Match badge - only showing type badge and other badges -->
+                                ${otherBadge}
                                 <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
                                 
                                 <!-- Save Button - Heart icon for saving properties -->
@@ -2695,6 +2690,18 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
                                         </div>
                                     ` : ''}
                                 </div>
+                                
+                                ${property.similar_to ? `
+                                    <div class="ai-reason" style="margin: 12px 0; padding: 10px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%); border-radius: 8px; border-left: 3px solid #667eea;">
+                                        <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                            <span style="font-size: 14px; color: #667eea;">💡</span>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 12px; font-weight: 600; color: #667eea; margin-bottom: 2px;">AI Insight</div>
+                                                <div style="font-size: 13px; color: var(--text-light);">${property.similar_to}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ` : ''}
                                 
                                 <div class="listing-broker">
                                     <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
@@ -3039,18 +3046,241 @@ style.textContent = `
         z-index: 2;
     }
     
-    .listing-match-badge {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        background: #10b981;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        z-index: 2;
+.listing-match-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 800;
+    z-index: 2;
+    box-shadow: 
+        0 8px 25px rgba(16, 185, 129, 0.35),
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transform: translateY(0);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    min-width: 110px;
+    text-align: center;
+    line-height: 1.2;
+    font-family: 'Inter', sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Pseudo-element for shine effect */
+.listing-match-badge::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: left 0.7s ease;
+}
+
+/* Hover effect - shine animation */
+.listing-match-badge:hover::before {
+    left: 100%;
+}
+
+.listing-match-badge:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 
+        0 12px 30px rgba(16, 185, 129, 0.5),
+        0 0 0 2px rgba(255, 255, 255, 1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* AI Icon */
+.listing-match-badge .ai-icon {
+    font-size: 16px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+    animation: aiPulse 2s ease-in-out infinite;
+}
+
+/* Match Score Display */
+.listing-match-badge .match-score {
+    font-size: 16px;
+    font-weight: 900;
+    background: linear-gradient(to bottom, #ffffff, #f0fdf4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* Match Text */
+.listing-match-badge .match-text {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.95;
+    letter-spacing: 1px;
+}
+
+/* Different Match Levels */
+.listing-match-badge.high-match {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+    box-shadow: 
+        0 8px 25px rgba(16, 185, 129, 0.35),
+        0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.listing-match-badge.medium-match {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+    box-shadow: 
+        0 8px 25px rgba(245, 158, 11, 0.35),
+        0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.listing-match-badge.low-match {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+    box-shadow: 
+        0 8px 25px rgba(59, 130, 246, 0.35),
+        0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+/* AI Pick Badge */
+.listing-ai-pick {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(139, 92, 246, 0.95));
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 800;
+    z-index: 2;
+    box-shadow: 
+        0 8px 25px rgba(168, 85, 247, 0.35),
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: aiPickGlow 3s ease-in-out infinite;
+}
+
+.listing-ai-pick .sparkle {
+    font-size: 16px;
+    animation: sparkleSpin 2s linear infinite;
+}
+
+/* Animations */
+@keyframes aiPulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg); 
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
     }
+    50% { 
+        transform: scale(1.15) rotate(5deg); 
+        filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.4));
+    }
+}
+
+@keyframes sparkleSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes aiPickGlow {
+    0%, 100% { 
+        box-shadow: 
+            0 8px 25px rgba(168, 85, 247, 0.35),
+            0 0 0 2px rgba(255, 255, 255, 0.9);
+    }
+    50% { 
+        box-shadow: 
+            0 12px 35px rgba(168, 85, 247, 0.5),
+            0 0 0 2px rgba(255, 255, 255, 1);
+    }
+}
+
+@keyframes badgeAppear {
+    0% { 
+        opacity: 0; 
+        transform: translateY(20px) scale(0.8); 
+    }
+    70% { 
+        opacity: 1; 
+        transform: translateY(-5px) scale(1.05); 
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+    }
+}
+
+/* Entry Animation */
+.listing-match-badge,
+.listing-ai-pick {
+    animation: badgeAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+.listing-match-badge:nth-child(odd) { animation-delay: 0.1s; }
+.listing-match-badge:nth-child(even) { animation-delay: 0.2s; }
+
+/* Progress Bar for Match Percentage */
+.match-progress {
+    position: absolute;
+    bottom: -5px;
+    left: 10px;
+    right: 10px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.match-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34d399, #10b981);
+    border-radius: 2px;
+    width: var(--match-width, 52%);
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* For no match score (just AI Pick) */
+.listing-ai-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(79, 70, 229, 0.95));
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: 
+        0 6px 20px rgba(99, 102, 241, 0.3),
+        0 0 0 2px rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: badgeAppear 0.6s ease both;
+}
 `;
 document.head.appendChild(style);
 

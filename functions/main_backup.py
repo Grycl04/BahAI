@@ -1,8 +1,4 @@
-﻿import firebase_functions
-from firebase_functions import https_fn
-from firebase_admin import initialize_app, firestore, credentials
-import functions_framework
-from flask import Flask, request, jsonify
+﻿from firebase_admin import initialize_app, firestore, credentials
 import json
 import logging
 from datetime import datetime, timedelta
@@ -506,7 +502,7 @@ def get_recent_properties(db, count: int = 5):
 
 # =========================== CLOUD FUNCTION ===========================
 
-@firebase_functions.https_fn.on_request()
+@functions_framework.http
 def personalized_recommendations(request):
     """Enhanced AI recommendations considering saved properties AND search history"""
     
@@ -691,7 +687,7 @@ def personalized_recommendations(request):
             "message": "Unable to generate recommendations. Please try again."
         }), 500, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
 
-@firebase_functions.https_fn.on_request()
+@functions_framework.http
 def user_profile_insights(request):
     """Get insights about user's preferences based on saved properties and searches"""
     
@@ -771,7 +767,7 @@ def user_profile_insights(request):
                 500,
                 {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
 
-@firebase_functions.https_fn.on_request()
+@functions_framework.http
 def health(request):
     """Health check"""
     return (json.dumps({
@@ -794,4 +790,3 @@ def health(request):
     }, indent=2),
     200,
     {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
-
