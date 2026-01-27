@@ -2,7 +2,7 @@
   "member_id": "member1",
   "assigned_questions": [
     "Question 1: Find [property_type] in [location]",
-    "Question 7: Show me properties that accept [financing type/payment method] + documents needed",
+    "Question 7: Show me properties that accept [financing type] + documents needed",
     "Question 9: Tell me about the [location/neighborhood] and what it's like to live there"
   ],
   "training_samples": [
