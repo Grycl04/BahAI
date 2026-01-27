@@ -1,6 +1,90 @@
 {
   "additional_samples": [
     {
+      "text": "find apartments in batangas city",
+      "intent": "find_property"
+    },
+    {
+      "text": "find apartment in batangas city",
+      "intent": "find_property"
+    },
+    {
+      "text": "find apartments in batangas",
+      "intent": "find_property"
+    },
+    {
+      "text": "search apartments in batangas city",
+      "intent": "find_property"
+    },
+    {
+      "text": "look for apartments in batangas city",
+      "intent": "find_property"
+    },
+    {
+      "text": "show me apartments in batangas city",
+      "intent": "find_property"
+    },
+    {
+      "text": "tell me about batangas city apartments",
+      "intent": "location_info"
+    },
+    {
+      "text": "information about apartments in batangas",
+      "intent": "location_info"
+    },
+    {
+      "text": "what is batangas city like for apartments",
+      "intent": "location_info"
+    },
+    {
+      "text": "find house in lipa",
+      "intent": "find_property"
+    },
+    {
+      "text": "search house in lipa city",
+      "intent": "find_property"
+    },
+    {
+      "text": "look for house in lipa",
+      "intent": "find_property"
+    },
+    {
+      "text": "show me houses in lipa city",
+      "intent": "find_property"
+    },
+    {
+      "text": "tell me about lipa city houses",
+      "intent": "location_info"
+    },
+    {
+      "text": "what is lipa city like for houses",
+      "intent": "location_info"
+    },
+    {
+      "text": "information about houses in lipa",
+      "intent": "location_info"
+    },
+    {
+      "text": "find apartments in the city",
+      "intent": "find_property"
+    },
+    {
+      "text": "search for properties in that city",
+      "intent": "find_property"
+    },
+    {
+      "text": "looking for houses in the city",
+      "intent": "find_property"
+    },
+    {
+      "text": "search property nasugbu",
+      "intent": "find_property"
+    },
+    {
+      "text": "condo living in tanauan",
+      "intent": "find_property"
+    },
+    {
       "text": "find apartments",
       "intent": "find_property"
     },
