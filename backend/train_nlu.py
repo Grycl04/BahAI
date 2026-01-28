@@ -83,10 +83,16 @@ class TeamNLUTrainer:
             'financing_info': 'financing',
             'financing': 'financing',
             'find_property': 'find_property',
+            'greeting': 'greeting',  
+            'help': 'help',          
+            'thanks': 'thanks'       
         }
         
         # Intent keywords for better classification
         self.intent_keywords = {
+            'greeting': ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon'],
+            'help': ['help', 'what can you do', 'how can you help', 'assist', 'support'],
+            'thanks': ['thank you', 'thanks', 'appreciate', 'grateful'],
             'financing': ['accept bank financing', 'accept financing', 'bank loan', 
                          'mortgage', 'pag-ibig', 'payment method', 'financing type',
                          'documents needed', 'requirements for', 'how to get',
@@ -834,6 +840,9 @@ def create_additional_training_file():
     """Create/update additional training data file"""
     additional_data = {
         "additional_samples": [
+            {"text": "hi", "intent": "greeting"},
+            {"text": "hello", "intent": "greeting"},
+            {"text": "hey", "intent": "greeting"},
                         # Force "find [property] in [location]" to be find_property
             {"text": "find apartments in batangas city", "intent": "find_property"},
             {"text": "find apartment in batangas city", "intent": "find_property"},

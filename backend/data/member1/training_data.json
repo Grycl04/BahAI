@@ -7,6 +7,83 @@
   ],
   "training_samples": [
     {
+      "query": "hi",
+      "intent": "greeting",
+      "entities": {},
+      "variations": [
+        "hi",
+        "hello",
+        "hey",
+        "hey there",
+        "hello there",
+        "hi there",
+        "greetings",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "howdy",
+        "what's up",
+        "hey bot",
+        "hello bot",
+        "hi chatbot",
+        "hello chatbot",
+        "greetings chatbot",
+        "hi property bot",
+        "hello property assistant",
+        "hi bahai",
+        "hello bahai",
+        "hi property finder",
+        "hello property finder"
+      ],
+      "response_template": "👋 **Hello! Welcome to Bah.AI Property Assistant!**\n\nI'm here to help you find properties in Batangas. How can I assist you today?\n\n💡 **Here are some things I can help with:**\n• Find properties by location and type\n• Search with specific criteria (price, bedrooms, etc.)\n• Information about financing options\n• Details about neighborhoods and living conditions\n• Property purchase processes\n\n**Try asking me something like:**\n📍 *'Find apartments in Batangas City'*\n💰 *'Show me houses under 3M'*\n🏦 *'Properties with installment payment'*\n🌆 *'Tell me about Lipa City'*"
+    },
+    {
+      "query": "help",
+      "intent": "help",
+      "entities": {},
+      "variations": [
+        "can you help me",
+        "i need help",
+        "help me",
+        "what can you do",
+        "what do you do",
+        "how can you help",
+        "assist me",
+        "support needed",
+        "need assistance",
+        "what assistance can you provide",
+        "how do i use this",
+        "what are you capable of",
+        "show me what you can do",
+        "tell me what you can help with",
+        "guide me"
+      ],
+      "response_template": "🆘 **How I Can Help You Find Properties**\n\nI'm your property assistant for Batangas! Here's what I can do:\n\n**🔍 Property Search:**\n• Find properties by type (houses, condos, apartments, etc.)\n• Search by location (Batangas City, Lipa, Nasugbu, etc.)\n• Filter by price range and budget\n• Look for properties with specific features\n• Find properties near landmarks\n\n**💰 Financing Information:**\n• Properties with installment plans\n• Bank financing options\n• Pag-IBIG housing loans\n• Outright/cash purchase properties\n• Required documents for financing\n\n**📍 Location Information:**\n• Details about Batangas cities and towns\n• Lifestyle and community information\n• Property prices by location\n• Ideal property types for each area\n\n**📋 Process Guidance:**\n• Steps for property purchase\n• Rental process information\n• Timeline and requirements\n• Document preparation\n\n**💡 Examples to try:**\n• *'Find apartments in Batangas City'*\n• *'Show me houses under 3M with 3 bedrooms'*\n• *'Properties that accept installment'*\n• *'Tell me about Nasugbu'*\n• *'Houses near beaches'*\n\nWhat would you like to do today?"
+    },
+    {
+      "query": "thank you",
+      "intent": "thanks",
+      "entities": {},
+      "variations": [
+        "thanks",
+        "thank you very much",
+        "thanks a lot",
+        "thank you so much",
+        "appreciate it",
+        "much appreciated",
+        "thank you for your help",
+        "thanks for the help",
+        "grateful",
+        "thank you kindly",
+        "many thanks",
+        "thanks for your assistance",
+        "thank you for the information",
+        "appreciate your help",
+        "thank you for your time"
+      ],
+      "response_template": "🙏 **You're very welcome!**\n\nI'm happy to help you with your property search in Batangas. \n\nIf you need anything else, just let me know. I can:\n• Search for more properties\n• Provide additional details\n• Help with financing information\n• Answer questions about locations\n\nWishing you the best in finding your perfect property! 🏡✨"
+    },
+    {
       "query": "find apartments in batangas city",
       "intent": "find_property",
       "entities": {
@@ -1114,6 +1191,32 @@
       "describe living in",
       "about living in",
       "residing in"
+    ],
+    "greeting_terms": [
+      "hi",
+      "hello",
+      "hey",
+      "good morning",
+      "good afternoon",
+      "good evening",
+      "greetings",
+      "howdy"
+    ],
+    "help_terms": [
+      "help",
+      "help me",
+      "what can you do",
+      "how can you help",
+      "assist",
+      "support",
+      "guide"
+    ],
+    "thanks_terms": [
+      "thank you",
+      "thanks",
+      "appreciate",
+      "grateful",
+      "thank you so much"
     ]
   },
   "response_templates": {

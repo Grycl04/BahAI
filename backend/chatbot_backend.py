@@ -1,4 +1,3 @@
-# backend/chatbot_backend.py - COMPLETE UPDATED VERSION
 from flask import Flask, request, jsonify
 from pathlib import Path
 from flask_cors import CORS
@@ -222,7 +221,7 @@ def preprocess_text(text):
     
     return text
 
-# Entity extraction - UPDATED FOR BETTER PRICE AND BEDROOM PARSING
+# Entity extraction - UPDATED FOR DOCUMENT-ONLY QUERIES
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
@@ -241,12 +240,33 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'max_price': None,
         'min_price': None,
         'min_bedrooms': None,
-        'exact_bedrooms': None
+        'exact_bedrooms': None,
+        'documents_only': False,  # NEW: Flag for document-only requests
+        'documents_info': None,   # NEW: Flag for document information requests
     }
     
     query_lower = query.lower()
     
-    # ========== NEW: Parse numeric price values for filtering ==========
+    # ========== DETECT DOCUMENT-ONLY QUERIES ==========
+    doc_keywords = ['documents', 'requirements', 'needed', 'required', 'paperwork', 'papers', 'what do i need']
+    prop_keywords = ['properties', 'show me', 'find', 'looking for', 'search', 'houses', 'condos', 'apartments', 'property']
+    
+    has_doc_keywords = any(term in query_lower for term in doc_keywords)
+    has_prop_keywords = any(term in query_lower for term in prop_keywords)
+    
+    # If asking about documents WITHOUT asking for properties
+    if has_doc_keywords and not has_prop_keywords:
+        entities['documents_only'] = True
+        entities['documents_info'] = True
+        logger.info("📋 Detected document-only query")
+    
+    # Also check for "what" questions about documents
+    if 'what documents' in query_lower or 'what are the requirements' in query_lower or 'what do i need' in query_lower:
+        entities['documents_only'] = True
+        entities['documents_info'] = True
+        logger.info("📋 Detected 'what' document query")
+    
+    # ========== Parse numeric price values for filtering ==========
     max_price = None
     min_price = None
     
@@ -307,22 +327,29 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.warning(f"⚠️ Could not parse price pattern '{pattern}': {e}")
                 continue
     
-    # ========== NEW: Parse bedroom criteria for filtering ==========
-    bedrooms = None
-    exact_bedrooms = None
-    
-    # Patterns for bedroom extraction
+    # ========== Parse bedroom criteria for filtering ==========
     bedroom_patterns = [
+        # "with 4 beds" 
+        (r'with\s+(\d+)\s+beds?\b', lambda m: int(m.group(1))),  
+        
         # "with 3 bedrooms" or "with 3 bedroom"
         (r'with\s+(\d+)\s+bedroom(?:s)?\b', lambda m: int(m.group(1))),
+        
+        # "3 beds" or "4 beds"
+        (r'\b(\d+)\s+beds?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))), 
+        
         # "3 bedrooms" or "3 bedroom"
         (r'\b(\d+)\s+bedroom(?:s)?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))),
+        
         # "3-bedroom" or "3br"
         (r'(\d+)(?:-|\s*)bedroom|(\d+)br\b', lambda m: int(m.group(1)) if m.group(1) else int(m.group(2))),
-        # "3 bed"
+        
+        # "3 bed" 
         (r'(\d+)\s+bed\b', lambda m: int(m.group(1))),
+        
         # "studio" (0 bedrooms)
         (r'\bstudio\b', lambda m: 0),
+        
         # "1 bedroom apartment" pattern
         (r'(\d+)\s+bedroom\s+(?:apartment|condo|house|unit)', lambda m: int(m.group(1))),
     ]
@@ -339,6 +366,19 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             except Exception as e:
                 logger.warning(f"⚠️ Could not parse bedroom pattern '{pattern}': {e}")
                 continue
+            # Add bathroom extraction
+    bathroom_patterns = [
+        (r'(\d+)\s+baths?', 'bathrooms'),
+        (r'(\d+)\s+bathrooms?', 'bathrooms'),
+        (r'with\s+(\d+)\s+bath', 'bathrooms'),
+        (r'(\d+)\s+ba', 'bathrooms')
+    ]
+    
+    for pattern, entity_type in bathroom_patterns:
+        match = re.search(pattern, query_lower)  
+        if match:
+            entities[entity_type] = int(match.group(1))  
+            break
     
     # Detect if this is a general search (no location specified)
     has_location_terms = any(term in query_lower for term in ['in ', 'at ', 'within ', 'inside '])
@@ -352,7 +392,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     elif 'for lease' in query_lower:
         entities['listing_type'] = 'lease'
     
-    # ========== NEW: Detect sale type (outright, installment, bank_financing) ==========
+    # ========== Detect sale type (outright, installment, bank_financing) ==========
     # Check for saleType values
     if 'installment' in query_lower or 'installment plan' in query_lower or 'installment payment' in query_lower:
         entities['sale_type'] = 'installment'
@@ -369,7 +409,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         entities['financing_type'] = 'bank_financing'
         logger.info(f"💰 Detected sale_type: bank_financing")
     
-    # ========== NEW: Detect specific financing options ==========
+    # ========== Detect specific financing options ==========
     # Check for specific banks in financingOptions array
     if 'bdo' in query_lower:
         entities['financing_options'] = 'BDO'
@@ -798,20 +838,33 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
         
         # Filter by bedrooms if specified
         if entities.get('exact_bedrooms') is not None and matches:
-            prop_bedrooms = prop.get('bedrooms', '0')
+            prop_bedrooms = prop.get('bedrooms', 'Not specified')
             try:
                 if isinstance(prop_bedrooms, str):
-                    bed_match = re.search(r'(\d+)', prop_bedrooms)
-                    if bed_match:
-                        prop_bed_num = int(bed_match.group(1))
-                    else:
+                    if prop_bedrooms.lower() == 'studio':
                         prop_bed_num = 0
+                    elif prop_bedrooms.lower() == '5+':
+                        prop_bed_num = 5
+                    else:
+                        # Try multiple patterns to extract number
+                        bed_match = re.search(r'(\d+)', prop_bedrooms)
+                        if bed_match:
+                            prop_bed_num = int(bed_match.group(1))
+                        else:
+                            # Check if it's just a number
+                            try:
+                                prop_bed_num = int(prop_bedrooms)
+                            except:
+                                prop_bed_num = 0
                 else:
                     prop_bed_num = int(prop_bedrooms)
                 
                 if prop_bed_num != entities['exact_bedrooms']:
                     matches = False
-            except:
+                    logger.debug(f"❌ Bedroom mismatch: {prop_bed_num} != {entities['exact_bedrooms']}")
+            except Exception as e:
+                logger.debug(f"⚠️ Could not parse bedrooms '{prop_bedrooms}': {e}")
+                # Don't filter if we can't parse
                 pass
         
         if matches:
@@ -1180,9 +1233,160 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
     
     return properties
 
+# Generate document-only response (NO PROPERTIES)
+def generate_documents_only_response(entities: Dict[str, Any]) -> str:
+    """Generate response ONLY for document requirements (no properties)"""
+    
+    financing_type = entities.get('financing_type') or entities.get('sale_type')
+    financing_option = entities.get('financing_options')
+    
+    if financing_type == 'bank_financing' or 'bank' in str(financing_type).lower() or financing_option:
+        response = "🏦 **Bank Financing Requirements**\n\n"
+        response += "Here are the documents typically needed for bank financing:\n\n"
+        
+        response += "**📋 Applicant's Requirements:**\n"
+        response += "1. **Valid IDs** (any 2 government-issued):\n"
+        response += "   • Passport\n"
+        response += "   • Driver's License\n"
+        response += "   • SSS/GSIS ID\n"
+        response += "   • PRC ID\n"
+        response += "   • Voter's ID\n\n"
+        
+        response += "2. **Proof of Income:**\n"
+        response += "   • For Employed: 3-6 months payslips\n"
+        response += "   • Certificate of Employment with compensation\n"
+        response += "   • ITR (Income Tax Return) with BIR stamp\n"
+        response += "   • For OFW: Employment contract, payslips\n\n"
+        
+        response += "3. **Financial Documents:**\n"
+        response += "   • Bank Statements (6 months)\n"
+        response += "   • Proof of other income sources\n"
+        response += "   • List of assets and liabilities\n\n"
+        
+        response += "**🏦 Property Documents (from Seller):**\n"
+        response += "1. **Title Documents:**\n"
+        response += "   • Original Certificate of Title (OCT) or Transfer Certificate of Title (TCT)\n"
+        response += "   • Tax Declaration\n"
+        response += "   • Latest Real Property Tax Receipt\n\n"
+        
+        response += "2. **Property Documents:**\n"
+        response += "   • Location Plan/Vicinity Map\n"
+        response += "   • Copy of Deed of Sale\n"
+        response += "   • Seller's valid IDs\n\n"
+        
+        response += "**🏦 Bank-Specific Requirements:**\n"
+        if financing_option == 'BDO':
+            response += "• **BDO Home Loan Application Form**\n"
+            response += "• Credit Report Authorization\n"
+            response += "• Property Appraisal Report\n"
+            response += "• Contact: (02) 8631-8000 | www.bdo.com.ph\n"
+        elif financing_option == 'Metrobank':
+            response += "• **Metrobank Housing Loan Application**\n"
+            response += "• Disclosure Statement\n"
+            response += "• Property Inspection Report\n"
+            response += "• Contact: (02) 8888-7000 | www.metrobank.com.ph\n"
+        elif 'Pag-IBIG' in str(financing_option):
+            response += "**🏦 Pag-IBIG Housing Loan Requirements:**\n"
+            response += "• Pag-IBIG Membership ID\n"
+            response += "• 24 months contributions (minimum)\n"
+            response += "• Housing Loan Application Form\n"
+            response += "• Property Appraisal\n"
+            response += "• **Loan Amount:** Up to ₱6M\n"
+            response += "• **Interest Rate:** As low as 3% per annum\n"
+            response += "• **Term:** Up to 30 years\n"
+            response += "• **Hotline:** (02) 8724-4244\n"
+        else:
+            response += "• Completed loan application form\n"
+            response += "• Credit report authorization\n"
+            response += "• Property appraisal documents\n\n"
+        
+        response += "**⏱️ Processing Time:** 2-4 weeks after complete document submission\n"
+        
+    elif financing_type == 'installment':
+        response = "📋 **Documents Needed for Installment Purchase**\n\n"
+        response += "**For Reservation:**\n"
+        response += "1. Reservation Fee (varies by property)\n"
+        response += "2. Valid ID (passport, driver's license, etc.)\n\n"
+        
+        response += "**For Contract Signing:**\n"
+        response += "1. 2 Valid IDs (photocopy and original for verification)\n"
+        response += "2. Proof of Income (3 months payslips)\n"
+        response += "3. Certificate of Employment\n"
+        response += "4. Post-dated checks for monthly payments\n"
+        response += "5. 2x2 ID pictures (2 copies)\n\n"
+        
+        response += "**Additional for Self-Employed/Business Owners:**\n"
+        response += "• ITR (Income Tax Return) for the last 2 years\n"
+        response += "• Business registration (DTI/SEC)\n"
+        response += "• Bank statements (6 months)\n"
+        response += "• Financial statements\n\n"
+        
+        response += "**📊 Typical Installment Terms:**\n"
+        response += "• Downpayment: 20-30% of property price\n"
+        response += "• Payment Term: 3-5 years\n"
+        response += "• Interest Rate: 6-8% per annum\n"
+        response += "• Monthly amortization\n\n"
+        
+        response += "**⚖️ Legal Documents:**\n"
+        response += "• Contract to Sell\n"
+        response += "• Deed of Absolute Sale (upon full payment)\n"
+        response += "• Transfer of Title documents\n"
+        
+    elif financing_type == 'outright' or 'cash' in str(financing_type).lower():
+        response = "💰 **Documents for Outright/Cash Purchase**\n\n"
+        response += "**Buyer's Requirements:**\n"
+        response += "1. Valid IDs (2 government-issued)\n"
+        response += "2. Proof of Billing (for address verification)\n"
+        response += "3. Proof of Funds/Source of Cash\n"
+        response += "   • Bank certification\n"
+        response += "   • Bank statements (6 months)\n"
+        response += "   • For large amounts: Source of wealth documentation\n\n"
+        
+        response += "**Property Documents (from Seller):**\n"
+        response += "1. Clean Title (no liens/encumbrances)\n"
+        response += "2. Tax Declaration\n"
+        response += "3. Latest Real Property Tax Receipt\n"
+        response += "4. Certificate of No Improvement (if vacant lot)\n"
+        response += "5. Location Plan/Vicinity Map\n\n"
+        
+        response += "**Transaction Documents:**\n"
+        response += "• Deed of Absolute Sale\n"
+        response += "• Notarization documents\n"
+        response += "• Tax clearance (Capital Gains Tax, Documentary Stamp Tax)\n"
+        response += "• Transfer of Title at Registry of Deeds\n"
+        
+    else:
+        response = "📋 **General Property Purchase Documents**\n\n"
+        response += "**For All Property Transactions:**\n"
+        response += "1. **Valid Identification:**\n"
+        response += "   • 2 government-issued IDs (passport, driver's license, etc.)\n\n"
+        
+        response += "2. **Proof of Billing Address:**\n"
+        response += "   • Utility bill (electricity, water, telco)\n"
+        response += "   • Credit card statement\n\n"
+        
+        response += "3. **Financial Capacity Proof:**\n"
+        response += "   • Bank statements (3-6 months)\n"
+        response += "   • Proof of income\n"
+        response += "   • ITR (for self-employed)\n\n"
+        
+        response += "**Additional Based on Payment Method:**\n"
+        response += "• **Bank Financing:** Loan application, credit report, property appraisal\n"
+        response += "• **Installment:** Post-dated checks, installment agreement\n"
+        response += "• **Outright:** Proof of funds, bank certification\n\n"
+        
+        response += "**💡 Tip:** Requirements may vary by developer, bank, or property type.\n"
+        response += "It's best to confirm specific requirements with your chosen financing partner.\n"
+    
+    return response
+
 # Generate response for financing queries
 def generate_financing_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response for financing-related queries"""
+    
+    # Check if this is a document-only query
+    if entities.get('documents_only'):
+        return generate_documents_only_response(entities)
     
     sale_type = entities.get('sale_type')
     financing_option = entities.get('financing_options')
@@ -1514,7 +1718,7 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
 # Generate response from training data templates - UPDATED FOR FINANCING
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
-
+    
     # Handle financing intents specifically
     if intent == 'financing':
         return generate_financing_response(entities, properties)
@@ -1812,7 +2016,11 @@ def chat():
             properties = search_firestore_properties(entities)
         
         # Step 4: Generate response using training data templates
-        response_text = generate_response(intent, entities, properties)
+        # Check if this is a document-only query
+        if entities.get('documents_only'):
+            response_text = generate_documents_only_response(entities)
+        else:
+            response_text = generate_response(intent, entities, properties)
         
         # Step 5: Prepare result
         result = {
@@ -1823,11 +2031,12 @@ def chat():
             'entities': entities,
             'response': response_text,
             'properties_found': len(properties),
-            'properties': properties[:10],
+            'properties': properties[:10] if not entities.get('documents_only') else [],
             'model_version': 'trained' if vectorizer else 'fallback',
             'is_general_search': entities.get('has_general_search', False),
             'is_criteria_search': intent == 'find_property_with_criteria',
-            'is_financing_query': intent == 'financing'  # ADDED: Flag for financing queries
+            'is_financing_query': intent == 'financing',
+            'is_document_query': entities.get('documents_only', False)  # ADDED: Flag for document queries
         }
         
         return jsonify(result)
@@ -1847,6 +2056,17 @@ def chat():
 def determine_intent_fallback(query: str) -> str:
     """Simple rule-based intent detection as fallback"""
     query_lower = query.lower()
+    
+    # Check for document-only queries
+    doc_keywords = ['documents', 'requirements', 'needed', 'required', 'paperwork']
+    prop_keywords = ['properties', 'show me', 'find', 'looking for', 'search']
+    
+    has_doc_keywords = any(term in query_lower for term in doc_keywords)
+    has_prop_keywords = any(term in query_lower for term in prop_keywords)
+    
+    # If asking about documents WITHOUT asking for properties
+    if has_doc_keywords and not has_prop_keywords:
+        return 'financing'  # Will be handled as document-only query
     
     # Check for financing-related queries
     financing_keywords = [
@@ -1876,7 +2096,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.6.1',  # Updated version with financing fixes
+        'version': '3.6.2',  # Updated version with document-only query support
         'model_loaded': vectorizer is not None and classifier is not None,
         'training_data_loaded': bool(training_data),
         'firebase_connected': db is not None,
@@ -1885,7 +2105,8 @@ def health_check():
         'spacy_loaded': nlp is not None,
         'supports_general_searches': True,
         'supports_criteria_searches': True,
-        'supports_financing_queries': True,  # NEW
+        'supports_financing_queries': True,
+        'supports_document_queries': True,  # NEW
         'timestamp': datetime.now().isoformat()
     })
 
@@ -1893,7 +2114,12 @@ def health_check():
 def test_endpoint():
     """Test endpoint to verify the model is working"""
     test_queries = [
-        # Financing queries
+        # Document-only queries
+        "requirements for bank financing",
+        "what documents are needed for installment",
+        "documents required for outright purchase",
+        
+        # Financing + properties queries
         "show me properties that accept installment",
         "find properties with bank financing",
         "properties that accept outright payment",
@@ -1929,6 +2155,7 @@ def test_endpoint():
                     'query': query,
                     'intent': intent,
                     'confidence': confidence,
+                    'documents_only': entities.get('documents_only'),
                     'sale_type': entities.get('sale_type'),
                     'financing_options': entities.get('financing_options'),
                     'has_location': entities.get('location') is not None,
@@ -1948,14 +2175,15 @@ def test_endpoint():
         'training_data_status': 'loaded' if training_data else 'not loaded',
         'supports_criteria_searches': True,
         'supports_general_searches': True,
-        'supports_financing_queries': True
+        'supports_financing_queries': True,
+        'supports_document_queries': True
     })
 
 # ==================== MAIN ====================
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6.1")
-    print("   (With saleType filtering for financing queries)")
+    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6.2")
+    print("   (With document-only query support)")
     print("="*60)
     
     # Load the trained model
@@ -1971,6 +2199,7 @@ if __name__ == '__main__':
     print(f"🔍 General Searches: {'✅ Supported'}")
     print(f"🔍 Criteria Searches: {'✅ Supported'}")
     print(f"🏦 Financing Queries: {'✅ Supported (installment, bank_financing, outright)'}")
+    print(f"📋 Document Queries: {'✅ Supported (documents-only responses)'}")
     
     if vectorizer:
         print(f"📊 Model intents: {len(model_classes)} intents")
@@ -1987,12 +2216,15 @@ if __name__ == '__main__':
     print("   GET  /api/health - Health check")
     print("   GET  /api/test   - Test model predictions")
     
-    print("\n🔍 Example queries to try:")
-    print("   • 'show me properties that accept installment'")
-    print("   • 'find properties with bank financing'")
-    print("   • 'properties that accept outright payment'")
-    print("   • 'show me houses under 15M with 3 bedrooms'")
-    print("   • 'find apartments in batangas city'")
+    print("\n🔍 Example queries to test:")
+    print("   1. Document-only queries:")
+    print("      • 'requirements for bank financing'")
+    print("      • 'what documents are needed for installment'")
+    print("   2. Financing + properties:")
+    print("      • 'show me properties that accept installment'")
+    print("      • 'find properties with bank financing'")
+    print("   3. Criteria searches:")
+    print("      • 'show me houses under 15M with 3 bedrooms'")
     
     print("="*60 + "\n")
     

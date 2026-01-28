@@ -1,6 +1,18 @@
 {
   "additional_samples": [
     {
+      "text": "hi",
+      "intent": "greeting"
+    },
+    {
+      "text": "hello",
+      "intent": "greeting"
+    },
+    {
+      "text": "hey",
+      "intent": "greeting"
+    },
+    {
       "text": "find apartments in batangas city",
       "intent": "find_property"
     },
