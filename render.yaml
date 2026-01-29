@@ -3,5 +3,5 @@ services:
     name: bahai
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app  
+    startCommand: cd backend && gunicorn chatbot_backend:app  
     pythonVersion: "3.12.0"  
