@@ -58,10 +58,70 @@ def home():
             "document_queries": True
         }
     })
-
+@app.route('/api/debug-files', methods=['GET'])
+def debug_files():
+    """Debug endpoint to check file paths"""
+    import os
+    
+    debug_info = {
+        'current_directory': os.getcwd(),
+        'script_directory': BASE_DIR,
+        'model_path': MODEL_PATH,
+        'model_exists': os.path.exists(MODEL_PATH),
+        'training_data_path': TRAINING_DATA_PATH,
+        'training_data_exists': os.path.exists(TRAINING_DATA_PATH),
+    }
+    
+    # Check models directory
+    models_dir = os.path.join(BASE_DIR, 'models')
+    if os.path.exists(models_dir):
+        debug_info['models_directory'] = os.listdir(models_dir)
+    else:
+        debug_info['models_directory'] = 'Directory not found'
+    
+    # Check data directory
+    data_dir = os.path.join(BASE_DIR, 'data')
+    if os.path.exists(data_dir):
+        debug_info['data_directory'] = os.listdir(data_dir)
+        
+        # Check member1 subdirectory
+        member1_dir = os.path.join(data_dir, 'member1')
+        if os.path.exists(member1_dir):
+            debug_info['member1_directory'] = os.listdir(member1_dir)
+        else:
+            debug_info['member1_directory'] = 'member1 directory not found'
+    else:
+        debug_info['data_directory'] = 'Directory not found'
+    
+    return jsonify(debug_info)
 # ========== CONFIGURATION ==========
-MODEL_PATH = 'models/nlu_model.pkl'
-TRAINING_DATA_PATH = 'data/member1/training_data.json'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Use absolute paths
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'nlu_model.pkl')
+TRAINING_DATA_PATH = os.path.join(BASE_DIR, 'data', 'member1', 'training_data.json')
+
+print(f"\n📁 BASE_DIR: {BASE_DIR}")
+print(f"📁 MODEL_PATH: {MODEL_PATH}")
+print(f"📁 TRAINING_DATA_PATH: {TRAINING_DATA_PATH}")
+print(f"📁 Model exists: {os.path.exists(MODEL_PATH)}")
+print(f"📁 Training data exists: {os.path.exists(TRAINING_DATA_PATH)}")
+
+# Debug: List files in directories
+print("\n🔍 Checking directories...")
+if os.path.exists(os.path.join(BASE_DIR, 'models')):
+    print(f"📂 Files in models directory:")
+    for f in os.listdir(os.path.join(BASE_DIR, 'models')):
+        print(f"   - {f}")
+else:
+    print("❌ models directory not found!")
+
+if os.path.exists(os.path.join(BASE_DIR, 'data')):
+    print(f"📂 Files in data directory:")
+    for f in os.listdir(os.path.join(BASE_DIR, 'data')):
+        print(f"   - {f}")
+else:
+    print("❌ data directory not found!")
 
 # Global variables
 vectorizer = None
@@ -190,6 +250,9 @@ def load_training_data():
     """Load training data for response templates"""
     global training_data
     
+    print(f"\n🔍 Attempting to load training data from: {TRAINING_DATA_PATH}")
+    print(f"🔍 File exists: {os.path.exists(TRAINING_DATA_PATH)}")
+    
     try:
         if os.path.exists(TRAINING_DATA_PATH):
             with open(TRAINING_DATA_PATH, 'r', encoding='utf-8') as f:
@@ -204,11 +267,13 @@ def load_training_data():
     except Exception as e:
         logger.error(f"❌ Error loading training data: {e}")
         training_data = {}
-
 # ========== LOAD NLU MODEL ==========
 def load_nlu_model():
     """Load the trained NLU model from train_nlu.py"""
     global vectorizer, classifier, model_classes
+    
+    print(f"\n🔍 Attempting to load model from: {MODEL_PATH}")
+    print(f"🔍 File exists: {os.path.exists(MODEL_PATH)}")
     
     try:
         if os.path.exists(MODEL_PATH):
