@@ -10,7 +10,6 @@ google-cloud-firestore==2.22.0
 # Machine Learning (your AI models)
 scikit-learn==1.5.2  
 numpy==1.26.4  
-spacy==3.7.2
 pandas==2.0.3
 
 # Production server
