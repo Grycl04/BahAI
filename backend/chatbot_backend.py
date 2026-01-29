@@ -34,8 +34,23 @@ logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://bahai-web.netlify.app",  # Your Netlify domain
+            "http://localhost:3000",           # Local development
+            "http://localhost:5000",           # Local development
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
+@app.after_request
+def after_request(response):
+    # Add security headers
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 # ========== ROOT ROUTE ==========
 @app.route('/')
 def home():
