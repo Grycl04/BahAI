@@ -246,6 +246,48 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     }
     
     query_lower = query.lower()
+
+    # ========== DETECT FAMILY NEEDS ==========
+    family_patterns = [
+        # Family size patterns
+        (r'family\s+of\s+(\d+)', 'family_size'),
+        (r'family\s+with\s+(\d+)', 'family_size'),
+        (r'(\d+)\s+person\s+family', 'family_size'),
+        (r'(\d+)-member\s+family', 'family_size'),
+        (r'(\d+)\s+people\s+family', 'family_size'),
+        
+        # Family type patterns
+        (r'small\s+family', 'small_family'),
+        (r'big\s+family', 'big_family'),
+        (r'large\s+family', 'big_family'),
+        (r'young\s+family', 'small_family'),
+        (r'growing\s+family', 'medium_family'),
+        (r'family\s+with\s+kids', 'family_with_kids'),
+        (r'family\s+with\s+children', 'family_with_kids'),
+    ]
+    
+    entities['family_info'] = None
+    for pattern, family_type in family_patterns:
+        match = re.search(pattern, query_lower)
+        if match:
+            if family_type == 'family_size':
+                entities['family_info'] = {'type': 'size', 'value': int(match.group(1))}
+            else:
+                entities['family_info'] = {'type': family_type}
+            logger.info(f"👨‍👩‍👧‍👦 Detected family need: {entities['family_info']}")
+            break
+    
+    # ========== DETECT NEEDS-BASED QUERIES ==========
+    needs_keywords = ['for family', 'for students', 'for professionals', 'for couple', 
+                     'for retirees', 'for business', 'for investors', 'for single', 
+                     'for workers', 'for office', 'for commercial']
+    
+    has_needs_keyword = any(keyword in query_lower for keyword in needs_keywords)
+    
+    # If query has family/needs keywords, mark it for find_property_for_need
+    if has_needs_keyword:
+        entities['has_need_query'] = True
+        logger.info("🎯 Marked as needs-based query")
     
     # ========== DETECT DOCUMENT-ONLY QUERIES ==========
     doc_keywords = ['documents', 'requirements', 'needed', 'required', 'paperwork', 'papers', 'what do i need']
@@ -1646,16 +1688,16 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
     else:
         criteria_parts.append("properties")
     
+    if entities.get('exact_bedrooms') is not None:
+        bedrooms = entities['exact_bedrooms']
+        criteria_parts.append(f"with {bedrooms} bedroom{'s' if bedrooms != 1 else ''}")
+    
     if entities.get('max_price'):
         max_price = entities['max_price']
         if max_price >= 1000000:
             criteria_parts.append(f"under ₱{max_price/1000000:.1f}M")
         else:
             criteria_parts.append(f"under ₱{max_price:,.0f}")
-    
-    if entities.get('exact_bedrooms') is not None:
-        bedrooms = entities['exact_bedrooms']
-        criteria_parts.append(f"with {bedrooms} bedroom{'s' if bedrooms != 1 else ''}")
     
     if entities.get('location'):
         criteria_parts.append(f"in {entities['location']}")
@@ -1706,12 +1748,14 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
                 response += "   • Try different bedroom counts\n"
         
     else:
-        response = f"❌ **No properties found matching: {criteria_desc}**\n\n"
+        # SIMPLIFIED RESPONSE: "I found 0 ..."
+        response = f"I found 0 {criteria_desc}.\n\n"
         response += "💡 **Suggestions:**\n"
-        response += "   • Try a different price range\n"
-        response += "   • Consider nearby locations\n"
-        response += "   • Adjust your bedroom requirements\n"
-        response += "   • Check back later for new listings\n"
+        response += "• Try a different price range\n"
+        response += "• Consider nearby locations\n"
+        if entities.get('exact_bedrooms'):
+            response += "• Adjust your bedroom requirements\n"
+        response += "• Check back later for new listings\n"
     
     return response
 
@@ -1893,6 +1937,7 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
     
     property_type = entities.get('property_type', 'properties')
     property_type_display = property_type.replace('_', ' ').title()
+    exact_bedrooms = entities.get('exact_bedrooms')
     
     if properties:
         # Group properties by city for better organization
@@ -1905,7 +1950,14 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
         sorted_cities = sorted(properties_by_city.items(), key=lambda x: len(x[1]), reverse=True)
         
         response = f"🔍 **{property_type_display} Available in Batangas**\n\n"
-        response += f"I found {len(properties)} {property_type_display.lower()} across different locations:\n\n"
+        
+        # Build criteria description for the summary
+        criteria_parts = [property_type_display.lower()]
+        if exact_bedrooms is not None:
+            criteria_parts.append(f"with {exact_bedrooms} bedroom{'s' if exact_bedrooms != 1 else ''}")
+        
+        criteria_desc = " ".join(criteria_parts)
+        response += f"I found {len(properties)} {criteria_desc} across different locations:\n\n"
         
         # Show top locations with properties
         displayed_count = 0
@@ -1950,12 +2002,20 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
             response += "   • Tanauan City (Taal Lake views)\n"
         
     else:
-        response = f"I couldn't find any {property_type_display.lower()} matching your criteria.\n\n"
-        response += "💡 **Try these suggestions:**\n"
-        response += "   • Check if the property type is spelled correctly\n"
-        response += "   • Try a broader search: *'find properties'*\n"
-        response += "   • Specify a location: *'find {property_type_display.lower()} in Lipa City'*\n"
-        response += "   • Check back later for new listings\n"
+        # NO PROPERTIES FOUND - SIMPLIFIED RESPONSE
+        response = f"I found 0 {property_type_display.lower()}"
+        
+        # Add bedroom criteria if specified
+        if exact_bedrooms is not None:
+            response += f" with {exact_bedrooms} bedroom{'s' if exact_bedrooms != 1 else ''}"
+        
+        response += ".\n\n"
+        
+        # Keep the suggestions but make them more concise
+        response += "💡 **Suggestions:**\n"
+        response += "• Try a different location\n"
+        response += "• Adjust your criteria\n"
+        response += "• Check back later for new listings\n"
     
     return response
 
