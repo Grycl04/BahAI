@@ -37,12 +37,13 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
+            "http://127.0.0.1:5500",
             "https://bahai-web.netlify.app",  # Your Netlify domain
             "http://localhost:3000",           # Local development
             "http://localhost:5000",           # Local development
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
     }
 })
 
@@ -370,22 +371,66 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         (r'growing\s+family', 'medium_family'),
         (r'family\s+with\s+kids', 'family_with_kids'),
         (r'family\s+with\s+children', 'family_with_kids'),
+        (r'\bcouple\b', 'couple'),
+        (r'\bcouples\b', 'couple'),
+        (r'\bfor\s+couple\b', 'couple'),
+        (r'\bfor\s+couples\b', 'couple'),
+        (r'\btwo\s+person\b', 'couple'),
+        (r'\bhusband\s+and\s+wife\b', 'couple'),
     ]
     
     for pattern, family_type in family_patterns:
         match = re.search(pattern, query_lower)
         if match:
             if family_type == 'family_size':
-                entities['family_info'] = {'type': 'size', 'value': int(match.group(1))}
+                family_size = int(match.group(1))
+                entities['family_info'] = {'type': 'size', 'value': family_size}
+                
+                # Set minimum bedroom requirements based on family size
+                if family_size <= 2:
+                    entities['min_bedrooms'] = 1  # Couple or 1 child
+                    entities['ideal_bedrooms'] = 2
+                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 1-2 bedrooms recommended")
+                elif 3 <= family_size <= 4:
+                    entities['min_bedrooms'] = 2  # Minimum for family of 3-4
+                    entities['ideal_bedrooms'] = 3
+                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 2-3 bedrooms recommended")
+                elif 5 <= family_size <= 6:
+                    entities['min_bedrooms'] = 3  # Minimum for family of 5-6
+                    entities['ideal_bedrooms'] = 4
+                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 3-4 bedrooms recommended")
+                else:  # 7+ people
+                    entities['min_bedrooms'] = 4  # Minimum for large family
+                    entities['ideal_bedrooms'] = 5
+                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 4+ bedrooms recommended")
             else:
                 entities['family_info'] = {'type': family_type}
+                
+                # For generic family types
+                if family_type in ['big_family', 'large_family']:
+                    entities['min_bedrooms'] = 4
+                    entities['ideal_bedrooms'] = 5
+                    logger.info(f"👨‍👩‍👧‍👦 Large family → 4+ bedrooms recommended")
+                elif family_type in ['small_family', 'young_family', 'couple']: 
+                    entities['min_bedrooms'] = 1
+                    entities['ideal_bedrooms'] = 2
+                    logger.info(f"👨‍👩‍👧‍👦 Small family/couple → 1-2 bedrooms recommended")
+                elif family_type == 'medium_family':
+                    entities['min_bedrooms'] = 3
+                    entities['ideal_bedrooms'] = 4
+                    logger.info(f"👨‍👩‍👧‍👦 Medium family → 3-4 bedrooms recommended")
+                elif family_type == 'family_with_kids':
+                    entities['min_bedrooms'] = 2
+                    entities['ideal_bedrooms'] = 3
+                    logger.info(f"👨‍👩‍👧‍👦 Family with kids → 2-3 bedrooms recommended")
+                    
             logger.info(f"👨‍👩‍👧‍👦 Detected family need: {entities['family_info']}")
             break
     
     # Detect needs-based queries
     needs_keywords = ['for family', 'for students', 'for professionals', 'for couple', 
-                     'for retirees', 'for business', 'for investors', 'for single', 
-                     'for workers', 'for office', 'for commercial']
+                    'for couples', 'for retirees', 'for business', 'for investors', 'for single', 
+                    'for workers', 'for office', 'for commercial']
     
     has_needs_keyword = any(keyword in query_lower for keyword in needs_keywords)
     
@@ -673,6 +718,319 @@ def add_price_numeric_value(property_data: Dict) -> Dict:
     
     return property_data
 
+def get_bedroom_count_from_string(bedroom_str: str) -> int:
+    """Convert bedroom string to numeric count for filtering"""
+    if not bedroom_str:
+        return 0
+    
+    bedroom_str = str(bedroom_str).lower().strip()
+    
+    # Common patterns
+    if bedroom_str == 'studio' or bedroom_str == '0' or 'studio' in bedroom_str:
+        return 0
+    elif bedroom_str == '1' or '1 bedroom' in bedroom_str:
+        return 1
+    elif bedroom_str == '2' or '2 bedroom' in bedroom_str:
+        return 2
+    elif bedroom_str == '3' or '3 bedroom' in bedroom_str:
+        return 3
+    elif bedroom_str == '4' or '4 bedroom' in bedroom_str:
+        return 4
+    elif bedroom_str == '5' or '5 bedroom' in bedroom_str or '5+' in bedroom_str:
+        return 5
+    elif '6' in bedroom_str or '6+' in bedroom_str:
+        return 6
+    else:
+        # Try to extract any number
+        match = re.search(r'(\d+)', bedroom_str)
+        if match:
+            return int(match.group(1))
+        return 0
+
+def calculate_family_suitability_score(prop: Dict[str, Any], family_size: int) -> int:
+    """Calculate how suitable a property is for a family of given size"""
+    score = 0
+    
+    # 1. Score based on property type (higher score for family-friendly types)
+    prop_type = prop.get('propertyType', '').lower()
+    prop_category = prop.get('propertyCategory', '').lower()
+    
+    # Property type scoring
+    type_scores = {
+        'house': 10,
+        'townhouse': 9,
+        'bungalow': 8,
+        'duplex': 8,
+        'condo': 6,
+        'apartment': 5,
+        'village_lot': 7,  # For building custom home
+        'residential_lot': 7,
+        'penthouse': 8,  # Spacious condo option
+        'loft': 6,
+        'boarding_house': 4,
+        'room': 2,
+        'dormitory': 3,
+    }
+    
+    for type_key, type_score in type_scores.items():
+        if type_key in prop_type or type_key in str(prop.get('type', '')).lower():
+            score += type_score
+            break
+    
+    # 2. Score based on bedrooms
+    bedroom_str = prop.get('bedrooms', '')
+    bedroom_count = get_bedroom_count_from_string(bedroom_str)
+    
+    if bedroom_count > 0:
+        # Ideal bedroom count based on family size
+        if family_size <= 2:
+            ideal_bedrooms = 2
+        elif family_size <= 4:
+            ideal_bedrooms = 3
+        else:  # 5+ members
+            ideal_bedrooms = 4
+        
+        if bedroom_count >= ideal_bedrooms:
+            score += 15  # Meets or exceeds ideal
+        elif bedroom_count >= ideal_bedrooms - 1:
+            score += 10  # Close to ideal
+        else:
+            score += 5   # Less than ideal but might work
+    
+    # 3. Score based on bathrooms
+    bathroom_str = prop.get('bathrooms', '')
+    if bathroom_str:
+        try:
+            if bathroom_str == '4+':
+                bathroom_count = 4
+            else:
+                bathroom_count = int(bathroom_str)
+            
+            if bathroom_count >= 2:
+                score += 8  # Multiple bathrooms are great for families
+            elif bathroom_count >= 1:
+                score += 4
+        except:
+            pass
+    
+    # 4. Score based on space/size
+    floor_area = prop.get('floorArea', 0)
+    lot_area = prop.get('lotArea', 0)
+    
+    if floor_area > 0:
+        if floor_area >= 100:  # 100+ sqm is spacious for families
+            score += 10
+        elif floor_area >= 60:  # 60-99 sqm is decent
+            score += 6
+        elif floor_area >= 30:  # 30-59 sqm is basic
+            score += 3
+    
+    if lot_area and lot_area > 100:  # Large lot is great for families
+        score += 8
+    
+    # 5. Score based on amenities/features
+    amenities = prop.get('amenities', [])
+    features = prop.get('features', [])
+    all_features = amenities + features
+    
+    family_friendly_features = {
+        'garden': 5,
+        'yard': 5,
+        'parking': 4,
+        'parking space': 4,
+        'spacious': 3,
+        'children': 3,
+        'family': 3,
+        'playground': 6,
+        'pool': 4,
+        'swimming pool': 4,
+        'security': 3,
+        'fenced': 3,
+        'safe': 3,
+        'quiet': 2,
+        'community': 2,
+        'near school': 6,
+        'near park': 4,
+        'school proximity': 5,
+        'multiple bathrooms': 4,
+        'storage': 2,
+        'laundry': 2,
+    }
+    
+    for feature in all_features:
+        feature_lower = str(feature).lower()
+        for key, value in family_friendly_features.items():
+            if key in feature_lower:
+                score += value
+    
+    # 6. Score based on location/neighborhood
+    description = prop.get('description', '').lower()
+    title = prop.get('title', '').lower()
+    
+    location_keywords = ['family-friendly', 'safe neighborhood', 'quiet street', 
+                        'good for families', 'child-friendly', 'residential area',
+                        'subdivision', 'village']
+    
+    for keyword in location_keywords:
+        if keyword in description or keyword in title:
+            score += 4
+    
+    # 7. Score based on furnishing
+    furnishing = prop.get('furnishing', '').lower()
+    if 'furnished' in furnishing:
+        score += 3  # Helpful for families moving in
+    elif 'semi-furnished' in furnishing:
+        score += 2
+    
+    return score
+    
+def generate_family_needs_response(family_size: int, properties: List[Dict[str, Any]], entities: Dict[str, Any]) -> str:
+    """Generate response specifically for family needs"""
+    
+    if not properties:
+        return f"I couldn't find any properties for family of {family_size} members.\n\n"
+    
+    # Calculate ideal bedroom range based on family size
+    if family_size <= 2:
+        ideal_min, ideal_max = 1, 2  # 1-2 bedrooms ideal for couple/small family
+    elif 3 <= family_size <= 4:
+        ideal_min, ideal_max = 2, 3  # 2-3 bedrooms ideal for small family
+    elif 5 <= family_size <= 6:
+        ideal_min, ideal_max = 3, 4  # 3-4 bedrooms ideal for medium family
+    else:  # 7+ people
+        ideal_min, ideal_max = 4, 5  # 4+ bedrooms ideal for large family
+    
+    # Score and sort properties based on bedroom suitability
+    scored_properties = []
+    
+    for prop in properties:
+        # Skip obviously unsuitable property types
+        prop_type = str(prop.get('propertyType', '')).lower()
+        unsuitable_types = ['room', 'boarding_house', 'dormitory', 'office', 
+                           'retail', 'commercial', 'warehouse', 'industrial',
+                           'food_stall', 'shop', 'showroom', 'parking_area']
+        
+        if any(unsuitable in prop_type for unsuitable in unsuitable_types):
+            continue
+            
+        # Get bedroom count
+        bedroom_str = prop.get('bedrooms', '')
+        bedrooms = get_bedroom_count_from_string(bedroom_str)
+        
+        # Calculate bedroom suitability score
+        bedroom_score = 0
+        if ideal_min <= bedrooms <= ideal_max:
+            bedroom_score = 100  # Perfect match!
+        elif bedrooms == ideal_max + 1:
+            bedroom_score = 80   # Slightly larger than ideal
+        elif bedrooms == ideal_max + 2:
+            bedroom_score = 60   # Much larger than ideal
+        elif bedrooms == ideal_min - 1 and bedrooms > 0:
+            bedroom_score = 70   # Slightly smaller than ideal
+        elif bedrooms < ideal_min:
+            bedroom_score = 50   # Smaller than minimum
+        elif bedrooms > ideal_max + 2:
+            bedroom_score = 40   # Much larger than ideal
+            
+        # Calculate overall family suitability
+        overall_score = calculate_family_suitability_score(prop, family_size)
+        
+        # Combine scores (bedroom match is more important)
+        total_score = (bedroom_score * 0.6) + (overall_score * 0.4)
+        
+        prop['family_suitability_score'] = total_score
+        prop['bedroom_match_score'] = bedroom_score
+        scored_properties.append(prop)
+    
+    if not scored_properties:
+        return f"I couldn't find any suitable properties for family of {family_size} members.\n\n"
+    
+    # Sort by total suitability score (highest first)
+    scored_properties.sort(key=lambda x: x.get('family_suitability_score', 0), reverse=True)
+    
+    # Take top 5 most suitable properties
+    filtered_properties = scored_properties[:5]
+    
+    # Generate response
+    response = f"🏠 **Properties Suitable for Family of {family_size}**\n\n"
+    
+    if filtered_properties:
+        response += f"I found {len(filtered_properties)} properties that could work for your family:\n\n"
+        
+        for i, prop in enumerate(filtered_properties):
+            title = prop.get('title', f'Property {i+1}')
+            price = prop.get('price', 'Price not available')
+            location = prop.get('location', 'Location not specified')
+            bedrooms = prop.get('bedrooms', 'Not specified')
+            prop_type = prop.get('type', '').replace('_', ' ').title()
+            bedroom_score = prop.get('bedroom_match_score', 0)
+            
+            response += f"{i+1}. **{title}**\n"
+            response += f"   📍 {location}\n"
+            response += f"   🏠 Type: {prop_type}\n"
+            response += f"   💰 Price: {price}\n"
+            response += f"   🛏️ Bedrooms: {bedrooms}"
+            
+            # Add bedroom suitability note
+            if bedroom_score == 100:
+                response += f" ✅ **Perfect size for your family**\n"
+            elif bedroom_score >= 80:
+                response += f" 👍 **Good size for your family**\n"
+            elif bedroom_score >= 60:
+                response += f" 📏 **Adequate size for your family**\n"
+            else:
+                response += f" 📐 **May need adjustment for your family**\n"
+            
+            # Show key features
+            features = prop.get('features', [])
+            if features:
+                response += f"   ✅ Features: {', '.join(features[:3])}\n"
+            
+            response += "\n"
+        
+        # Family living tips based on size
+        response += "**💡 Family Living Tips:**\n"
+        
+        if family_size == 1:
+            response += "• **Studio or 1 bedroom** is perfect for singles\n"
+            response += "• Consider **condos or apartments** for low maintenance\n"
+            response += "• Look for **secure buildings** with amenities\n"
+            
+        elif family_size == 2:  # Couple or 1 child
+            response += "• **1-2 bedroom properties** provide space for home office or guest room\n"
+            response += "• Look for **secure buildings** or **gated communities**\n"
+            response += "• Consider **proximity to schools** even if no children yet\n"
+            
+        elif family_size == 3:  # Small family
+            response += "• **2-3 bedroom properties** are ideal for growing families\n"
+            response += "• Multiple **bathrooms** help with morning routines\n"
+            response += "• **Nearby parks and playgrounds** are great for children\n"
+            
+        elif family_size == 4:  # Standard family
+            response += "• **3-4 bedroom properties** provide comfortable living space\n"
+            response += "• **2+ bathrooms** are recommended for convenience\n"
+            response += "• **Yard or garden space** allows for outdoor activities\n"
+            
+        elif family_size >= 5:  # Large family
+            response += "• **4+ bedroom properties** or **houses with extension potential**\n"
+            response += "• **Multiple living areas** help with space management\n"
+            response += "• **Large lots** allow for expansion or outdoor space\n"
+        
+    else:
+        response = f"I couldn't find specifically family-optimized properties for {family_size} members.\n\n"
+        response += "💡 **Try these adjustments:**\n"
+        min_bedrooms = entities.get('min_bedrooms', 2)
+        response += f"• Search for properties with **{min_bedrooms}+ bedrooms**\n"
+        response += "• Look in family-friendly areas like subdivisions\n"
+        response += "• Consider properties with 'family-friendly' features\n\n"
+        
+        response += "**🔍 Try these specific searches:**\n"
+        response += f"• *'find houses with {min_bedrooms} bedrooms'*\n"
+        response += "• *'show me properties with garden for families'*\n"
+        response += "• *'properties in gated communities'*\n"
+    
+    return response
+
 def calculate_installment_payment(property_data: Dict) -> Optional[Dict]:
     """Calculate installment payment details for a property"""
     sale_price = property_data.get('salePrice')
@@ -925,30 +1283,25 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             if price_numeric > entities['max_price']:
                 matches = False
         
+        # Check for bedroom requirements
         if entities.get('exact_bedrooms') is not None and matches:
             prop_bedrooms = prop.get('bedrooms', 'Not specified')
-            try:
-                if isinstance(prop_bedrooms, str):
-                    if prop_bedrooms.lower() == 'studio':
-                        prop_bed_num = 0
-                    elif prop_bedrooms.lower() == '5+':
-                        prop_bed_num = 5
-                    else:
-                        bed_match = re.search(r'(\d+)', prop_bedrooms)
-                        if bed_match:
-                            prop_bed_num = int(bed_match.group(1))
-                        else:
-                            try:
-                                prop_bed_num = int(prop_bedrooms)
-                            except:
-                                prop_bed_num = 0
-                else:
-                    prop_bed_num = int(prop_bedrooms)
-                
-                if prop_bed_num != entities['exact_bedrooms']:
-                    matches = False
-            except Exception as e:
-                pass
+            prop_bed_num = get_bedroom_count_from_string(prop_bedrooms)
+            
+            if prop_bed_num != entities['exact_bedrooms']:
+                matches = False
+                logger.debug(f"❌ Exact bedroom mismatch: {prop_bed_num} != {entities['exact_bedrooms']}")
+
+        # Check for minimum bedroom requirement (for family needs)
+        elif entities.get('min_bedrooms') is not None and matches:
+            prop_bedrooms = prop.get('bedrooms', 'Not specified')
+            prop_bed_num = get_bedroom_count_from_string(prop_bedrooms)
+            
+            if prop_bed_num < entities['min_bedrooms']:
+                matches = False
+                logger.debug(f"❌ Minimum bedroom requirement not met: {prop_bed_num} < {entities['min_bedrooms']}")
+            else:
+                logger.debug(f"✅ Meets minimum bedroom requirement: {prop_bed_num} >= {entities['min_bedrooms']}")
         
         if matches:
             prop_with_price = add_price_numeric_value(prop)
@@ -1180,28 +1533,34 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     matches = False
                     logger.debug(f"❌ Price too low: {price_numeric} < {entities['min_price']}")
             
-            if entities.get('exact_bedrooms') is not None and matches:
+            # Check bedroom requirements
+            if (entities.get('exact_bedrooms') is not None or 
+                entities.get('min_bedrooms') is not None) and matches:
+                
                 prop_bedrooms = property_data.get('bedrooms', 'Not specified')
                 try:
-                    if isinstance(prop_bedrooms, str):
-                        if prop_bedrooms.lower() == 'studio':
-                            prop_bed_num = 0
-                        elif prop_bedrooms.lower() == '5+':
-                            prop_bed_num = 5
-                        else:
-                            bed_match = re.search(r'(\d+)', prop_bedrooms)
-                            if bed_match:
-                                prop_bed_num = int(bed_match.group(1))
-                            else:
-                                prop_bed_num = 0
-                    else:
-                        prop_bed_num = int(prop_bedrooms)
+                    # Use the helper function to convert bedroom string to number
+                    prop_bed_num = get_bedroom_count_from_string(prop_bedrooms)
                     
-                    if prop_bed_num != entities['exact_bedrooms']:
-                        matches = False
-                        logger.debug(f"❌ Bedroom mismatch: {prop_bed_num} != {entities['exact_bedrooms']}")
+                    if entities.get('exact_bedrooms') is not None:
+                        # Exact bedroom requirement
+                        if prop_bed_num != entities['exact_bedrooms']:
+                            matches = False
+                            logger.debug(f"❌ Exact bedroom mismatch: {prop_bed_num} != {entities['exact_bedrooms']}")
+                    
+                    elif entities.get('min_bedrooms') is not None:
+                        # Minimum bedroom requirement (for family needs)
+                        if prop_bed_num < entities['min_bedrooms']:
+                            matches = False
+                            logger.debug(f"❌ Minimum bedroom requirement not met: {prop_bed_num} < {entities['min_bedrooms']}")
+                        else:
+                            logger.debug(f"✅ Meets minimum bedroom requirement: {prop_bed_num} >= {entities['min_bedrooms']}")
+                            
                 except Exception as e:
                     logger.debug(f"⚠️ Could not parse bedrooms: {e}")
+                    # If we can't parse bedrooms but have a requirement, be conservative
+                    if entities.get('min_bedrooms') is not None:
+                        matches = False
             
             if matches:
                 if sale_type == 'installment':
@@ -1817,6 +2176,18 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
     
+    if intent == 'find_property_for_need':
+        # Special handling for family needs
+        if entities.get('family_info'):
+            family_type = entities['family_info']
+            if isinstance(family_type, dict):
+                family_size = family_type.get('value', 3)
+            else:
+                family_size = 3  # Default
+            
+            # Use specialized family response generator
+            return generate_family_needs_response(family_size, properties, entities)
+    
     if intent == 'financing':
         return generate_financing_response(entities, properties)
     
@@ -1825,7 +2196,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     
     if intent == 'find_property' and entities.get('has_general_search'):
         return generate_general_search_response(entities, properties)
-    
+       
     default_responses = {
         'find_property': "I understand you're looking for properties. Could you specify the location or property type?",
         'find_near_landmark': "I can help you find properties near landmarks. What specific landmark are you interested in?",
@@ -1966,6 +2337,17 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
 def determine_intent_fallback(query: str) -> str:
     """Simple rule-based intent detection as fallback"""
     query_lower = query.lower()
+
+        # Family/needs-based queries
+    needs_keywords = [
+        'for family', 'for families', 'for couple', 'for couples',
+        'for students', 'for professionals', 'for retirees',
+        'for business', 'for investors', 'for single', 'for workers'
+    ]
+    
+    for keyword in needs_keywords:
+        if keyword in query_lower:
+            return 'find_property_for_need'
     
     doc_keywords = ['documents', 'requirements', 'needed', 'required', 'paperwork']
     prop_keywords = ['properties', 'show me', 'find', 'looking for', 'search']
@@ -2011,6 +2393,9 @@ def chat():
         
         logger.info(f"💬 Query: '{query}'")
         
+        # Convert to lowercase once for use throughout
+        query_lower = query.lower()
+        
         # Step 1: Predict intent
         intent = "unknown"
         confidence = 0.0
@@ -2037,7 +2422,32 @@ def chat():
                 intent = determine_intent_fallback(query)
         else:
             intent = determine_intent_fallback(query)
+            # query_lower is already defined above
         
+        # Define patterns that should be find_property_for_need
+        family_need_patterns = [
+            'properties for couple',
+            'properties for couples',
+            'for couple',
+            'for couples',
+            'for family',
+            'for families',
+            'family of',
+            'family with',
+            'for students',
+            'for professionals'
+        ]
+        
+        # Check if query matches family need patterns
+        is_family_need_query = any(pattern in query_lower for pattern in family_need_patterns)
+        
+        if is_family_need_query:
+            # Override intent to find_property_for_need
+            old_intent = intent
+            intent = 'find_property_for_need'
+            confidence = max(confidence, 0.9)  # Ensure high confidence
+            logger.info(f"🔄 Overriding intent from {old_intent} to {intent} for family/need query: '{query}'")
+                
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
         logger.info(f"🏷️ Entities: {entities}")
@@ -2048,6 +2458,14 @@ def chat():
                      "find_ready_property", "find_property_for_need", 
                      "find_property_with_criteria", "match_needs", "financing"]:
             properties = search_firestore_properties(entities)
+
+        if 'couple' in query_lower or 'couples' in query_lower:
+            if not entities.get('family_info'):
+                entities['family_info'] = {'type': 'couple'}
+                entities['has_need_query'] = True
+                entities['min_bedrooms'] = 1
+                entities['ideal_bedrooms'] = 2
+                logger.info(f"👨‍👩‍👧‍👦 Added missing family info for couple query")
         
         # Step 4: Generate response
         if entities.get('documents_only'):

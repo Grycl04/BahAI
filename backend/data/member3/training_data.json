@@ -289,11 +289,51 @@
       "layout_suggestion": "2 bedrooms ideal for family of 3: master bedroom + children's room or home office."
     },
     {
+      "query": "properties for couples",
+      "intent": "find_property_for_need",
+      "entities": {
+        "need": "family",
+        "family_type": "couple"
+      },
+      "variations": [
+        "find properties for couples",
+        "show me properties for couples",
+        "looking for properties for couples",
+        "houses for couples",
+        "apartments for couples",
+        "condos for couples",
+        "homes for couples",
+        "properties suitable for couples",
+        "couple-friendly properties",
+        "properties for two people",
+        "find properties for couple",
+        "show me properties for couple",
+        "looking for properties for couple",
+        "houses for couple",
+        "apartments for couple",
+        "condos for couple",
+        "homes for couple",
+        "properties suitable for couple",
+        "couple-friendly properties",
+        "properties for two people"
+      ],
+      "response_template": "Properties for couples. Perfect for newlyweds or young professionals looking for 1-2 bedroom homes.",
+      "small_family_features": [
+        "1-2 bedrooms",
+        "cozy living spaces",
+        "efficient layout",
+        "low maintenance",
+        "affordable"
+      ]
+    },
+    {
       "query": "find properties for family of 3 in lipa city",
       "intent": "find_property_for_need",
       "entities": {
         "need": "family",
         "family_size": 3,
+        "bedrooms": 3,
+        "exact_bedrooms": 3,
         "location": "Lipa City"
       },
       "variations": [
@@ -318,7 +358,7 @@
         "find residence for family of 3 in lipa",
         "family-ready properties in lipa for 3"
       ],
-      "response_template": "Properties for family of {family_size} in {location}. Recommended: 2-3 bedrooms for comfortable living.",
+      "response_template": "Properties suitable for family of {family_size} in {location}. Recommended: 2-3 bedrooms for comfort. Found {count} properties.",
       "family_size_guide": {
         "1-2": "1-2 bedrooms recommended",
         "3-4": "2-3 bedrooms recommended",

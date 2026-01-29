@@ -7,10 +7,10 @@ python-dotenv==1.0.0
 firebase-admin==6.6.0
 google-cloud-firestore==2.22.0
 
-# Machine Learning (your AI models)
-scikit-learn==1.3.0
+# Machine Learning (updated versions)
+scikit-learn==1.5.2
+numpy==1.26.4
 spacy==3.7.2
-numpy==1.24.3
 pandas==2.0.3
 
 # Production server
