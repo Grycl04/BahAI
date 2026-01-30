@@ -5,6 +5,7 @@
     plan: free
     region: oregon
     buildCommand: |
+      cd backend
       pip install --upgrade pip
       pip install -r requirements.txt
     startCommand: gunicorn backend.chatbot_backend:app
