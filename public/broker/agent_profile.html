@@ -2124,11 +2124,11 @@ async function submitProfile() {
     try {
       // Save to users collection (primary)
       await setDoc(doc(db, "users", currentUser.uid), agentData, { merge: true });
-      console.log('Saved to users collection');
+      console.log('✅ Saved to users collection');
       
-      // Save to agents collection (secondary)
+      // Also save to agents collection for compatibility
       await setDoc(doc(db, "agents", currentUser.uid), agentData, { merge: true });
-      console.log('Saved to agents collection');
+      console.log('✅ Saved to agents collection');
       
       // If broker is selected, add to broker's agents subcollection
       if (selectedBroker && selectedBroker.id) {

@@ -396,6 +396,35 @@
       color: var(--text-dark);
     }
 
+    /* Details Grid */
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 14px;
+    }
+
+    .detail-value {
+      color: var(--text-light);
+      font-size: 15px;
+      text-align: right;
+      max-width: 200px;
+    }
+
     /* Amenities Grid */
     .amenities-grid {
       display: grid;
@@ -411,6 +440,23 @@
       background: var(--bg-light);
       border-radius: 10px;
       border-left: 4px solid var(--primary);
+    }
+
+    /* Financing Options */
+    .financing-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .financing-badge {
+      background: var(--bg-light);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-dark);
+      border: 1px solid var(--border);
     }
 
     /* Contact Card */
@@ -839,6 +885,10 @@
       .result-details {
         grid-template-columns: 1fr;
       }
+      
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 768px) {
@@ -869,6 +919,10 @@
       .calculator-widget {
         padding: 20px;
       }
+      
+      .amenities-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
     }
 
     @media (max-width: 480px) {
@@ -882,6 +936,10 @@
       
       .main-image-container {
         height: 250px;
+      }
+      
+      .amenities-grid {
+        grid-template-columns: 1fr;
       }
     }
 </style>
@@ -898,9 +956,9 @@
 <div class="container">
     <!-- Back Button - Will be dynamically updated -->
     <div>
-        <a href="#" id="backButton" class="back-button">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        <button id="backButton" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
     </div>
 
     <!-- Property Details Container -->
@@ -963,12 +1021,8 @@ async function loadSidebarBasedOnRole(userRole) {
         sidebarFile = 'agent_sidebar.html';
     } else if (userRole === 'broker') {
         sidebarFile = 'broker_sidebar.html';
-    } else if (userRole === 'buyer') {
-        sidebarFile = 'sidebar.html'; // Use default sidebar for buyers
-    } else if (userRole === 'public') {
-        // For public users, either use a public sidebar or none
-        sidebarFile = 'sidebar_public.html';
     }
+    // For other roles (admin, landlord, user) use default sidebar
     
     try {
         const response = await fetch(sidebarFile);
@@ -978,17 +1032,12 @@ async function loadSidebarBasedOnRole(userRole) {
         const html = await response.text();
         document.getElementById('sidebar-container').innerHTML = html;
         
-        // Setup logout button only if user is logged in
-        if (userRole !== 'public') {
-            setupLogoutButton();
-        }
+        // Setup logout button
+        setupLogoutButton();
         
         console.log(`✅ Loaded sidebar: ${sidebarFile} for role: ${userRole}`);
     } catch (error) {
         console.error('Error loading sidebar:', error);
-        // Fallback handling...
-    }
-}
         // Fallback to default sidebar
         try {
             const fallbackResponse = await fetch('sidebar.html');
@@ -1005,35 +1054,62 @@ async function loadSidebarBasedOnRole(userRole) {
     }
 }
 
-// Function to update back button based on user role
+// Function to update back button based on user role with history back fallback
 function updateBackButton(userRole) {
     const backButton = document.getElementById('backButton');
     
+    // Remove any existing event listeners by cloning the button
+    const newBackButton = backButton.cloneNode(true);
+    backButton.parentNode.replaceChild(newBackButton, backButton);
+    
+    // Add click event listener
+    newBackButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // First, try to go back in history
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // If no history, fall back to dashboard based on role
+            let fallbackUrl = '../index.html';
+            let fallbackText = 'Back to Home';
+            
+            if (userRole === 'agent') {
+                fallbackUrl = '../agent/agent_dashboard.html';
+                fallbackText = 'Back to Agent Dashboard';
+            } else if (userRole === 'broker') {
+                fallbackUrl = '../broker/broker_dashboard.html';
+                fallbackText = 'Back';
+            } else if (userRole === 'landlord') {
+                fallbackUrl = '../landlord/landlord_dashboard.html';
+                fallbackText = 'Back to Landlord Dashboard';
+            } else if (userRole === 'admin') {
+                fallbackUrl = '../admin/admin_dashboard.html';
+                fallbackText = 'Back to Admin Dashboard';
+            }
+            
+            // Show a fallback message
+            const shouldGoToFallback = confirm(`Cannot go back in history. Go to ${fallbackText}?`);
+            if (shouldGoToFallback) {
+                window.location.href = fallbackUrl;
+            }
+        }
+    });
+    
+    // Update button text based on role for visual reference
+    let buttonText = 'Back';
     if (userRole === 'agent') {
-        backButton.href = '../agent/agent_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Agent Dashboard';
+        buttonText = 'Back';
     } else if (userRole === 'broker') {
-        backButton.href = '../broker/broker_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Broker Dashboard';
+        buttonText = 'Back';
     } else if (userRole === 'landlord') {
-        backButton.href = '../landlord/landlord_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Landlord Dashboard';
+        buttonText = 'Back';
     } else if (userRole === 'admin') {
-        backButton.href = '../admin/admin_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Admin Dashboard';
-    } else if (userRole === 'buyer') {
-        // For buyers, go back to buyer dashboard
-        backButton.href = '../buyer_dashboard.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Dashboard';
-    } else if (userRole === 'public') {
-        // For non-logged in users, go to home page
-        backButton.href = '../index.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Home';
-    } else {
-        // Default for other roles
-        backButton.href = '../index.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Home';
+        buttonText = 'Back';
     }
+    
+    newBackButton.innerHTML = `<i class="fas fa-arrow-left"></i> ${buttonText}`;
+    newBackButton.id = 'backButton'; // Restore the ID
 }
 </script>
 
@@ -1553,20 +1629,7 @@ function showCalculatorError(message) {
     `;
     showCalculatorResults(results);
 }
-// Function to load public sidebar (for non-logged in users)
-async function loadPublicSidebar() {
-    try {
-        const response = await fetch('sidebar_public.html');
-        const html = await response.text();
-        document.getElementById('sidebar-container').innerHTML = html;
-    } catch (error) {
-        console.error('Error loading public sidebar:', error);
-        // Hide sidebar container for public users
-        document.getElementById('sidebar-container').innerHTML = '';
-        document.querySelector('.mobile-menu-toggle').style.display = 'none';
-        document.querySelector('.container').style.marginLeft = '0';
-    }
-}
+
 // --- GOOGLE MAPS FUNCTIONS ---
 
 async function loadGoogleMapsAPI() {
@@ -1854,6 +1917,165 @@ function displayPropertyDetails(listing, userInfo) {
     if (listing.status === 'active') badgeClass = 'badge-active';
     if (listing.status === 'pending') badgeClass = 'badge-pending';
     
+    // Generate property details based on type
+    let propertyDetailsHTML = '';
+    let financingOptionsHTML = '';
+    
+    if (listingType === 'sale') {
+        // SALE PROPERTY DETAILS
+        propertyDetailsHTML = `
+        <div class="details-grid">
+            <div class="detail-item">
+                <span class="detail-label">Property Category:</span>
+                <span class="detail-value">${listing.propertyCategory ? listing.propertyCategory.charAt(0).toUpperCase() + listing.propertyCategory.slice(1) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Property Type:</span>
+                <span class="detail-value">${listing.propertyType ? listing.propertyType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Furnishing:</span>
+                <span class="detail-value">${listing.furnishing ? listing.furnishing.charAt(0).toUpperCase() + listing.furnishing.slice(1) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Year Built:</span>
+                <span class="detail-value">${listing.yearBuilt || 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Lot Area:</span>
+                <span class="detail-value">${listing.lotArea ? listing.lotArea.toLocaleString() + ' sqm' : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Sale Type:</span>
+                <span class="detail-value">${listing.saleType ? listing.saleType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Price Negotiable:</span>
+                <span class="detail-value">${listing.priceNegotiable === 'yes' ? 'Yes' : 'No'}</span>
+            </div>
+        </div>`;
+        
+        // Financing options for sale properties
+        if (listing.financingOptions && listing.financingOptions.length > 0) {
+            financingOptionsHTML = `
+            <div class="property-section">
+                <h3 class="section-title">
+                    <i class="fas fa-university"></i>
+                    Financing Options
+                </h3>
+                <div class="financing-options">
+                    ${listing.financingOptions.map(option => `
+                        <div class="financing-badge">${option}</div>
+                    `).join('')}
+                </div>
+            </div>`;
+        }
+        
+        // Commission details
+        if (listing.commissionType && listing.commissionValue) {
+            propertyDetailsHTML += `
+            <div class="details-grid" style="margin-top: 20px;">
+                <div class="detail-item">
+                    <span class="detail-label">Broker Commission Type:</span>
+                    <span class="detail-value">${listing.commissionType === 'percentage' ? 'Percentage' : 'Fixed Amount'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Commission Value:</span>
+                    <span class="detail-value">${listing.commissionType === 'percentage' ? listing.commissionValue + '%' : '₱' + listing.commissionValue.toLocaleString()}</span>
+                </div>
+            </div>`;
+        }
+    } else if (listingType === 'lease') {
+        // LEASE PROPERTY DETAILS
+        propertyDetailsHTML = `
+        <div class="details-grid">
+            <div class="detail-item">
+                <span class="detail-label">Property Category:</span>
+                <span class="detail-value">${listing.propertyCategory ? listing.propertyCategory.charAt(0).toUpperCase() + listing.propertyCategory.slice(1) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Property Type:</span>
+                <span class="detail-value">${listing.propertyType ? listing.propertyType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Total Area:</span>
+                <span class="detail-value">${listing.totalArea ? listing.totalArea.toLocaleString() + ' sqm' : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Usable Area:</span>
+                <span class="detail-value">${listing.usableArea ? listing.usableArea.toLocaleString() + ' sqm' : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Zoning:</span>
+                <span class="detail-value">${listing.zoning ? listing.zoning.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Lease Type:</span>
+                <span class="detail-value">${listing.leaseType ? listing.leaseType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Lease Duration:</span>
+                <span class="detail-value">${listing.leaseDuration ? listing.leaseDuration + ' years' : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Renewal Option:</span>
+                <span class="detail-value">${listing.renewalOption ? listing.renewalOption.charAt(0).toUpperCase() + listing.renewalOption.slice(1) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Payment Terms:</span>
+                <span class="detail-value">${listing.paymentTerms ? listing.paymentTerms.charAt(0).toUpperCase() + listing.paymentTerms.slice(1) : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Security Bond:</span>
+                <span class="detail-value">${listing.securityBond ? '₱' + listing.securityBond.toLocaleString() : 'N/A'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Advance Payment:</span>
+                <span class="detail-value">${listing.advancePayment ? listing.advancePayment + ' month(s)' : 'N/A'}</span>
+            </div>
+        </div>`;
+        
+        // Additional lease details
+        if (listing.accessRoad || listing.frontage || listing.topography) {
+            propertyDetailsHTML += `
+            <div class="details-grid" style="margin-top: 20px;">
+                ${listing.accessRoad ? `
+                <div class="detail-item">
+                    <span class="detail-label">Access Road:</span>
+                    <span class="detail-value">${listing.accessRoad.charAt(0).toUpperCase() + listing.accessRoad.slice(1)}</span>
+                </div>
+                ` : ''}
+                ${listing.frontage ? `
+                <div class="detail-item">
+                    <span class="detail-label">Frontage:</span>
+                    <span class="detail-value">${listing.frontage} meters</span>
+                </div>
+                ` : ''}
+                ${listing.topography ? `
+                <div class="detail-item">
+                    <span class="detail-label">Topography:</span>
+                    <span class="detail-value">${listing.topography.charAt(0).toUpperCase() + listing.topography.slice(1)}</span>
+                </div>
+                ` : ''}
+            </div>`;
+        }
+        
+        // Commission details
+        if (listing.commissionType && listing.commissionValue) {
+            propertyDetailsHTML += `
+            <div class="details-grid" style="margin-top: 20px;">
+                <div class="detail-item">
+                    <span class="detail-label">Broker Commission Type:</span>
+                    <span class="detail-value">${listing.commissionType === 'percentage' ? 'Percentage' : 'Fixed Amount'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Commission Value:</span>
+                    <span class="detail-value">${listing.commissionType === 'percentage' ? listing.commissionValue + '%' : '₱' + listing.commissionValue.toLocaleString()}</span>
+                </div>
+            </div>`;
+        }
+    }
+    
     // Pricing details
     let pricingDetails = "";
     if (listingType === 'rent') {
@@ -2014,6 +2236,18 @@ function displayPropertyDetails(listing, userInfo) {
                 ` : ''}
             </div>
 
+            <!-- Property Details Section -->
+            <div class="property-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Property Details
+                </h3>
+                ${propertyDetailsHTML}
+            </div>
+
+            <!-- Financing Options (for sale properties) -->
+            ${financingOptionsHTML}
+
             <!-- Property Description -->
             <div class="property-section">
                 <h3 class="section-title">
@@ -2040,6 +2274,24 @@ function displayPropertyDetails(listing, userInfo) {
                     </div>
                     `).join('')}
                 </div>
+            </div>
+            ` : ''}
+            
+            <!-- Restrictions & Conditions (for lease properties) -->
+            ${listingType === 'lease' && listing.restrictions ? `
+            <div class="property-section">
+                <h3 class="section-title">
+                    <i class="fas fa-file-contract"></i>
+                    Restrictions & Conditions
+                </h3>
+                <div class="property-description">
+                    ${listing.restrictions}
+                </div>
+                ${listing.maintenance ? `
+                <div style="margin-top: 15px;">
+                    <strong>Maintenance Responsibility:</strong> ${listing.maintenance.charAt(0).toUpperCase() + listing.maintenance.slice(1)}
+                </div>
+                ` : ''}
             </div>
             ` : ''}
         </div>
@@ -2414,7 +2666,7 @@ async function getUserRole(userId) {
         const userDoc = await getDoc(doc(db, "users", userId));
         if (userDoc.exists()) {
             const userData = userDoc.data();
-            return userData.role || userData.userType || 'buyer'; // Default to 'buyer'
+            return userData.role || userData.userType || 'user';
         } else {
             // Check brokers collection
             const brokerDoc = await getDoc(doc(db, "brokers", userId));
@@ -2426,43 +2678,35 @@ async function getUserRole(userId) {
     } catch (error) {
         console.error("Error getting user role:", error);
     }
-    return 'buyer'; // Default role is now 'buyer'
+    return 'user'; // Default role
 }
 
 // --- INITIALIZATION ---
 
 // Check authentication and load property details
 onAuthStateChanged(auth, async (user) => {
-    let userRole = 'buyer'; // Default role for non-logged in users
-    
-    if (user) {
-        // User is logged in, get their role
-        try {
-            userRole = await getUserRole(user.uid);
-            console.log(`👤 User role detected: ${userRole}`);
-        } catch (error) {
-            console.error("Error getting user role:", error);
-            userRole = 'buyer'; // Fallback to buyer
-        }
-        
-        // Load appropriate sidebar
-        await window.loadSidebarBasedOnRole(userRole);
-    } else {
-        // User is not logged in - show public view
-        console.log("👤 User not logged in, showing public view");
-        userRole = 'public';
-        
-        // Load public sidebar or no sidebar
-        await loadPublicSidebar();
+    if (!user) {
+        window.location.href = "login.html";
+        return;
     }
     
-    currentUserRole = userRole;
-    
-    // Update back button based on role
-    window.updateBackButton(currentUserRole);
-    
-    // Load property details
-    await loadPropertyDetails();
+    try {
+        // Get user role
+        currentUserRole = await getUserRole(user.uid);
+        console.log(`👤 User role detected: ${currentUserRole}`);
+        
+        // Load appropriate sidebar
+        await window.loadSidebarBasedOnRole(currentUserRole);
+        
+        // Update back button based on role
+        window.updateBackButton(currentUserRole);
+        
+        // Load property details
+        await loadPropertyDetails();
+    } catch (error) {
+        console.error("Error in initialization:", error);
+        displayError("Failed to load property details. Please refresh the page.");
+    }
 });
 
 // Export for global use if needed

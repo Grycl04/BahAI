@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Agents - BahAI Real Estate</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #0b2e52;
@@ -349,6 +350,16 @@
             background: var(--primary-dark);
         }
 
+        .action-btn.danger {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .action-btn.danger:hover {
+            background: #b91c1c;
+        }
+
         .loading {
             text-align: center;
             padding: 60px 20px;
@@ -435,6 +446,90 @@
             cursor: not-allowed;
         }
 
+        /* Confirmation Modal */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+        .confirmation-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .confirmation-header i {
+            font-size: 48px;
+            color: var(--danger);
+            margin-bottom: 15px;
+        }
+
+        .confirmation-header h3 {
+            font-size: 24px;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .confirmation-header p {
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .confirmation-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .confirmation-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: inherit;
+            font-size: 15px;
+            min-width: 120px;
+        }
+
+        .confirmation-btn.cancel {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--border);
+        }
+
+        .confirmation-btn.cancel:hover {
+            background: var(--border);
+        }
+
+        .confirmation-btn.delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        .confirmation-btn.delete:hover {
+            background: #b91c1c;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .container {
@@ -497,6 +592,19 @@
                 gap: 15px;
                 align-items: flex-start;
             }
+            
+            .confirmation-content {
+                padding: 20px;
+                width: 95%;
+            }
+            
+            .confirmation-actions {
+                flex-direction: column;
+            }
+            
+            .confirmation-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -507,13 +615,28 @@
     <!-- Sidebar Container -->
     <div id="sidebar-container"></div>
 
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <div class="confirmation-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3 id="confirmationTitle">Delete Agent</h3>
+                <p id="confirmationMessage">Are you sure you want to delete this agent? This action cannot be undone.</p>
+            </div>
+            <div class="confirmation-actions">
+                <button class="confirmation-btn cancel" id="cancelDelete">Cancel</button>
+                <button class="confirmation-btn delete" id="confirmDelete">Delete Agent</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="topbar">
             <div class="page-header">
                 <h1>My Agents</h1>
                 <p>Manage your brokerage team members and their performance</p>
             </div>
-            <a href="agent.html" class="add-button">
+            <a href="add_agent.html" class="add-button">
                 <span>👤</span> Add New Agent
             </a>
         </div>
@@ -614,7 +737,7 @@
                 document.getElementById('sidebar-container').innerHTML = html;
                 const links = document.querySelectorAll('.sidebar-link');
                 links.forEach(link => {
-                    if (link.getAttribute('href') === 'list_agent.html' || link.getAttribute('href') === 'agents.html') {
+                    if (link.getAttribute('href') === 'list_agent.html' || link.getAttribute('href') === 'add_agents.html') {
                         link.classList.add('active');
                     }
                 });
@@ -633,7 +756,9 @@
             where, 
             getDocs,
             doc,
-            updateDoc
+            deleteDoc,
+            updateDoc,
+            getDoc
         } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -654,6 +779,27 @@
         let filteredAgents = [];
         let currentPage = 1;
         const itemsPerPage = 10;
+        let agentToDelete = null;
+
+        // Modal functionality
+        const confirmationModal = document.getElementById('confirmationModal');
+        const cancelDeleteBtn = document.getElementById('cancelDelete');
+        const confirmDeleteBtn = document.getElementById('confirmDelete');
+        const confirmationTitle = document.getElementById('confirmationTitle');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+
+        cancelDeleteBtn.addEventListener('click', () => {
+            confirmationModal.style.display = 'none';
+            agentToDelete = null;
+        });
+
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (agentToDelete) {
+                await deleteAgent(agentToDelete);
+                confirmationModal.style.display = 'none';
+                agentToDelete = null;
+            }
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -664,8 +810,88 @@
             }
         });
 
+        // 🔥 **CRITICAL FIX: Enhanced duplicate detection**
+        async function findAndMergeDuplicates() {
+            try {
+                console.log("🔄 Searching for duplicate agents...");
+                
+                // Get all agents with this brokerId
+                const agentsQuery = query(
+                    collection(db, "agents"),
+                    where("brokerId", "==", currentUser.uid)
+                );
+                
+                const agentsSnapshot = await getDocs(agentsQuery);
+                const agentsByEmail = new Map();
+                const duplicateIds = [];
+                
+                // Group agents by email (or other unique identifier)
+                agentsSnapshot.forEach((docSnap) => {
+                    const agentData = docSnap.data();
+                    const agentId = docSnap.id;
+                    
+                    if (agentData.email) {
+                        const emailKey = agentData.email.toLowerCase().trim();
+                        
+                        if (agentsByEmail.has(emailKey)) {
+                            // Found duplicate!
+                            const existingAgent = agentsByEmail.get(emailKey);
+                            duplicateIds.push({
+                                duplicateId: agentId,
+                                originalId: existingAgent.id,
+                                email: emailKey,
+                                duplicateData: agentData,
+                                originalData: existingAgent.data
+                            });
+                        } else {
+                            agentsByEmail.set(emailKey, {
+                                id: agentId,
+                                data: agentData
+                            });
+                        }
+                    }
+                });
+                
+                // Merge duplicates
+                for (const duplicate of duplicateIds) {
+                    console.log(`🔄 Merging duplicate agent: ${duplicate.email}`);
+                    
+                    // Merge data from duplicate into original
+                    const mergedData = {
+                        ...duplicate.originalData,
+                        ...duplicate.duplicateData, // Duplicate data overwrites original
+                        // Preserve the original created date
+                        createdAt: duplicate.originalData.createdAt || duplicate.duplicateData.createdAt,
+                        // Update merged timestamp
+                        mergedAt: new Date().toISOString(),
+                        mergedFrom: duplicate.duplicateId
+                    };
+                    
+                    // Update the original document
+                    await updateDoc(doc(db, "agents", duplicate.originalId), mergedData);
+                    
+                    // Delete the duplicate document
+                    await deleteDoc(doc(db, "agents", duplicate.duplicateId));
+                    
+                    console.log(`✅ Merged ${duplicate.duplicateId} into ${duplicate.originalId}`);
+                }
+                
+                if (duplicateIds.length > 0) {
+                    console.log(`✅ Merged ${duplicateIds.length} duplicate agents`);
+                } else {
+                    console.log("✅ No duplicates found");
+                }
+                
+            } catch (error) {
+                console.error("Error finding duplicates:", error);
+            }
+        }
+
         async function loadAgents() {
             try {
+                // 🔥 **FIRST: Find and merge duplicates**
+                await findAndMergeDuplicates();
+                
                 const loadingEl = document.getElementById('loading');
                 loadingEl.style.display = 'block';
                 document.getElementById('tableContent').style.display = 'none';
@@ -680,15 +906,72 @@
                 const querySnapshot = await getDocs(agentsQuery);
                 allAgents = [];
                 
+                // 🔥 **ENHANCED: Track unique identifiers to prevent duplicates**
+                const seenIds = new Set();
+                const seenEmails = new Set();
+                
                 querySnapshot.forEach((docSnap) => {
                     const agentData = docSnap.data();
+                    const agentId = docSnap.id;
+                    
+                    // Skip if we've already seen this document ID
+                    if (seenIds.has(agentId)) {
+                        console.log(`⚠️ Skipping duplicate document ID: ${agentId}`);
+                        return;
+                    }
+                    seenIds.add(agentId);
+                    
+                    // Skip if we've already seen this email
+                    const agentEmail = agentData.email?.toLowerCase().trim();
+                    if (agentEmail && seenEmails.has(agentEmail)) {
+                        console.log(`⚠️ Skipping duplicate email: ${agentEmail} (ID: ${agentId})`);
+                        return;
+                    }
+                    if (agentEmail) {
+                        seenEmails.add(agentEmail);
+                    }
+                    
+                    // Standardize data
+                    const fullName = agentData.fullName || `${agentData.firstName || ''} ${agentData.lastName || ''}`.trim() || 'Agent';
+                    const firstName = agentData.firstName || fullName.split(' ')[0] || 'Agent';
+                    const lastName = agentData.lastName || fullName.split(' ').slice(1).join(' ') || '';
+                    
                     allAgents.push({
-                        id: docSnap.id,
+                        id: agentId,
                         ...agentData,
-                        // Create searchable text
-                        searchText: `${agentData.firstName || ''} ${agentData.lastName || ''} ${agentData.email || ''} ${agentData.phone || ''} ${agentData.title || ''}`.toLowerCase()
+                        fullName: fullName,
+                        firstName: firstName,
+                        lastName: lastName,
+                        // Create comprehensive searchable text
+                        searchText: `
+                            ${fullName} 
+                            ${firstName} 
+                            ${lastName} 
+                            ${agentData.email || ''} 
+                            ${agentData.phone || ''} 
+                            ${agentData.title || ''}
+                            ${agentData.location || ''}
+                            ${Array.isArray(agentData.propertyTypes) ? agentData.propertyTypes.join(' ') : ''}
+                            ${Array.isArray(agentData.agentSkills) ? agentData.agentSkills.join(' ') : ''}
+                        `.toLowerCase().replace(/\s+/g, ' ').trim()
                     });
                 });
+                
+                // 🔥 **VERIFICATION: Check for any remaining duplicates**
+                const uniqueAgents = [];
+                const uniqueCheck = new Set();
+                
+                allAgents.forEach(agent => {
+                    const uniqueKey = `${agent.email || agent.id}`.toLowerCase();
+                    if (!uniqueCheck.has(uniqueKey)) {
+                        uniqueCheck.add(uniqueKey);
+                        uniqueAgents.push(agent);
+                    } else {
+                        console.log(`❌ Found duplicate in final check: ${agent.email || agent.id}`);
+                    }
+                });
+                
+                allAgents = uniqueAgents;
                 
                 // Sort agents: active first, then pending, then by date
                 allAgents.sort((a, b) => {
@@ -696,12 +979,14 @@
                     if (a.status !== 'active' && b.status === 'active') return 1;
                     if (a.status === 'pending' && b.status === 'inactive') return -1;
                     if (a.status === 'inactive' && b.status === 'pending') return 1;
-                    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                    return new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0);
                 });
                 
                 filteredAgents = [...allAgents];
                 updateStats();
                 applySearch();
+                
+                console.log(`✅ Loaded ${allAgents.length} unique agents`);
                 
             } catch (error) {
                 console.error("Error loading agents:", error);
@@ -753,10 +1038,11 @@
                 const row = document.createElement('tr');
                 
                 // Get initials for avatar
-                const initials = `${agent.firstName?.[0] || ''}${agent.lastName?.[0] || ''}`.toUpperCase() || 'AA';
+                const displayName = agent.fullName || 'Agent';
+                const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'AA';
                 
                 // Format date
-                const joinedDate = agent.profileCompletedAt || agent.createdAt;
+                const joinedDate = agent.profileCompletedAt || agent.createdAt || agent.updatedAt;
                 const formattedDate = joinedDate ? new Date(joinedDate).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
@@ -777,13 +1063,17 @@
                 
                 // Experience display
                 let experienceText = 'Not specified';
-                if (agent.experience === '0-2') experienceText = '0-2 years (Beginner)';
-                else if (agent.experience === '3-5') experienceText = '3-5 years (Intermediate)';
-                else if (agent.experience === '6-10') experienceText = '6-10 years (Experienced)';
-                else if (agent.experience === '10+') experienceText = '10+ years (Expert)';
+                const yearsExp = agent.yearsExperience || agent.experienceYears;
+                if (yearsExp !== undefined) {
+                    if (yearsExp === 0) experienceText = '0 years (Beginner)';
+                    else if (yearsExp <= 2) experienceText = `${yearsExp} years (Beginner)`;
+                    else if (yearsExp <= 5) experienceText = `${yearsExp} years (Intermediate)`;
+                    else if (yearsExp <= 10) experienceText = `${yearsExp} years (Experienced)`;
+                    else experienceText = `${yearsExp}+ years (Expert)`;
+                }
                 
                 // Specializations
-                const specialties = agent.specialties || [];
+                const specialties = agent.specialties || agent.propertyTypes || agent.agentSkills || [];
                 const specialtiesText = specialties.length > 0 
                     ? specialties.slice(0, 2).join(', ') + (specialties.length > 2 ? '...' : '')
                     : 'None';
@@ -793,8 +1083,9 @@
                         <div class="agent-cell">
                             <div class="agent-avatar">${initials}</div>
                             <div class="agent-info">
-                                <div class="agent-name">${agent.firstName || ''} ${agent.lastName || ''}</div>
+                                <div class="agent-name">${displayName}</div>
                                 <div class="agent-title">${agent.title || 'Real Estate Agent'}</div>
+                                ${agent.email ? `<div style="font-size: 12px; color: var(--text-light); margin-top: 2px;">${agent.email}</div>` : ''}
                             </div>
                         </div>
                     </td>
@@ -818,6 +1109,9 @@
                                     <span>👁️</span> View
                                 </button>`
                             }
+                            <button class="action-btn danger" onclick="showDeleteConfirmation('${agent.id}', '${displayName}', '${agent.email || ''}')">
+                                <span>🗑️</span> Delete
+                            </button>
                         </div>
                     </td>
                 `;
@@ -936,7 +1230,6 @@
                         lastInvitationSent: new Date().toISOString()
                     });
                     
-                    // You could also trigger an email here
                     alert(`✅ Invitation resent to ${agentEmail}`);
                     
                     // Refresh the list
@@ -952,6 +1245,81 @@
         window.viewAgent = function(agentId) {
             window.location.href = `agent_details.html?id=${agentId}`;
         };
+
+        window.showDeleteConfirmation = function(agentId, agentName, agentEmail) {
+            agentToDelete = agentId;
+            confirmationTitle.textContent = `Delete ${agentName}`;
+            confirmationMessage.innerHTML = `
+                Are you sure you want to delete <strong>${agentName}</strong> (${agentEmail})?<br><br>
+                This action will:
+                <ul style="text-align: left; margin: 10px 0 10px 20px; color: var(--danger);">
+                    <li>Permanently delete the agent account</li>
+                    <li>Remove all agent data from the database</li>
+                    <li>Cannot be undone</li>
+                </ul>
+                Type <strong>DELETE</strong> to confirm:
+                <input type="text" id="deleteConfirmationInput" placeholder="Type DELETE here" style="width: 100%; padding: 10px; margin: 10px 0; border: 2px solid var(--border); border-radius: 8px; font-family: inherit;">
+            `;
+            confirmationModal.style.display = 'flex';
+            
+            // Focus on the input field
+            setTimeout(() => {
+                const input = document.getElementById('deleteConfirmationInput');
+                if (input) {
+                    input.focus();
+                    // Enable/disable delete button based on input
+                    input.addEventListener('input', function() {
+                        confirmDeleteBtn.disabled = this.value !== 'DELETE';
+                    });
+                }
+            }, 100);
+        };
+
+        async function deleteAgent(agentId) {
+            try {
+                // Get agent data first
+                const agent = allAgents.find(a => a.id === agentId);
+                if (!agent) {
+                    alert('Agent not found');
+                    return;
+                }
+
+                // Show loading
+                confirmDeleteBtn.innerHTML = '<span>⏳</span> Deleting...';
+                confirmDeleteBtn.disabled = true;
+
+                // Delete from agents collection
+                await deleteDoc(doc(db, "agents", agentId));
+                console.log(`✅ Deleted agent ${agentId} from agents collection`);
+                
+                // Also delete from users collection if exists
+                try {
+                    await deleteDoc(doc(db, "users", agentId));
+                    console.log(`✅ Also deleted from users collection`);
+                } catch (error) {
+                    // It's okay if it doesn't exist in users
+                }
+
+                // Remove from local arrays
+                allAgents = allAgents.filter(a => a.id !== agentId);
+                filteredAgents = filteredAgents.filter(a => a.id !== agentId);
+
+                // Update UI
+                updateStats();
+                renderAgents();
+
+                // Show success message
+                alert(`✅ Agent ${agent.fullName || agent.firstName || ''} has been permanently deleted.`);
+
+            } catch (error) {
+                console.error("Error deleting agent:", error);
+                alert(`❌ Error deleting agent: ${error.message}`);
+            } finally {
+                // Reset delete button
+                confirmDeleteBtn.innerHTML = 'Delete Agent';
+                confirmDeleteBtn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>

@@ -264,6 +264,11 @@
       color: #065f46;
     }
 
+    .status-available {
+      background: #10b981;
+      color: white;
+    }
+
     .status-pending {
       background: #fef3c7;
       color: #92400e;
@@ -335,415 +340,6 @@
       transform: translateY(-1px);
     }
 
-    /* Enhanced Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-      backdrop-filter: blur(5px);
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 20px;
-      width: 95%;
-      max-width: 1200px;
-      max-height: 95vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .modal-header {
-      padding: 30px 40px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);
-    }
-
-    .modal-title-section {
-      flex: 1;
-    }
-
-    .modal-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-
-    .modal-subtitle {
-      font-size: 16px;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .modal-price {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--primary);
-      text-align: right;
-      margin-bottom: 8px;
-    }
-
-    .modal-status {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .close-modal {
-      background: none;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      color: var(--text-light);
-      padding: 5px;
-      transition: all 0.3s ease;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
-
-    .close-modal:hover {
-      color: var(--text-dark);
-      background: var(--bg-light);
-    }
-
-    .modal-body {
-      padding: 0;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Enhanced Gallery */
-    .listing-gallery {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 15px;
-      padding: 30px 40px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .main-image {
-      border-radius: 16px;
-      overflow: hidden;
-      background: var(--bg-light);
-      position: relative;
-    }
-
-    .main-image img {
-      width: 100%;
-      height: 400px;
-      object-fit: cover;
-      display: block;
-    }
-
-    .thumbnails {
-      display: grid;
-      grid-template-rows: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-    .thumbnail {
-      border-radius: 12px;
-      overflow: hidden;
-      cursor: pointer;
-      background: var(--bg-light);
-      transition: all 0.3s ease;
-      border: 2px solid transparent;
-    }
-
-    .thumbnail:hover {
-      transform: scale(1.05);
-      border-color: var(--primary);
-    }
-
-    .thumbnail.active {
-      border-color: var(--primary);
-    }
-
-    .thumbnail img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* Enhanced Details Layout */
-    .details-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      padding: 30px 40px;
-    }
-
-    .detail-section {
-      margin-bottom: 30px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--border);
-    }
-
-    .section-header h3 {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-dark);
-    }
-
-    .section-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      color: white;
-    }
-
-    .details-grid {
-      display: grid;
-      gap: 16px;
-    }
-
-    .detail-card {
-      background: var(--bg-light);
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      transition: all 0.3s ease;
-    }
-
-    .detail-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-
-    .detail-label {
-      color: var(--text-light);
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    .detail-value {
-      color: var(--text-dark);
-      font-weight: 600;
-      text-align: right;
-    }
-
-    .highlight-value {
-      color: var(--primary);
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    /* Amenities Styles */
-    .amenities-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-top: 15px;
-    }
-
-    .amenity-item {
-      background: white;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s ease;
-    }
-
-    .amenity-item:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-      border-color: var(--primary);
-    }
-
-    .amenity-icon {
-      width: 24px;
-      height: 24px;
-      background: var(--primary-light);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: white;
-    }
-
-    /* Description Styles */
-    .description-content {
-      background: var(--bg-light);
-      padding: 25px;
-      border-radius: 12px;
-      line-height: 1.7;
-      color: var(--text-dark);
-      border: 1px solid var(--border);
-    }
-
-    /* Modal Actions */
-    .modal-actions {
-      display: flex;
-      gap: 15px;
-      padding: 25px 40px;
-      border-top: 1px solid var(--border);
-      background: var(--bg-light);
-    }
-
-    .modal-btn {
-      flex: 1;
-      padding: 16px 24px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .modal-edit-btn {
-      background: linear-gradient(135deg, var(--secondary), #1565c0);
-      color: white;
-      box-shadow: var(--shadow);
-    }
-
-    .modal-edit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .modal-view-btn {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      color: white;
-      box-shadow: var(--shadow);
-    }
-
-    .modal-view-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .modal-close-btn {
-      background: white;
-      color: var(--text-dark);
-      border: 2px solid var(--border);
-    }
-
-    .modal-close-btn:hover {
-      background: var(--bg-light);
-      border-color: var(--text-light);
-    }
-
-    /* Photo Counter */
-    .photo-counter {
-      position: absolute;
-      bottom: 15px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      backdrop-filter: blur(10px);
-    }
-
-    /* Agent Info Badge */
-    .agent-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      background: var(--bg-light);
-      border-radius: 10px;
-      margin-bottom: 15px;
-      border: 1px solid var(--border);
-    }
-
-    .agent-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    .agent-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .agent-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-dark);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .agent-contact {
-      font-size: 12px;
-      color: var(--text-light);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     /* Empty State */
     .empty-state {
       text-align: center;
@@ -798,21 +394,6 @@
         justify-content: center;
       }
       
-      .details-container {
-        grid-template-columns: 1fr;
-        gap: 30px;
-      }
-      
-      .listing-gallery {
-        grid-template-columns: 1fr;
-        height: auto;
-      }
-      
-      .thumbnails {
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: auto;
-      }
-      
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -837,29 +418,6 @@
         grid-template-columns: repeat(2, 1fr);
       }
       
-      .modal-header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-      }
-      
-      .modal-price {
-        text-align: center;
-      }
-      
-      .modal-actions {
-        flex-direction: column;
-      }
-      
-      .listing-gallery,
-      .details-container {
-        padding: 20px;
-      }
-      
-      .main-image img {
-        height: 300px;
-      }
-      
       .listing-actions {
         flex-direction: column;
       }
@@ -873,16 +431,6 @@
       .stats-grid {
         grid-template-columns: 1fr;
       }
-      
-      .modal-content {
-        width: 100%;
-        border-radius: 0;
-        max-height: 100vh;
-      }
-      
-      .modal-overlay {
-        padding: 0;
-      }
     }
 </style>
 </head>
@@ -893,30 +441,6 @@
 
 <!-- Include Agent Sidebar -->
 <div id="sidebar-container"></div>
-
-<!-- Enhanced Listing Detail Modal -->
-<div class="modal-overlay" id="listingModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title-section">
-        <h2 class="modal-title" id="modalTitle">Property Details</h2>
-        <div class="modal-subtitle">
-          <span>📍</span>
-          <span id="modalLocation">Loading location...</span>
-        </div>
-      </div>
-      <div class="modal-price-section">
-        <div class="modal-price" id="modalPrice">₱0</div>
-        <div class="modal-status" id="modalStatus">Active</div>
-      </div>
-      <button class="close-modal" id="closeModal">&times;</button>
-    </div>
-   
-    <div class="modal-body" id="modalBody">
-      <!-- Content will be loaded dynamically -->
-    </div>
-  </div>
-</div>
 
 <!-- Main -->
 <div class="container">
@@ -939,7 +463,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-value" id="activeListings">0</div>
-      <div class="stat-label">Active Listings</div>
+      <div class="stat-label">Available Listings</div>
       <div class="stat-trend trend-up">↑ Showing to clients</div>
     </div>
     <div class="stat-card">
@@ -1066,8 +590,6 @@ const auth = getAuth(app);
 let currentListings = [];
 let currentAgent = null;
 
-// Update the loadAgentData function to handle the case where agent document doesn't exist:
-
 async function loadAgentData(user) {
   try {
     console.log('👤 Loading agent data for UID:', user.uid);
@@ -1082,7 +604,7 @@ async function loadAgentData(user) {
       if (userData.userType === 'agent' || userData.role === 'agent') {
         currentAgent = {
           id: user.uid,
-          authUid: user.uid,  // Make sure authUid is set
+          authUid: user.uid,
           firstName: userData.firstName || userData.name?.split(' ')[0] || 'Agent',
           lastName: userData.lastName || userData.name?.split(' ')[1] || '',
           email: userData.email || user.email,
@@ -1106,7 +628,7 @@ async function loadAgentData(user) {
       const agentDoc = agentSnapshot.docs[0];
       currentAgent = {
         id: agentDoc.id,
-        authUid: user.uid,  // Make sure authUid is set
+        authUid: user.uid,
         ...agentDoc.data()
       };
       console.log('✅ Agent data loaded from agents collection');
@@ -1137,7 +659,6 @@ async function loadListings(agent) {
   try {
     console.log('🔍 Loading listings for agent:', agent);
     
-    // Get current user from auth (agent should have authUid)
     const currentUser = auth.currentUser;
     if (!currentUser) {
       console.error('No authenticated user found');
@@ -1149,49 +670,37 @@ async function loadListings(agent) {
     console.log('Agent ID:', agent.id);
     console.log('Agent authUid:', agent.authUid);
     
-    // Clear current listings
     currentListings = [];
     
-    // Get the user ID to query with (prefer agent.authUid if available)
     const queryUid = agent.authUid || agent.id || currentUser.uid;
     console.log('Querying with UID:', queryUid);
     
-    // Try multiple query strategies
     const queries = [
-      // Primary query: properties where agentId matches
       query(collection(db, "properties"), where("agentId", "==", queryUid)),
-      
-      // Secondary query: properties where userId matches
       query(collection(db, "properties"), where("userId", "==", queryUid)),
-      
-      // Tertiary query: properties with userType = 'agent'
       query(collection(db, "properties"), 
         where("userType", "==", "agent"), 
         where("userId", "==", queryUid)
       )
     ];
     
-    // Execute queries in sequence
     for (let i = 0; i < queries.length; i++) {
       try {
         const querySnapshot = await getDocs(queries[i]);
-        console.log(`Query ${i} (${getQueryDescription(i, queryUid)}) returned ${querySnapshot.size} results`);
+        console.log(`Query ${i} returned ${querySnapshot.size} results`);
         
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           
-          // Avoid duplicates
           if (!currentListings.find(l => l.id === doc.id)) {
             currentListings.push({ 
               id: doc.id, 
               ...data,
-              // Ensure type is set correctly
               type: data.type || data.listingType || 'sale'
             });
           }
         });
         
-        // If we found listings, we can stop
         if (currentListings.length > 0 && i > 0) {
           console.log(`Found listings with query ${i}, stopping further queries`);
           break;
@@ -1202,14 +711,12 @@ async function loadListings(agent) {
       }
     }
     
-    // If still no results, try a broader query
     if (currentListings.length === 0) {
       console.log('No results from structured queries, trying collection scan...');
       try {
         const allProperties = await getDocs(collection(db, "properties"));
         allProperties.forEach((doc) => {
           const data = doc.data();
-          // Manual filter for agent properties
           if (data.userId === queryUid || 
               data.agentId === queryUid ||
               (data.userType === 'agent' && data.userId === queryUid)) {
@@ -1227,7 +734,6 @@ async function loadListings(agent) {
     
     console.log(`✅ Final loaded ${currentListings.length} listings for agent`);
     
-    // Debug: log all found listings
     if (currentListings.length > 0) {
       console.log('Found listings:', currentListings.map(l => ({
         id: l.id,
@@ -1248,16 +754,6 @@ async function loadListings(agent) {
     console.error("❌ Error loading listings:", error);
     displayErrorState("Failed to load your properties. Please try again.");
   }
-}
-
-// Helper function to describe queries
-function getQueryDescription(index, uid) {
-  const descriptions = [
-    `where agentId == "${uid}"`,
-    `where userId == "${uid}"`,
-    `where userType == "agent" AND userId == "${uid}"`
-  ];
-  return descriptions[index] || `Query ${index}`;
 }
 
 function displayListings(listings) {
@@ -1292,34 +788,29 @@ function displayListings(listings) {
       price = listing.monthlyRent || 0;
       priceLabel = '₱' + price.toLocaleString() + '/month';
     } else {
-      // Fallback for old listings
       price = listing.price || listing.pricing || 0;
       priceLabel = '₱' + price.toLocaleString();
     }
     
-    // Get location
     const location = listing.address || listing.location || 'Location not specified';
-    
-    // Get area
     const area = listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A';
     
-    // Get status display
+    // Get status display - "Active" shows as "Available" with green background
     const status = listing.status || 'draft';
-    const statusClass = `status-${status}`;
-    const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+    const statusClass = status === 'active' ? 'status-available' : `status-${status}`;
+    const statusText = status === 'active' ? 'Available' : 
+                      status.charAt(0).toUpperCase() + status.slice(1);
     
-    // Get listing type display
     const listingType = listing.type === 'sale' ? 'For Sale' : 
                        listing.type === 'rent' ? 'For Rent' : 
                        listing.type === 'lease' ? 'For Lease' : 'Property';
     
-    // Get first image
     const firstImage = listing.photos && listing.photos.length > 0 ? 
                        listing.photos[0] : 
                        'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
 
     return `
-    <div class="listing-card" data-listing-id="${listing.id}" onclick="showListingDetails('${listing.id}')">
+    <div class="listing-card" data-listing-id="${listing.id}" onclick="viewPropertyDetails('${listing.id}')">
       <img src="${firstImage}" alt="${listing.title}" class="listing-image">
       <div class="listing-content">
         <div class="listing-header">
@@ -1351,12 +842,10 @@ function displayListings(listings) {
           ${statusText}
         </div>
        
+        <!-- Only Edit and Delete buttons -->
         <div class="listing-actions">
           <button class="action-btn edit-btn" onclick="event.stopPropagation(); editListing('${listing.id}')">
             ✏️ Edit
-          </button>
-          <button class="action-btn view-btn" onclick="event.stopPropagation(); showListingDetails('${listing.id}')">
-            👀 View
           </button>
           <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteListing('${listing.id}', event)">
             🗑️ Delete
@@ -1383,6 +872,10 @@ function updateStats(listings) {
 // Global functions for buttons
 window.editListing = function(id) {
   window.location.href = `edit_property.html?id=${id}`;
+};
+
+window.viewPropertyDetails = function(id) {
+  window.location.href = `property_details.html?id=${id}`;
 };
 
 window.deleteListing = async function(id, event) {
@@ -1422,225 +915,6 @@ window.deleteListing = async function(id, event) {
   }
 };
 
-window.showListingDetails = async function(id) {
-  const listing = currentListings.find(l => l.id === id);
-  if (!listing) return;
-
-  const modal = document.getElementById('listingModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalLocation = document.getElementById('modalLocation');
-  const modalPrice = document.getElementById('modalPrice');
-  const modalStatus = document.getElementById('modalStatus');
-  const modalBody = document.getElementById('modalBody');
-
-  // Update header info
-  modalTitle.textContent = listing.title || 'Untitled Property';
-  modalLocation.textContent = listing.address || listing.location || 'Location not specified';
-  
-  // Determine price display
-  let priceDisplay = '₱0';
-  if (listing.type === 'sale') {
-    priceDisplay = `₱${(listing.salePrice || 0).toLocaleString()}`;
-  } else if (listing.type === 'lease') {
-    priceDisplay = `₱${(listing.annualRent || 0).toLocaleString()}/year`;
-  } else if (listing.type === 'rent') {
-    priceDisplay = `₱${(listing.monthlyRent || 0).toLocaleString()}/month`;
-  } else {
-    priceDisplay = `₱${(listing.price || listing.pricing || 0).toLocaleString()}`;
-  }
-  
-  modalPrice.textContent = priceDisplay;
-  modalStatus.textContent = listing.status || 'active';
-  modalStatus.className = `modal-status status-${listing.status || 'active'}`;
-
-  // Create enhanced modal content
-  const photos = listing.photos || [];
-  const mainPhoto = photos.length > 0 ? photos[0] : 'https://via.placeholder.com/800x600/0b2e52/white?text=No+Image+Available';
-  const thumbnailPhotos = photos.slice(1, 5);
-
-  // Get agent info
-  let agentInfo = '';
-  if (currentAgent) {
-    const initials = currentAgent.firstName ? 
-      (currentAgent.firstName[0] + (currentAgent.lastName ? currentAgent.lastName[0] : '')).toUpperCase() : 'AG';
-    
-    agentInfo = `
-      <div class="detail-section">
-        <div class="section-header">
-          <div class="section-icon">👤</div>
-          <h3>Agent Information</h3>
-        </div>
-        <div class="agent-badge">
-          <div class="agent-avatar">${initials}</div>
-          <div class="agent-info">
-            <div class="agent-name">${currentAgent.firstName || ''} ${currentAgent.lastName || ''}</div>
-            <div class="agent-contact">${currentAgent.email || ''} • ${currentAgent.phone || 'Phone not available'}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  modalBody.innerHTML = `
-    <!-- Photo Gallery -->
-    <div class="listing-gallery">
-      <div class="main-image">
-        <img src="${mainPhoto}" alt="${listing.title}" id="mainImage">
-        ${photos.length > 0 ? `<div class="photo-counter">${photos.length} photo${photos.length > 1 ? 's' : ''}</div>` : ''}
-      </div>
-      <div class="thumbnails">
-        ${thumbnailPhotos.map((photo, index) => `
-          <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeMainImage('${photo}', this)">
-            <img src="${photo}" alt="Thumbnail ${index + 2}">
-          </div>
-        `).join('')}
-        ${Array.from({length: 4 - thumbnailPhotos.length}).map(() => `
-          <div class="thumbnail" style="background: var(--bg-light); display: flex; align-items: center; justify-content: center; color: var(--text-light);">
-            No Image
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <!-- Details Sections -->
-    <div class="details-container">
-      <!-- Left Column -->
-      <div class="left-column">
-        ${agentInfo}
-        
-        <!-- Basic Information -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">📋</div>
-            <h3>Basic Information</h3>
-          </div>
-          <div class="detail-card">
-            <div class="detail-row">
-              <span class="detail-label">Property Type</span>
-              <span class="detail-value">${listing.propertyType || 'Not specified'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Listing Type</span>
-              <span class="detail-value">${listing.type === 'sale' ? 'For Sale' : listing.type === 'rent' ? 'For Rent' : listing.type === 'lease' ? 'For Lease' : 'Property'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Location</span>
-              <span class="detail-value">${listing.address || listing.location || 'Not specified'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Square Footage</span>
-              <span class="detail-value">${listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A'} sqm</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Listed On</span>
-              <span class="detail-value">${listing.createdAt ? new Date(listing.createdAt.seconds * 1000).toLocaleDateString() : 'Not specified'}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Property Features -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">🏠</div>
-            <h3>Property Features</h3>
-          </div>
-          <div class="detail-card">
-            <div class="detail-row">
-              <span class="detail-label">Bedrooms</span>
-              <span class="detail-value highlight-value">${listing.bedrooms || 0}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Bathrooms</span>
-              <span class="detail-value highlight-value">${listing.bathrooms || 0}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Parking Spaces</span>
-              <span class="detail-value highlight-value">${listing.parkingSpaces || 0}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Year Built</span>
-              <span class="detail-value">${listing.yearBuilt || 'N/A'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="right-column">
-        <!-- Amenities -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">⭐</div>
-            <h3>Amenities & Features</h3>
-          </div>
-          <div class="amenities-grid">
-            ${listing.amenities && listing.amenities.length > 0
-              ? listing.amenities.map(amenity => `
-                <div class="amenity-item">
-                  <div class="amenity-icon">✓</div>
-                  <span>${amenity}</span>
-                </div>
-              `).join('')
-              : `
-                <div class="amenity-item">
-                  <div class="amenity-icon">ℹ️</div>
-                  <span>No amenities listed</span>
-                </div>
-              `
-            }
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="detail-section">
-          <div class="section-header">
-            <div class="section-icon">📝</div>
-            <h3>Description</h3>
-          </div>
-          <div class="description-content">
-            ${listing.description || 'No description provided for this property.'}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="modal-actions">
-      <button class="modal-btn modal-edit-btn" onclick="editListing('${listing.id}')">
-        ✏️ Edit Listing
-      </button>
-      <a href="property_detail.html?id=${listing.id}" target="_blank" class="modal-btn modal-view-btn">
-        👀 View Public Page
-      </a>
-      <button class="modal-btn modal-close-btn" onclick="closeModal()">
-        Close Details
-      </button>
-    </div>
-  `;
-
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-};
-
-window.changeMainImage = function(imageUrl, element) {
-  const mainImage = document.getElementById('mainImage');
-  if (mainImage) {
-    mainImage.src = imageUrl;
-  }
- 
-  const thumbnails = document.querySelectorAll('.thumbnail');
-  thumbnails.forEach(thumb => thumb.classList.remove('active'));
-  if (element) {
-    element.classList.add('active');
-  }
-};
-
-window.closeModal = function() {
-  const modal = document.getElementById('listingModal');
-  modal.style.display = 'none';
-  document.body.style.overflow = 'auto';
-};
-
 // Helper functions
 function displayErrorState(message) {
   const container = document.getElementById('listingsContainer');
@@ -1669,21 +943,6 @@ function showNoAgentError() {
     </div>
   `;
 }
-
-// Modal event listeners
-document.getElementById('closeModal').addEventListener('click', closeModal);
-document.getElementById('listingModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeModal();
-  }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    closeModal();
-  }
-});
 
 // Require login and load data
 onAuthStateChanged(auth, async (user) => {

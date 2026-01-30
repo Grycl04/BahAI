@@ -637,24 +637,29 @@
                 await updatePassword(currentUser, newPassword);
                 console.log('✅ Password updated');
 
-                // Update Firestore with complete profile data
+                // Update the Firestore update in the profile setup form submission:
                 await updateDoc(doc(db, "agents", agentId), {
-                    phone: phone,
-                    licenseNumber: licenseNumber || null,
-                    bio: bio || '',
-                    specialties: specializations,
-                    profileCompleted: true,
-                    status: 'active',
-                    lastProfileUpdate: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                phone: phone,
+                licenseNumber: licenseNumber || null,
+                bio: bio || '',
+                specialties: specializations,
+                profileCompleted: true,
+                isProfileComplete: true, // Add this for consistency
+                status: 'active',
+                lastProfileUpdate: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                userType: 'agent' // Add this for consistency
                 });
 
-                // Update user document
+                // Also update the user document
                 await updateDoc(doc(db, "users", currentUser.uid), {
-                    phone: phone,
-                    updatedAt: new Date().toISOString()
+                phone: phone,
+                bio: bio || '',
+                specialties: specializations,
+                isProfileComplete: true,
+                userType: 'agent',
+                updatedAt: new Date().toISOString()
                 });
-
                 console.log('✅ Profile completed');
 
                 // Show success message
