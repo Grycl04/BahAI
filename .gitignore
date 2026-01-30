@@ -85,3 +85,6 @@ pyproject.toml
 poetry.lock
 setup.py
 runtime.txt
+
+.tool-versions
+.mise.toml
