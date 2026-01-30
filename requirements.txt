@@ -5,7 +5,8 @@ firebase-admin==6.6.0
 google-cloud-firestore==2.22.0
 scikit-learn==1.5.0
 numpy==1.26.4
-pandas==1.5.3
+pandas==2.1.4  
 gunicorn==21.2.0
 requests==2.31.0
 python-dateutil==2.8.2
+pytz==2024.1
