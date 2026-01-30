@@ -4,9 +4,8 @@ services:
     runtime: python
     buildCommand: |
       pip install --upgrade pip
-      pip install "numpy<2" "cython<3" 
-      pip install "scikit-learn<1.6"    
+      pip install "numpy<2" "cython<3"
+      pip install "scikit-learn<1.6"
       pip install -r requirements.txt
       python -m spacy download en_core_web_sm
     startCommand: cd backend && gunicorn chatbot_backend:app
-    pythonVersion: "3.12.8"
