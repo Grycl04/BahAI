@@ -296,160 +296,94 @@ async function logChatInteraction(query, response, user) {
     }
 }
 
-// Add demo prompts to chat interface covering all 10 questions
 function addDemoPrompts() {
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    
-    if (!chatInput || !chatMessages) return;
-    
-    // Remove existing demo prompts if any
     const existingPrompts = document.querySelector('.demo-prompts');
-    if (existingPrompts) {
-        existingPrompts.remove();
-    }
+    if (existingPrompts) existingPrompts.remove();
     
-    // Quick prompts covering ALL 10 questions
-    const quickPrompts = [
-        // Question 1 (Member 1) - Basic search
-        {
-            text: "Find apartments in Batangas City",
-            question: 1,
-            member: "member1",
-            emoji: "🏢"
-        },
-        // Question 2 (Member 2) - Detailed criteria
-        {
-            text: "Show me houses under 3M with 3 bedrooms",
-            question: 2,
-            member: "member2",
-            emoji: "🏠"
-        },
-        // Question 3 (Member 3) - Family needs
-        {
-            text: "Find properties for family needs in Lipa City",
-            question: 3,
-            member: "member3",
-            emoji: "👨‍👩‍👧‍👦"
-        },
-        // Question 4 (Member 2) - Near landmarks
-        {
-            text: "Properties near hospitals in Tanauan",
-            question: 4,
-            member: "member2",
-            emoji: "🏥"
-        },
-        // Question 5 (Member 3) - Features with price
-        {
-            text: "Show me apartments with parking at good price",
-            question: 5,
-            member: "member3",
-            emoji: "🚗"
-        },
-        // Question 6 (Member 2) - Ready to move
-        {
-            text: "Find ready to move in properties for students in Batangas City",
-            question: 6,
-            member: "member2",
-            emoji: "🎓"
-        },
-        // Question 7 (Member 1) - Financing
-        {
-            text: "Properties that accept Pag-IBIG financing",
-            question: 7,
-            member: "member1",
-            emoji: "💰"
-        },
-        // Question 8 (Member 3) - Process info
-        {
-            text: "Steps for buying a condo",
-            question: 8,
-            member: "member3",
-            emoji: "📋"
-        },
-        // Question 9 (Member 1) - Location info
-        {
-            text: "Tell me about Nasugbu",
-            question: 9,
-            member: "member1",
-            emoji: "📍"
-        },
-        // Question 10 (Member 3) - Lifestyle match
-        {
-            text: "What properties match my budget as a single professional?",
-            question: 10,
-            member: "member3",
-            emoji: "🎯"
-        }
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+    
+    // All 10 questions with simplified text
+    const allPrompts = [
+        { text: "Apartments in Batangas City", emoji: "🏢", id: "q1" },
+        { text: "Houses under 3M, 3 bedrooms", emoji: "🏠", id: "q2" },
+        { text: "Family properties in Lipa", emoji: "👨‍👩‍👧‍👦", id: "q3" },
+        { text: "Near hospitals in Tanauan", emoji: "🏥", id: "q4" },
+        { text: "Apartments with parking", emoji: "🚗", id: "q5" },
+        { text: "Ready for students Batangas", emoji: "🎓", id: "q6" },
+        { text: "Pag-IBIG financing", emoji: "💰", id: "q7" },
+        { text: "Steps to buy condo", emoji: "📋", id: "q8" },
+        { text: "About Nasugbu", emoji: "📍", id: "q9" },
+        { text: "For single professionals", emoji: "🎯", id: "q10" }
     ];
     
-    // Shuffle the prompts for variety
-    const shuffledPrompts = [...quickPrompts].sort(() => Math.random() - 0.5);
+    // Shuffle and select 4 random prompts
+    const shuffled = [...allPrompts].sort(() => Math.random() - 0.5);
+    const selectedPrompts = shuffled.slice(0, 4);
     
-    // Create demo prompts section
-    const demoSection = document.createElement('div');
-    demoSection.className = 'demo-prompts';
-    demoSection.style.cssText = `
-        margin-top: 15px;
-        padding: 15px;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        border-radius: 12px;
-        border: 1px solid rgba(102, 126, 234, 0.2);
-        animation: fadeIn 0.5s ease;
-    `;
-    
-    let buttonsHTML = '';
-    // Show 6 random prompts from the shuffled list
-    for (let i = 0; i < 6 && i < shuffledPrompts.length; i++) {
-        const prompt = shuffledPrompts[i];
-        buttonsHTML += `
-            <button class="demo-prompt-btn" data-prompt="${prompt.text}">
-                ${prompt.emoji} ${prompt.text}
-            </button>
-        `;
-    }
-    
+ const demoSection = document.createElement('div');
+demoSection.className = 'demo-prompts-container';
 demoSection.innerHTML = `
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600;">
-                <i class="fas fa-bolt"></i> Quick Prompts
-            </div>
-            <div style="font-size: 11px; color: #666; background: rgba(255,255,255,0.7); padding: 2px 8px; border-radius: 10px;">
-                All 10 Questions Covered
-            </div>
-        </div>
+    <div class="demo-prompts-title">
+        <i class="fas fa-bolt"></i> Quick Prompts
+        <span style="font-size: 12px; margin-left: 10px; background: rgba(102, 126, 234, 0.1); 
+            padding: 2px 8px; border-radius: 12px; font-weight: 600; color: var(--primary);">
+            ${selectedPrompts.length}/10 Questions
+        </span>
+    </div>
+    <div class="demo-prompts-buttons">
+        ${selectedPrompts.map(prompt => `
+            <button class="demo-prompt-btn" data-prompt="${prompt.text}" data-id="${prompt.id}">
+                <span class="prompt-icon">${prompt.emoji}</span>
+                <span>${prompt.text}</span>
+            </button>
+        `).join('')}
+    </div>
+    <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
         <div style="font-size: 11px; color: #888;">
-            Click any prompt to try
+            <i class="fas fa-sync-alt fa-xs"></i> Prompts change on refresh
         </div>
-    </div>
-    <div style="display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: thin;">
-        ${buttonsHTML}
-    </div>
-    <div style="margin-top: 8px; font-size: 11px; color: #888; text-align: center;">
-        Prompts change on refresh
+        <button id="refreshPrompts" 
+                style="font-size: 11px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); 
+                       color: var(--primary); cursor: pointer; padding: 4px 10px; border-radius: 12px; font-weight: 500;">
+            <i class="fas fa-redo-alt"></i> New set
+        </button>
     </div>
 `;
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
-    // Add event listeners to demo prompt buttons
+    // Add event listeners to prompt buttons
     setTimeout(() => {
         document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const prompt = this.getAttribute('data-prompt');
-                chatInput.value = prompt;
-                chatInput.focus();
+                document.getElementById('chatInput').value = prompt;
+                document.getElementById('chatInput').focus();
                 
-                // Highlight the button briefly
-                this.style.transform = 'scale(0.95)';
-                this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.3)';
+                // Brief visual feedback
+                this.style.transform = 'scale(0.98)';
+                this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.2)';
                 setTimeout(() => {
                     this.style.transform = '';
                     this.style.boxShadow = '';
-                }, 300);
+                }, 200);
             });
         });
+        
+        // Add refresh button functionality
+        const refreshBtn = document.getElementById('refreshPrompts');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                addDemoPrompts(); // Regenerate with new random prompts
+                
+                // Button feedback
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                setTimeout(() => {
+                    refreshBtn.innerHTML = '<i class="fas fa-redo-alt"></i> New set';
+                }, 500);
+            });
+        }
     }, 100);
 }
 
@@ -621,51 +555,6 @@ chatbotStyles.textContent = `
         background: #f8f9fa;
         border: 2px solid #e9ecef;
         color: #666;
-    }
-    
-    /* Demo prompt buttons */
-    .demo-prompt-btn {
-        padding: 8px 12px;
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        font-size: 13px;
-        color: var(--text-dark);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-        border-left: 3px solid #667eea;
-    }
-    
-    .demo-prompt-btn:hover {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(11, 46, 82, 0.15);
-    }
-    
-    /* Team member color coding for buttons */
-    .demo-prompt-btn[data-prompt*="apartments in Batangas"],
-    .demo-prompt-btn[data-prompt*="financing"],
-    .demo-prompt-btn[data-prompt*="Nasugbu"] {
-        border-left-color: #667eea; /* Member 1 - Blue */
-    }
-    
-    .demo-prompt-btn[data-prompt*="houses under 3M"],
-    .demo-prompt-btn[data-prompt*="hospitals"],
-    .demo-prompt-btn[data-prompt*="ready to move"] {
-        border-left-color: #4CAF50; /* Member 2 - Green */
-    }
-    
-    .demo-prompt-btn[data-prompt*="family needs"],
-    .demo-prompt-btn[data-prompt*="parking at good"],
-    .demo-prompt-btn[data-prompt*="Steps for buying"],
-    .demo-prompt-btn[data-prompt*="match my budget"] {
-        border-left-color: #FF9800; /* Member 3 - Orange */
     }
     
     /* Property cards in chat */

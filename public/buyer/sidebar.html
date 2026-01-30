@@ -628,80 +628,80 @@
 // User info loading and stats
 document.addEventListener('DOMContentLoaded', function() {
   // Load user info
-  function loadUserInfo() {
-    try {
-      // Try to get user data from localStorage or session
-      const userData = JSON.parse(localStorage.getItem('userData')) || 
-                      JSON.parse(sessionStorage.getItem('userData'));
+function loadUserInfo() {
+  try {
+    // Get user data from localStorage or sessionStorage
+    const userData = JSON.parse(localStorage.getItem('userData')) || 
+                    JSON.parse(sessionStorage.getItem('userData'));
+    
+    if (userData) {
+      const userNameEl = document.getElementById('userName');
+      const userRoleEl = document.getElementById('userRole');
+      const userAvatarEl = document.getElementById('userAvatar');
       
-      if (userData) {
-        const userNameEl = document.getElementById('userName');
-        const userRoleEl = document.getElementById('userRole');
-        const userAvatarEl = document.getElementById('userAvatar');
-        
-        if (userNameEl) {
-          userNameEl.textContent = userData.fullName || userData.email || 'User';
-        }
-        
-        if (userRoleEl) {
-          const roleMap = {
-            'landlord': 'Property Owner',
-            'broker': 'Licensed Broker',
-            'seller': 'Property Seller',
-            'admin': 'Administrator',
-            'user': 'Buyer'
-          };
-          userRoleEl.textContent = roleMap[userData.role] || 'Buyer';
-        }
-        
-        if (userAvatarEl && userData.fullName) {
-          const initials = userData.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-          userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
-        }
+      if (userNameEl) {
+        userNameEl.textContent = userData.fullName || userData.email || 'User';
       }
-    } catch (error) {
-      console.log('Could not load user info:', error);
+      
+      if (userRoleEl) {
+        const roleMap = {
+          'landlord': 'Property Owner',
+          'broker': 'Licensed Broker',
+          'seller': 'Property Seller',
+          'admin': 'Administrator',
+          'user': 'Buyer'
+        };
+        userRoleEl.textContent = roleMap[userData.role] || 'Buyer';
+      }
+      
+      if (userAvatarEl && userData.fullName) {
+        const initials = userData.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
+      }
     }
+  } catch (error) {
+    console.log('Could not load user info:', error);
   }
+}
   
   // Load stats
-  function loadStats() {
-    try {
-      // Get saved properties count
-      const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '[]');
-      const savedCount = savedProperties.length;
-      
-      // Update saved count
-      const savedBadge = document.getElementById('savedBadge');
-      const savedStat = document.getElementById('savedPropertiesStat');
-      
-      if (savedBadge && savedCount > 0) {
-        savedBadge.textContent = savedCount;
-      }
-      
-      if (savedStat) {
-        savedStat.textContent = savedCount;
-      }
-      
-      // Get total properties count from global variable if available
-      if (typeof window.allListings !== 'undefined') {
-        const totalStat = document.getElementById('totalPropertiesStat');
-        if (totalStat) {
-          totalStat.textContent = window.allListings.length;
-        }
-      }
-      
-      // Check for new messages (simulated)
-      const messageCount = Math.floor(Math.random() * 3); // Simulated
-      const messageBadge = document.getElementById('messageBadge');
-      if (messageBadge && messageCount > 0) {
-        messageBadge.textContent = messageCount;
-      }
-      
-    } catch (error) {
-      console.log('Could not load stats:', error);
+function loadStats() {
+  try {
+    // Get saved properties from localStorage
+    const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '[]');
+    const savedCount = savedProperties.length;
+    
+    // Update saved count
+    const savedBadge = document.getElementById('savedBadge');
+    const savedStat = document.getElementById('savedPropertiesStat');
+    
+    if (savedBadge && savedCount > 0) {
+      savedBadge.textContent = savedCount;
     }
+    
+    if (savedStat) {
+      savedStat.textContent = savedCount;
+    }
+    
+    // Get total properties count from global variable
+    if (typeof window.allListings !== 'undefined') {
+      const totalStat = document.getElementById('totalPropertiesStat');
+      if (totalStat) {
+        totalStat.textContent = window.allListings.length;
+      }
+    }
+    
+    // Check for new messages (simulated)
+    const messageCount = Math.floor(Math.random() * 3); // Simulated
+    const messageBadge = document.getElementById('messageBadge');
+    if (messageBadge && messageCount > 0) {
+      messageBadge.textContent = messageCount;
+    }
+    
+  } catch (error) {
+    console.log('Could not load stats:', error);
   }
+}
   
   // Initialize
   loadUserInfo();
@@ -720,20 +720,19 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Highlight current page
-  function highlightCurrentPage() {
-    const currentPath = window.location.pathname.split('/').pop() || 'buyer_dashboard.html';
-    const links = document.querySelectorAll('.sidebar-link');
-    
-    links.forEach(link => {
-      const href = link.getAttribute('href');
-      if (href === currentPath) {
-        link.classList.add('active');
-      } else {
-        link.classList.remove('active');
-      }
-    });
-  }
+function highlightCurrentPage() {
+  const currentPath = window.location.pathname.split('/').pop() || 'buyer_dashboard.html';
+  const links = document.querySelectorAll('.sidebar-link');
   
+  links.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === currentPath) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
   highlightCurrentPage();
   
   // Close sidebar on link click (mobile)
