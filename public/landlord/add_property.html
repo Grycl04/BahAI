@@ -248,42 +248,117 @@
       background: linear-gradient(90deg, var(--primary), var(--primary-light));
     }
 
-    /* ===== FORM DISABLED STATE ===== */
-    .form-disabled {
-      position: relative;
-    }
+/* ===== FORM DISABLED STATE ===== */
+.form-disabled {
+  position: relative;
+}
 
-    .form-disabled::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.9);
-      z-index: 100;
-      border-radius: 16px;
-      pointer-events: auto;
-    }
+.form-disabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backdrop-filter: blur(2px); /* Very subtle blur */
+  background: rgba(255, 255, 255, 0.3); /* Very transparent - just a hint of blur */
+  z-index: 100;
+  border-radius: 16px;
+  pointer-events: auto;
+}
 
-    .form-disabled .form-content {
-      opacity: 0.6;
-      pointer-events: none;
-      user-select: none;
-    }
+.form-disabled .form-content {
+  opacity: 0.85; /* Content is mostly visible */
+  pointer-events: none;
+  user-select: none;
+}
 
-    .form-disabled input,
-    .form-disabled select,
-    .form-disabled textarea,
-    .form-disabled .image-upload-area,
-    .form-disabled .amenity-item input[type="checkbox"],
-    .form-disabled .lease-option,
-    .form-disabled .btn,
-    .form-disabled .type-card {
-      pointer-events: none;
-      cursor: not-allowed;
-    }
+.form-disabled input,
+.form-disabled select,
+.form-disabled textarea,
+.form-disabled .image-upload-area,
+.form-disabled .amenity-item input[type="checkbox"],
+.form-disabled .lease-option,
+.form-disabled .btn,
+.form-disabled .type-card {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ===== FULL PAGE BLUR OVERLAY ===== */
+.full-page-blur-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backdrop-filter: blur(2px); /* Match the subtle blur */
+  background: rgba(255, 255, 255, 0.4); /* Slightly more opaque so text is readable */
+  z-index: 101;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.full-page-blur-overlay h2 {
+  color: #d63031;
+  font-size: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9); /* Make text stand out */
+}
+
+.full-page-blur-overlay .status {
+  font-size: 18px;
+  font-weight: bold;
+  color: #d63031;
+  margin-bottom: 20px;
+  padding: 10px 25px;
+  background: rgba(255, 255, 255, 0.85); /* Solid background for status */
+  border-radius: 10px;
+  border: 2px solid #ff7675;
+  backdrop-filter: none; /* No blur on the status box */
+}
+
+.full-page-blur-overlay .message {
+  font-size: 16px;
+  color: var(--text-dark);
+  margin-bottom: 30px;
+  max-width: 600px;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.7); /* Slight background for readability */
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.full-page-blur-overlay .kyc-button {
+  display: inline-block;
+  background: linear-gradient(135deg, #e74c3c, #ff6b6b);
+  color: white;
+  padding: 16px 35px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.full-page-blur-overlay .kyc-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(231, 76, 60, 0.5);
+}
 
     /* ===== TYPE SELECTION ===== */
     .type-selection {
@@ -348,76 +423,6 @@
       color: var(--text-light);
       font-size: 14px;
       line-height: 1.5;
-    }
-
-    /* ===== FULL PAGE BLUR OVERLAY ===== */
-    .full-page-blur-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.9);
-      z-index: 101;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .full-page-blur-overlay h2 {
-      color: #d63031;
-      font-size: 24px;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .full-page-blur-overlay .status {
-      font-size: 18px;
-      font-weight: bold;
-      color: #d63031;
-      margin-bottom: 20px;
-      padding: 10px 25px;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 10px;
-      border: 2px solid #ff7675;
-    }
-
-    .full-page-blur-overlay .message {
-      font-size: 16px;
-      color: var(--text-dark);
-      margin-bottom: 30px;
-      max-width: 600px;
-      line-height: 1.6;
-    }
-
-    .full-page-blur-overlay .kyc-button {
-      display: inline-block;
-      background: linear-gradient(135deg, #e74c3c, #ff6b6b);
-      color: white;
-      padding: 16px 35px;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .full-page-blur-overlay .kyc-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 25px rgba(231, 76, 60, 0.5);
     }
 
     /* ===== FORM SECTION STYLES ===== */

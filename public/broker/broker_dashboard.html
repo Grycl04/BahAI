@@ -177,6 +177,11 @@
         border-color: var(--primary-light);
         transform: translateY(-2px);
     }
+    .user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
     /* Section title - same as buyer */
     .section-title {
@@ -443,11 +448,6 @@
         </div>
       </div>
     </div>
-    <div class="hero-actions">
-      <a href="add_property.html" class="add-button">
-        <i class="fas fa-plus"></i> Add New Property
-      </a>
-    </div>
   </div>
 
   <!-- Search / Filter Section - same design as buyer dashboard -->
@@ -563,6 +563,44 @@ fetch('sidebar.html')
         link.classList.add('active');
       }
     });
+    
+    // ✅ ADD LOGOUT FUNCTIONALITY HERE
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      console.log("Logout button found, attaching event listener");
+      logoutBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log("Logout button clicked");
+        
+        if (confirm("Are you sure you want to log out?")) {
+          try {
+            // Dynamically import Firebase auth
+            const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js");
+            const auth = getAuth();
+            
+            console.log("Signing out from Firebase...");
+            await signOut(auth);
+            console.log("✅ User signed out from Firebase");
+            
+            // Clear any local storage
+            localStorage.removeItem('user');
+            sessionStorage.clear();
+            
+            // Redirect to login page
+            console.log("Redirecting to login page...");
+            window.location.href = "../login.html";
+          } catch (error) {
+            console.error("❌ Firebase logout error:", error);
+            // Fallback to direct redirect
+            window.location.href = "../login.html";
+          }
+        }
+      });
+    } else {
+      console.error("Logout button not found!");
+    }
   })
   .catch(error => console.error('Error loading sidebar:', error));
 </script>
@@ -573,7 +611,7 @@ fetch('sidebar.html')
 <!-- Firebase Script -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { 
   getFirestore, 
   collection, 
@@ -998,7 +1036,7 @@ document.getElementById('resetFilters').addEventListener('click', function() {
 // Initialize on page load
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "../login.html";
   } else {
     console.log('👤 User authenticated:', user.uid);
     loadAllListings();
