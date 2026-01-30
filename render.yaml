@@ -3,10 +3,20 @@
     name: bahai
     runtime: python
     buildCommand: |
+      echo "=== DEBUG INFORMATION ==="
+      echo "Python version:"
+      python --version
+      echo "Python path:"
+      which python
+      echo "pip version:"
+      pip --version
+      echo ""
+      echo "=== INSTALLING DEPENDENCIES ==="
       pip install --upgrade pip
-      pip install --only-binary :all: numpy
+      echo "Installing with pre-built wheels only..."
+      pip install --only-binary :all: numpy==1.26.4
       pip install --only-binary :all: scikit-learn==1.5.0
-      pip install --only-binary :all: pandas==2.0.3
+      pip install --only-binary :all: pandas==1.5.3
       pip install -r requirements.txt
     startCommand: cd backend && gunicorn chatbot_backend:app
     pythonVersion: "3.12.0"
