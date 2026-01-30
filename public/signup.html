@@ -632,7 +632,7 @@
     <div class="visual-side">
       <div class="visual-content">
         <h1 class="visual-title">Join Our Premium Real Estate Network</h1>
-        <p class="visual-subtitle">Create your account to access exclusive tools for agents, brokers, landlords, and sellers to grow your real estate business.</p>
+        <p class="visual-subtitle">Create your account to access exclusive tools for brokers, landlords, and sellers to grow your real estate business.</p>
         
         <ul class="visual-features">
           <li><i class="fas fa-home"></i> List and manage properties with advanced tools</li>
@@ -751,7 +751,7 @@
             </select>
           </div>
           <p class="form-note">
-            <i class="fas fa-info-circle"></i> You'll need to complete KYC verification after signup to post properties.
+            <i class="fas fa-info-circle"></i> Agents are added by brokers via invitation only. You'll need to complete KYC verification after signup to post properties.
           </p>
           <div id="roleError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
@@ -981,10 +981,9 @@
           createdAt: serverTimestamp()
         });
 
-        // Updated redirect paths to match the login page
+        // Updated redirect paths without agent option
         const dashboardMap = {
           broker: 'broker/broker_dashboard.html',
-          agent: 'broker/agent_dashboard.html',
           seller: 'seller/seller_dashboard.html',
           landlord: 'landlord/landlord_dashboard.html'
         };
@@ -1014,7 +1013,7 @@
 
         let data;
         if (!docSnap.exists()) {
-          const role = prompt("Enter your role (broker/agent/seller/landlord):").toLowerCase();
+          const role = prompt("Enter your role (broker/seller/landlord):").toLowerCase();
           data = {
             fullName: user.displayName,
             email: user.email,
@@ -1025,9 +1024,9 @@
           await setDoc(userRef, data);
           showSuccess("✅ Account created! Please complete KYC verification to post properties.");
           setTimeout(() => {
+            // Updated dashboard map without agent
             const dashboardMap = {
               broker: 'broker/broker_dashboard.html',
-              agent: 'broker/agent_dashboard.html',
               seller: 'seller/seller_dashboard.html',
               landlord: 'landlord/landlord_dashboard.html'
             };
@@ -1041,7 +1040,6 @@
         // Redirect based on role
         const dashboardMap = {
           broker: 'broker/broker_dashboard.html',
-          agent: 'broker/agent_dashboard.html',
           seller: 'seller/seller_dashboard.html',
           landlord: 'landlord/landlord_dashboard.html'
         };
