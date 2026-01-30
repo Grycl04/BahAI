@@ -1,6 +1,3 @@
---only-binary=:all:
-blis==0.7.11
-
 # Core dependencies
 flask==2.3.3
 flask-cors==4.0.0
