@@ -1686,6 +1686,16 @@
     appId: "1:646878644941:web:5b4ccc3412250337587784"
   };
 
+  // ===== BATANGAS MAP BOUNDS =====
+const BATANGAS_BOUNDS = {
+  north: 14.2,    // Northern boundary
+  south: 13.6,    // Southern boundary  
+  east: 121.3,    // Eastern boundary
+  west: 120.8     // Western boundary
+};
+
+const BATANGAS_CENTER = { lat: 13.7565, lng: 121.0583 };
+
   // ===== LOAD SIDEBAR =====
   async function loadSidebar() {
     try {
@@ -2382,39 +2392,46 @@
   }
 
   // ===== MAP FUNCTIONS =====
-  window.initMapPicker = function() {
-    const defaultLocation = { lat: 14.5995, lng: 120.9842 };
-    
-    map = new google.maps.Map(document.getElementById('mapPicker'), {
-      center: defaultLocation,
-      zoom: 12,
-      mapTypeControl: true,
-      streetViewControl: true,
-      styles: [
-        {
-          "featureType": "administrative",
-          "elementType": "geometry",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "poi",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "road",
-          "elementType": "labels.icon",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "transit",
-          "stylers": [{"visibility": "off"}]
-        }
-      ],
-      draggable: kycStatus === 'approved',
-      zoomControl: kycStatus === 'approved',
-      scrollwheel: kycStatus === 'approved',
-      disableDoubleClickZoom: kycStatus !== 'approved'
-    });
+window.initMapPicker = function() {
+  map = new google.maps.Map(document.getElementById('mapPicker'), {
+    center: BATANGAS_CENTER,
+    zoom: 10,
+    mapTypeControl: true,
+    streetViewControl: true,
+    // Simple styles to clean up the map
+    styles: [
+      {
+        "featureType": "poi",
+        "stylers": [{"visibility": "off"}]  // Hide points of interest
+      },
+      {
+        "featureType": "transit",
+        "stylers": [{"visibility": "off"}]  // Hide transit icons
+      }
+    ],
+    restriction: {
+      latLngBounds: BATANGAS_BOUNDS,
+      strictBounds: true,
+    },
+    draggable: kycStatus === 'approved',
+    zoomControl: kycStatus === 'approved',
+    scrollwheel: kycStatus === 'approved',
+    disableDoubleClickZoom: kycStatus !== 'approved',
+    // Optional: Show a message about Batangas focus
+    mapTypeControlOptions: {
+      mapTypeIds: ['roadmap', 'satellite']
+    }
+  });
+  
+  // You could add a custom info window or overlay
+  const infoWindow = new google.maps.InfoWindow({
+    content: '<div style="padding: 10px; font-weight: bold; color: #0b2e52;">📍 Focused on Batangas Province</div>',
+    position: BATANGAS_CENTER
+  });
+  
+  // Show the info window briefly on load
+  infoWindow.open(map);
+  setTimeout(() => infoWindow.close(), 3000);
     
     const input = document.getElementById('locationSearch');
     autocomplete = new google.maps.places.Autocomplete(input);
@@ -2457,40 +2474,79 @@
     reverseGeocode(new google.maps.LatLng(defaultLocation), 'rent');
   };
 
-  window.initLeaseMapPicker = function() {
-    const defaultLocation = { lat: 14.5995, lng: 120.9842 };
-    
-    leaseMap = new google.maps.Map(document.getElementById('leaseMapPicker'), {
-      center: defaultLocation,
-      zoom: 12,
-      mapTypeControl: true,
-      streetViewControl: true,
-      styles: [
-        {
-          "featureType": "administrative",
-          "elementType": "geometry",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "poi",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "road",
-          "elementType": "labels.icon",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "transit",
-          "stylers": [{"visibility": "off"}]
-        }
-      ],
-      draggable: kycStatus === 'approved',
-      zoomControl: kycStatus === 'approved',
-      scrollwheel: kycStatus === 'approved',
-      disableDoubleClickZoom: kycStatus !== 'approved'
-    });
-    
+window.initLeaseMapPicker = function() {
+  leaseMap = new google.maps.Map(document.getElementById('leaseMapPicker'), {
+    center: BATANGAS_CENTER,
+    zoom: 10,
+    mapTypeControl: true,
+    streetViewControl: true,
+    styles: [
+      // Gray out everything by default (outside Batangas)
+      {
+        "featureType": "all",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#e8e8e8"
+          },
+          {
+            "lightness": 20
+          }
+        ]
+      },
+      // Make water areas outside Batangas look gray too
+      {
+        "featureType": "water",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#d0d0d0"
+          }
+        ]
+      },
+      // Restore normal colors INSIDE Batangas bounds
+      {
+        "featureType": "landscape",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#f5f5f5"
+          },
+          {
+            "visibility": "on"
+          }
+        ]
+      },
+      // Your existing styles
+      {
+        "featureType": "administrative",
+        "elementType": "geometry",
+        "stylers": [{"visibility": "off"}]
+      },
+      {
+        "featureType": "poi",
+        "stylers": [{"visibility": "off"}]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels.icon",
+        "stylers": [{"visibility": "off"}]
+      },
+      {
+        "featureType": "transit",
+        "stylers": [{"visibility": "off"}]
+      }
+    ],
+    restriction: {
+      latLngBounds: BATANGAS_BOUNDS,
+      strictBounds: true,
+    },
+    draggable: kycStatus === 'approved',
+    zoomControl: kycStatus === 'approved',
+    scrollwheel: kycStatus === 'approved',
+    disableDoubleClickZoom: kycStatus !== 'approved'
+  });
+
     const input = document.getElementById('leaseLocationSearch');
     leaseAutocomplete = new google.maps.places.Autocomplete(input);
     leaseAutocomplete.bindTo('bounds', leaseMap);
@@ -2581,75 +2637,117 @@
     return { address, city, province };
   }
 
-  function placeMarker(location) {
-    if (marker) {
-      marker.setMap(null);
-    }
-    
-    marker = new google.maps.Marker({
-      position: location,
-      map: map,
-      draggable: kycStatus === 'approved',
-      animation: google.maps.Animation.DROP,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: "#3498db",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 2
-      }
-    });
-    
-    updateRentCoordinates(location.lat(), location.lng());
-    
-    if (kycStatus === 'approved') {
-      marker.addListener('dragend', function() {
-        updateRentCoordinates(marker.getPosition().lat(), marker.getPosition().lng());
-        
-        // Reverse geocode when marker is dragged
-        reverseGeocode(marker.getPosition(), 'rent');
-      });
-    }
-    
-    // Reverse geocode initial marker position
-    reverseGeocode(location, 'rent');
+function placeMarker(location) {
+  // Check if the location is within Batangas bounds
+  const lat = location.lat();
+  const lng = location.lng();
+  
+  // Check bounds
+  if (lat < BATANGAS_BOUNDS.south || lat > BATANGAS_BOUNDS.north || 
+      lng < BATANGAS_BOUNDS.west || lng > BATANGAS_BOUNDS.east) {
+    showMessage('Please select a location within Batangas province', 'error');
+    return;
   }
+  
+  if (marker) {
+    marker.setMap(null);
+  }
+  
+  marker = new google.maps.Marker({
+    position: location,
+    map: map,
+    draggable: kycStatus === 'approved',
+    animation: google.maps.Animation.DROP,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: "#3498db",
+      fillOpacity: 1,
+      strokeColor: "#ffffff",
+      strokeWeight: 2
+    }
+  });
+  
+  updateRentCoordinates(lat, lng);
+  
+  if (kycStatus === 'approved') {
+    marker.addListener('dragend', function() {
+      const newPos = marker.getPosition();
+      const newLat = newPos.lat();
+      const newLng = newPos.lng();
+      
+      // Check bounds on drag end too
+      if (newLat < BATANGAS_BOUNDS.south || newLat > BATANGAS_BOUNDS.north || 
+          newLng < BATANGAS_BOUNDS.west || newLng > BATANGAS_BOUNDS.east) {
+        showMessage('Marker must stay within Batangas province', 'error');
+        // Move marker back to last valid position
+        marker.setPosition({lat: lat, lng: lng});
+        return;
+      }
+      
+      updateRentCoordinates(newLat, newLng);
+      reverseGeocode(marker.getPosition(), 'rent');
+    });
+  }
+  
+  reverseGeocode(location, 'rent');
+}
 
-  function placeLeaseMarker(location) {
-    if (leaseMarker) {
-      leaseMarker.setMap(null);
-    }
-    
-    leaseMarker = new google.maps.Marker({
-      position: location,
-      map: leaseMap,
-      draggable: kycStatus === 'approved',
-      animation: google.maps.Animation.DROP,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: "#9b59b6",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 2
-      }
-    });
-    
-    updateLeaseCoordinates(location.lat(), location.lng());
-    
-    if (kycStatus === 'approved') {
-      leaseMarker.addListener('dragend', function() {
-        updateLeaseCoordinates(leaseMarker.getPosition().lat(), leaseMarker.getPosition().lng());
-        
-        // Reverse geocode when marker is dragged
-        reverseGeocode(leaseMarker.getPosition(), 'lease');
-      });
-    }
-    
-    // Reverse geocode initial marker position
-    reverseGeocode(location, 'lease');
+function placeLeaseMarker(location) {
+  // Check if the location is within Batangas bounds
+  const lat = location.lat();
+  const lng = location.lng();
+  
+  // Check bounds
+  if (lat < BATANGAS_BOUNDS.south || lat > BATANGAS_BOUNDS.north || 
+      lng < BATANGAS_BOUNDS.west || lng > BATANGAS_BOUNDS.east) {
+    showMessage('Please select a location within Batangas province', 'error');
+    return;
   }
+  
+  if (leaseMarker) {
+    leaseMarker.setMap(null);
+  }
+  
+  leaseMarker = new google.maps.Marker({
+    position: location,
+    map: leaseMap,
+    draggable: kycStatus === 'approved',
+    animation: google.maps.Animation.DROP,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: "#9b59b6",
+      fillOpacity: 1,
+      strokeColor: "#ffffff",
+      strokeWeight: 2
+    }
+  });
+  
+  updateLeaseCoordinates(lat, lng);
+  
+  if (kycStatus === 'approved') {
+    leaseMarker.addListener('dragend', function() {
+      const newPos = leaseMarker.getPosition();
+      const newLat = newPos.lat();
+      const newLng = newPos.lng();
+      
+      // Check bounds on drag end too
+      if (newLat < BATANGAS_BOUNDS.south || newLat > BATANGAS_BOUNDS.north || 
+          newLng < BATANGAS_BOUNDS.west || newLng > BATANGAS_BOUNDS.east) {
+        showMessage('Marker must stay within Batangas province', 'error');
+        // Move marker back to last valid position
+        leaseMarker.setPosition({lat: lat, lng: lng});
+        return;
+      }
+      
+      updateLeaseCoordinates(newLat, newLng);
+      reverseGeocode(leaseMarker.getPosition(), 'lease');
+    });
+  }
+  
+  reverseGeocode(location, 'lease');
+}
 
   // ===== REVERSE GEOCODING =====
   function reverseGeocode(latlng, formType) {
