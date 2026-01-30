@@ -3,19 +3,25 @@
     name: bahai
     runtime: python
     buildCommand: |
-      # First, verify Python version
+      # First verify Python version
+      echo "=== Python Information ==="
       python --version
+      which python
       pip --version
       
-      # Install dependencies
+      # Install specific versions that work with Python 3.12
       pip install --upgrade pip setuptools wheel
-      pip install -r requirements.txt
       
-      # Force specific versions if needed
-      pip install numpy==1.26.4 --force-reinstall
-      pip install pandas==2.1.4 --force-reinstall
+      # Install numpy first (critical dependency)
+      pip install numpy==1.24.3
+      
+      # Install pandas from a pre-built wheel (avoids compilation)
+      pip install pandas==1.5.3 --only-binary :all:
+      
+      # Install scikit-learn with compatible version
+      pip install scikit-learn==1.3.0
+      
+      # Install the rest
+      pip install -r requirements.txt
     startCommand: cd backend && gunicorn chatbot_backend:app
-    pythonVersion: "3.12.0"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
+    pythonVersion: "3.12"
