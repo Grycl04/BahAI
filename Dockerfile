@@ -23,4 +23,4 @@ WORKDIR /app/backend
 
 EXPOSE 10000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "chatbot_backend:app"]
+CMD gunicorn --bind 0.0.0.0:$PORT chatbot_backend:app
