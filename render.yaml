@@ -2,5 +2,8 @@
   - type: web
     name: bahai
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install --upgrade pip
+      pip install --only-binary :all: numpy==1.24.3 pandas==1.5.3
+      pip install -r requirements.txt
     startCommand: cd backend && gunicorn chatbot_backend:app
