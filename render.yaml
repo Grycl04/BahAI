@@ -6,7 +6,5 @@
     region: oregon
     buildCommand: |
       pip install --upgrade pip
-      pip install numpy==2.0.0
-      pip install pandas==2.2.1
       pip install -r requirements.txt
     startCommand: cd backend && gunicorn chatbot_backend:app
