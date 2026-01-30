@@ -5,18 +5,13 @@
     plan: free
     region: oregon
     pythonVersion: 3.12
+    skipPoetryInstall: true
     buildCommand: |
-      echo "=== STARTING BUILD ==="
-      echo "Python version:"
-      python --version
-      echo "Pip version:"
-      pip --version
-      
-      echo "=== INSTALLING ==="
+      echo '=== FORCING PYTHON 3.12 ==='
+      apt-get update && apt-get install -y python3.12 python3.12-venv
+      python3.12 -m venv /opt/render/project/src/.venv
+      source /opt/render/project/src/.venv/bin/activate
       pip install --upgrade pip
-      pip install numpy==1.21.6
-      pip install pandas==1.3.5
+      pip install numpy==1.26.4 pandas==2.2.0
       pip install -r requirements.txt
-      
-      echo "=== BUILD COMPLETE ==="
     startCommand: cd backend && gunicorn chatbot_backend:app
