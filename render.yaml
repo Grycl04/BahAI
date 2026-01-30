@@ -3,7 +3,19 @@
     name: bahai
     runtime: python
     buildCommand: |
+      # First, verify Python version
+      python --version
+      pip --version
+      
+      # Install dependencies
       pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
+      
+      # Force specific versions if needed
+      pip install numpy==1.26.4 --force-reinstall
+      pip install pandas==2.1.4 --force-reinstall
     startCommand: cd backend && gunicorn chatbot_backend:app
-    pythonVersion: "3.12"
+    pythonVersion: "3.12.0"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
