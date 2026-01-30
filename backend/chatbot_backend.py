@@ -22,8 +22,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import FieldFilter
 
-# spaCy imports
-import spacy
+
 
 # Suppress warnings
 warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
@@ -253,13 +252,8 @@ if firebase_initialized and db:
 else:
     print("❌ Firebase not connected - using mock data mode")
 
-# ========== SPAcy INITIALIZATION ==========
-try:
-    nlp = spacy.load("en_core_web_sm")
-    logger.info("✅ spaCy model loaded for entity extraction")
-except:
-    logger.warning("⚠️ spaCy model not found. Using basic entity extraction.")
-    nlp = None
+nlp = None
+
 
 # ========== LOAD TRAINING DATA ==========
 def load_training_data():
@@ -2515,7 +2509,7 @@ def health_check():
         'firebase_connected': db is not None,
         'model_intents': model_classes,
         'model_features': len(vectorizer.get_feature_names_out()) if vectorizer else 0,
-        'spacy_loaded': nlp is not None,
+        'spacy_loaded': False, 
         'supports_general_searches': True,
         'supports_criteria_searches': True,
         'supports_financing_queries': True,

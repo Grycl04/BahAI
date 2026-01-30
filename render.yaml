@@ -7,4 +7,4 @@
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-    startCommand: cd backend && gunicorn chatbot_backend:app
+    startCommand: gunicorn backend.chatbot_backend:app
