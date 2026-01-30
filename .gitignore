@@ -76,3 +76,12 @@ __pycache__/
 
 # Local Netlify folder
 .netlify
+
+# Netlify-specific ignores to prevent Python installation
+requirements.txt
+Pipfile
+Pipfile.lock
+pyproject.toml
+poetry.lock
+setup.py
+runtime.txt
