@@ -1,7 +1,9 @@
 services:
   - type: web
     name: bahai
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: cd backend && gunicorn chatbot_backend:app  
-    pythonVersion: "3.12.0"  
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m spacy download en_core_web_sm
+    startCommand: cd backend && gunicorn chatbot_backend:app
+    pythonVersion: "3.12.0"
