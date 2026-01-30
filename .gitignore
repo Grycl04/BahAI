@@ -78,7 +78,6 @@ __pycache__/
 .netlify
 
 # Netlify-specific ignores to prevent Python installation
-requirements.txt
 Pipfile
 Pipfile.lock
 pyproject.toml
