@@ -2624,11 +2624,9 @@ if __name__ == '__main__':
     print("="*60 + "\n")
     
     # Get port from environment variable for Render
-    port = int(os.environ.get('PORT', 8080))
-    print(f"📡 Starting server on port: {port}")
-    app.run(host='0.0.0.0', port=port, debug=False)
-
-        # Just print port info for debugging
     port = int(os.environ.get('PORT', 10000))
     print(f"📡 Server would run on port: {port}")
     print("📡 Gunicorn will start the server in production")
+    # app.run(host='0.0.0.0', port=port, debug=False)
+
+
