@@ -2,7 +2,7 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 // Your Python backend URL - LOCAL DEVELOPMENT
-const PYTHON_CHAT_API = "http://localhost:5000/api/chat";
+const PYTHON_CHAT_API = "http://localhost:10000/api/chat";
 
 // Initialize chatbot in your dashboard
 export function initChatbot() {
@@ -168,17 +168,19 @@ function addMessageToChat(message, sender) {
     
     const avatar = sender === 'user' ? '👤' : '🤖';
     
+    // Convert newlines to HTML breaks
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    
     messageDiv.innerHTML = `
         <div class="avatar">${avatar}</div>
         <div class="content">
-            <p>${message}</p>
+            ${formattedMessage}
         </div>
     `;
     
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
 // Add typing indicator
 function addTypingIndicator() {
     const chatMessages = document.getElementById('chatMessages');

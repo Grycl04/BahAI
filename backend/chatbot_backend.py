@@ -35,21 +35,16 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
-        "origins": [
-            "http://127.0.0.1:5500",
-            "https://bahai-web.netlify.app",  # Your Netlify domain
-            "http://localhost:3000",           # Local development
-            "http://localhost:5000",           # Local development
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
+        "origins": "*",  # Allow all origins for now
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
-
 @app.after_request
 def after_request(response):
-    # Add security headers
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 # ========== ROOT ROUTE ==========
 @app.route('/')
@@ -2621,6 +2616,6 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     print(f"📡 Server would run on port: {port}")
     print("📡 Gunicorn will start the server in production")
-    # app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False)
 
 
