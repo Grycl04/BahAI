@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #0B3D61; /* Dark blue - luxury primary */
+      --primary: #0B3D61;
       --primary-dark: #082A47;
       --primary-light: #1A5276;
-      --accent: #D4AF37; /* Gold accent */
+      --accent: #D4AF37;
       --accent-dark: #B8941F;
       --neutral-light: #F8F9FA;
       --neutral-medium: #E9ECEF;
@@ -20,6 +20,8 @@
       --text-light: #495057;
       --success: #28A745;
       --error: #DC3545;
+      --warning: #FFC107;
+      --info: #17A2B8;
       --white: #FFFFFF;
       --beige: #F5F0E6;
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -32,6 +34,185 @@
       --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
+    /* Add new styles for better error handling */
+    .error-message {
+      color: var(--error);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(220, 53, 69, 0.08);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--error);
+      line-height: 1.4;
+    }
+
+    .error-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .error-message i {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .success-message {
+      color: var(--success);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(40, 167, 69, 0.08);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--success);
+      line-height: 1.4;
+    }
+
+    .success-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .info-message {
+      color: var(--info);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(23, 162, 184, 0.08);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--info);
+      line-height: 1.4;
+    }
+
+    .info-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .form-input.error {
+      border-color: var(--error) !important;
+      background: rgba(220, 53, 69, 0.02);
+    }
+
+    .form-input.success {
+      border-color: var(--success) !important;
+    }
+
+    .form-input:focus.error {
+      box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
+    }
+
+    .password-requirements {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--neutral-dark);
+      display: none;
+    }
+
+    .password-requirements.show {
+      display: block;
+    }
+
+    .requirement {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .requirement i {
+      font-size: 12px;
+    }
+
+    .requirement.valid {
+      color: var(--success);
+    }
+
+    .requirement.invalid {
+      color: var(--neutral-dark);
+    }
+
+    .shake {
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translateX(-1px); }
+      20%, 80% { transform: translateX(2px); }
+      30%, 50%, 70% { transform: translateX(-3px); }
+      40%, 60% { transform: translateX(3px); }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      font-weight: 500;
+      animation: slideInRight 0.3s ease-out;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      max-width: 400px;
+    }
+
+    .notification.error {
+      background: var(--error);
+      color: white;
+      border-left: 4px solid #c82333;
+    }
+
+    .notification.success {
+      background: var(--success);
+      color: white;
+      border-left: 4px solid #218838;
+    }
+
+    .notification.info {
+      background: var(--primary);
+      color: white;
+      border-left: 4px solid var(--primary-dark);
+    }
+
+    .notification.warning {
+      background: var(--warning);
+      color: var(--text-dark);
+      border-left: 4px solid #e0a800;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Existing styles remain the same... */
     * {
       margin: 0;
       padding: 0;
@@ -50,7 +231,6 @@
       line-height: 1.6;
     }
 
-    /* Login Container */
     .login-wrapper {
       width: 100%;
       max-width: 1200px;
@@ -68,7 +248,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Visual Side */
     .visual-side {
       flex: 1;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -131,7 +310,6 @@
       flex-shrink: 0;
     }
 
-    /* Form Side */
     .form-side {
       flex: 1;
       padding: 60px 50px;
@@ -193,7 +371,6 @@
       font-weight: 600;
     }
 
-    /* Form Styles */
     .login-form {
       width: 100%;
     }
@@ -365,25 +542,6 @@
       text-decoration: underline;
     }
 
-    /* Error Styling */
-    .error-message {
-      color: var(--error);
-      font-size: 14px;
-      margin-top: 8px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .error-message.show {
-      display: flex;
-    }
-
-    .form-input.error {
-      border-color: var(--error);
-    }
-
-    /* Responsive Design */
     @media (max-width: 1024px) {
       .login-wrapper {
         max-width: 900px;
@@ -526,7 +684,6 @@
       }
     }
 
-    /* Accessibility Focus Styles */
     .form-input:focus,
     .btn:focus,
     .forgot-password:focus,
@@ -536,7 +693,6 @@
       outline-offset: 2px;
     }
 
-    /* Animation for form elements */
     .form-group {
       animation: slideUp 0.5s ease-out forwards;
       opacity: 0;
@@ -611,7 +767,7 @@
           </div>
           <div id="emailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter a valid email address</span>
+            <span>Please enter a valid email address (e.g., name@example.com)</span>
           </div>
         </div>
 
@@ -626,6 +782,7 @@
               required 
               aria-label="Password"
               autocomplete="current-password"
+              minlength="8"
             />
             <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
               <i class="fas fa-eye"></i>
@@ -633,15 +790,31 @@
           </div>
           <div id="passwordError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Password must be at least 8 characters</span>
+            <span id="passwordErrorText">Password must be at least 8 characters</span>
           </div>
+          
+          <div id="passwordRequirements" class="password-requirements">
+            <div class="requirement invalid" id="reqLength">
+              <i class="fas fa-circle"></i>
+              <span>At least 8 characters</span>
+            </div>
+            <div class="requirement invalid" id="reqLetter">
+              <i class="fas fa-circle"></i>
+              <span>Contains a letter</span>
+            </div>
+            <div class="requirement invalid" id="reqNumber">
+              <i class="fas fa-circle"></i>
+              <span>Contains a number</span>
+            </div>
+          </div>
+          
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
         <div class="form-group">
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary" id="submitBtn">
             <i class="fas fa-sign-in-alt"></i>
-            Login to Dashboard
+            <span id="submitText">Login to Dashboard</span>
           </button>
         </div>
 
@@ -670,7 +843,8 @@
     import { 
       signInWithEmailAndPassword, 
       signInWithPopup, 
-      GoogleAuthProvider 
+      GoogleAuthProvider,
+      fetchSignInMethodsForEmail 
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { 
       doc, 
@@ -681,91 +855,237 @@
 
     const googleProvider = new GoogleAuthProvider();
 
-    // Form validation
+    // DOM Elements
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const emailError = document.getElementById('emailError');
     const passwordError = document.getElementById('passwordError');
+    const passwordErrorText = document.getElementById('passwordErrorText');
+    const passwordRequirements = document.getElementById('passwordRequirements');
     const togglePassword = document.getElementById('togglePassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
     
+    // Password validation requirements
+    const requirements = {
+      length: { element: document.getElementById('reqLength'), test: (pwd) => pwd.length >= 8 },
+      letter: { element: document.getElementById('reqLetter'), test: (pwd) => /[a-zA-Z]/.test(pwd) },
+      number: { element: document.getElementById('reqNumber'), test: (pwd) => /\d/.test(pwd) }
+    };
+
     // Password visibility toggle
     togglePassword.addEventListener('click', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
       passwordInput.setAttribute('type', type);
       this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+      this.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
     });
-    
-    // Input validation
+
+    // Real-time password validation
+    passwordInput.addEventListener('input', function() {
+      const password = this.value;
+      let allValid = true;
+      
+      // Check each requirement
+      Object.keys(requirements).forEach(key => {
+        const req = requirements[key];
+        const isValid = req.test(password);
+        
+        if (isValid) {
+          req.element.classList.remove('invalid');
+          req.element.classList.add('valid');
+          req.element.innerHTML = '<i class="fas fa-check-circle"></i><span>' + req.element.textContent + '</span>';
+        } else {
+          req.element.classList.remove('valid');
+          req.element.classList.add('invalid');
+          req.element.innerHTML = '<i class="fas fa-circle"></i><span>' + req.element.textContent + '</span>';
+          allValid = false;
+        }
+      });
+      
+      // Show/hide requirements
+      if (password.length > 0) {
+        passwordRequirements.classList.add('show');
+      } else {
+        passwordRequirements.classList.remove('show');
+      }
+      
+      // Update input styling
+      if (allValid && password.length >= 8) {
+        this.classList.remove('error');
+        this.classList.add('success');
+        passwordError.classList.remove('show');
+      } else {
+        this.classList.remove('success');
+        if (password.length > 0 && password.length < 8) {
+          this.classList.add('error');
+        } else {
+          this.classList.remove('error');
+        }
+      }
+    });
+
+    // Email validation
     emailInput.addEventListener('input', function() {
       if (this.validity.valid) {
         this.classList.remove('error');
         emailError.classList.remove('show');
+      } else {
+        this.classList.add('error');
       }
     });
-    
-    passwordInput.addEventListener('input', function() {
-      if (this.value.length >= 8) {
-        this.classList.remove('error');
-        passwordError.classList.remove('show');
-      }
-    });
-    
-    // Form submission with validation
+
+    // Form submission
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       
       let isValid = true;
+      let errorMessage = '';
       
       // Validate email
-      if (!emailInput.value || !emailInput.validity.valid) {
+      if (!emailInput.value.trim()) {
+        emailError.querySelector('span').textContent = 'Please enter your email address';
         emailInput.classList.add('error');
         emailError.classList.add('show');
+        emailInput.classList.add('shake');
         isValid = false;
+      } else if (!validateEmail(emailInput.value.trim())) {
+        emailError.querySelector('span').textContent = 'Please enter a valid email address (e.g., name@example.com)';
+        emailInput.classList.add('error');
+        emailError.classList.add('show');
+        emailInput.classList.add('shake');
+        isValid = false;
+      } else {
+        emailInput.classList.remove('error');
+        emailError.classList.remove('show');
       }
       
       // Validate password
-      if (!passwordInput.value || passwordInput.value.length < 8) {
+      if (!passwordInput.value.trim()) {
+        passwordErrorText.textContent = 'Please enter your password';
         passwordInput.classList.add('error');
         passwordError.classList.add('show');
+        passwordInput.classList.add('shake');
         isValid = false;
+      } else if (passwordInput.value.length < 8) {
+        passwordErrorText.textContent = 'Password must be at least 8 characters long';
+        passwordInput.classList.add('error');
+        passwordError.classList.add('show');
+        passwordInput.classList.add('shake');
+        isValid = false;
+      } else {
+        passwordInput.classList.remove('error');
+        passwordError.classList.remove('show');
       }
       
-      if (!isValid) {
-        return;
-      }
+      // Remove shake animation after completion
+      setTimeout(() => {
+        emailInput.classList.remove('shake');
+        passwordInput.classList.remove('shake');
+      }, 500);
+      
+      if (!isValid) return;
       
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-
+      
+      // Update button state
+      submitBtn.disabled = true;
+      submitText.textContent = 'Signing in...';
+      
       try {
+        // Check if email exists first
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        if (methods.length === 0) {
+          throw new Error('USER_NOT_FOUND');
+        }
+        
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         const docSnap = await getDoc(doc(db, "users", user.uid));
 
         if (!docSnap.exists()) {
-          showError("⚠️ User data not found!");
+          showNotification('error', 'User data not found. Please contact support.');
           return;
         }
 
         const data = docSnap.data();
 
-        // 🚫 Only block login if status is pending (waiting for approval)
+        // KYC status handling
         if (data.kycStatus === "pending") {
-          showError("🕒 Your KYC is still pending approval. Please wait for verification to complete.");
+          showNotification('info', 'Your account is pending verification. You can access your dashboard but some features may be limited.');
+          setTimeout(() => {
+            window.location.href = getRedirectPage(data.role);
+          }, 2000);
           return;
         }
 
-        // ✅ Allow login for: approved, not_submitted, and rejected
-        // They can access dashboard, but posting will be blocked for non-approved users
-        const role = data.role;
-        window.location.href = getRedirectPage(role);
+        // Successful login
+        showNotification('success', 'Login successful! Redirecting to dashboard...');
+        setTimeout(() => {
+          window.location.href = getRedirectPage(data.role);
+        }, 1000);
 
       } catch (error) {
-        showError("❌ Login failed: " + error.message);
+        // Reset button state
+        submitBtn.disabled = false;
+        submitText.textContent = 'Login to Dashboard';
+        
+        // Handle specific Firebase error codes
+        let userMessage = 'Login failed. Please try again.';
+        
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'USER_NOT_FOUND':
+            userMessage = 'No account found with this email. Please check or sign up.';
+            emailError.querySelector('span').textContent = userMessage;
+            emailInput.classList.add('error');
+            emailError.classList.add('show');
+            emailInput.classList.add('shake');
+            break;
+            
+          case 'auth/wrong-password':
+            userMessage = 'Incorrect password. Please try again or reset your password.';
+            passwordErrorText.textContent = userMessage;
+            passwordInput.classList.add('error');
+            passwordError.classList.add('show');
+            passwordInput.classList.add('shake');
+            break;
+            
+          case 'auth/invalid-credential':
+            userMessage = 'Invalid email or password. Please check your credentials.';
+            emailError.querySelector('span').textContent = userMessage;
+            emailInput.classList.add('error');
+            emailError.classList.add('show');
+            break;
+            
+          case 'auth/too-many-requests':
+            userMessage = 'Too many failed attempts. Please try again later or reset your password.';
+            break;
+            
+          case 'auth/user-disabled':
+            userMessage = 'This account has been disabled. Please contact support.';
+            break;
+            
+          case 'auth/network-request-failed':
+            userMessage = 'Network error. Please check your connection and try again.';
+            break;
+            
+          default:
+            userMessage = error.message || 'Login failed. Please try again.';
+        }
+        
+        showNotification('error', userMessage);
+        
+        // Clear shake animation
+        setTimeout(() => {
+          emailInput.classList.remove('shake');
+          passwordInput.classList.remove('shake');
+        }, 500);
       }
     });
 
-    // ✅ Google Login
+    // Google Login
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, googleProvider);
@@ -775,7 +1095,14 @@
 
         let data;
         if (!docSnap.exists()) {
-          const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
+          // New user - prompt for role
+          const role = prompt("Please select your role:\n• buyer\n• seller\n• broker\n• agent\n• landlord").toLowerCase();
+          
+          if (!['buyer', 'seller', 'broker', 'agent', 'landlord'].includes(role)) {
+            showNotification('error', 'Invalid role selected. Please try again.');
+            return;
+          }
+          
           data = {
             fullName: user.displayName,
             email: user.email,
@@ -784,139 +1111,103 @@
             createdAt: serverTimestamp()
           };
           await setDoc(userRef, data);
-          showSuccess("✅ Account created! Please complete KYC verification to post properties.");
+          
+          showNotification('success', 'Account created successfully! Please complete KYC verification to access all features.');
           setTimeout(() => {
             window.location.href = getRedirectPage(role);
-          }, 1500);
+          }, 2000);
           return;
         } else {
           data = docSnap.data();
         }
 
-        // 🚫 Only block if pending
+        // Handle existing user KYC status
         if (data.kycStatus === "pending") {
-          showInfo("🕒 Your KYC is still pending approval. You can access your dashboard but cannot post properties yet.");
+          showNotification('info', 'Your account verification is pending. You have limited access until approved.');
           setTimeout(() => {
             window.location.href = getRedirectPage(data.role);
           }, 2000);
           return;
         }
 
-        // ✅ Allow login regardless of KYC status
-        window.location.href = getRedirectPage(data.role);
+        showNotification('success', 'Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = getRedirectPage(data.role);
+        }, 1000);
 
       } catch (error) {
-        showError("❌ Google sign-in failed: " + error.message);
+        let userMessage = 'Google sign-in failed. Please try again.';
+        
+        switch (error.code) {
+          case 'auth/popup-closed-by-user':
+            userMessage = 'Google sign-in was cancelled.';
+            break;
+          case 'auth/popup-blocked':
+            userMessage = 'Popup was blocked by browser. Please allow popups and try again.';
+            break;
+          case 'auth/cancelled-popup-request':
+            userMessage = 'Sign-in cancelled. Please try again.';
+            break;
+        }
+        
+        showNotification('error', userMessage);
       }
     });
 
-    // ✅ Role-Based Redirect
+    // Helper functions
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
     function getRedirectPage(role) {
-      switch (role) {
-        case "seller":
-          return "seller/seller_dashboard.html";
-        case "buyer":
-          return "buyer/buyer_dashboard.html";
-        case "broker":
-          return "broker/broker_dashboard.html";
-        case "agent":
-          return "broker/agent_dashboard.html";
-        case "landlord":
-          return "landlord/landlord_dashboard.html";
-        case "admin":
-          return "approve_users.html";
-        default:
-          return "login.html";
-      }
+      const pages = {
+        "seller": "seller/seller_dashboard.html",
+        "buyer": "buyer/buyer_dashboard.html",
+        "broker": "broker/broker_dashboard.html",
+        "agent": "broker/agent_dashboard.html",
+        "landlord": "landlord/landlord_dashboard.html",
+        "admin": "approve_users.html"
+      };
+      return pages[role] || "login.html";
     }
-    
-    // UI feedback functions
-    function showError(message) {
-      // Create a temporary error message
-      const errorDiv = document.createElement('div');
-      errorDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--error);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      errorDiv.textContent = message;
-      document.body.appendChild(errorDiv);
+
+    function showNotification(type, message) {
+      const icon = {
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        success: '<i class="fas fa-check-circle"></i>',
+        info: '<i class="fas fa-info-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>'
+      };
       
-      setTimeout(() => {
-        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(errorDiv), 300);
-      }, 4000);
-    }
-    
-    function showSuccess(message) {
-      const successDiv = document.createElement('div');
-      successDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--success);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        ${icon[type]}
+        <div>${message}</div>
       `;
-      successDiv.textContent = message;
-      document.body.appendChild(successDiv);
       
-      setTimeout(() => {
-        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(successDiv), 300);
-      }, 4000);
-    }
-    
-    function showInfo(message) {
-      const infoDiv = document.createElement('div');
-      infoDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--primary);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      infoDiv.textContent = message;
-      document.body.appendChild(infoDiv);
+      document.body.appendChild(notification);
       
+      // Remove existing notifications
+      const existingNotifications = document.querySelectorAll('.notification');
+      if (existingNotifications.length > 3) {
+        existingNotifications[0].remove();
+      }
+      
+      // Auto remove after 5 seconds
       setTimeout(() => {
-        infoDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(infoDiv), 300);
-      }, 4000);
+        notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 5000);
     }
-    
-    // Add CSS for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
+
+    // Initialize form
+    emailInput.focus();
   </script>
 </body>
 </html>
