@@ -843,8 +843,7 @@
     import { 
       signInWithEmailAndPassword, 
       signInWithPopup, 
-      GoogleAuthProvider,
-      fetchSignInMethodsForEmail 
+      GoogleAuthProvider
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { 
       doc, 
@@ -993,38 +992,47 @@
       submitBtn.disabled = true;
       submitText.textContent = 'Signing in...';
       
-      try {
-        // Check if email exists first
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-        if (methods.length === 0) {
-          throw new Error('USER_NOT_FOUND');
-        }
-        
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        const docSnap = await getDoc(doc(db, "users", user.uid));
+try {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
+  
+  // Add timeout and better error handling
+  const docSnap = await Promise.race([
+    getDoc(doc(db, "users", user.uid)),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database timeout')), 10000)
+    )
+  ]);
 
-        if (!docSnap.exists()) {
-          showNotification('error', 'User data not found. Please contact support.');
-          return;
-        }
+  if (!docSnap.exists()) {
+    showNotification('error', 'User data not found. Please contact support or sign up.');
+    await auth.signOut(); // Clear auth state
+    submitBtn.disabled = false;
+    submitText.textContent = 'Login to Dashboard';
+    return;
+  }
 
-        const data = docSnap.data();
-
-        // KYC status handling
-        if (data.kycStatus === "pending") {
-          showNotification('info', 'Your account is pending verification. You can access your dashboard but some features may be limited.');
-          setTimeout(() => {
-            window.location.href = getRedirectPage(data.role);
-          }, 2000);
-          return;
-        }
-
-        // Successful login
-        showNotification('success', 'Login successful! Redirecting to dashboard...');
-        setTimeout(() => {
-          window.location.href = getRedirectPage(data.role);
-        }, 1000);
+  const data = docSnap.data();
+  
+  // Validate data structure
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid user data format');
+  }
+  
+  // Ensure role exists
+  if (!data.role) {
+    data.role = 'buyer'; // Default role
+    // Update document with default role
+    await setDoc(doc(db, "users", user.uid), 
+      { role: 'buyer' }, 
+      { merge: true }
+    );
+  }
+  
+  showNotification('success', 'Login successful! Redirecting...');
+  setTimeout(() => {
+    window.location.href = getRedirectPage(data.role);
+  }, 1000);
 
       } catch (error) {
         // Reset button state
@@ -1036,7 +1044,6 @@
         
         switch (error.code) {
           case 'auth/user-not-found':
-          case 'USER_NOT_FOUND':
             userMessage = 'No account found with this email. Please check or sign up.';
             emailError.querySelector('span').textContent = userMessage;
             emailInput.classList.add('error');
@@ -1112,24 +1119,16 @@
           };
           await setDoc(userRef, data);
           
-          showNotification('success', 'Account created successfully! Please complete KYC verification to access all features.');
+          showNotification('success', 'Account created successfully!');
           setTimeout(() => {
             window.location.href = getRedirectPage(role);
-          }, 2000);
+          }, 1000);
           return;
         } else {
           data = docSnap.data();
         }
 
-        // Handle existing user KYC status
-        if (data.kycStatus === "pending") {
-          showNotification('info', 'Your account verification is pending. You have limited access until approved.');
-          setTimeout(() => {
-            window.location.href = getRedirectPage(data.role);
-          }, 2000);
-          return;
-        }
-
+        // ✅ NO KYC CHECK HERE - Existing users go straight to dashboard
         showNotification('success', 'Login successful! Redirecting...');
         setTimeout(() => {
           window.location.href = getRedirectPage(data.role);

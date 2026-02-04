@@ -6,22 +6,27 @@
 <title>My Messages - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
 <style>
+    /* Same design tokens as buyer dashboard */
     :root {
-      --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
-      --secondary: #1976d2;
-      --accent: #ff9800;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #667eea 100%);
+      --primary-light: #667eea;
+      --primary-dark: #764ba2;
+      --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-lg: 24px;
       --text-dark: #1a202c;
       --text-light: #718096;
       --bg-light: #f8fafc;
       --bg-white: #ffffff;
-      --border: #e2e8f0;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --unread-bg: #e8f4ff;
-      --unread-border: #b3d9ff;
+      --border: #e5e7eb;
+      --unread-bg: #eef2ff;
+      --unread-border: rgba(102, 126, 234, 0.3);
       --message-sent: #e3f2fd;
       --message-received: #f5f5f5;
       --success: #10b981;
@@ -34,6 +39,19 @@
       box-sizing: border-box;
     }
 
+    /* Schedule message styles for sent/received */
+.message-schedule.sent-schedule {
+  align-self: flex-end;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.message-schedule.received-schedule {
+  align-self: flex-start;
+  margin-right: auto;
+  margin-left: 10px;
+}
+
     body {
       font-family: 'Inter', Arial, sans-serif;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -42,22 +60,22 @@
       min-height: 100vh;
     }
 
-    /* Mobile Menu Toggle */
+    /* Mobile Menu Toggle - same as buyer dashboard */
     .mobile-menu-toggle {
       display: none;
       position: fixed;
       top: 20px;
       left: 20px;
       z-index: 1001;
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
       border: none;
       width: 50px;
       height: 50px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-sm);
       font-size: 24px;
       cursor: pointer;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--card-hover-shadow);
     }
 
     .container {
@@ -67,55 +85,76 @@
       transition: margin-left 0.3s ease;
     }
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      gap: 20px;
-    }
-
-    .page-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1.2;
-    }
-
-    .page-header p {
-      color: var(--text-light);
-      font-size: 16px;
-      line-height: 1.4;
-    }
-
-    .refresh-btn {
-      background: var(--primary);
+    /* Hero Section - same as buyer dashboard */
+    .hero-section {
+      background: var(--primary-gradient);
       color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-size: 14px;
+      border-radius: var(--border-radius-lg);
+      padding: 50px 40px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>');
+      background-size: cover;
+      opacity: 0.1;
+    }
+    .hero-section h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      line-height: 1.2;
+      max-width: 800px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-section p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-actions {
+      margin-top: 25px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    .refresh-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.4);
+      padding: 14px 24px;
+      border-radius: var(--border-radius-sm);
+      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
-
     .refresh-btn:hover {
-      background: var(--primary-dark);
+      background: rgba(255,255,255,0.3);
       transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
-
     .refresh-btn.refreshing {
-      background: var(--text-light);
+      background: rgba(255,255,255,0.15);
       cursor: not-allowed;
+      transform: none;
     }
 
     .messages-container {
@@ -126,12 +165,12 @@
       min-height: 600px;
     }
 
-    /* Conversations List */
+    /* Conversations List - same card style as dashboard */
     .conversations-sidebar {
-      background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -142,14 +181,175 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .conversations-header h2 {
+    /* Schedule status message styles */
+    .message-schedule {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 10px 0;
+      max-width: 85%;
+      align-self: center;
+    }
+
+    .message-schedule.confirmed {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border-color: #10b981;
+    }
+
+    .message-schedule.declined {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border-color: #ef4444;
+    }
+
+    .message-schedule.pending {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-color: #f59e0b;
+    }
+
+    .message-schedule.alternative {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+      border-color: #0ea5e9;
+    }
+
+    .schedule-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .schedule-header i {
       font-size: 18px;
+    }
+
+    .schedule-details {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+    }
+
+    .schedule-info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    .schedule-info-label {
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .schedule-info-value {
+      color: var(--text-dark);
+      font-weight: 600;
+    }
+
+    .schedule-notes {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: var(--border-radius-sm);
+      border-left: 4px solid var(--primary-light);
+    }
+
+    .schedule-notes-label {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 5px;
+    }
+
+    .schedule-notes-content {
+      font-size: 13px;
+      color: var(--text-dark);
+    }
+
+    .schedule-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .schedule-action-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .schedule-action-btn.primary {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+    }
+    .schedule-action-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    .schedule-action-btn.secondary {
+      background: white;
+      color: var(--text-dark);
+      border: 2px solid #e5e7eb;
+    }
+    .schedule-action-btn.secondary:hover {
+      border-color: var(--primary-light);
+      background: #f9fafb;
+      transform: translateY(-2px);
+    }
+
+    .schedule-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-confirmed {
+      background: var(--secondary-gradient);
+      color: white;
+    }
+    .status-pending {
+      background: var(--accent-gradient);
+      color: white;
+    }
+    .status-declined {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+    .status-alternative {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      color: white;
+    }
+
+    .conversations-header h2 {
+      font-size: 1.25rem;
       font-weight: 600;
       color: var(--text-dark);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 15px;
+    }
+    .conversations-header h2 i {
+      color: var(--primary-light);
+      font-size: 1.2rem;
     }
 
     .index-notice {
@@ -163,7 +363,7 @@
     }
 
     .index-notice a {
-      color: var(--primary);
+      color: var(--primary-light);
       font-weight: 600;
       text-decoration: underline;
     }
@@ -184,7 +384,7 @@
 
     .stat-value {
       font-weight: 700;
-      color: var(--primary);
+      color: var(--primary-light);
       font-size: 20px;
     }
 
@@ -200,12 +400,12 @@
     }
 
     .filter-btn {
-      padding: 8px 16px;
-      border: 1px solid var(--border);
-      background: var(--bg-light);
+      padding: 10px 18px;
+      border: 2px solid #e5e7eb;
+      background: white;
       color: var(--text-dark);
-      border-radius: 8px;
-      font-size: 13px;
+      border-radius: var(--border-radius-sm);
+      font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -217,13 +417,13 @@
     }
 
     .filter-btn:hover {
-      background: var(--border);
+      border-color: var(--primary-light);
+      background: #f9fafb;
     }
-
     .filter-btn.active {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
-      border-color: var(--primary);
+      border-color: transparent;
     }
 
     .conversations-search {
@@ -242,8 +442,8 @@
 
     .conversations-search input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .conversations-search i {
@@ -276,7 +476,7 @@
 
     .conversation-item.active {
       background: var(--unread-bg);
-      border-left: 4px solid var(--primary);
+      border-left: 4px solid var(--primary-light);
     }
 
     .conversation-item.unread {
@@ -287,7 +487,7 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -337,10 +537,10 @@
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: var(--primary);
-      background: rgba(11, 46, 82, 0.08);
+      color: var(--primary-light);
+      background: rgba(102, 126, 234, 0.08);
       padding: 4px 8px;
-      border-radius: 6px;
+      border-radius: var(--border-radius-sm);
       width: fit-content;
       max-width: 100%;
       overflow: hidden;
@@ -356,7 +556,7 @@
       position: absolute;
       top: 16px;
       right: 20px;
-      background: var(--secondary);
+      background: var(--secondary-gradient);
       color: white;
       font-size: 11px;
       font-weight: 600;
@@ -399,12 +599,12 @@
       transform: scale(1.1);
     }
 
-    /* Chat Container */
+    /* Chat Container - same card style as dashboard */
     .chat-container {
-      background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -433,7 +633,7 @@
       width: 45px;
       height: 45px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -481,8 +681,8 @@
     }
 
     .chat-property-info:hover {
-      background: var(--bg-white);
-      box-shadow: var(--shadow);
+      background: white;
+      box-shadow: var(--card-shadow);
     }
 
     .chat-property-info h4 {
@@ -507,7 +707,7 @@
     .chat-property-price {
       font-size: 16px;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--primary-dark);
     }
 
     .chat-messages-container {
@@ -570,7 +770,7 @@
     }
 
     .message-bubble.sent .message-content {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
       border-bottom-right-radius: 4px;
     }
@@ -635,8 +835,8 @@
     .chat-input {
       flex: 1;
       padding: 12px 16px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--border-radius-sm);
       font-family: 'Inter', sans-serif;
       font-size: 14px;
       resize: none;
@@ -647,17 +847,16 @@
 
     .chat-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-
     .send-button {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
       border: none;
       width: 44px;
       height: 44px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -665,14 +864,12 @@
       transition: all 0.3s ease;
       flex-shrink: 0;
     }
-
     .send-button:hover {
-      background: var(--primary-dark);
       transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
-
     .send-button:disabled {
-      background: var(--border);
+      background: #e5e7eb;
       cursor: not-allowed;
       transform: none;
     }
@@ -710,13 +907,13 @@
     }
 
     .spinner {
-      border: 4px solid var(--bg-light);
-      border-top: 4px solid var(--primary);
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top: 4px solid var(--primary-light);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      margin: 0 auto 20px;
     }
 
     @keyframes spin {
@@ -755,8 +952,8 @@
     }
 
     .property-quick-view:hover {
-      background: var(--bg-white);
-      box-shadow: var(--shadow);
+      background: white;
+      box-shadow: var(--card-shadow);
     }
 
     .property-quick-view img {
@@ -794,20 +991,20 @@
     .property-quick-price {
       font-size: 16px;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--primary-dark);
     }
 
-    /* Toast Notifications */
+    /* Toast Notifications - same as buyer dashboard */
     .toast {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: var(--success);
+      background: var(--secondary-gradient);
       color: white;
       padding: 12px 24px;
-      border-radius: 8px;
+      border-radius: var(--border-radius-sm);
       font-weight: 500;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--card-hover-shadow);
       z-index: 9999;
       animation: slideInRight 0.3s ease;
       display: flex;
@@ -826,7 +1023,7 @@
     }
 
     .toast.error {
-      background: var(--error);
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
 
     /* Quick Actions */
@@ -859,13 +1056,13 @@
     }
 
     .action-btn.primary {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
-      border-color: var(--primary);
+      border: none;
     }
-
     .action-btn.primary:hover {
-      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
 
     /* Delete Conversation Modal */
@@ -891,12 +1088,12 @@
     }
 
     .modal {
-      background: var(--bg-white);
-      border-radius: 16px;
+      background: white;
+      border-radius: var(--border-radius);
       padding: 30px;
       max-width: 500px;
       width: 90%;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--card-hover-shadow);
       transform: translateY(-20px);
       transition: transform 0.3s ease;
     }
@@ -1007,12 +1204,11 @@
       }
     }
 
-    /* Large Mobile */
+    /* Large Mobile - same as buyer dashboard */
     @media (max-width: 768px) {
       .container {
         padding: 20px;
       }
-      
       .mobile-menu-toggle {
         top: 15px;
         left: 15px;
@@ -1020,21 +1216,15 @@
         height: 45px;
         font-size: 20px;
       }
-      
-      .page-header h1 {
-        font-size: 24px;
+      .hero-section h1 {
+        font-size: 1.8rem;
       }
-      
-      .page-header p {
-        font-size: 14px;
+      .hero-section {
+        padding: 30px 24px;
       }
-      
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+      .hero-actions {
+        margin-top: 20px;
       }
-      
       .refresh-btn {
         align-self: flex-start;
       }
@@ -1112,16 +1302,17 @@
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
 
-<!-- Main -->
+<!-- Main - same layout as buyer dashboard -->
 <div class="container">
-  <div class="topbar">
-    <div class="page-header">
-      <h1>My Messages</h1>
-      <p>View and manage your conversations with brokers and property owners</p>
+  <!-- Hero Section - same design as buyer dashboard -->
+  <div class="hero-section">
+    <h1>My Messages</h1>
+    <p>View and manage your conversations with brokers and property owners</p>
+    <div class="hero-actions">
+      <button class="refresh-btn" id="refreshBtn">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
     </div>
-    <button class="refresh-btn" id="refreshBtn">
-      <i class="fas fa-sync-alt"></i> Refresh
-    </button>
   </div>
 
   <div class="messages-container">
@@ -1160,7 +1351,7 @@
           <button class="filter-btn" id="filterToday">
             <i class="fas fa-calendar-day"></i> Today
           </button>
-          <button class="filter-btn" id="fixDataBtn" style="background: var(--accent); color: white; border-color: var(--accent);">
+          <button class="filter-btn" id="fixDataBtn" style="background: var(--accent-gradient); color: white; border: none;">
             <i class="fas fa-wrench"></i> Fix Data
           </button>
         </div>
@@ -1901,6 +2092,9 @@ function displayConversations(conversations) {
     const propertyInfo = conversation.propertyId ? propertyMap.get(conversation.propertyId) : null;
     const unreadCount = conversation.unreadCount?.[currentUser.uid] || 0;
     
+    // Check if there's a pending schedule for this conversation
+    const hasPendingSchedule = checkPendingSchedule(conversation.id);
+    
     const conversationElement = document.createElement('div');
     conversationElement.className = `conversation-item ${unreadCount > 0 ? 'unread' : ''} ${conversation.id === currentConversationId ? 'active' : ''}`;
     conversationElement.dataset.conversationId = conversation.id;
@@ -1918,13 +2112,19 @@ function displayConversations(conversations) {
     const preview = lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage;
     
     conversationElement.innerHTML = `
-      <div class="conversation-avatar" style="background: ${getAvatarColor(displayInfo.displayName)}">${initials}</div>
+      <div class="conversation-avatar" style="background: ${getAvatarColor(displayInfo.displayName)}">
+        ${initials}
+        ${hasPendingSchedule ? '<span style="position: absolute; bottom: -2px; right: -2px; background: #f59e0b; color: white; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center;">📅</span>' : ''}
+      </div>
       <div class="conversation-info">
         <div class="conversation-header">
           <div class="conversation-name" title="${displayInfo.displayName}">${displayInfo.displayName}</div>
           <div class="conversation-time">${timeString}</div>
         </div>
-        <div class="conversation-preview">${preview}</div>
+        <div class="conversation-preview">
+          ${preview}
+          ${hasPendingSchedule ? ' <span style="color: #f59e0b;">📅</span>' : ''}
+        </div>
         <div class="conversation-property">
           <i class="fas fa-user-tag"></i> ${displayInfo.roleDisplay}
           ${propertyInfo ? `
@@ -2268,6 +2468,15 @@ function displayMessages(snapshot) {
     messagesByDate[date].forEach(message => {
       const isSent = message.senderId === currentUser.uid;
       const messageTime = formatMessageTime(message.timestamp);
+      
+      // Check if it's a schedule message
+      if (message.type === 'schedule' || message.scheduleAction) {
+        const scheduleElement = renderScheduleMessage(message);
+        messagesContainer.appendChild(scheduleElement);
+        return;
+      }
+      
+      // Regular message
       const statusIcon = isSent ? (message.read ? '<i class="fas fa-check-double" style="font-size: 9px; opacity: 0.7;"></i>' : '<i class="fas fa-check" style="font-size: 9px; opacity: 0.7;"></i>') : '';
       
       const messageElement = document.createElement('div');
@@ -2575,6 +2784,628 @@ function resetChatUI() {
   document.getElementById('quickActions').style.display = 'none';
 }
 
+// ==================== SCHEDULE MESSAGE FUNCTIONS ====================
+
+// Render schedule message - IMPROVED VERSION
+function renderScheduleMessage(message) {
+  const scheduleAction = message.scheduleAction || '';
+  const text = message.text || '';
+  const timestamp = message.timestamp || new Date();
+  const scheduleId = message.scheduleId || '';
+  const isSent = message.senderId === currentUser.uid;
+  
+  // Determine status based on action or text content
+  let scheduleStatus = 'pending';
+  let icon = '📅';
+  let title = 'Viewing Request';
+  
+  if (scheduleAction.includes('confirmed') || text.includes('✅')) {
+    scheduleStatus = 'confirmed';
+    icon = '✅';
+    title = 'Viewing Confirmed';
+  } else if (scheduleAction.includes('declined') || text.includes('❌')) {
+    scheduleStatus = 'declined';
+    icon = '❌';
+    title = 'Viewing Declined';
+  } else if (scheduleAction.includes('alternative') || text.includes('🔄')) {
+    scheduleStatus = 'alternative';
+    icon = '🔄';
+    title = 'Alternative Time Suggested';
+  } else if (scheduleAction.includes('cancelled') || text.includes('🚫')) {
+    scheduleStatus = 'cancelled';
+    icon = '🚫';
+    title = 'Viewing Cancelled';
+  }
+  
+  // Parse schedule details from message text
+  const lines = text.split('\n');
+  const mainLine = lines[0] || '';
+  const notes = lines.slice(1).join('\n').replace(/^(Notes|Reason|Broker Notes):\s*/i, '');
+  
+  // Extract date and time using regex patterns
+  let dateStr = '';
+  let timeStr = '';
+  
+  // Try different patterns
+  const datePattern1 = /(\d{4}-\d{2}-\d{2})/;
+  const datePattern2 = /(\w+ \d{1,2},? \d{4})/;
+  const timePattern = /(\d{1,2}:\d{2}\s*(?:AM|PM))/i;
+  
+  const dateMatch1 = text.match(datePattern1);
+  const dateMatch2 = text.match(datePattern2);
+  const timeMatch = text.match(timePattern);
+  
+  if (dateMatch1) dateStr = dateMatch1[1];
+  else if (dateMatch2) dateStr = dateMatch2[1];
+  
+  if (timeMatch) timeStr = timeMatch[1];
+  
+  // Format date if it's in YYYY-MM-DD format
+  if (dateStr && dateStr.includes('-')) {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+  }
+  
+  const element = document.createElement('div');
+  element.className = `message-schedule ${scheduleStatus} ${isSent ? 'sent-schedule' : 'received-schedule'}`;
+  
+  // Add alignment based on sender
+  if (isSent) {
+    element.style.alignSelf = 'flex-end';
+  } else {
+    element.style.alignSelf = 'flex-start';
+  }
+  
+  element.innerHTML = `
+    <div class="schedule-header">
+      <i class="fas fa-${scheduleStatus === 'confirmed' ? 'check-circle' : 
+                        scheduleStatus === 'declined' ? 'times-circle' : 
+                        scheduleStatus === 'alternative' ? 'exchange-alt' : 
+                        scheduleStatus === 'cancelled' ? 'ban' : 
+                        'calendar-check'}"></i>
+      <span>${title}</span>
+      <span class="schedule-status-badge status-${scheduleStatus}">
+        ${scheduleStatus}
+      </span>
+    </div>
+    
+    ${dateStr ? `
+      <div class="schedule-details">
+        ${dateStr ? `
+          <div class="schedule-info-row">
+            <span class="schedule-info-label">Date:</span>
+            <span class="schedule-info-value">${dateStr}</span>
+          </div>
+        ` : ''}
+        ${timeStr ? `
+          <div class="schedule-info-row">
+            <span class="schedule-info-label">Time:</span>
+            <span class="schedule-info-value">${timeStr}</span>
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
+    
+    ${notes ? `
+      <div class="schedule-notes">
+        <div class="schedule-notes-label">${scheduleStatus === 'confirmed' ? 'Broker Notes' : 
+                                          scheduleStatus === 'declined' ? 'Reason' : 
+                                          scheduleStatus === 'alternative' ? 'Details' : 
+                                          'Notes'}:</div>
+        <div class="schedule-notes-content">${notes}</div>
+      </div>
+    ` : ''}
+    
+    ${scheduleStatus === 'pending' && !isSent ? `
+      <div class="schedule-actions">
+        <button class="schedule-action-btn primary" onclick="confirmScheduleFromMessage('${scheduleId}', '${message.conversationId}')">
+          <i class="fas fa-check"></i> Confirm
+        </button>
+        <button class="schedule-action-btn secondary" onclick="declineScheduleFromMessage('${scheduleId}', '${message.conversationId}')">
+          <i class="fas fa-times"></i> Decline
+        </button>
+        <button class="schedule-action-btn secondary" onclick="suggestAlternativeFromMessage('${scheduleId}', '${message.conversationId}')">
+          <i class="fas fa-clock"></i> Suggest Alternative
+        </button>
+      </div>
+    ` : scheduleStatus === 'alternative' && isSent ? `
+      <div class="schedule-actions">
+        <button class="schedule-action-btn primary" onclick="acceptAlternativeFromMessage('${scheduleId}', '${message.conversationId}')">
+          <i class="fas fa-check"></i> Accept Alternative
+        </button>
+        <button class="schedule-action-btn secondary" onclick="suggestNewTimeFromMessage('${message.conversationId}')">
+          <i class="fas fa-clock"></i> Suggest Another Time
+        </button>
+      </div>
+    ` : scheduleStatus === 'declined' && isSent ? `
+      <div class="schedule-actions">
+        <button class="schedule-action-btn primary" onclick="suggestNewTimeFromMessage('${message.conversationId}')">
+          <i class="fas fa-clock"></i> Suggest Another Time
+        </button>
+      </div>
+    ` : ''}
+    
+    <div class="message-time" style="text-align: center; margin-top: 10px;">
+      ${formatMessageTime(timestamp)}
+    </div>
+  `;
+  
+  return element;
+}
+
+// Add these helper functions for schedule actions from messages:
+window.confirmScheduleFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  
+  const notes = prompt('Add optional notes for the buyer:');
+  
+  try {
+    // Update schedule status
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      
+      await updateDoc(scheduleRef, {
+        status: 'confirmed',
+        brokerNotes: notes || null,
+        confirmedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // Send confirmation message
+      const messageText = `✅ Viewing confirmed for ${schedule.proposedDate} at ${schedule.proposedTime}`;
+      if (notes) messageText += `\nBroker Notes: ${notes}`;
+      
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.buyerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_confirmed',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      
+      showToast('Viewing confirmed!');
+      
+      // Refresh messages
+      if (currentConversationId === conversationId) {
+        await loadMessages(conversationId, schedule.buyerId);
+      }
+    }
+  } catch (error) {
+    console.error('Error confirming schedule:', error);
+    showError('Failed to confirm: ' + error.message);
+  }
+};
+
+window.declineScheduleFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  
+  const reason = prompt('Please provide a reason for declining:');
+  if (!reason) return;
+  
+  try {
+    // Update schedule status
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      
+      await updateDoc(scheduleRef, {
+        status: 'declined',
+        declineReason: reason,
+        declinedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // Send decline message
+      const messageText = `❌ Viewing declined\nReason: ${reason}`;
+      
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.buyerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_declined',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      
+      showToast('Viewing declined');
+      
+      // Refresh messages
+      if (currentConversationId === conversationId) {
+        await loadMessages(conversationId, schedule.buyerId);
+      }
+    }
+  } catch (error) {
+    console.error('Error declining schedule:', error);
+    showError('Failed to decline: ' + error.message);
+  }
+};
+
+window.suggestAlternativeFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  
+  const alternativeDate = prompt('Enter alternative date (YYYY-MM-DD):');
+  if (!alternativeDate) return;
+  
+  const alternativeTime = prompt('Enter alternative time (e.g., 02:00 PM):');
+  if (!alternativeTime) return;
+  
+  const reason = prompt('Optional: Provide reason for suggesting alternative time:');
+  
+  try {
+    // Update schedule status
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      
+      await updateDoc(scheduleRef, {
+        status: 'alternative',
+        alternativeDate: alternativeDate,
+        alternativeTime: alternativeTime,
+        declineReason: reason || null,
+        updatedAt: serverTimestamp()
+      });
+      
+      // Send alternative message
+      const messageText = `🔄 Alternative time suggested: ${alternativeDate} at ${alternativeTime}`;
+      if (reason) messageText += `\nReason: ${reason}`;
+      
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.buyerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_alternative',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      
+      showToast('Alternative time suggested');
+      
+      // Refresh messages
+      if (currentConversationId === conversationId) {
+        await loadMessages(conversationId, schedule.buyerId);
+      }
+    }
+  } catch (error) {
+    console.error('Error suggesting alternative:', error);
+    showError('Failed to suggest alternative: ' + error.message);
+  }
+};
+
+window.acceptAlternativeFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  
+  try {
+    // Update schedule status
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      
+      await updateDoc(scheduleRef, {
+        status: 'confirmed',
+        proposedDate: schedule.alternativeDate || schedule.proposedDate,
+        proposedTime: schedule.alternativeTime || schedule.proposedTime,
+        confirmedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // Send acceptance message
+      const messageText = `✅ Alternative time accepted: ${schedule.alternativeDate} at ${schedule.alternativeTime}`;
+      
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.brokerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_confirmed',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      
+      showToast('Alternative time accepted!');
+      
+      // Refresh messages
+      if (currentConversationId === conversationId) {
+        await loadMessages(conversationId, schedule.brokerId);
+      }
+    }
+  } catch (error) {
+    console.error('Error accepting alternative:', error);
+    showError('Failed to accept alternative: ' + error.message);
+  }
+};
+
+window.suggestNewTimeFromMessage = function(conversationId) {
+  if (!currentPropertyId || !currentBrokerId) {
+    showError('Please select a conversation with a property');
+    return;
+  }
+  
+  const brokerInfo = userMap.get(currentBrokerId);
+  const propertyInfo = propertyMap.get(currentPropertyId);
+  
+  if (!brokerInfo || !propertyInfo) {
+    showError('Unable to schedule viewing');
+    return;
+  }
+  
+  const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+  
+  window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
+};
+
+// Accept alternative schedule time
+window.acceptAlternative = async function(scheduleId) {
+  if (!scheduleId) {
+    showError('Schedule information not available');
+    return;
+  }
+  
+  try {
+    // Update the alternative schedule status to confirmed
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    await updateDoc(scheduleRef, {
+      status: 'confirmed',
+      updatedAt: serverTimestamp(),
+      confirmedAt: serverTimestamp()
+    });
+    
+    showToast('Alternative time accepted!');
+    
+    // Send confirmation message
+    const scheduleDoc = await getDoc(scheduleRef);
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      const messageText = `✅ Buyer accepted the alternative viewing time: ${formatDate(schedule.proposedDate)} at ${formatTime(schedule.proposedTime)}`;
+      
+      await addDoc(collection(db, 'messages'), {
+        conversationId: schedule.conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.brokerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_accepted',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error accepting alternative:', error);
+    showError('Failed to accept alternative: ' + error.message);
+  }
+};
+
+// Suggest new time
+window.suggestNewTime = function(conversationId) {
+  if (!currentPropertyId || !currentBrokerId) {
+    showError('Please select a conversation with a property');
+    return;
+  }
+  
+  const brokerInfo = userMap.get(currentBrokerId);
+  const propertyInfo = propertyMap.get(currentPropertyId);
+  
+  if (!brokerInfo || !propertyInfo) {
+    showError('Unable to schedule viewing');
+    return;
+  }
+  
+  const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+  
+  window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
+};
+
+// Schedule viewing
+function scheduleViewing() {
+  if (!currentBrokerId || !currentPropertyId) {
+    showError('Please select a conversation with a property');
+    return;
+  }
+  
+  const brokerInfo = userMap.get(currentBrokerId);
+  const propertyInfo = propertyMap.get(currentPropertyId);
+  
+  if (!brokerInfo || !propertyInfo) {
+    showError('Unable to schedule viewing');
+    return;
+  }
+  
+  // Check if there's already a pending schedule
+  checkForExistingSchedule(currentPropertyId, currentBrokerId).then(hasExisting => {
+    if (hasExisting) {
+      if (confirm('You already have a pending viewing request for this property. Would you like to view it or schedule a new one?')) {
+        // Show existing schedule details
+        viewExistingSchedule(currentPropertyId, currentBrokerId);
+      } else {
+        // Schedule new viewing
+        openSchedulePage();
+      }
+    } else {
+      openSchedulePage();
+    }
+  });
+  
+  function openSchedulePage() {
+    const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+    window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
+  }
+}
+
+// Check for existing schedules
+async function checkForExistingSchedule(propertyId, brokerId) {
+  try {
+    const schedulesRef = collection(db, 'schedules');
+    const q = query(
+      schedulesRef,
+      where('propertyId', '==', propertyId),
+      where('buyerId', '==', currentUser.uid),
+      where('brokerId', '==', brokerId),
+      where('status', 'in', ['pending', 'confirmed', 'alternative'])
+    );
+    
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    debugLog('Error checking existing schedule:', error);
+    return false;
+  }
+}
+
+// View existing schedule
+async function viewExistingSchedule(propertyId, brokerId) {
+  try {
+    const schedulesRef = collection(db, 'schedules');
+    const q = query(
+      schedulesRef,
+      where('propertyId', '==', propertyId),
+      where('buyerId', '==', currentUser.uid),
+      where('brokerId', '==', brokerId),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const latestSchedule = snapshot.docs[0].data();
+      const scheduleId = snapshot.docs[0].id;
+      
+      // Show schedule details in a modal
+      showScheduleDetailsModal(latestSchedule, scheduleId);
+    }
+  } catch (error) {
+    debugLog('Error viewing existing schedule:', error);
+    showError('Unable to load schedule details');
+  }
+}
+
+// Show schedule details modal
+function showScheduleDetailsModal(schedule, scheduleId) {
+  const modalContent = `
+    <div class="modal-header">
+      <h3>Viewing Schedule Details</h3>
+    </div>
+    <div class="modal-body">
+      <div class="schedule-details">
+        <div class="schedule-info-row">
+          <span class="schedule-info-label">Status:</span>
+          <span class="schedule-status-badge status-${schedule.status}">${schedule.status}</span>
+        </div>
+        <div class="schedule-info-row">
+          <span class="schedule-info-label">Date:</span>
+          <span class="schedule-info-value">${formatDate(schedule.proposedDate?.toDate?.() || new Date())}</span>
+        </div>
+        <div class="schedule-info-row">
+          <span class="schedule-info-label">Time:</span>
+          <span class="schedule-info-value">${formatTime(schedule.proposedTime)}</span>
+        </div>
+        ${schedule.notes ? `
+          <div class="schedule-notes">
+            <div class="schedule-notes-label">Your Notes:</div>
+            <div class="schedule-notes-content">${schedule.notes}</div>
+          </div>
+        ` : ''}
+        ${schedule.brokerNotes ? `
+          <div class="schedule-notes">
+            <div class="schedule-notes-label">Broker Notes:</div>
+            <div class="schedule-notes-content">${schedule.brokerNotes}</div>
+          </div>
+        ` : ''}
+        ${schedule.declineReason ? `
+          <div class="schedule-notes">
+            <div class="schedule-notes-label">Decline Reason:</div>
+            <div class="schedule-notes-content">${schedule.declineReason}</div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+      ${schedule.status === 'pending' ? `
+        <button class="modal-btn primary" onclick="cancelSchedule('${scheduleId}')">Cancel Request</button>
+      ` : schedule.status === 'alternative' ? `
+        <button class="modal-btn primary" onclick="acceptAlternative('${scheduleId}')">Accept Alternative</button>
+      ` : ''}
+    </div>
+  `;
+  
+  // Create a modal to show schedule details
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay active';
+  modal.innerHTML = `
+    <div class="modal" style="max-width: 500px;">
+      ${modalContent}
+    </div>
+  `;
+  
+  modal.addEventListener('click', function(e) {
+    if (e.target === this || e.target.classList.contains('modal-btn')) {
+      modal.remove();
+    }
+  });
+  
+  document.body.appendChild(modal);
+  
+  // Add closeModal function to window
+  window.closeModal = function() {
+    modal.remove();
+  };
+}
+
+// Check for pending schedule
+async function checkPendingSchedule(conversationId) {
+  try {
+    // Check if there are any pending schedules for this conversation
+    const schedulesRef = collection(db, 'schedules');
+    const buyerId = currentUser.uid;
+    
+    const q = query(
+      schedulesRef,
+      where('conversationId', '==', conversationId),
+      where('buyerId', '==', buyerId),
+      where('status', '==', 'pending')
+    );
+    
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    debugLog('Error checking pending schedules:', error);
+    return false;
+  }
+}
+
 // ==================== DATA FIXING FUNCTIONS ====================
 
 // Create conversations from existing messages
@@ -2761,25 +3592,6 @@ function makeCallToBroker() {
   }
   
   window.open(`tel:${brokerInfo.phone}`);
-}
-
-// Schedule viewing
-function scheduleViewing() {
-  if (!currentBrokerId || !currentPropertyId) {
-    showError('Please select a conversation with a property');
-    return;
-  }
-  
-  const brokerInfo = userMap.get(currentBrokerId);
-  const propertyInfo = propertyMap.get(currentPropertyId);
-  
-  if (!brokerInfo || !propertyInfo) {
-    showError('Unable to schedule viewing');
-    return;
-  }
-  
-  const scheduleUrl = `schedule_viewing.html?brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
-  window.open(scheduleUrl, '_blank', 'width=600,height=700');
 }
 
 // View property details

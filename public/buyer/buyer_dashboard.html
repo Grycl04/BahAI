@@ -6,15 +6,1189 @@
 <title>Dashboard - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- REMOVED: recommendations.css since it doesn't exist -->
 <link rel="stylesheet" href="style.css">
+<style>
+    :root {
+        /* Navy blue - primary */
+        --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+        --primary-light: #1e3a5f;
+        --primary-dark: #071e38;
+        /* Gold - accent / CTAs */
+        --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        --border-radius: 16px;
+        --border-radius-sm: 12px;
+        --border-radius-lg: 24px;
+        --text-dark: #1a202c;
+        --text-light: #718096;
+    }
+
+    /* Hero Section Enhancement */
+    .hero-section {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: var(--border-radius-lg);
+        padding: 50px 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>');
+        background-size: cover;
+        opacity: 0.1;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        line-height: 1.2;
+        max-width: 800px;
+        color: white;
+    }
+    
+    .hero-section p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 600px;
+        margin-bottom: 20px;
+        color: rgba(255, 255, 255, 0.95);
+    }
+    
+    /* Search Section Enhancement */
+    .search-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 35px;
+        margin-bottom: 40px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .search-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .search-title i {
+        color: #d4af37;
+        font-size: 1.2rem;
+    }
+    
+    .search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .search-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .search-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .search-select, .search-input {
+        padding: 14px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .search-select:focus, .search-input:focus {
+        outline: none;
+        border-color: #d4af37;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    }
+    
+    .search-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .search-button {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 200px;
+        justify-content: center;
+    }
+    
+    .search-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(11, 46, 82, 0.4);
+    }
+    
+    .reset-button {
+        background: white;
+        color: var(--text-dark);
+        border: 2px solid #e5e7eb;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 200px;
+        justify-content: center;
+    }
+    
+    .reset-button:hover {
+        background: #f9fafb;
+        border-color: #d4af37;
+        transform: translateY(-2px);
+    }
+    /* Type badges for property cards */
+.listing-type-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: var(--primary-gradient);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(11, 46, 82, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.type-sale {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+
+.type-rent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+.type-lease {
+    background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%) !important;
+}
+
+/* AI Match badge */
+.listing-match-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* AI Pick badge */
+.listing-ai-badge {
+    position: absolute;
+    top: 50px;
+    right: 15px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Price color classes */
+.price-sale { color: #3b82f6; }
+.price-rent { color: #10b981; }
+.price-lease { color: #d4af37; }
+    
+    /* Section Styling */
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-title i {
+        color: #d4af37;
+        font-size: 1.3rem;
+    }
+    
+    /* AI Chatbot Enhancement */
+    .ai-chatbot-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: var(--border-radius);
+        padding: 30px;
+        margin-bottom: 40px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .chatbot-container {
+        background: white;
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .chat-messages {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 20px;
+        background: white;
+    }
+    
+    .message {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .message.bot .avatar {
+        background: var(--primary-gradient);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .message.bot .content {
+        background: #f8fafc;
+        padding: 15px 20px;
+        border-radius: 18px;
+        border-top-left-radius: 5px;
+        max-width: 80%;
+    }
+    
+    .chat-input {
+        display: flex;
+        gap: 10px;
+        padding: 20px;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .chat-input input {
+        flex: 1;
+        padding: 14px 20px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .chat-input input:focus {
+        outline: none;
+        border-color: #d4af37;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .chat-input button {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .chat-input button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .voice-btn {
+        background: white !important;
+        color: var(--text-dark) !important;
+        border: 2px solid #e5e7eb !important;
+        padding: 14px !important;
+    }
+    
+    /* Categories Enhancement */
+    .categories-section {
+        margin-bottom: 40px;
+    }
+    
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+    
+    .category-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-hover-shadow);
+        border-color: #d4af37;
+    }
+    
+    .category-card.active {
+        background: var(--primary-gradient);
+        color: white;
+        border-color: #d4af37;
+    }
+    
+    .category-card.active .category-count {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .category-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .category-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .category-count {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 15px;
+    }
+    
+    /* Properties Grid Enhancement */
+    .listings-grid, .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        margin-top: 25px;
+    }
+    
+    .listing-card-wrapper {
+        transition: all 0.3s ease;
+    }
+    
+    .listing-card-wrapper:hover {
+        transform: translateY(-5px);
+    }
+    
+    .listing-card {
+        position: relative;
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        height: 100%;
+    }
+    
+    .listing-card:hover {
+        box-shadow: var(--card-hover-shadow);
+    }
+    
+    .card-link-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .listing-card-image-container {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+    }
+    
+    .listing-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .listing-card:hover .listing-image {
+        transform: scale(1.05);
+    }
+    
+    .listing-content {
+        padding: 25px;
+    }
+    
+    .listing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        gap: 15px;
+    }
+    
+    .listing-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        max-height: 3.6em;
+    }
+    
+    .listing-location {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .listing-price {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        white-space: normal !important; /* Change from nowrap to normal */
+        word-break: break-word; /* Allow breaking if needed */
+        text-align: right;
+        min-width: fit-content; /* Ensure minimum width fits content */
+        flex-shrink: 0; /* Prevent shrinking */
+        max-width: 45%; /* Limit width but allow wrapping */
+    }
+
+    .listing-header > div:first-child {
+    flex: 1;
+    min-width: 0; /* This is crucial for text-overflow to work */
+    overflow: hidden;
+    }
+    
+    .listing-details {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .detail {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .detail-icon {
+        font-size: 1.1rem;
+    }
+    
+    .listing-broker {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .broker-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .broker-info {
+        flex: 1;
+    }
+    
+    .broker-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .broker-contact {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .listing-status {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    .listing-actions {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .action-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .contact-btn {
+        background: var(--primary-gradient);
+        color: white;
+    }
+    
+    .contact-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Recommendations Section */
+    .recommendations-section {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: var(--border-radius);
+        padding: 35px;
+        margin-bottom: 40px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    
+    .listing-match-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--secondary-gradient);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .listing-ai-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--accent-gradient);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    
+    /* Loading States */
+    .loading-state, .error-state, .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .spinner {
+        border: 4px solid rgba(102, 126, 234, 0.2);
+        border-top: 4px solid #d4af37;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+    
+    /* Status Colors */
+    .listing-status.status-available,
+    .listing-status.status-active {
+        background: var(--secondary-gradient) !important;
+        color: white !important;
+        padding: 6px 15px !important;
+        border-radius: 20px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    .listing-status.status-pending {
+        background: var(--accent-gradient) !important;
+        color: white !important;
+    }
+    
+    .listing-status.status-sold,
+    .listing-status.status-rented {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        color: white !important;
+    }
+    
+    /* Demo prompts */
+    .demo-prompt-btn {
+        padding: 10px 16px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    
+    .demo-prompt-btn:hover {
+        background: var(--primary-light);
+        color: white;
+        border-color: #d4af37;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    /* Message Modal - Consistent Sizing */
+    .message-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .message-modal.show {
+        display: flex;
+        opacity: 1;
+    }
+    
+    .message-modal-content {
+        width: 90%;
+        max-width: 700px;
+        max-height: 85vh;
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease;
+    }
+    
+    .message-header {
+        padding: 25px 30px;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .message-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .message-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+    
+    .message-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        margin-left: 15px;
+    }
+    
+    .message-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+    
+    .message-broker-card {
+        padding: 20px 30px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .message-broker-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .message-broker-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .message-broker-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .message-broker-role {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .messages-container {
+        flex: 1;
+        padding: 25px 30px;
+        overflow-y: auto;
+        min-height: 300px;
+        max-height: 400px;
+        background: #f9fafb;
+    }
+    
+    .message-bubble {
+        margin-bottom: 20px;
+        max-width: 80%;
+    }
+    
+    .message-bubble.sent {
+        margin-left: auto;
+    }
+    
+    .message-bubble.received {
+        margin-right: auto;
+    }
+    
+    .message-bubble-content {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .message-bubble.sent .message-bubble-content {
+        background: var(--primary-gradient);
+        color: white;
+    }
+    
+    .message-time {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 8px;
+    }
+    
+    .message-bubble.sent .message-time {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .loading-messages {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-light);
+    }
+    
+    .no-messages {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-light);
+    }
+    
+    .message-input-area {
+        padding: 25px 30px;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .message-textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        resize: none;
+        min-height: 80px;
+        max-height: 150px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .message-textarea:focus {
+        outline: none;
+        border-color: #d4af37;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .message-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .contact-info {
+        flex: 1;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        gap: 20px;
+        overflow: hidden;
+    }
+    
+    .contact-info span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .send-btn {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    
+    .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .quick-contact-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .quick-contact-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .email-btn {
+        background: #f0f9ff;
+        color: #0ea5e9;
+        border: 1px solid #bae6fd;
+    }
+    
+    .email-btn:hover {
+        background: #0ea5e9;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .call-btn {
+        background: #f0fdf4;
+        color: #10b981;
+        border: 1px solid #bbf7d0;
+    }
+    
+    .call-btn:hover {
+        background: #10b981;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Badge styling for property types */
+    .type-sale {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+    }
+    
+    .type-rent {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .type-lease {
+        background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        color: white;
+    }
+    
+    /* Price styling */
+    .price-sale { color: #3b82f6; }
+    .price-rent { color: #3b82f6; }
+    .price-lease { color: #3b82f6; }
+    
+    /* Welcome text enhancement */
+    #welcomeText {
+        font-size: 1.1rem;
+        font-weight: 500;
+        opacity: 0.95;
+        margin-top: 10px;
+        padding: 10px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes modalSlideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 30px 20px;
+        }
+        
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+        
+        .search-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .search-actions {
+            flex-direction: column;
+        }
+        
+        .search-button, .reset-button {
+            min-width: 100%;
+        }
+        
+        .listings-grid, .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .categories-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .chat-input {
+            flex-direction: column;
+        }
+        
+        .listing-details {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        /* Responsive Modal */
+        .message-modal-content {
+            width: 95%;
+            max-height: 90vh;
+            margin: 10px;
+        }
+        
+        .message-header {
+            padding: 20px;
+        }
+        
+        .message-broker-card {
+            padding: 15px 20px;
+        }
+        
+        .messages-container {
+            padding: 20px;
+            max-height: 350px;
+        }
+        
+        .message-input-area {
+            padding: 20px;
+        }
+        
+        .message-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .contact-info {
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .quick-contact-buttons {
+            flex-direction: column;
+        }
+        
+        .listing-title {
+            -webkit-line-clamp: 2;
+            max-height: 3.6em;
+        }
+        
+        .broker-name, .broker-contact {
+            max-width: 200px;
+        }
+    }
+</style>
 </head>
 
 <body>
-<script src="ai_chatbot.js" type="module"></script>
+<script src="../ai_chatbot.js" type="module"></script>
 
 <!-- Mobile Menu Toggle -->
-<button class="mobile-menu-toggle" id="mobileMenuToggle">≡</button>
+<button class="mobile-menu-toggle" id="mobileMenuToggle">
+    <i class="fas fa-bars"></i>
+</button>
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
@@ -23,9 +1197,11 @@
 <div class="message-modal" id="messageModal">
     <div class="message-modal-content">
         <div class="message-header">
-            <h2 id="messageBrokerName">Contact Broker</h2>
+            <h2 id="messageBrokerName">Chat</h2>
             <div class="message-subtitle" id="messageBrokerRole"></div>
-            <button class="message-close" id="closeMessageModal">&times;</button>
+            <button class="message-close" id="closeMessageModal">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
         <div class="message-broker-card">
@@ -58,16 +1234,19 @@
                     <span id="brokerPhoneInfo">📞 Phone: Loading...</span>
                 </div>
                 <button class="send-btn" id="sendMessageBtn">
-                    <span>📨 Send</span>
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Send Message</span>
                 </button>
             </div>
             
             <div class="quick-contact-buttons">
                 <a href="#" class="quick-contact-btn email-btn" id="quickEmailBtn">
-                    📧 Send Email
+                    <i class="fas fa-envelope"></i>
+                    Send Email
                 </a>
                 <a href="#" class="quick-contact-btn call-btn" id="quickCallBtn">
-                    📞 Make Call
+                    <i class="fas fa-phone"></i>
+                    Make Call
                 </a>
             </div>
         </div>
@@ -78,137 +1257,181 @@
 <div class="container">
 <!-- Hero Section -->
 <div class="hero-section">
-<h1>Discover House and Lot for sale and rent in Batangas</h1>
-<p>Find your dream property in Batangas - homes, condos, lots, and commercial spaces</p>
-<div id="welcomeText" style="font-weight: 500; opacity: 0.9; font-size: 16px;"></div>
+    <h1>Discover House and Lot for sale and rent in Batangas</h1>
+    <p>Find your dream property in Batangas - homes, condos, lots, and commercial spaces</p>
+    <div id="welcomeText" class="welcome-message"></div>
+    <div class="hero-stats" style="display: flex; gap: 30px; margin-top: 30px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 1.5rem; background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-building"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700;" id="totalProperties">0</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Total Properties</div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 1.5rem; background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700;">20+</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Cities & Towns</div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 1.5rem; background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700;">AI-Powered</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Smart Recommendations</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Search Section -->
 <div class="search-section">
-<div class="search-title">
-    <i class="fas fa-search"></i>
-    Find Properties in Batangas
-</div>
+    <div class="search-title">
+        <i class="fas fa-search"></i>
+        Find Properties in Batangas
+    </div>
 
-<div class="search-grid">
-<!-- Location Filter -->
-<div class="search-group">
-    <label class="search-label">Select City/Municipality</label>
-    <select class="search-select" id="filterLocation">
-    <option value="">All of Batangas</option>
-    <option value="Batangas City">Batangas City</option>
-    <option value="Lipa City">Lipa City</option>
-    <option value="Tanauan City">Tanauan City</option>
-    <option value="Bauan">Bauan</option>
-    <option value="Balayan">Balayan</option>
-    <option value="Calaca">Calaca</option>
-    <option value="Lemery">Lemery</option>
-    <option value="Nasugbu">Nasugbu</option>
-    <option value="San Juan">San Juan</option>
-    <option value="Taal">Taal</option>
-    <option value="Talisay">Talisay</option>
-    <option value="Alitagtag">Alitagtag</option>
-    <option value="Cuenca">Cuenca</option>
-    <option value="Laurel">Laurel</option>
-    <option value="Mataasnakahoy">Mataasnakahoy</option>
-    <option value="San Jose">San Jose</option>
-    <option value="San Luis">San Luis</option>
-    <option value="San Pascual">San Pascual</option>
-    <option value="Santo Tomas">Santo Tomas</option>
-    </select>
-</div>
+    <div class="search-grid">
+        <!-- Location Filter -->
+        <div class="search-group">
+            <label class="search-label">
+                <i class="fas fa-map-marker-alt"></i>
+                Select City/Municipality
+            </label>
+            <select class="search-select" id="filterLocation">
+                <option value="">All of Batangas</option>
+                <option value="Batangas City">Batangas City</option>
+                <option value="Lipa City">Lipa City</option>
+                <option value="Tanauan City">Tanauan City</option>
+                <option value="Bauan">Bauan</option>
+                <option value="Balayan">Balayan</option>
+                <option value="Calaca">Calaca</option>
+                <option value="Lemery">Lemery</option>
+                <option value="Nasugbu">Nasugbu</option>
+                <option value="San Juan">San Juan</option>
+                <option value="Taal">Taal</option>
+                <option value="Talisay">Talisay</option>
+                <option value="Alitagtag">Alitagtag</option>
+                <option value="Cuenca">Cuenca</option>
+                <option value="Laurel">Laurel</option>
+                <option value="Mataasnakahoy">Mataasnakahoy</option>
+                <option value="San Jose">San Jose</option>
+                <option value="San Luis">San Luis</option>
+                <option value="San Pascual">San Pascual</option>
+                <option value="Santo Tomas">Santo Tomas</option>
+            </select>
+        </div>
 
-<!-- Transaction Type Filter -->
-<div class="search-group">
-    <label class="search-label">Transaction Type</label>
-    <select class="search-select" id="filterListingType">
-    <option value="">All Types</option>
-    <option value="sale">For Sale</option>
-    <option value="rent">For Rent</option>
-    <option value="lease">For Lease</option>
-    </select>
-</div>
+        <!-- Transaction Type Filter -->
+        <div class="search-group">
+            <label class="search-label">
+                <i class="fas fa-handshake"></i>
+                Transaction Type
+            </label>
+            <select class="search-select" id="filterListingType">
+                <option value="">All Types</option>
+                <option value="sale">For Sale</option>
+                <option value="rent">For Rent</option>
+                <option value="lease">For Lease</option>
+            </select>
+        </div>
 
-<!-- Property Category Filter (Dynamic based on transaction type) -->
-<div class="search-group">
-    <label class="search-label">Property Category</label>
-    <select class="search-select" id="filterPropertyCategory">
-    <option value="">All Categories</option>
-    <!-- Options will be populated dynamically based on transaction type -->
-    </select>
-</div>
+        <!-- Property Category Filter -->
+        <div class="search-group">
+            <label class="search-label">
+                <i class="fas fa-th-large"></i>
+                Property Category
+            </label>
+            <select class="search-select" id="filterPropertyCategory">
+                <option value="">All Categories</option>
+                <!-- Options will be populated dynamically based on transaction type -->
+            </select>
+        </div>
 
-<!-- Property Type Filter (Dynamic based on category) -->
-<div class="search-group">
-    <label class="search-label">Property Type</label>
-    <select class="search-select" id="filterPropertyType">
-    <option value="">All Types</option>
-    <!-- Options will be populated dynamically based on category -->
-    </select>
-</div>
+        <!-- Property Type Filter -->
+        <div class="search-group">
+            <label class="search-label">
+                <i class="fas fa-home"></i>
+                Property Type
+            </label>
+            <select class="search-select" id="filterPropertyType">
+                <option value="">All Types</option>
+                <!-- Options will be populated dynamically based on category -->
+            </select>
+        </div>
 
-<!-- Search by Name/Keyword -->
-<div class="search-group">
-    <label class="search-label">Search Property</label>
-    <input type="text" class="search-input" id="filterName" placeholder="Enter property name or keyword...">
-</div>
-</div>
+        <!-- Search by Name/Keyword -->
+        <div class="search-group">
+            <label class="search-label">
+                <i class="fas fa-search"></i>
+                Search Property
+            </label>
+            <input type="text" class="search-input" id="filterName" placeholder="Enter property name or keyword...">
+        </div>
+    </div>
 
-<div class="search-actions">
-    <button class="search-button" id="applyFilters">
-    <i class="fas fa-search"></i>
-    Search Properties
-    </button>
-    <button class="reset-button" id="resetFilters">
-    <i class="fas fa-redo"></i>
-    Reset Filters
-    </button>
+    <div class="search-actions">
+        <button class="search-button" id="applyFilters">
+            <i class="fas fa-search"></i>
+            Search Properties
+        </button>
+        <button class="reset-button" id="resetFilters">
+            <i class="fas fa-redo"></i>
+            Reset Filters
+        </button>
+    </div>
 </div>
 
 <!-- AI Chatbot Section -->
 <div class="ai-chatbot-section">
-  <h2 class="section-title">
-    <i class="fas fa-robot"></i> AI Property Assistant
-  </h2>
-  <p style="color: var(--text-light); margin-bottom: 25px; font-size: 15px;">
-    Ask me anything about properties in Batangas! Try: "Find apartments in Batangas City" or "Tell me about Lipa City"
-  </p>
-  
-  <div class="chatbot-container">
-    <!-- Chat Messages -->
-    <div class="chat-messages" id="chatMessages">
-      <div class="message bot">
-        <div class="avatar">🤖</div>
-        <div class="content">
-          <p>Hello! I'm your AI property assistant. How can I help you find properties in Batangas today?</p>
-          <p>Try asking me:</p>
-          <ul style="margin: 10px 0; padding-left: 20px;">
-            <li>"Find apartments in Batangas City"</li>
-            <li>"Show me houses under 3M with 3 bedrooms"</li>
-            <li>"Tell me about Lipa City"</li>
-            <li>"Properties that accept bank financing"</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <h2 class="section-title">
+        <i class="fas fa-robot"></i> AI Property Assistant
+    </h2>
+    <p style="color: var(--text-light); margin-bottom: 25px; font-size: 15px;">
+        Ask me anything about properties in Batangas! Try: "Find apartments in Batangas City" or "Tell me about Lipa City"
+    </p>
     
-    <!-- Chat Input -->
-    <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="Type your property question here..." />
-      <button id="sendChatBtn">
-        <i class="fas fa-paper-plane"></i> Send
-      </button>
-      <button id="voiceInputBtn" class="voice-btn">
-        <i class="fas fa-microphone"></i>
-      </button>
+    <div class="chatbot-container">
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="avatar">🤖</div>
+                <div class="content">
+                    <p>Hello! I'm your AI property assistant. How can I help you find properties in Batangas today?</p>
+                    <p>Try asking me:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>"Find apartments in Batangas City"</li>
+                        <li>"Show me houses under 3M with 3 bedrooms"</li>
+                        <li>"Tell me about Lipa City"</li>
+                        <li>"Properties that accept bank financing"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Input -->
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type your property question here..." />
+            <button id="sendChatBtn">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
+            <button id="voiceInputBtn" class="voice-btn">
+                <i class="fas fa-microphone"></i>
+            </button>
+        </div>
     </div>
-  </div>
 </div>
-
 
 <!-- AI Recommendations Section -->
 <div id="recommendedSection" class="recommendations-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
         <div>
             <h2 class="section-title">
                 <i class="fas fa-robot"></i>
@@ -218,7 +1441,7 @@
                 Based on your saved properties and search history
             </p>
         </div>
-        <button id="refreshRecommendationsBtn" class="search-button" style="padding: 8px 16px; font-size: 14px;">
+        <button id="refreshRecommendationsBtn" class="search-button" style="padding: 12px 24px; font-size: 14px;">
             <i class="fas fa-sync-alt"></i> Refresh
         </button>
     </div>
@@ -251,13 +1474,20 @@
 
 <!-- All Properties Section -->
 <div class="properties-section">
-    <h2 class="section-title">
-        <i class="fas fa-building"></i>
-        All Properties in Batangas
-    </h2>
-    <p style="color: var(--text-light); margin-bottom: 25px; font-size: 15px;" id="propertiesCount">
-        Loading properties...
-    </p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 class="section-title">
+                <i class="fas fa-building"></i>
+                All Properties in Batangas
+            </h2>
+            <p style="color: var(--text-light); margin-bottom: 0; font-size: 15px;" id="propertiesCount">
+                Loading properties...
+            </p>
+        </div>
+        <button class="search-button" onclick="viewAllProperties()" style="padding: 12px 24px;">
+            <i class="fas fa-eye"></i> View All Properties
+        </button>
+    </div>
 
     <!-- Properties Grid -->
     <div class="listings-grid" id="listingsContainer">
@@ -358,6 +1588,14 @@ function setupLogoutButton() {
             }
         }
     });
+}
+
+// Update total properties count
+function updateTotalPropertiesCount(count) {
+    const totalPropertiesEl = document.getElementById('totalProperties');
+    if (totalPropertiesEl) {
+        totalPropertiesEl.textContent = count;
+    }
 }
 </script>
 
@@ -509,10 +1747,24 @@ function updateMessagingModal(userInfo, property) {
                      userInfo.role === 'broker' ? 'Licensed Broker' : 
                      'Property Contact';
     
-    // Set modal title and info
-    document.getElementById('messageBrokerName').textContent = `Message ${brokerName}`;
+    // Set modal title and info (with ellipsis for long names)
+    const modalTitle = document.getElementById('messageBrokerName');
+    modalTitle.textContent = `Message ${brokerName}`;
+    if (modalTitle.scrollWidth > modalTitle.clientWidth) {
+        modalTitle.title = brokerName;
+        modalTitle.textContent = `Message ${brokerName.length > 20 ? brokerName.substring(0, 20) + '...' : brokerName}`;
+    }
+    
     document.getElementById('messageBrokerRole').textContent = brokerRole;
-    document.getElementById('messageBrokerFullName').textContent = brokerName;
+    
+    // Set broker name with ellipsis if too long
+    const brokerNameElement = document.getElementById('messageBrokerFullName');
+    brokerNameElement.textContent = brokerName;
+    if (brokerNameElement.scrollWidth > brokerNameElement.clientWidth) {
+        brokerNameElement.title = brokerName;
+        brokerNameElement.textContent = brokerName.length > 25 ? brokerName.substring(0, 25) + '...' : brokerName;
+    }
+    
     document.getElementById('messageBrokerType').textContent = brokerRole;
     document.getElementById('messageBrokerContact').textContent = userInfo.email || 'Email not available';
 
@@ -520,11 +1772,17 @@ function updateMessagingModal(userInfo, property) {
     const initials = brokerName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'B';
     document.getElementById('messageBrokerAvatar').textContent = initials;
     
-    // Update contact info
+    // Update contact info with ellipsis
     const emailInfo = document.getElementById('brokerEmailInfo');
     const phoneInfo = document.getElementById('brokerPhoneInfo');
-    emailInfo.textContent = `📧 ${userInfo.email || 'Email not available'}`;
-    phoneInfo.textContent = `📞 ${userInfo.phone || 'Phone not available'}`;
+    
+    const emailText = `📧 ${userInfo.email || 'Email not available'}`;
+    emailInfo.textContent = emailText;
+    emailInfo.title = userInfo.email || 'Email not available';
+    
+    const phoneText = `📞 ${userInfo.phone || 'Phone not available'}`;
+    phoneInfo.textContent = phoneText;
+    phoneInfo.title = userInfo.phone || 'Phone not available';
     
     // Setup quick contact buttons
     const quickEmailBtn = document.getElementById('quickEmailBtn');
@@ -549,7 +1807,9 @@ function updateMessagingModal(userInfo, property) {
     // Set up message input placeholder with property context
     const messageInput = document.getElementById('messageInput');
     if (property) {
-        messageInput.placeholder = `Hi ${brokerName}, I'm interested in ${property.title} at ${property.location}. Could you please provide more details about...`;
+        const propertyTitle = property.title || 'property';
+        const truncatedTitle = propertyTitle.length > 50 ? propertyTitle.substring(0, 50) + '...' : propertyTitle;
+        messageInput.placeholder = `Hi ${brokerName}, I'm interested in ${truncatedTitle}. Could you please provide more details about...`;
     } else {
         messageInput.placeholder = `Type your message here...`;
     }
@@ -759,7 +2019,7 @@ async function sendMessage() {
         sendBtn.style.background = '#10b981';
         
         setTimeout(() => {
-            sendBtn.innerHTML = '📨 Send';
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Send Message</span>';
             sendBtn.style.background = '';
             sendBtn.disabled = false;
         }, 1500);
@@ -1373,6 +2633,9 @@ async function loadAllListings() {
         
         console.log(`   Found ${allListings.length} listings total`);
         
+        // Update total properties count
+        updateTotalPropertiesCount(allListings.length);
+        
         await loadAllUserData(userIds);
         
         // Display all active listings initially
@@ -1605,83 +2868,71 @@ async function displayListings(listings) {
     const bathrooms = listing.bathrooms || 0;
     const area = listing.floorArea || listing.totalArea || 'N/A';
     
+    // Truncate long titles with ellipsis
+    const title = listing.title || 'Untitled Property';
+    const truncatedTitle = title.length > 50 ? title.substring(0, 50) + '...' : title;
+    
+    // Truncate address with ellipsis
+    const address = getCompleteAddress(listing);
+    const truncatedAddress = address.length > 40 ? address.substring(0, 40) + '...' : address;
+    
+    // Truncate broker name with ellipsis
+    const brokerName = userInfo.displayName;
+    const truncatedBrokerName = brokerName.length > 20 ? brokerName.substring(0, 20) + '...' : brokerName;
+    
+    // Add type badge to property card
+    const typeBadge = `<div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>`;
+    
+    const locationDisplay = listing.location || listing.address || 'Location not specified';
+    const listingTypeLabel = listingType === 'rent' ? 'For Rent' : listingType === 'lease' ? 'For Lease' : 'For Sale';
+    let statusText = listing.status || 'available';
+    let statusClass = 'status-active';
+    let showStatus = true;
+    if (statusText.toLowerCase() === 'active' || statusText.toLowerCase() === 'available' || statusText.toLowerCase() === 'published') {
+      statusText = '';
+      statusClass = '';
+      showStatus = false;
+    } else if (statusText.toLowerCase() === 'pending') {
+      statusClass = 'status-pending';
+    }
     return `
 <div class="listing-card-wrapper">
-    <a href="property_details.html?id=${listing.id}" class="listing-card-link">
-        <div class="listing-card">
-            <div class="listing-card-image-container">
-                <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
-                <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
-                
-                <!-- Save Button - Heart icon for saving properties -->
-                <button class="save-property-btn"
-                    data-property-id="${listing.id}"
-                    data-is-saved="${isSaved}"
-                    aria-label="${isSaved ? 'Remove from saved' : 'Save property'}">
-                    <span class="save-icon">${isSaved ? '❤️' : '🤍'}</span>
-                </button>
-            </div>
-            <div class="listing-content">
-                <div class="listing-header">
-                    <div>
-                        <h3 class="listing-title">${listing.title || 'Untitled Property'}</h3>
-                        <div class="listing-location">
-                            <span class="location-icon">📍</span>
-                            <span class="location-text">${getCompleteAddress(listing)}</span>
-                        </div>
-                    </div>
-                    <div class="listing-price ${priceClass}">${displayPrice}</div>
-                </div>
-
-                <div class="listing-details">
-                    <div class="detail">
-                        <span class="detail-icon">🛏️</span>
-                        <span class="detail-text">${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
-                    </div>
-                    <div class="detail">
-                        <span class="detail-icon">🚿</span>
-                        <span class="detail-text">${bathrooms} baths</span>
-                    </div>
-                    <div class="detail">
-                        <span class="detail-icon">📐</span>
-                        <span class="detail-text">${area} sqm</span>
-                    </div>
-                    ${listingType === 'rent' && listing.securityDeposit ? `
-                    <div class="detail">
-                        <span class="detail-icon">💰</span>
-                        <span class="detail-text">Deposit: ₱${listing.securityDeposit.toLocaleString()}</span>
-                    </div>` : ''}
-                </div>
-
-                <div class="listing-broker">
-                    <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
-                    <div class="broker-info">
-                        <div class="broker-name" title="${userInfo.displayName}">${userInfo.displayName}</div>
-                        <div class="broker-contact">
-                            ${getRoleDisplayText(userInfo.role)} • ${listing.propertyType || 'Property'}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="listing-status status-${listing.status || 'active'}">
-                    ${listing.status || 'active'}
-                </div>
-
-                <div class="listing-actions">
-                    <button class="action-btn contact-btn" 
-                            data-user-id="${listing.userId}"
-                            aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
-                        <span class="contact-icon">📞</span>
-                        Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-                    </button>
-                    <span class="action-btn view-btn" aria-label="View property details">
-                        <span class="view-icon">👁️</span>
-                        View Details
-                    </span>
-                </div>
-            </div>
+    <div class="listing-card" data-listing-id="${listing.id}">
+        <a href="property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${title}"></a>
+        <div class="listing-card-image-container">
+            <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
+            ${typeBadge} <!-- Add type badge here -->
         </div>
-    </a>
+        <div class="listing-content">
+            <div class="listing-header">
+                <div style="flex: 1; min-width: 0;">
+                    <h3 class="listing-title" title="${title}">${truncatedTitle}</h3>
+                </div>
+                <div class="listing-price ${priceClass}">${displayPrice}</div>
+            </div>
+            <div class="listing-location">
+                <i class="fas fa-map-marker-alt" style="flex-shrink: 0;"></i>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${locationDisplay}">${truncatedAddress}</span>
+                <span> · ${listingTypeLabel}</span>
+            </div>
+            <div class="listing-details">
+                <div class="detail"><i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</div>
+                <div class="detail"><i class="fas fa-bath"></i> ${bathrooms} baths</div>
+                <div class="detail"><i class="fas fa-ruler-combined"></i> ${area} sqm</div>
+                ${listingType === 'rent' && listing.securityDeposit ? `<div class="detail"><i class="fas fa-coins"></i> Deposit: ₱${listing.securityDeposit.toLocaleString()}</div>` : ''}
+            </div>
+            <div class="listing-broker">
+                <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
+                <div class="broker-info">
+                    <div class="broker-name" title="${brokerName}">${truncatedBrokerName}</div>
+                    <div class="broker-contact">
+                        ${getRoleDisplayText(userInfo.role)} · ${listing.propertyType || 'Property'}
+                    </div>
+                </div>
+            </div>
+            ${showStatus ? `<div class="listing-status ${statusClass}">${statusText}</div>` : ''}
+        </div>
+    </div>
 </div>
     `;
   }).join('');
@@ -1912,208 +3163,17 @@ function setupListingEventListeners() {
 
 // --- RECOMMENDATIONS FUNCTIONS (USING PYTHON BACKEND) ---
 
-async function getActualSavedCount(userId) {
-    try {
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef, where('userId', '==', userId));
-        const snapshot = await getDocs(q);
-        return snapshot.size;
-    } catch (error) {
-        console.error('Error getting saved count:', error);
-        return 0;
-    }
-}
-
-async function getUserSavedProperties(userId) {
-    try {
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef, where('userId', '==', userId));
-        const snapshot = await getDocs(q);
-        
-        const savedIds = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.propertyId) {
-                savedIds.push(data.propertyId);
-            }
-        });
-        
-        // Get the actual property data
-        const savedProperties = allListings.filter(listing => 
-            savedIds.includes(listing.id)
-        );
-        
-        return savedProperties;
-    } catch (error) {
-        console.error('Error getting saved properties:', error);
-        return [];
-    }
-}
-
-function analyzeSavedPatterns(savedProperties) {
-    const patterns = {
-        propertyTypes: new Set(),
-        categories: new Set(),
-        locations: [],
-        minPrice: Infinity,
-        maxPrice: 0,
-        avgPrice: 0
-    };
-    
-    let totalPrice = 0;
-    let priceCount = 0;
-    
-    savedProperties.forEach(prop => {
-        // Property types
-        if (prop.propertyType) {
-            patterns.propertyTypes.add(prop.propertyType);
-        }
-        
-        // Categories
-        if (prop.propertyCategory) {
-            patterns.categories.add(prop.propertyCategory);
-        }
-        
-        // Locations
-        if (prop.city) {
-            patterns.locations.push(prop.city);
-        } else if (prop.location) {
-            patterns.locations.push(prop.location.split(',')[0].trim());
-        }
-        
-        // Prices
-        const price = prop.pricing || prop.salePrice || prop.monthlyRent || 0;
-        if (price > 0) {
-            patterns.minPrice = Math.min(patterns.minPrice, price);
-            patterns.maxPrice = Math.max(patterns.maxPrice, price);
-            totalPrice += price;
-            priceCount++;
-        }
-    });
-    
-    if (priceCount > 0) {
-        patterns.avgPrice = totalPrice / priceCount;
-    } else {
-        patterns.minPrice = 0;
-    }
-    
-    // Remove duplicates from locations
-    patterns.locations = [...new Set(patterns.locations)];
-    
-    return patterns;
-}
-
-async function generateLocalRecommendations(userId, savedCount) {
-    try {
-        console.log(`🔄 Generating local recommendations based on ${savedCount} saved properties`);
-        
-        // Get user's saved properties
-        const savedProperties = await getUserSavedProperties(userId);
-        if (savedProperties.length === 0) return [];
-        
-        // Analyze saved properties to find patterns
-        const patterns = analyzeSavedPatterns(savedProperties);
-        
-        // Get all active properties
-        const activeProperties = allListings.filter(listing => 
-            listing.status === 'active' ||
-            listing.status === 'available' ||
-            listing.status === 'Active' ||
-            (listing.status === undefined && listing.isActive !== false)
-        );
-        
-        // Score properties based on patterns
-        const scoredProperties = activeProperties
-            .filter(prop => !savedProperties.some(saved => saved.id === prop.id)) // Exclude already saved
-            .map(prop => {
-                let score = 0;
-                let reasons = [];
-                
-                // Property type match
-                if (patterns.propertyTypes.has(prop.propertyType)) {
-                    score += 30;
-                    reasons.push(`Similar property type: ${prop.propertyType}`);
-                }
-                
-                // Location match
-                const propLocation = prop.city || prop.location || '';
-                if (patterns.locations.some(loc => propLocation.includes(loc))) {
-                    score += 25;
-                    reasons.push(`Similar location`);
-                }
-                
-                // Price range match
-                const propPrice = prop.pricing || prop.salePrice || prop.monthlyRent || 0;
-                if (propPrice >= patterns.minPrice && propPrice <= patterns.maxPrice) {
-                    score += 20;
-                    reasons.push(`Similar price range`);
-                }
-                
-                // Property category match
-                if (patterns.categories.has(prop.propertyCategory)) {
-                    score += 15;
-                    reasons.push(`Same category: ${prop.propertyCategory}`);
-                }
-                
-                return {
-                    ...prop,
-                    recoScore: score,
-                    similar_to: reasons[0] || 'Similar to your saved properties',
-                    is_local_recommendation: true
-                };
-            })
-            .filter(prop => prop.recoScore > 30) // Only include decent matches
-            .sort((a, b) => b.recoScore - a.recoScore)
-            .slice(0, 5);
-        
-        console.log(`✅ Generated ${scoredProperties.length} local recommendations`);
-        return scoredProperties;
-        
-    } catch (error) {
-        console.error('Error generating local recommendations:', error);
-        return [];
-    }
-}
-
-async function getRecentPropertiesForAIUser(savedCount) {
-    try {
-        // Get recent active properties
-        const activeListings = allListings.filter(listing => 
-            listing.status === 'active' ||
-            listing.status === 'available' ||
-            listing.status === 'Active' ||
-            (listing.status === undefined && listing.isActive !== false)
-        );
-        
-        // Sort by date (newest first)
-        const recentListings = activeListings
-            .sort((a, b) => {
-                const dateA = a.createdAt || a.uploadedAt || 0;
-                const dateB = b.createdAt || b.uploadedAt || 0;
-                return dateB - dateA;
-            })
-            .slice(0, 5);
-        
-        console.log(`📅 Found ${recentListings.length} recent properties for AI user`);
-        return recentListings;
-        
-    } catch (error) {
-        console.error('Error getting recent properties:', error);
-        return [];
-    }
-}
-
 async function loadRecommendationsFromPython() {
     try {
         const currentUser = auth.currentUser;
         if (!currentUser) {
             console.log('User not authenticated, skipping recommendations');
-            showRecentPropertiesFallback('Please login to get AI recommendations');
+            showRecentPropertiesFallback('Save properties to get AI recommendations');
             return;
         }
 
         const userId = currentUser.uid;
-        console.log('📊 Loading recommendations for user:', userId.substring(0, 8) + '...');
+        console.log('Loading recommendations from Python API for user:', userId);
 
         // FIRST: Get actual saved count from Firestore (RELIABLE SOURCE)
         const actualSavedCount = await getActualSavedCount(userId);
@@ -2127,7 +3187,7 @@ async function loadRecommendationsFromPython() {
                     <div class="spinner" style="border: 4px solid var(--bg-light); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
                     <p style="color: var(--text-light);">Finding properties you'll love...</p>
                     ${actualSavedCount < 3 ? `
-                    <div style="background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%); padding: 10px; border-radius: 8px; margin-top: 10px;">
+                    <div style="background: linear-gradient(135deg, rgba(11, 46, 82, 0.12) 0%, rgba(212, 175, 55, 0.12) 100%); padding: 10px; border-radius: 8px; margin-top: 10px;">
                         <small>You have ${actualSavedCount} saved property${actualSavedCount !== 1 ? 's' : ''}</small>
                     </div>
                     ` : ''}
@@ -2135,17 +3195,7 @@ async function loadRecommendationsFromPython() {
             `;
         }
 
-        // CRITICAL FIX: Check saved count BEFORE calling API
-        // If user has less than 3 saved properties, show encouragement message instead of calling API
-        if (actualSavedCount < 3) {
-            console.log(`📈 User has only ${actualSavedCount} saved properties, showing encouragement`);
-            await showRecentPropertiesFallbackWithMessage(actualSavedCount);
-            return; // Stop here, don't call the Python API
-        }
-
-        // User has 3+ saved properties, proceed with Python API call
-        console.log('✅ User has 3+ saved properties, calling Python API...');
-        
+        // Call Python backend API with TRY-CATCH for JSON parsing
         let data;
         let apiResponseText = '';
         
@@ -2165,9 +3215,10 @@ async function loadRecommendationsFromPython() {
             apiResponseText = await response.text();
             console.log('📦 Raw API response (first 500 chars):', apiResponseText.substring(0, 500));
 
-            // Clean the response
+            // Debug: Check if response contains undefined
             if (apiResponseText.includes('undefined')) {
                 console.warn('⚠️ API response contains "undefined" string');
+                // Clean the response by removing undefined
                 apiResponseText = apiResponseText.replace(/undefined/g, 'null');
             }
 
@@ -2176,8 +3227,9 @@ async function loadRecommendationsFromPython() {
                 data = JSON.parse(apiResponseText);
             } catch (parseError) {
                 console.error('❌ JSON parse error:', parseError);
+                console.error('Problematic response:', apiResponseText);
                 
-                // Try to extract JSON part
+                // Try to extract just the JSON part if there's extra text
                 const jsonMatch = apiResponseText.match(/\{.*\}/s);
                 if (jsonMatch) {
                     try {
@@ -2185,42 +3237,16 @@ async function loadRecommendationsFromPython() {
                         console.log('✅ Successfully extracted JSON from response');
                     } catch (secondError) {
                         console.error('❌ Still cannot parse JSON:', secondError);
-                        // Create fallback data based on saved count
-                        data = {
-                            success: true,
-                            has_history: true,
-                            saved_count: actualSavedCount,
-                            recommendation_type: 'ai',
-                            message: `Analyzing your ${actualSavedCount} saved properties...`,
-                            user_message: `Based on your ${actualSavedCount} saved properties`,
-                            recommendations: []
-                        };
+                        // Create fallback data
+                        data = createFallbackRecommendationData(actualSavedCount);
                     }
                 } else {
-                    // Create fallback data
-                    data = {
-                        success: true,
-                        has_history: true,
-                        saved_count: actualSavedCount,
-                        recommendation_type: 'ai',
-                        message: `Analyzing your ${actualSavedCount} saved properties...`,
-                        user_message: `Based on your ${actualSavedCount} saved properties`,
-                        recommendations: []
-                    };
+                    data = createFallbackRecommendationData(actualSavedCount);
                 }
             }
         } catch (fetchError) {
             console.error('🌐 Fetch error:', fetchError);
-            // Create fallback data when API fails
-            data = {
-                success: true,
-                has_history: true,
-                saved_count: actualSavedCount,
-                recommendation_type: 'ai',
-                message: `Analyzing your ${actualSavedCount} saved properties...`,
-                user_message: `Based on your ${actualSavedCount} saved properties`,
-                recommendations: []
-            };
+            data = createFallbackRecommendationData(actualSavedCount);
         }
 
         // Debug the response structure
@@ -2231,16 +3257,23 @@ async function loadRecommendationsFromPython() {
             actual_saved_count: actualSavedCount,
             recommendation_type: data.recommendation_type,
             recommendations_count: data.recommendations ? data.recommendations.length : 0,
-            message: data.message
+            message: data.message,
+            user_message: data.user_message
         });
 
         // IMPORTANT: Use actual saved count from Firestore instead of API's saved_count
+        // The API might be returning incorrect saved_count
         data.saved_count = actualSavedCount;
 
-        // Update the subtitle
+        // Update the subtitle based on response
         const subtitle = document.getElementById('recommendationsSubtitle');
         if (subtitle) {
-            if (data.message) {
+            if (data.user_message && actualSavedCount < 3) {
+                subtitle.textContent = data.user_message.replace(
+                    /saved (\d+) properties/i,
+                    `saved ${actualSavedCount} properties`
+                );
+            } else if (data.message) {
                 subtitle.textContent = data.message;
             } else {
                 subtitle.textContent = `Based on your ${actualSavedCount} saved properties and search history`;
@@ -2254,19 +3287,14 @@ async function loadRecommendationsFromPython() {
             // Map recommendations to actual listings
             const recommendedListings = data.recommendations
                 .map(rec => {
-                    // Find the matching listing
-                    const listing = allListings.find(l => 
-                        l.id === rec.id || 
-                        l.id === rec.property_id ||
-                        (rec.id && l.id && l.id.toString() === rec.id.toString())
-                    );
+                    // Find the matching listing - check both id and property_id
+                    const listing = allListings.find(l => l.id === rec.id || l.id === rec.property_id);
                     if (listing) {
                         return {
                             ...listing,
                             recoScore: rec.match_score || rec.similarity_score || 0,
                             similarity_score: rec.similarity_score || rec.match_score || 0,
-                            similar_to: rec.match_reason || "Recommended for you",
-                            is_ai_recommended: true
+                            similar_to: rec.match_reason || "Similar to your preferences"
                         };
                     }
                     console.warn('Could not find listing for recommendation:', rec.id || rec.property_id);
@@ -2276,40 +3304,15 @@ async function loadRecommendationsFromPython() {
                 .slice(0, 5);
 
             if (recommendedListings.length > 0) {
-                console.log(`✅ Successfully mapped ${recommendedListings.length} AI recommendations to listings`);
+                console.log(`✅ Mapped ${recommendedListings.length} recommendations to listings`);
                 displayRecommendedListingsPython(recommendedListings, 'personalized');
-                
-                // Update title for AI recommendations
-                const sectionTitle = document.querySelector('#recommendedSection .section-title');
-                if (sectionTitle) {
-                    sectionTitle.innerHTML = '<i class="fas fa-robot"></i> AI Recommendations For You';
-                }
-                
                 return;
             }
         }
         
-        // If API returned "ai" type but no recommendations, or returned empty recommendations
-        if (data.recommendation_type === 'ai' && (!data.recommendations || data.recommendations.length === 0)) {
-            console.log('⚠️ API returned AI type but no recommendations, trying to generate local recommendations');
-            
-            // Try to generate local recommendations based on saved properties
-            const localRecommendations = await generateLocalRecommendations(userId, actualSavedCount);
-            if (localRecommendations.length > 0) {
-                displayRecommendedListingsPython(localRecommendations, 'personalized');
-                
-                // Update subtitle
-                if (subtitle) {
-                    subtitle.textContent = `Based on analysis of your ${actualSavedCount} saved properties`;
-                }
-                
-                return;
-            }
-        }
-        
-        // Handle search-based recommendations (user has search history)
-        if (data.recommendation_type === 'search_based' && data.recommendations && data.recommendations.length > 0) {
-            console.log(`🔍 Received ${data.recommendations.length} search-based recommendations`);
+        // Handle partial recommendations
+        else if (data.recommendation_type === 'partial' && data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+            console.log(`📝 Received ${data.recommendations.length} partial recommendations`);
             
             const recommendedListings = data.recommendations
                 .map(rec => {
@@ -2319,8 +3322,7 @@ async function loadRecommendationsFromPython() {
                             ...listing,
                             recoScore: rec.match_score || rec.similarity_score || 0,
                             similarity_score: rec.similarity_score || rec.match_score || 0,
-                            similar_to: 'Based on your search patterns',
-                            is_search_based: true
+                            similar_to: `You've saved ${actualSavedCount} properties. Save ${Math.max(0, 3 - actualSavedCount)} more for AI recommendations!`
                         };
                     }
                     return null;
@@ -2329,39 +3331,14 @@ async function loadRecommendationsFromPython() {
                 .slice(0, 5);
 
             if (recommendedListings.length > 0) {
-                displayRecommendedListingsPython(recommendedListings, 'search_based');
+                displayRecommendedListingsPython(recommendedListings, 'partial');
                 return;
             }
         }
         
-        // If we reach here, no recommendations were found
-        console.log('📦 No recommendations found from API, showing AI-powered recent properties');
-        
-        // Get recent properties but label them as AI-powered since user has 3+ saved
-        const recentListings = await getRecentPropertiesForAIUser(actualSavedCount);
-        if (recentListings.length > 0) {
-            // Add AI context to recent properties
-            const aiEnhancedListings = recentListings.map(listing => ({
-                ...listing,
-                similar_to: `Based on your ${actualSavedCount} saved properties`,
-                is_ai_context: true
-            }));
-            
-            displayRecommendedListingsPython(aiEnhancedListings, 'ai_context');
-            
-            // Update title and subtitle
-            const sectionTitle = document.querySelector('#recommendedSection .section-title');
-            if (sectionTitle) {
-                sectionTitle.innerHTML = '<i class="fas fa-robot"></i> AI-Powered Suggestions';
-            }
-            
-            if (subtitle) {
-                subtitle.textContent = `Selected based on your ${actualSavedCount} saved properties`;
-            }
-        } else {
-            // Ultimate fallback
-            showRecentPropertiesFallback('No matching properties found. Try saving different types of properties.');
-        }
+        // Fallback to recent properties
+        console.log('📦 No AI recommendations, showing recent properties');
+        showRecentPropertiesFallback();
 
     } catch (error) {
         console.error('💥 Error in recommendation system:', error);
@@ -2369,6 +3346,20 @@ async function loadRecommendationsFromPython() {
     }
 }
 
+// Helper function: Get actual saved count from Firestore
+async function getActualSavedCount(userId) {
+    try {
+        const savedRef = collection(db, 'savedProperties');
+        const q = query(savedRef, where('userId', '==', userId));
+        const snapshot = await getDocs(q);
+        return snapshot.size;
+    } catch (error) {
+        console.error('Error getting saved count:', error);
+        return 0;
+    }
+}
+
+// Helper function: Create fallback recommendation data
 function createFallbackRecommendationData(savedCount) {
     return {
         success: true,
@@ -2383,7 +3374,7 @@ function createFallbackRecommendationData(savedCount) {
     };
 }
 
-// Updated fallback function with specific messaging
+// Fallback function with specific messaging
 async function showRecentPropertiesFallback(message = '') {
     try {
         console.log('Showing recent properties as fallback');
@@ -2417,7 +3408,7 @@ async function showRecentPropertiesFallback(message = '') {
                         promptDiv = document.createElement('div');
                         promptDiv.className = 'recent-prompt';
                         promptDiv.style.cssText = `
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            background: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
                             color: white;
                             padding: 15px 20px;
                             border-radius: 8px;
@@ -2500,7 +3491,7 @@ async function showRecentPropertiesFallbackWithMessage(savedCount) {
             // Update section subtitle to show progress
             const subtitle = document.getElementById('recommendationsSubtitle');
             if (subtitle) {
-                subtitle.textContent = `You've saved ${savedCount} property${savedCount !== 1 ? 's' : ''}. Save ${3 - savedCount} more to unlock AI recommendations!`;
+                subtitle.textContent = `You've saved ${savedCount} properties. Save ${3 - savedCount} more to unlock AI recommendations!`;
             }
             
             // Add a more specific prompt message
@@ -2567,7 +3558,6 @@ async function showRecentPropertiesFallbackWithMessage(savedCount) {
 }
 
 // Function to display recommendations from Python
-// Function to display recommendations from Python
 function displayRecommendedListingsPython(recommendations, type = 'personalized') {
     const recoContainer = document.getElementById('recommendedListingsContainer');
     const sectionTitle = document.querySelector('#recommendedSection .section-title');
@@ -2626,112 +3616,102 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             const typeBadgeText = getTypeBadgeText(property);
             
             const photo = property.photos?.[0] || property.imageUrls?.[0] || `https://via.placeholder.com/400x200/0b2e52/white?text=${encodeURIComponent(property.title || 'Property')}`;
+            const matchScore = property.recoScore ? Math.round(property.recoScore) : null;
             
             const bedrooms = property.bedrooms || (listingType === 'rent' && property.propertyType === 'studio' ? 'Studio' : 0);
             const bathrooms = property.bathrooms || 0;
             const area = property.floorArea || property.totalArea || 'N/A';
             
-            // Alternative badges for non-personalized recommendations
-            let otherBadge = '';
-            if (type === 'partial') {
-                otherBadge = '<div class="listing-partial-badge">SAVE MORE</div>';
-            } else if (type === 'recent' || type === 'ai_context') {
-                otherBadge = '<div class="listing-recent-badge">RECENT</div>';
+            // Truncate long titles with ellipsis
+            const title = property.title || 'Untitled Property';
+            const truncatedTitle = title.length > 50 ? title.substring(0, 50) + '...' : title;
+            
+            // Truncate address with ellipsis
+            const address = getCompleteAddress(property);
+            const truncatedAddress = address.length > 40 ? address.substring(0, 40) + '...' : address;
+            
+            // Truncate broker name with ellipsis
+            const brokerName = userInfo.displayName;
+            const truncatedBrokerName = brokerName.length > 20 ? brokerName.substring(0, 20) + '...' : brokerName;
+            
+            // Add type badge to property card
+            const typeBadge = `<div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>`;
+            
+            // Optional recommendation label (AI Pick / RECENT / SAVE MORE)
+            let recommendationBadge = "";
+            if (type === 'personalized') {
+                recommendationBadge = '<div class="listing-ai-badge">✨ AI Pick</div>';
+            } else if (type === 'partial') {
+                recommendationBadge = '<div class="listing-partial-badge" style="position: absolute; top: 10px; right: 10px; background: #d4af37; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">SAVE MORE</div>';
+            } else {
+                recommendationBadge = '<div class="listing-recent-badge" style="position: absolute; top: 10px; right: 10px; background: #6b7280; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">RECENT</div>';
+            }
+            
+            const listingTypeLabel = listingType === 'rent' ? 'For Rent' : listingType === 'lease' ? 'For Lease' : 'For Sale';
+            let recStatusText = property.status || 'available';
+            let recStatusClass = 'status-active';
+            let showRecStatus = true;
+            if (recStatusText.toLowerCase() === 'active' || recStatusText.toLowerCase() === 'available' || recStatusText.toLowerCase() === 'published') {
+                recStatusText = '';
+                recStatusClass = '';
+                showRecStatus = false;
+            } else if (recStatusText.toLowerCase() === 'pending') {
+                recStatusClass = 'status-pending';
             }
             
             return `
                 <div class="listing-card-wrapper">
-                    <a href="property_details.html?id=${property.id}" class="listing-card-link">
-                        <div class="listing-card">
-                            <div class="listing-card-image-container" style="position: relative;">
-                                <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
-                                
-                                <!-- REMOVED: Match badge - only showing type badge and other badges -->
-                                ${otherBadge}
-                                <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
-                                
-                                <!-- Save Button - Heart icon for saving properties -->
-                                <button class="save-property-btn"
-                                    data-property-id="${property.id}"
-                                    data-is-saved="${isSaved}"
-                                    aria-label="${isSaved ? 'Remove from saved' : 'Save property'}">
-                                    <span class="save-icon">${isSaved ? '❤️' : '🤍'}</span>
-                                </button>
-                            </div>
-                            <div class="listing-content">
-                                <div class="listing-header">
-                                    <div>
-                                        <h3 class="listing-title">${property.title || 'Untitled Property'}</h3>
-                                        <div class="listing-location">
-                                            <span class="location-icon">📍</span>
-                                            <span class="location-text">${getCompleteAddress(property)}</span>
-                                        </div>
-                                    </div>
-                                    <div class="listing-price ${priceClass}">${displayPrice}</div>
-                                </div>
-                                
-                                <div class="listing-details">
-                                    ${bedrooms ? `
-                                        <div class="detail">
-                                            <span class="detail-icon">🛏️</span>
-                                            <span class="detail-text">${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
-                                        </div>
-                                    ` : ''}
-                                    ${bathrooms ? `
-                                        <div class="detail">
-                                            <span class="detail-icon">🚿</span>
-                                            <span class="detail-text">${bathrooms} baths</span>
-                                        </div>
-                                    ` : ''}
-                                    ${area && area !== 'N/A' ? `
-                                        <div class="detail">
-                                            <span class="detail-icon">📐</span>
-                                            <span class="detail-text">${area} sqm</span>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                                
-                                ${property.similar_to ? `
-                                    <div class="ai-reason" style="margin: 12px 0; padding: 10px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%); border-radius: 8px; border-left: 3px solid #667eea;">
-                                        <div style="display: flex; align-items: flex-start; gap: 8px;">
-                                            <span style="font-size: 14px; color: #667eea;">💡</span>
-                                            <div style="flex: 1;">
-                                                <div style="font-size: 12px; font-weight: 600; color: #667eea; margin-bottom: 2px;">AI Insight</div>
-                                                <div style="font-size: 13px; color: var(--text-light);">${property.similar_to}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                                
-                                <div class="listing-broker">
-                                    <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
-                                    <div class="broker-info">
-                                        <div class="broker-name" title="${userInfo.displayName}">${userInfo.displayName}</div>
-                                        <div class="broker-contact">
-                                            ${getRoleDisplayText(userInfo.role)} • ${property.propertyType || 'Property'}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="listing-status status-${property.status || 'active'}">
-                                    ${property.status || 'active'}
-                                </div>
-                                
-                                <div class="listing-actions">
-                                    <button class="action-btn contact-btn" 
-                                            data-user-id="${property.userId}"
-                                            aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
-                                        <span class="contact-icon">📞</span>
-                                        Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-                                    </button>
-                                    <span class="action-btn view-btn" aria-label="View property details">
-                                        <span class="view-icon">👁️</span>
-                                        View Details
-                                    </span>
-                                </div>
-                            </div>
+                    <div class="listing-card" data-listing-id="${property.id}">
+                        <a href="property_details.html?id=${property.id}" class="card-link-overlay" aria-label="View ${title}"></a>
+                        <div class="listing-card-image-container" style="position: relative;">
+                            <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
+                            ${typeBadge} <!-- Add type badge here -->
+                            ${matchScore && matchScore > 50 ? `<div class="listing-match-badge">${matchScore}% Match</div>` : ''}
+                            ${recommendationBadge}
                         </div>
-                    </a>
+                        <div class="listing-content">
+                            <div class="listing-header">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h3 class="listing-title" title="${title}">${truncatedTitle}</h3>
+                                </div>
+                                <div class="listing-price ${priceClass}">${displayPrice}</div>
+                            </div>
+                            <div class="listing-location">
+                                <i class="fas fa-map-marker-alt" style="flex-shrink: 0;"></i>
+                                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${address}">${truncatedAddress}</span>
+                                <span> · ${listingTypeLabel}</span>
+                            </div>
+                            <div class="listing-details">
+                                ${bedrooms ? `<div class="detail"><i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</div>` : ''}
+                                ${bathrooms ? `<div class="detail"><i class="fas fa-bath"></i> ${bathrooms} baths</div>` : ''}
+                                ${area && area !== 'N/A' ? `<div class="detail"><i class="fas fa-ruler-combined"></i> ${area} sqm</div>` : ''}
+                            </div>
+                            
+                            <!-- AI Insight Section - Keep this for personalized recommendations -->
+                            ${property.similar_to && type === 'personalized' ? `
+                                <div class="ai-reason" style="margin: 12px 0; padding: 10px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%); border-radius: 8px; border-left: 3px solid #667eea;">
+                                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                        <span style="font-size: 14px; color: #667eea;">💡</span>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 12px; font-weight: 600; color: #667eea; margin-bottom: 2px;">AI Insight</div>
+                                            <div style="font-size: 13px; color: var(--text-light);">${property.similar_to}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="listing-broker">
+                                <div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>
+                                <div class="broker-info">
+                                    <div class="broker-name" title="${brokerName}">${truncatedBrokerName}</div>
+                                    <div class="broker-contact">
+                                        ${getRoleDisplayText(userInfo.role)} · ${property.propertyType || 'Property'}
+                                    </div>
+                                </div>
+                            </div>
+                            ${showRecStatus ? `<div class="listing-status ${recStatusClass}">${recStatusText}</div>` : ''}
+                        </div>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -2782,6 +3762,7 @@ function setupRecommendationsEventListeners() {
         });
     }
 }
+
 // --- INITIALIZATION ---
 
 // Initialize dropdowns
@@ -2800,6 +3781,103 @@ function initializeDropdowns() {
     // Initialize with current values
     if (transactionTypeSelect && categorySelect) {
         updateCategoryDropdown();
+    }
+}
+
+// Add demo prompts to the chat interface
+function addDemoPrompts() {
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    if (!chatInput || !chatMessages) return;
+    
+    // Add demo prompts section if it doesn't exist
+    if (!document.querySelector('.demo-prompts')) {
+        const demoSection = document.createElement('div');
+        demoSection.className = 'demo-prompts';
+        demoSection.style.cssText = `
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            animation: fadeIn 0.5s ease;
+        `;
+        
+        demoSection.innerHTML = `
+            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600; margin-bottom: 10px;">
+                <i class="fas fa-lightbulb"></i> Try these quick prompts:
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="demo-prompt-btn" data-prompt="Find apartments in Batangas City">
+                    🏢 Find apartments
+                </button>
+                <button class="demo-prompt-btn" data-prompt="Find houses in Lipa City">
+                    🏠 Find houses
+                </button>
+                <button class="demo-prompt-btn" data-prompt="Tell me about Batangas City">
+                    ℹ️ About Batangas
+                </button>
+                <button class="demo-prompt-btn" data-prompt="Properties that accept bank financing">
+                    💰 Bank financing
+                </button>
+                <button class="demo-prompt-btn" data-prompt="Find condos in Tanauan City">
+                    🏙️ Find condos
+                </button>
+            </div>
+        `;
+        
+        chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
+        
+        // Add event listeners to demo prompt buttons
+        setTimeout(() => {
+            document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const prompt = this.getAttribute('data-prompt');
+                    chatInput.value = prompt;
+                    chatInput.focus();
+                    
+                    // Highlight the button briefly
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        }, 100);
+    }
+}
+
+// Function to show chatbot error state
+function showChatbotError() {
+    const chatbotSection = document.querySelector('.ai-chatbot-section');
+    if (chatbotSection) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'chatbot-error';
+        errorDiv.style.cssText = `
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #c00;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        
+        errorDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>AI Assistant Temporarily Unavailable</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
+                    The AI chatbot is still being trained. Please use the search filters above to find properties.
+                </p>
+            </div>
+        `;
+        
+        chatbotSection.appendChild(errorDiv);
     }
 }
 
@@ -2873,416 +3951,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 document.body.appendChild(script);
             }
-        }, 1500); // Increased delay to ensure everything is loaded
+        }, 1500);
     });
 });
-
-// Function to add demo prompts to the chat interface
-function addDemoPrompts() {
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    
-    if (!chatInput || !chatMessages) return;
-    
-    // Add demo prompts section if it doesn't exist
-    if (!document.querySelector('.demo-prompts')) {
-        const demoSection = document.createElement('div');
-        demoSection.className = 'demo-prompts';
-        demoSection.style.cssText = `
-            margin-top: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-            border-radius: 12px;
-            border: 1px solid rgba(102, 126, 234, 0.15);
-            animation: fadeIn 0.5s ease;
-        `;
-        
-        demoSection.innerHTML = `
-            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-lightbulb"></i> Try these quick prompts:
-            </div>
-            <div class="demo-prompts-buttons">
-                <button class="demo-prompt-btn" data-prompt="Find apartments in Batangas City">
-                    🏢 Apartments
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Find houses in Lipa City">
-                    🏠 Houses
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Tell me about Batangas City">
-                    ℹ️ About Batangas
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Properties that accept bank financing">
-                    💰 Financing
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Find condos in Tanauan City">
-                    🏙️ Condos
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Show me affordable properties">
-                    💸 Affordable
-                </button>
-            </div>
-        `;
-        
-        chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
-        
-        // Add event listeners to demo prompt buttons
-        setTimeout(() => {
-            document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const prompt = this.getAttribute('data-prompt');
-                    chatInput.value = prompt;
-                    chatInput.focus();
-                    
-                    // Highlight the button briefly
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = '';
-                    }, 150);
-                });
-            });
-        }, 100);
-    }
-}
-
-// Function to show chatbot error state
-function showChatbotError() {
-    const chatbotSection = document.querySelector('.ai-chatbot-section');
-    if (chatbotSection) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'chatbot-error';
-        errorDiv.style.cssText = `
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            color: #c00;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <div>
-                <strong>AI Assistant Temporarily Unavailable</strong>
-                <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
-                    The AI chatbot is still being trained. Please use the search filters above to find properties.
-                </p>
-            </div>
-        `;
-        
-        chatbotSection.appendChild(errorDiv);
-    }
-}
-
-// Add CSS for demo prompt buttons
-const demoStyles = document.createElement('style');
-demoStyles.textContent = `
-    .demo-prompt-btn {
-        padding: 8px 12px;
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        font-size: 13px;
-        color: var(--text-dark);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-    }
-    
-    .demo-prompt-btn:hover {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(11, 46, 82, 0.15);
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .chatbot-error {
-        animation: fadeIn 0.5s ease;
-    }
-`;
-
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .listing-ai-badge {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        z-index: 2;
-    }
-    
-.listing-match-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-    backdrop-filter: blur(8px);
-    color: white;
-    padding: 10px 18px;
-    border-radius: 14px;
-    font-size: 13px;
-    font-weight: 800;
-    z-index: 2;
-    box-shadow: 
-        0 8px 25px rgba(16, 185, 129, 0.35),
-        0 0 0 2px rgba(255, 255, 255, 0.9),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transform: translateY(0);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    overflow: hidden;
-    min-width: 110px;
-    text-align: center;
-    line-height: 1.2;
-    font-family: 'Inter', sans-serif;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* Pseudo-element for shine effect */
-.listing-match-badge::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    transition: left 0.7s ease;
-}
-
-/* Hover effect - shine animation */
-.listing-match-badge:hover::before {
-    left: 100%;
-}
-
-.listing-match-badge:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 
-        0 12px 30px rgba(16, 185, 129, 0.5),
-        0 0 0 2px rgba(255, 255, 255, 1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-/* AI Icon */
-.listing-match-badge .ai-icon {
-    font-size: 16px;
-    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-    animation: aiPulse 2s ease-in-out infinite;
-}
-
-/* Match Score Display */
-.listing-match-badge .match-score {
-    font-size: 16px;
-    font-weight: 900;
-    background: linear-gradient(to bottom, #ffffff, #f0fdf4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-}
-
-/* Match Text */
-.listing-match-badge .match-text {
-    font-size: 11px;
-    font-weight: 600;
-    opacity: 0.95;
-    letter-spacing: 1px;
-}
-
-/* Different Match Levels */
-.listing-match-badge.high-match {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-    box-shadow: 
-        0 8px 25px rgba(16, 185, 129, 0.35),
-        0 0 0 2px rgba(255, 255, 255, 0.9);
-}
-
-.listing-match-badge.medium-match {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
-    box-shadow: 
-        0 8px 25px rgba(245, 158, 11, 0.35),
-        0 0 0 2px rgba(255, 255, 255, 0.9);
-}
-
-.listing-match-badge.low-match {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
-    box-shadow: 
-        0 8px 25px rgba(59, 130, 246, 0.35),
-        0 0 0 2px rgba(255, 255, 255, 0.9);
-}
-
-/* AI Pick Badge */
-.listing-ai-pick {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(139, 92, 246, 0.95));
-    backdrop-filter: blur(8px);
-    color: white;
-    padding: 10px 18px;
-    border-radius: 14px;
-    font-size: 13px;
-    font-weight: 800;
-    z-index: 2;
-    box-shadow: 
-        0 8px 25px rgba(168, 85, 247, 0.35),
-        0 0 0 2px rgba(255, 255, 255, 0.9),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    animation: aiPickGlow 3s ease-in-out infinite;
-}
-
-.listing-ai-pick .sparkle {
-    font-size: 16px;
-    animation: sparkleSpin 2s linear infinite;
-}
-
-/* Animations */
-@keyframes aiPulse {
-    0%, 100% { 
-        transform: scale(1) rotate(0deg); 
-        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-    }
-    50% { 
-        transform: scale(1.15) rotate(5deg); 
-        filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.4));
-    }
-}
-
-@keyframes sparkleSpin {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.2); }
-    100% { transform: rotate(360deg) scale(1); }
-}
-
-@keyframes aiPickGlow {
-    0%, 100% { 
-        box-shadow: 
-            0 8px 25px rgba(168, 85, 247, 0.35),
-            0 0 0 2px rgba(255, 255, 255, 0.9);
-    }
-    50% { 
-        box-shadow: 
-            0 12px 35px rgba(168, 85, 247, 0.5),
-            0 0 0 2px rgba(255, 255, 255, 1);
-    }
-}
-
-@keyframes badgeAppear {
-    0% { 
-        opacity: 0; 
-        transform: translateY(20px) scale(0.8); 
-    }
-    70% { 
-        opacity: 1; 
-        transform: translateY(-5px) scale(1.05); 
-    }
-    100% { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
-    }
-}
-
-/* Entry Animation */
-.listing-match-badge,
-.listing-ai-pick {
-    animation: badgeAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
-}
-
-.listing-match-badge:nth-child(odd) { animation-delay: 0.1s; }
-.listing-match-badge:nth-child(even) { animation-delay: 0.2s; }
-
-/* Progress Bar for Match Percentage */
-.match-progress {
-    position: absolute;
-    bottom: -5px;
-    left: 10px;
-    right: 10px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.match-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #34d399, #10b981);
-    border-radius: 2px;
-    width: var(--match-width, 52%);
-    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* For no match score (just AI Pick) */
-.listing-ai-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(79, 70, 229, 0.95));
-    backdrop-filter: blur(8px);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    z-index: 2;
-    box-shadow: 
-        0 6px 20px rgba(99, 102, 241, 0.3),
-        0 0 0 2px rgba(255, 255, 255, 0.9);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    animation: badgeAppear 0.6s ease both;
-}
-`;
-document.head.appendChild(style);
 
 // ================================ WINDOW FUNCTIONS (for backward compatibility) =============================
 

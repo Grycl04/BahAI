@@ -4,20 +4,20 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
 const firebaseConfig = {
- apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "bahai-1b76d.firebaseapp.com",
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "localhost", // Use localhost instead of 127.0.0.1
   projectId: "bahai-1b76d",
   storageBucket: "bahai-1b76d.firebasestorage.app",
   messagingSenderId: "646878644941",
   appId: "1:646878644941:web:5b4ccc3412250337587784",
   measurementId: "G-PDW1PRZTM9"
 };
- 
+
+console.log("Firebase Config for localhost:", firebaseConfig);
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-
-// NO emulator connections - use production
 
 export { auth, db, storage };
