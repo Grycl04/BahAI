@@ -3,9 +3,10 @@ import { getAuth } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
+// Simple config - Firebase will handle the redirects
 const firebaseConfig = {
   apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "localhost", // Use localhost instead of 127.0.0.1
+  authDomain: "bahai-1b76d.firebaseapp.com",  // Use Firebase default domain
   projectId: "bahai-1b76d",
   storageBucket: "bahai-1b76d.firebasestorage.app",
   messagingSenderId: "646878644941",
@@ -13,7 +14,7 @@ const firebaseConfig = {
   measurementId: "G-PDW1PRZTM9"
 };
 
-console.log("Firebase Config for localhost:", firebaseConfig);
+console.log("Using Firebase default auth domain");
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
