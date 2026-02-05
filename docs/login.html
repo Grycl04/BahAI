@@ -837,13 +837,14 @@
     </div>
   </div>
 
-  <!-- Firebase + Role Redirect Script -->
+  <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
   <script type="module">
     import { auth, db } from './firebase-common.js';
     import { 
       signInWithEmailAndPassword, 
       signInWithPopup, 
-      GoogleAuthProvider
+      GoogleAuthProvider,
+      fetchSignInMethodsForEmail
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { 
       doc, 
@@ -939,7 +940,6 @@
       e.preventDefault();
       
       let isValid = true;
-      let errorMessage = '';
       
       // Validate email
       if (!emailInput.value.trim()) {
@@ -992,47 +992,71 @@
       submitBtn.disabled = true;
       submitText.textContent = 'Signing in...';
       
-try {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-  
-  // Add timeout and better error handling
-  const docSnap = await Promise.race([
-    getDoc(doc(db, "users", user.uid)),
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Database timeout')), 10000)
-    )
-  ]);
+      try {
+        // Check authentication methods before attempting login
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        
+        // If account exists with Google but not password
+        if (methods.includes("google.com") && !methods.includes("password")) {
+          showNotification('error', 
+            'This email is registered with Google Sign-In. Please use "Continue with Google" button.'
+          );
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
+          return;
+        }
+        
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Get user data
+        const docSnap = await Promise.race([
+          getDoc(doc(db, "users", user.uid)),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database timeout')), 10000)
+          )
+        ]);
 
-  if (!docSnap.exists()) {
-    showNotification('error', 'User data not found. Please contact support or sign up.');
-    await auth.signOut(); // Clear auth state
-    submitBtn.disabled = false;
-    submitText.textContent = 'Login to Dashboard';
-    return;
-  }
+        if (!docSnap.exists()) {
+          showNotification('error', 'User data not found. Please contact support or sign up.');
+          await auth.signOut();
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
+          return;
+        }
 
-  const data = docSnap.data();
-  
-  // Validate data structure
-  if (!data || typeof data !== 'object') {
-    throw new Error('Invalid user data format');
-  }
-  
-  // Ensure role exists
-  if (!data.role) {
-    data.role = 'buyer'; // Default role
-    // Update document with default role
-    await setDoc(doc(db, "users", user.uid), 
-      { role: 'buyer' }, 
-      { merge: true }
-    );
-  }
-  
-  showNotification('success', 'Login successful! Redirecting...');
-  setTimeout(() => {
-    window.location.href = getRedirectPage(data.role);
-  }, 1000);
+        const data = docSnap.data();
+        
+        // Check if user is admin - redirect to admin login page
+        if (data.role === "admin") {
+          showNotification('info', 'Admins must use the admin login page.');
+          await auth.signOut();
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
+          setTimeout(() => {
+            window.location.href = 'admin_login.html'; // Change to your actual admin login page
+          }, 1500);
+          return;
+        }
+        
+        // Validate data structure
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid user data format');
+        }
+        
+        // Ensure role exists
+        if (!data.role) {
+          data.role = 'buyer';
+          await setDoc(doc(db, "users", user.uid), 
+            { role: 'buyer' }, 
+            { merge: true }
+          );
+        }
+        
+        showNotification('success', 'Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = getRedirectPage(data.role);
+        }, 1000);
 
       } catch (error) {
         // Reset button state
@@ -1095,6 +1119,37 @@ try {
     // Google Login
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
+        // Get the email from the form if available
+        const emailFromForm = emailInput.value.trim();
+        
+        // Check if this email already has password authentication
+        if (emailFromForm) {
+          try {
+            const methods = await fetchSignInMethodsForEmail(auth, emailFromForm);
+            
+            if (methods.includes("password")) {
+              // Warn user about separate accounts
+              const choice = confirm(
+                `⚠️ IMPORTANT: "${emailFromForm}" is already registered with email/password.\n\n` +
+                `Click OK to login with email/password.\n` +
+                `Click Cancel to create a SEPARATE Google account.\n\n` +
+                `Note: These will be two different accounts!`
+              );
+              
+              if (choice) {
+                // User wants email/password login
+                showNotification('info', 'Please enter your password to continue');
+                passwordInput.focus();
+                return;
+              }
+            }
+          } catch (error) {
+            // Continue with Google if we can't check
+            console.log("Could not check email methods, continuing with Google:", error.message);
+          }
+        }
+        
+        // Proceed with Google sign-in
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         const userRef = doc(db, "users", user.uid);
@@ -1102,10 +1157,12 @@ try {
 
         let data;
         if (!docSnap.exists()) {
-          // New user - prompt for role
+          // New user - prompt for role (admin removed)
           const role = prompt("Please select your role:\n• buyer\n• seller\n• broker\n• agent\n• landlord").toLowerCase();
           
-          if (!['buyer', 'seller', 'broker', 'agent', 'landlord'].includes(role)) {
+          // Valid roles - admin removed
+          const validRoles = ['buyer', 'seller', 'broker', 'agent', 'landlord'];
+          if (!validRoles.includes(role)) {
             showNotification('error', 'Invalid role selected. Please try again.');
             return;
           }
@@ -1115,20 +1172,44 @@ try {
             email: user.email,
             role,
             kycStatus: "not_submitted",
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            provider: "google"
           };
           await setDoc(userRef, data);
           
-          showNotification('success', 'Account created successfully!');
+          // Check if this email might have a password account
+          try {
+            const methods = await fetchSignInMethodsForEmail(auth, user.email);
+            if (methods.includes("password")) {
+              showNotification('warning', 
+                '⚠️ Note: A password account also exists for this email. ' +
+                'You now have two separate accounts.'
+              );
+            }
+          } catch (error) {
+            // Ignore error, continue
+          }
+          
+          showNotification('success', 'Google account created successfully!');
           setTimeout(() => {
             window.location.href = getRedirectPage(role);
-          }, 1000);
+          }, 1500);
           return;
         } else {
           data = docSnap.data();
         }
 
-        // ✅ NO KYC CHECK HERE - Existing users go straight to dashboard
+        // Check if user is admin - redirect to admin login
+        if (data.role === "admin") {
+          showNotification('info', 'Admins must use the admin login page.');
+          await auth.signOut();
+          setTimeout(() => {
+            window.location.href = 'admin_login.html'; // Change to your actual admin login page
+          }, 1500);
+          return;
+        }
+
+        // ✅ Existing users go straight to dashboard
         showNotification('success', 'Login successful! Redirecting...');
         setTimeout(() => {
           window.location.href = getRedirectPage(data.role);
@@ -1138,6 +1219,11 @@ try {
         let userMessage = 'Google sign-in failed. Please try again.';
         
         switch (error.code) {
+          case 'auth/account-exists-with-different-credential':
+            userMessage = 
+              'This email is already registered with email/password.\n' +
+              'Please login with your email and password instead.';
+            break;
           case 'auth/popup-closed-by-user':
             userMessage = 'Google sign-in was cancelled.';
             break;
@@ -1146,6 +1232,11 @@ try {
             break;
           case 'auth/cancelled-popup-request':
             userMessage = 'Sign-in cancelled. Please try again.';
+            break;
+          case 'auth/email-already-in-use':
+            userMessage = 
+              'This email is already in use with a different login method.\n' +
+              'Please use the login method you originally signed up with.';
             break;
         }
         
@@ -1165,8 +1256,8 @@ try {
         "buyer": "buyer/buyer_dashboard.html",
         "broker": "broker/broker_dashboard.html",
         "agent": "broker/agent_dashboard.html",
-        "landlord": "landlord/landlord_dashboard.html",
-        "admin": "approve_users.html"
+        "landlord": "landlord/landlord_dashboard.html"
+        // Admin removed - they have separate login
       };
       return pages[role] || "login.html";
     }

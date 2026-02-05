@@ -6,22 +6,27 @@
 <title>Property Details - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="style.css">
+<!-- Bootstrap Icons (if used in content) -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 <style>
+    /* Same design tokens as buyer dashboard */
     :root {
-      --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
-      --secondary: #1976d2;
-      --accent: #ff9800;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #667eea 100%);
+      --primary-light: #667eea;
+      --primary-dark: #764ba2;
+      --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-lg: 24px;
       --text-dark: #1a202c;
       --text-light: #718096;
       --bg-light: #f8fafc;
       --bg-white: #ffffff;
-      --border: #e2e8f0;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --border: #e5e7eb;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
@@ -41,22 +46,22 @@
       min-height: 100vh;
     }
 
-    /* Mobile Menu Toggle */
+    /* Mobile Menu Toggle - same as buyer dashboard */
     .mobile-menu-toggle {
       display: none;
       position: fixed;
       top: 20px;
       left: 20px;
       z-index: 1001;
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
       border: none;
       width: 50px;
       height: 50px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-sm);
       font-size: 24px;
       cursor: pointer;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--card-hover-shadow);
     }
 
     .container {
@@ -66,38 +71,36 @@
       transition: margin-left 0.3s ease;
     }
 
-    /* Back Button */
+    /* Back Button - same as buyer dashboard */
     .back-button {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       color: white;
       border: none;
       padding: 14px 28px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-sm);
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-shadow);
       text-decoration: none;
       margin-bottom: 30px;
     }
-
     .back-button:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
 
-    /* Property Header */
+    /* Property Header - same card style as dashboard */
     .property-header {
-      background: var(--bg-white);
+      background: white;
       padding: 30px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       margin-bottom: 30px;
     }
 
@@ -115,30 +118,25 @@
       font-weight: 600;
       text-transform: uppercase;
     }
-
     .badge-sale {
-      background: #d1fae5;
-      color: #065f46;
+      background: var(--primary-gradient);
+      color: white;
     }
-
     .badge-rent {
-      background: #fef3c7;
-      color: #92400e;
+      background: var(--secondary-gradient);
+      color: white;
     }
-
     .badge-lease {
-      background: #dbeafe;
-      color: #1e40af;
+      background: var(--accent-gradient);
+      color: white;
     }
-
     .badge-active {
-      background: #dcfce7;
-      color: #166534;
+      background: var(--secondary-gradient);
+      color: white;
     }
-
     .badge-pending {
-      background: #fef3c7;
-      color: #92400e;
+      background: var(--accent-gradient);
+      color: white;
     }
 
     .property-title {
@@ -177,7 +175,7 @@
 
     .stat-icon {
       font-size: 20px;
-      color: var(--primary);
+      color: var(--primary-light);
     }
 
     .stat-content {
@@ -197,10 +195,10 @@
     }
 
     .price-section {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       color: white;
       padding: 25px;
-      border-radius: 16px;
+      border-radius: var(--border-radius);
       margin-top: 20px;
     }
 
@@ -219,10 +217,10 @@
     .action-button {
       width: 100%;
       background: white;
-      color: var(--primary);
+      color: var(--primary-dark);
       border: none;
       padding: 14px;
-      border-radius: 10px;
+      border-radius: var(--border-radius-sm);
       font-weight: 600;
       font-size: 16px;
       cursor: pointer;
@@ -232,10 +230,9 @@
       justify-content: center;
       gap: 10px;
     }
-
     .action-button:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-shadow);
     }
 
     /* Two Column Layout */
@@ -246,13 +243,13 @@
       margin-bottom: 40px;
     }
 
-    /* Image/Video Gallery */
+    /* Image/Video Gallery - same card style as dashboard */
     .property-gallery {
-      background: var(--bg-white);
+      background: white;
       padding: 25px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       margin-bottom: 30px;
     }
 
@@ -299,7 +296,7 @@
       align-items: center;
       justify-content: center;
       transition: all 0.3s;
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-shadow);
     }
     
     .image-nav-btn:hover {
@@ -349,7 +346,7 @@
     
     .thumbnail.active {
       opacity: 1;
-      border: 3px solid var(--primary);
+      border: 3px solid var(--primary-light);
     }
     
     .thumbnail img, .thumbnail video {
@@ -370,26 +367,28 @@
       font-weight: bold;
     }
 
-    /* Property Section */
+    /* Property Section - same card style as dashboard */
     .property-section {
-      background: var(--bg-white);
+      background: white;
       padding: 25px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       margin-bottom: 25px;
     }
-
+    /* Section title - same as buyer dashboard */
     .section-title {
-      font-size: 20px;
+      font-size: 1.5rem;
       font-weight: 600;
       color: var(--text-dark);
       margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+    }
+    .section-title i {
+      color: var(--primary-light);
+      font-size: 1.3rem;
     }
 
     .property-description {
@@ -411,16 +410,16 @@
       gap: 10px;
       padding: 12px 15px;
       background: var(--bg-light);
-      border-radius: 10px;
-      border-left: 4px solid var(--primary);
+      border-radius: var(--border-radius-sm);
+      border-left: 4px solid var(--primary-light);
     }
 
     /* Contact Card */
     .contact-card {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       color: white;
       padding: 30px;
-      border-radius: 16px;
+      border-radius: var(--border-radius);
       position: sticky;
       top: 20px;
     }
@@ -446,7 +445,7 @@
       height: 60px;
       border-radius: 50%;
       background: white;
-      color: var(--primary);
+      color: var(--primary-dark);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -493,10 +492,10 @@
       font-weight: 500;
     }
 
-    /* Pricing Card */
+    /* Pricing Card - dashboard card style */
     .pricing-card {
       background: var(--bg-light);
-      border-radius: 16px;
+      border-radius: var(--border-radius);
       padding: 25px;
     }
 
@@ -511,10 +510,10 @@
     }
 
     .pricing-details {
-      background: var(--bg-white);
+      background: white;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
+      border-radius: var(--border-radius-sm);
+      box-shadow: var(--card-shadow);
     }
 
     .pricing-item {
@@ -539,12 +538,14 @@
       font-weight: 600;
     }
 
-    /* Universal Calculator Widget */
+    /* Universal Calculator Widget - dashboard card style */
     .calculator-widget {
-      background: var(--bg-white);
-      border-radius: 16px;
+      background: white;
+      border-radius: var(--border-radius);
       padding: 30px;
       margin-top: 40px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .calculator-header {
@@ -573,10 +574,15 @@
     .calc-input-group select {
       width: 100%;
       padding: 12px;
-      border: 2px solid var(--border);
-      border-radius: 8px;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--border-radius-sm);
       font-size: 15px;
       font-family: 'Inter', sans-serif;
+    }
+    .calc-input-group input:focus, .calc-input-group select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .calc-input-group input[type="range"] {
@@ -591,15 +597,14 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: var(--primary);
+      background: var(--primary-light);
       cursor: pointer;
     }
-
     .range-value {
       display: inline-block;
       min-width: 50px;
       font-weight: 600;
-      color: var(--primary);
+      color: var(--primary-light);
       text-align: right;
     }
 
@@ -616,30 +621,26 @@
     }
 
     .calc-btn.mortgage {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
     }
-
     .calc-btn.rent {
-      background: var(--success);
+      background: var(--secondary-gradient);
       color: white;
     }
-
     .calc-btn.lease {
-      background: var(--warning);
-      color: var(--text-dark);
+      background: var(--accent-gradient);
+      color: white;
     }
-
     .calc-btn:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-shadow);
     }
-
     .calc-results {
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      background: var(--primary-gradient);
       color: white;
       padding: 25px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-sm);
       margin-top: 20px;
       display: none;
     }
@@ -738,38 +739,42 @@
 
     .action-btn-large:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--card-hover-shadow);
     }
 
     .contact-btn {
-      background: var(--secondary);
+      background: var(--primary-gradient);
       color: white;
     }
-
+    .contact-btn:hover {
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
     .calculator-btn {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
+      background: var(--accent-gradient);
       color: white;
     }
-
     .save-btn {
-      background: var(--bg-white);
+      background: white;
       color: var(--text-dark);
-      border: 1px solid var(--border);
+      border: 2px solid #e5e7eb;
+    }
+    .save-btn:hover {
+      border-color: var(--primary-light);
+      background: #f9fafb;
     }
 
-    /* Loading State */
+    /* Loading State - same as buyer dashboard */
     .loading-state {
       text-align: center;
       padding: 100px 20px;
-      background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
-    
     .spinner {
-      border: 4px solid var(--bg-light);
-      border-top: 4px solid var(--primary);
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top: 4px solid var(--primary-light);
       border-radius: 50%;
       width: 50px;
       height: 50px;
@@ -782,16 +787,15 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Error State */
+    /* Error State - same as buyer dashboard */
     .error-state {
       text-align: center;
       padding: 100px 20px;
-      background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
-
     .error-icon {
       font-size: 48px;
       margin-bottom: 20px;
@@ -829,9 +833,9 @@
     .info-icon {
       width: 40px;
       height: 40px;
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
-      border-radius: 8px;
+      border-radius: var(--border-radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -956,11 +960,11 @@
     }
 
     .lease-item {
-      background: var(--bg-white);
+      background: white;
       padding: 20px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-sm);
       border: 1px solid var(--border);
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-shadow);
     }
 
     .lease-item h5 {
@@ -1006,7 +1010,7 @@
     }
 
     .info-tab.active {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
     }
 
@@ -1188,7 +1192,7 @@ function setupLogoutButton() {
                 window.performLogout();
             } else {
                 // Fallback to simple redirect
-                window.location.href = "login.html";
+                window.location.href = "../login.html";
             }
         }
     });
@@ -1237,6 +1241,51 @@ async function loadSidebarBasedOnRole(userRole) {
     }
 }
 
+// Function to load default sidebar for guests
+async function loadDefaultSidebar() {
+    try {
+        // Load a simple sidebar without user-specific links
+        const sidebarHTML = `
+        <div class="sidebar" style="width: 280px; background: white; height: 100vh; position: fixed; left: 0; top: 0; box-shadow: 2px 0 20px rgba(0,0,0,0.1); z-index: 1000; padding-top: 20px; overflow-y: auto;">
+            <div style="padding: 20px; text-align: center;">
+                <h2 style="color: var(--primary-dark); margin-bottom: 30px; font-size: 22px;">BahAI Real Estate</h2>
+                <div style="margin-top: 40px;">
+                    <a href="../index.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--bg-light); border-radius: 8px; text-decoration: none; color: var(--text-dark); margin-bottom: 10px; transition: all 0.3s;">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="buyer_dashboard.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--bg-light); border-radius: 8px; text-decoration: none; color: var(--text-dark); margin-bottom: 10px; transition: all 0.3s;">
+                        <i class="fas fa-building"></i>
+                        <span>Browse Properties</span>
+                    </a>
+                    <a href="../login.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--primary-gradient); border-radius: 8px; text-decoration: none; color: white; margin-top: 20px; font-weight: 600;">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </a>
+                    <a href="../signup.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--secondary-gradient); border-radius: 8px; text-decoration: none; color: white; margin-top: 10px; font-weight: 600;">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Register</span>
+                    </a>
+                </div>
+                <div style="margin-top: 50px; padding: 20px; background: var(--bg-light); border-radius: 12px;">
+                    <p style="font-size: 14px; color: var(--text-light); margin-bottom: 10px;">Want full access?</p>
+                    <p style="font-size: 12px; color: var(--text-light);">Login to save properties, contact agents directly, and get personalized recommendations.</p>
+                </div>
+            </div>
+        </div>`;
+        
+        document.getElementById('sidebar-container').innerHTML = sidebarHTML;
+        
+        console.log('✅ Loaded default sidebar for guest');
+    } catch (error) {
+        console.error('Error loading default sidebar:', error);
+        document.getElementById('sidebar-container').innerHTML = 
+            '<div class="sidebar" style="padding: 20px; background: var(--bg-light); color: var(--text-dark);">' +
+            '<p><a href="../index.html">← Back to Home</a></p>' +
+            '</div>';
+    }
+}
+
 // Function to update back button based on user role
 function updateBackButton(userRole) {
     const backButton = document.getElementById('backButton');
@@ -1254,10 +1303,44 @@ function updateBackButton(userRole) {
         backButton.href = '../admin/admin_dashboard.html';
         backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Admin Dashboard';
     } else {
-        // Default for other roles
-        backButton.href = '../index.html';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Home';
+        // Default for guests and other roles
+        backButton.href = 'buyer_dashboard.html';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Properties';
     }
+}
+
+// Function to update back button for guests
+function updateGuestBackButton() {
+    const backButton = document.getElementById('backButton');
+    backButton.href = 'buyer_dashboard.html';
+    backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Back to Properties';
+}
+
+// Function to update UI for guest users
+function updateUIForGuests() {
+    // Update save buttons to show login prompt
+    const saveButtons = document.querySelectorAll('#savePropertyBtn, #saveBtnBottom, .save-btn');
+    saveButtons.forEach(btn => {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Save';
+            btn.onclick = function() {
+                window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
+            };
+        }
+    });
+    
+    // Update contact buttons to show login prompt
+    const contactButtons = document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom, .contact-btn');
+    contactButtons.forEach(btn => {
+        if (btn) {
+            const originalText = btn.textContent || btn.innerText;
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Contact';
+            btn.onclick = function() {
+                alert('Please login to contact the property agent/owner.');
+                window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
+            };
+        }
+    });
 }
 </script>
 
@@ -1303,7 +1386,7 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 window.performLogout = async function() {
     try {
         await signOut(auth);
-        window.location.href = "login.html";
+        window.location.href = "../login.html";
     } catch (error) {
         console.error("Logout error:", error);
         alert("Error logging out. Please try again.");
@@ -1319,6 +1402,7 @@ let currentMediaIndex = 0;
 let mediaUrls = [];
 let currentListing = null;
 let currentUserRole = null;
+let isGuest = true;
 
 // Property Type Mappings (from add_property.html)
 const salePropertyTypes = {
@@ -2412,7 +2496,7 @@ function renderLeasePropertyDetails(listing) {
     ${listing.maintenance ? `
     <div class="detail-section">
         <h4><i class="bi bi-tools"></i> Maintenance Responsibility</h4>
-        <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+        <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-light);">
             <p style="color: var(--text-dark); line-height: 1.6; font-weight: 500;">${getMaintenanceDisplay(listing.maintenance)}</p>
         </div>
     </div>
@@ -2483,6 +2567,13 @@ function displayPropertyDetails(listing, userInfo) {
     const amenities = listing.amenities || [];
     const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
     
+    // Determine if user is logged in
+    const isLoggedIn = !isGuest;
+    const saveButtonText = isLoggedIn ? 'Save Property' : 'Login to Save';
+    const saveButtonIcon = isLoggedIn ? 'far fa-heart' : 'fas fa-sign-in-alt';
+    const contactButtonText = isLoggedIn ? 'Contact Agent' : 'Login to Contact';
+    const contactButtonIcon = isLoggedIn ? 'fas fa-comment' : 'fas fa-sign-in-alt';
+    
     // Build HTML
     let html = `
     <!-- Property Header -->
@@ -2536,7 +2627,7 @@ function displayPropertyDetails(listing, userInfo) {
             <div class="price-label">Price</div>
             <div class="price-value">${displayPrice}</div>
             <button id="savePropertyBtn" class="action-button">
-                <i class="far fa-heart"></i> Save Property
+                <i class="${saveButtonIcon}"></i> ${saveButtonText}
             </button>
         </div>
     </div>
@@ -2678,7 +2769,7 @@ function displayPropertyDetails(listing, userInfo) {
             <div class="contact-card">
                 <h3 class="contact-header">
                     <i class="fas fa-user-circle"></i>
-                    Contact Agent
+                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Agent'}
                 </h3>
                 <div class="contact-info">
                     <div class="contact-avatar">
@@ -2705,10 +2796,17 @@ function displayPropertyDetails(listing, userInfo) {
                         </div>
                     </div>
                 </div>
+                ${isLoggedIn ? `
                 <button class="action-button" id="contactOwnerBtn">
                     <i class="fas fa-comment"></i>
-                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
+                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Agent'}
                 </button>
+                ` : `
+                <button class="action-button" id="contactOwnerBtn" style="background: var(--secondary-gradient);">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login to Contact
+                </button>
+                `}
             </div>
 
             <!-- Location Details -->
@@ -2871,12 +2969,21 @@ function displayPropertyDetails(listing, userInfo) {
 
     <!-- Action Buttons -->
     <div class="property-actions">
+        ${isLoggedIn ? `
         <button class="action-btn-large contact-btn" id="contactBtnBottom">
             <i class="fas fa-phone"></i> Contact Agent
         </button>
         <button class="action-btn-large save-btn" id="saveBtnBottom">
             <i class="far fa-heart"></i> Save Property
         </button>
+        ` : `
+        <button class="action-btn-large contact-btn" id="contactBtnBottom" style="background: var(--secondary-gradient);">
+            <i class="fas fa-sign-in-alt"></i> Login to Contact
+        </button>
+        <button class="action-btn-large save-btn" id="saveBtnBottom" style="border-color: var(--secondary); color: var(--secondary);">
+            <i class="fas fa-sign-in-alt"></i> Login to Save
+        </button>
+        `}
     </div>`;
     
     container.innerHTML = html;
@@ -2884,7 +2991,12 @@ function displayPropertyDetails(listing, userInfo) {
     // Initialize components
     initializeMediaNavigation(allMedia);
     setupButtonEventListeners(listing, userInfo);
-    updateSaveButtonState();
+    
+    // Only initialize save button state for logged in users
+    if (!isGuest) {
+        updateSaveButtonState();
+    }
+    
     initializePropertyCalculator(listing);
 
     // Preload video if first media is video
@@ -2908,24 +3020,46 @@ function displayPropertyDetails(listing, userInfo) {
 }
 
 function setupButtonEventListeners(listing, userInfo) {
-    // Contact buttons
-    document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
-            alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
+    // Check if user is guest
+    if (isGuest) {
+        // Setup guest button handlers
+        document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    alert('Please login to save properties to your favorites.');
+                    window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
+                });
+            }
         });
-    });
+        
+        document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom').forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    alert('Please login to contact the property agent/owner.');
+                    window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
+                });
+            }
+        });
+    } else {
+        // Setup logged-in user button handlers
+        document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
+                alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
+            });
+        });
 
-    // Save buttons
-    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
-        btn.addEventListener('click', function() {
-            toggleSaveProperty();
+        // Save buttons
+        document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
+            btn.addEventListener('click', function() {
+                toggleSaveProperty();
+            });
         });
-    });
+    }
 }
 
 async function updateSaveButtonState() {
-    if (!propertyId) return;
+    if (!propertyId || isGuest) return;
 
     const currentUser = auth.currentUser;
     if (!currentUser) {
@@ -2967,7 +3101,7 @@ function updateSaveButtonText(text, isSaved = false) {
 }
 
 async function toggleSaveProperty() {
-    if (!propertyId) return;
+    if (!propertyId || isGuest) return;
 
     const currentUser = auth.currentUser;
     if (!currentUser) {
@@ -3010,13 +3144,13 @@ function showSaveToast(message, isError = false) {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${isError ? 'var(--danger)' : 'var(--success)'};
+        background: ${isError ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 'var(--secondary-gradient)'};
         color: white;
         padding: 12px 24px;
-        border-radius: 8px;
+        border-radius: var(--border-radius-sm);
         z-index: 9999;
         font-weight: 500;
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--card-hover-shadow);
         animation: slideIn 0.3s ease;
     `;
 
@@ -3032,15 +3166,21 @@ function displayError(message) {
     const container = document.getElementById('propertyDetailsContainer');
     
     // Use currentUserRole to determine back link
-    let backLink = 'profile.html';
-    let backText = 'Back to Dashboard';
+    let backLink = 'buyer_dashboard.html';
+    let backText = 'Back to Properties';
     
     if (currentUserRole === 'agent') {
-        backLink = 'agent_dashboard.html';
+        backLink = '../agent/agent_dashboard.html';
         backText = 'Back to Agent Dashboard';
     } else if (currentUserRole === 'broker') {
-        backLink = 'broker_dashboard.html';
+        backLink = '../broker/broker_dashboard.html';
         backText = 'Back to Broker Dashboard';
+    } else if (currentUserRole === 'landlord') {
+        backLink = '../landlord/landlord_dashboard.html';
+        backText = 'Back to Landlord Dashboard';
+    } else if (currentUserRole === 'admin') {
+        backLink = '../admin/admin_dashboard.html';
+        backText = 'Back to Admin Dashboard';
     }
     
     container.innerHTML = `
@@ -3076,37 +3216,74 @@ async function getUserRole(userId) {
     return 'user'; // Default role
 }
 
+// Function to initialize user features
+function initializeUserFeatures() {
+    // Update save button state
+    updateSaveButtonState();
+}
+
+// Function to initialize guest view
+function initializeGuestView() {
+    isGuest = true;
+    // Update UI for guest users
+    updateUIForGuests();
+    
+    // Guest users can still use calculator
+    if (currentListing) {
+        initializePropertyCalculator(currentListing);
+    }
+}
+
 // --- INITIALIZATION ---
 
 // Check authentication and load property details
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
+    // Always load property details first (for both guests and logged-in users)
+    await loadPropertyDetails();
     
-    try {
-        // Get user role
-        currentUserRole = await getUserRole(user.uid);
-        console.log(`👤 User role detected: ${currentUserRole}`);
+    if (user) {
+        // User is logged in - load full functionality
+        isGuest = false;
+        try {
+            // Get user role
+            currentUserRole = await getUserRole(user.uid);
+            console.log(`👤 User role detected: ${currentUserRole}`);
+            
+            // Load appropriate sidebar
+            await window.loadSidebarBasedOnRole(currentUserRole);
+            
+            // Update back button based on role
+            window.updateBackButton(currentUserRole);
+            
+            // Initialize user-specific features
+            initializeUserFeatures();
+        } catch (error) {
+            console.error("Error loading user data:", error);
+            // Fallback to guest view
+            initializeGuestView();
+        }
+    } else {
+        // Guest user - load limited functionality
+        console.log("👤 Guest user - loading limited view");
+        isGuest = true;
         
-        // Load appropriate sidebar
-        await window.loadSidebarBasedOnRole(currentUserRole);
+        // Load default sidebar for guests
+        await window.loadDefaultSidebar();
         
-        // Update back button based on role
-        window.updateBackButton(currentUserRole);
+        // Update back button for guests
+        window.updateGuestBackButton();
         
-        // Load property details
-        await loadPropertyDetails();
-    } catch (error) {
-        console.error("Error in initialization:", error);
-        displayError("Failed to load property details. Please refresh the page.");
+        // Initialize guest view
+        initializeGuestView();
     }
 });
 
 // Export for global use if needed
 window.loadSidebarBasedOnRole = loadSidebarBasedOnRole;
 window.updateBackButton = updateBackButton;
+window.loadDefaultSidebar = loadDefaultSidebar;
+window.updateGuestBackButton = updateGuestBackButton;
+window.updateUIForGuests = updateUIForGuests;
 </script>
 
 </body>
