@@ -14,7 +14,7 @@ import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-s
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "bahai-1b76d.firebaseapp.com",
+  authDomain: "grycl04.github.io",
   projectId: "bahai-1b76d",
   storageBucket: "bahai-1b76d.firebasestorage.app",
   messagingSenderId: "646878644941",
