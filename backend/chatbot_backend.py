@@ -106,12 +106,14 @@ def debug_files():
     return jsonify(debug_info)
 # ========== CONFIGURATION ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TRAINING_DIR = os.path.join(os.path.dirname(BASE_DIR), "training")
 
 # Use absolute paths
-MODEL_PATH = os.path.join(BASE_DIR, 'models', 'nlu_model.pkl')
-TRAINING_DATA_PATH = os.path.join(BASE_DIR, 'data', 'member1', 'training_data.json')
+MODEL_PATH = os.path.join(os.path.dirname(BASE_DIR), 'training', 'models', 'nlu_model.pkl')
+TRAINING_DATA_PATH = os.path.join(TRAINING_DIR, 'data', 'member1', 'training_data.json')
 
 print(f"\n📁 BASE_DIR: {BASE_DIR}")
+print(f"📁 TRAINING_DIR: {TRAINING_DIR}")
 print(f"📁 MODEL_PATH: {MODEL_PATH}")
 print(f"📁 TRAINING_DATA_PATH: {TRAINING_DATA_PATH}")
 print(f"📁 Model exists: {os.path.exists(MODEL_PATH)}")
