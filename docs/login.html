@@ -839,6 +839,27 @@
 
   <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
   <script type="module">
+      console.log('=== FIREBASE DEBUG ===');
+  console.log('Document location:', {
+    href: window.location.href,
+    hostname: window.location.hostname,
+    origin: window.location.origin,
+    protocol: window.location.protocol,
+    referrer: document.referrer
+  });
+  
+  // Check Firebase endpoints
+  const endpoints = [
+    'https://bahai-1b76d.firebaseapp.com/__/auth/handler',
+    'https://identitytoolkit.googleapis.com',
+    'https://securetoken.googleapis.com'
+  ];
+  
+  endpoints.forEach(endpoint => {
+    fetch(endpoint, { method: 'HEAD', mode: 'no-cors' })
+      .then(() => console.log(`✓ ${endpoint} reachable`))
+      .catch(() => console.warn(`✗ ${endpoint} blocked`));
+  });
     import { auth, db, storage } from './firebase-common.js';
   console.log('Auth loaded:', auth);
     import { 
