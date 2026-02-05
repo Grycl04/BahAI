@@ -839,7 +839,8 @@
 
   <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
   <script type="module">
-    import { auth, db } from './firebase-common.js';
+    import { auth, db, storage } from './firebase-common.js';
+  console.log('Auth loaded:', auth);
     import { 
       signInWithEmailAndPassword, 
       signInWithPopup, 
