@@ -836,38 +836,40 @@
       </p>
     </div>
   </div>
+  
 <script>
-  // Clear problematic Firebase storage before loading
-  (function() {
-    console.log('Clearing Firebase storage...');
+  // Nuclear option: Clear ALL Firebase-related storage
+  (function nuclearClear() {
+    console.log('🚨 NUCLEAR CLEAR of Firebase storage');
     
-    // Clear localStorage
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.includes('firebase') || key.includes('auth')) {
-        keysToRemove.push(key);
+    // Clear ALL localStorage items that might be Firebase related
+    const allKeys = Object.keys(localStorage);
+    allKeys.forEach(key => {
+      if (key.includes('firebase') || 
+          key.includes('auth') || 
+          key.includes('Firebase') ||
+          key.includes('token') ||
+          key.includes('user')) {
+        console.log('Removing:', key.substring(0, 50) + '...');
+        localStorage.removeItem(key);
       }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    });
     
     // Clear sessionStorage
     sessionStorage.clear();
     
-    // Clear indexedDB (if used)
-    if (window.indexedDB) {
-      indexedDB.databases().then(dbs => {
-        dbs.forEach(db => {
-          if (db.name.includes('firebase')) {
-            indexedDB.deleteDatabase(db.name);
-          }
-        });
-      });
-    }
+    // Clear cookies that might interfere
+    document.cookie.split(";").forEach(function(c) {
+      document.cookie = c.replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/;domain=" + window.location.hostname);
+      document.cookie = c.replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/;domain=." + window.location.hostname);
+    });
     
-    console.log('Storage cleared');
+    console.log('✅ Storage cleared');
   })();
 </script>
+
   <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
   <script type="module">
   // Clear auth state on page load
@@ -878,9 +880,19 @@
     console.log('Cleanup error:', e);
   }
 
-  import { auth, db, storage } from './firebase-common.js';
+  // === DEBUG SCRIPT ===
+  console.log('=== FIREBASE DEBUG ===');
+  console.log('Document location:', {
+    href: window.location.href,
+    hostname: window.location.hostname,
+    origin: window.location.origin,
+    protocol: window.location.protocol,
+    referrer: document.referrer
+  });
   
-  console.log('Auth initialized with domain:', auth.config.authDomain);
+  // === SINGLE IMPORT - NO DUPLICATES ===
+  import { auth, db, storage } from './firebase-common.js';
+  console.log('Auth loaded with domain:', auth.config.authDomain);
   
   // Test auth initialization
   auth.authStateReady()
@@ -892,22 +904,20 @@
       console.error('Full error:', JSON.stringify(error, null, 2));
     });
 
-    import { auth, db, storage } from './firebase-common.js';
-  console.log('Auth loaded:', auth);
-    import { 
-      signInWithEmailAndPassword, 
-      signInWithPopup, 
-      GoogleAuthProvider,
-      fetchSignInMethodsForEmail
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  // Import other Firebase modules
+  import { 
+    signInWithEmailAndPassword, 
+    signInWithPopup, 
+    GoogleAuthProvider,
+    fetchSignInMethodsForEmail
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-
-    import { 
-      doc, 
-      getDoc, 
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+  import { 
+    doc, 
+    getDoc, 
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
     const googleProvider = new GoogleAuthProvider();
 
