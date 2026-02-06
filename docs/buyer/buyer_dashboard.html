@@ -10,7 +10,7 @@
 </head>
 
 <body>
-<script src="./ai_chatbot.js" type="module"></script>
+<script src="../ai_chatbot.js" type="module"></script>
 
 <!-- Mobile Menu Toggle -->
 <button class="mobile-menu-toggle" id="mobileMenuToggle">
@@ -2623,10 +2623,18 @@ document.addEventListener('DOMContentLoaded', () => {
             guestMessage.style.display = 'block';
             
             // Show guest recommendations
-            showGuestRecommendations();
+            setTimeout(() => {
+                showGuestRecommendations();
+            }, 1000);
         }
+
+        // Load listings and categories (available to everyone)
+        loadAllListings();
         
-        // Initialize chatbot for all users (logged-in and guests)
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Initialize AI chatbot with delay to ensure DOM is fully loaded
         setTimeout(() => {
             if (typeof initChatbot === 'function') {
                 console.log('🤖 Initializing AI chatbot...');
