@@ -635,14 +635,15 @@
       box-shadow: var(--shadow);
     }
 
-    .status-available {
-      background: #d1fae5;
-      color: #065f46;
+    .status-available,
+    .status-active {
+      background: #10b981 !important;
+      color: white !important;
     }
 
     .status-sold {
-      background: #fef3c7;
-      color: #92400e;
+      background: #ef4444 !important;
+      color: white !important;
     }
 
     .status-pending {
@@ -1231,10 +1232,6 @@
                             <div class="contact-label">Languages Spoken</div>
                             <div class="contact-value" id="languagesSpoken">Not specified</div>
                         </div>
-                        <div style="margin-bottom: 15px;">
-                            <div class="contact-label">Commission Preference</div>
-                            <div class="contact-value" id="commissionPreference">Not specified</div>
-                        </div>
                         <div>
                             <div class="contact-label">Member Since</div>
                             <div class="contact-value" id="memberSince">N/A</div>
@@ -1526,7 +1523,7 @@ async function loadAgentProfile(agentId) {
       updateDebugInfo(`✅ Profile loaded: ${profileData.fullName || profileData.displayName || 'Unknown'}`);
       displayAgentProfile(profileData);
       
-      // Load properties
+      // Load properties - FIXED: Using same logic as profile_agent.html
       await loadAgentProperties(agentId);
       
       // Load broker info if agent has a broker
@@ -1575,7 +1572,6 @@ function displayAgentProfile(agent) {
   const languages = agent.languages || agent.spokenLanguages || 'Not specified';
   const availability = agent.availability || 'Not specified';
   const workingHours = agent.workingHours || agent.preferredHours || 'Not specified';
-  const commissions = agent.commissions || agent.commissionStructure || 'Not specified';
   const website = agent.website || (agent.socialMedia && agent.socialMedia.website) || '';
   
   // Status
@@ -1618,8 +1614,6 @@ function displayAgentProfile(agent) {
   document.getElementById('workingHours').textContent = workingHours;
   document.getElementById('agentId').textContent = agentId;
   document.getElementById('languagesSpoken').textContent = languages;
-  document.getElementById('commissionPreference').textContent = commissions;
-  
   // Setup contact buttons
   setupContactButtons(email, phone, agent.socialMedia);
   
@@ -1864,7 +1858,7 @@ function displayBrokerInfo(brokerData, brokerId) {
     ${brokerEmail ? `<div style="margin: 8px 0; font-size: 14px;"><strong>Email:</strong> ${brokerEmail}</div>` : ''}
     ${brokerPhone ? `<div style="margin: 8px 0; font-size: 14px;"><strong>Phone:</strong> ${brokerPhone}</div>` : ''}
     <div class="broker-actions">
-      <a href="broker_profile.html?id=${brokerId}" class="action-btn btn-outline" style="font-size: 13px; padding: 8px 16px;">
+      <a href="profile.html?id=${brokerId}" class="action-btn btn-outline" style="font-size: 13px; padding: 8px 16px;">
         <i class="fas fa-eye"></i> View Broker Profile
       </a>
     </div>
@@ -2017,7 +2011,7 @@ function updateProfileBadges(agent) {
   }
 }
 
-// ==================== PROPERTIES FUNCTIONS ====================
+// ==================== PROPERTIES FUNCTIONS - FIXED VERSION ====================
 async function loadAgentProperties(agentId) {
   try {
     console.log("🔍 Loading properties for agent:", agentId);
@@ -2026,54 +2020,43 @@ async function loadAgentProperties(agentId) {
     currentProperties = [];
     let debugMessages = [];
     
-    // PRIMARY QUERY: Properties where agentId matches the agent's ID
-    debugMessages.push("🔍 Querying properties where agentId matches...");
+    // Try multiple possible queries (same as profile_agent.html)
+    const queries = [
+      // Query 1: Properties where agentId matches
+      query(collection(db, "properties"), where("agentId", "==", agentId)),
+      // Query 2: Properties where userId matches
+      query(collection(db, "properties"), where("userId", "==", agentId)),
+      // Query 3: Properties where listedBy matches
+      query(collection(db, "properties"), where("listedBy", "==", agentId))
+    ];
     
-    try {
-      const q1 = query(collection(db, "properties"), where("agentId", "==", agentId));
-      const snapshot1 = await getDocs(q1);
-      debugMessages.push(`✅ Found ${snapshot1.length} properties where agentId == ${agentId}`);
-      
-      snapshot1.forEach(docItem => {
-        const data = docItem.data();
-        currentProperties.push({ 
-          id: docItem.id, 
-          ...data,
-          isAgentProperty: true
+    debugMessages.push("🔍 Trying multiple queries to find agent properties...");
+    
+    for (const q of queries) {
+      try {
+        const snapshot = await getDocs(q);
+        debugMessages.push(`✅ Query found ${snapshot.length} properties`);
+        
+        snapshot.forEach(docItem => {
+          // Avoid duplicates
+          if (!currentProperties.find(p => p.id === docItem.id)) {
+            const data = docItem.data();
+            currentProperties.push({ 
+              id: docItem.id, 
+              ...data,
+              isAgentProperty: true
+            });
+            debugMessages.push(`   - Found: ${data.title || 'Untitled'} (ID: ${docItem.id})`);
+            debugMessages.push(`     Status: ${data.status || 'unknown'}, Type: ${data.type || 'unknown'}`);
+            if (data.agentId) debugMessages.push(`     Agent ID in property: ${data.agentId}`);
+          }
         });
-        debugMessages.push(`   - Found: ${data.title || 'Untitled'} (ID: ${docItem.id})`);
-      });
-    } catch (error) {
-      debugMessages.push(`❌ Query "agentId" error: ${error.message}`);
+      } catch (error) {
+        debugMessages.push(`❌ Query error: ${error.message}`);
+      }
     }
     
-    // SECONDARY QUERY: Properties where userId matches AND userType is 'agent'
-    try {
-      const q2 = query(
-        collection(db, "properties"), 
-        where("userId", "==", agentId),
-        where("userType", "==", "agent")
-      );
-      const snapshot2 = await getDocs(q2);
-      debugMessages.push(`✅ Found ${snapshot2.length} properties where userId == ${agentId} and userType == 'agent'`);
-      
-      snapshot2.forEach(docItem => {
-        // Avoid duplicates
-        if (!currentProperties.find(p => p.id === docItem.id)) {
-          const data = docItem.data();
-          currentProperties.push({ 
-            id: docItem.id, 
-            ...data,
-            isAgentProperty: true
-          });
-          debugMessages.push(`   - Found: ${data.title || 'Untitled'} (ID: ${docItem.id})`);
-        }
-      });
-    } catch (error) {
-      debugMessages.push(`❌ Query "userId & userType" error: ${error.message}`);
-    }
-    
-    // TERTIARY QUERY: Check if agent has personal properties array in their document
+    // Check if agent has personalProperties array in their document
     try {
       const agentDoc = await getDoc(doc(db, "agents", agentId));
       if (agentDoc.exists()) {
@@ -2108,48 +2091,35 @@ async function loadAgentProperties(agentId) {
     
     // Update debug info
     debugMessages.push(`\n📊 FINAL RESULTS:`);
-    debugMessages.push(`✅ TOTAL AGENT PROPERTIES: ${currentProperties.length}`);
+    debugMessages.push(`✅ TOTAL AGENT PROPERTIES FOUND: ${currentProperties.length}`);
     
     if (currentProperties.length > 0) {
       debugMessages.push(`\n📋 Properties Found:`);
       currentProperties.forEach(prop => {
         debugMessages.push(`   • ${prop.title || 'Untitled'} (ID: ${prop.id})`);
         debugMessages.push(`     Type: ${prop.type || 'sale'}, Status: ${prop.status || 'unknown'}`);
-        if (prop.agentId) debugMessages.push(`     Agent ID: ${prop.agentId}`);
+        if (prop.agentId) debugMessages.push(`     Agent ID in property: ${prop.agentId}`);
         if (prop.userId) debugMessages.push(`     User ID: ${prop.userId}`);
-        if (prop.brokerId) debugMessages.push(`     Broker ID: ${prop.brokerId}`);
+        if (prop.listedBy) debugMessages.push(`     Listed By: ${prop.listedBy}`);
         debugMessages.push(``);
       });
+    } else {
+      debugMessages.push(`\n❌ No properties found for this agent`);
+      debugMessages.push(`   Possible reasons:`);
+      debugMessages.push(`   • Agent hasn't added any properties yet`);
+      debugMessages.push(`   • Properties are assigned to a different agent ID`);
+      debugMessages.push(`   • Database structure may be different`);
     }
     
     const allDebugMessages = debugMessages.join('\n');
     updateDebugInfo(allDebugMessages);
-    
-    // Debug: Show what we found
-    console.log("Agent properties found:", currentProperties.map(p => ({
-      id: p.id,
-      title: p.title,
-      agentId: p.agentId,
-      userId: p.userId,
-      brokerId: p.brokerId,
-      type: p.type,
-      status: p.status
-    })));
     
     // Update properties count
     document.getElementById('propertiesCount').textContent = currentProperties.length;
     
     // Display properties
     if (currentProperties.length > 0) {
-      // Sort by creation date (newest first)
-      const sortedProperties = currentProperties.sort((a, b) => {
-        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
-        return dateB - dateA;
-      });
-      
-      const displayProperties = sortedProperties.slice(0, 6);
-      displayPropertiesGrid(displayProperties);
+      displayPropertiesGrid(currentProperties);
       setupPropertyFilter();
       
       // Show view all button if there are more than 6 properties
@@ -2157,7 +2127,7 @@ async function loadAgentProperties(agentId) {
         document.getElementById('viewAllBtn').style.display = 'inline-flex';
         document.getElementById('viewAllBtn').onclick = function(e) {
           e.preventDefault();
-          displayPropertiesGrid(sortedProperties);
+          displayPropertiesGrid(currentProperties);
           this.style.display = 'none';
         };
       }
@@ -2167,9 +2137,25 @@ async function loadAgentProperties(agentId) {
     
   } catch (error) {
     console.error('❌ Error loading agent properties:', error);
-    updateDebugInfo(`❌ Error loading agent properties: ${error.message}`);
+    updateDebugInfo(`❌ Error loading agent properties: ${error.message}\n${error.stack}`);
     showNoPropertiesMessage();
   }
+}
+
+// Display properties grid
+function displayPropertiesGrid(properties) {
+  const grid = document.getElementById('propertiesGrid');
+  grid.innerHTML = '';
+  
+  if (properties.length === 0) {
+    showNoPropertiesMessage();
+    return;
+  }
+  
+  properties.forEach(property => {
+    const card = createPropertyCard(property);
+    grid.appendChild(card);
+  });
 }
 
 function createPropertyCard(property) {
@@ -2373,14 +2359,6 @@ function hideLoading() {
   if (loadingState) {
     loadingState.style.display = 'none';
   }
-}
-
-// Helper function for limiting queries
-function limit(limitCount) {
-  return (q) => {
-    // This is a placeholder - actual limit would be implemented in the query
-    return q;
-  };
 }
 
 // Initialize when page loads

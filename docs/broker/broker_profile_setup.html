@@ -1033,6 +1033,7 @@
 </div>
 
 <!-- Sidebar Loader Script -->
+<script src="../sidebar-user.js"></script>
 <script>
 // Mobile menu functionality
 document.getElementById('mobileMenuToggle').addEventListener('click', function() {
@@ -1053,6 +1054,7 @@ fetch('sidebar.html')
     })
     .then(html => {
         document.getElementById('sidebar-container').innerHTML = html;
+        if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
         // Highlight active link
         const links = document.querySelectorAll('.sidebar-link');
         links.forEach(link => {

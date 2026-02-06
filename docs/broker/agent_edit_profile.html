@@ -863,23 +863,6 @@
           <p class="form-hint">Recommended: Square photo, at least 400x400 pixels, professional appearance</p>
         </div>
 
-        <!-- Additional Photos -->
-        <div style="margin-top: 30px;">
-          <label>Additional Photos (Optional)</label>
-          <p class="form-hint">Add photos of your work, certifications, or properties</p>
-          
-          <div class="photo-preview" id="additionalPhotosPreview">
-            <!-- Additional photos will be added here -->
-          </div>
-          
-          <div class="file-upload" style="margin-top: 10px;">
-            <input type="file" id="additionalPhotosInput" accept="image/*" multiple>
-            <label for="additionalPhotosInput" class="file-upload-label">
-              <i class="fas fa-plus"></i>
-              <span>Add More Photos</span>
-            </label>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -933,9 +916,9 @@
         </div>
 
         <div class="form-group full-width">
-          <label for="bio" class="required">Professional Bio</label>
-          <textarea id="bio" class="form-control" required placeholder="Tell potential clients about your experience, expertise, and approach..."></textarea>
-          <p class="form-hint">Write a compelling bio that highlights your strengths (minimum 100 characters)</p>
+          <label for="bio">Professional Bio</label>
+          <textarea id="bio" class="form-control" placeholder="Tell potential clients about your experience, expertise, and approach..."></textarea>
+          <p class="form-hint">Write a compelling bio that highlights your strengths</p>
         </div>
       </div>
     </div>
@@ -1031,17 +1014,6 @@
         </div>
 
         <div class="form-group">
-          <label for="commissionPreference">Commission Preference</label>
-          <select id="commissionPreference" class="form-control">
-            <option value="">Select preference</option>
-            <option value="Standard (2.5-3%)">Standard (2.5-3%)</option>
-            <option value="Negotiable">Negotiable</option>
-            <option value="Fixed Rate">Fixed Rate</option>
-            <option value="Volume Based">Volume Based</option>
-          </select>
-        </div>
-
-        <div class="form-group">
           <label for="availability">Availability</label>
           <select id="availability" class="form-control">
             <option value="">Select availability</option>
@@ -1049,6 +1021,7 @@
             <option value="Part Time">Part Time</option>
             <option value="Weekends Only">Weekends Only</option>
             <option value="By Appointment">By Appointment</option>
+            <option value="Flexible">Flexible</option>
           </select>
         </div>
 
@@ -1299,7 +1272,6 @@ const storage = getStorage(app);
 let currentUser = null;
 let currentProfileData = null;
 let profilePhotoFile = null;
-let additionalPhotos = [];
 
 // ==================== PAGE INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function() {
@@ -1412,31 +1384,26 @@ function getTags(containerId) {
 function initializePhotoUploads() {
   const profilePhotoUpload = document.getElementById('profilePhotoUpload');
   const profilePhotoInput = document.getElementById('profilePhotoInput');
-  const additionalPhotosInput = document.getElementById('additionalPhotosInput');
+  const photoUpload = document.getElementById('photoUpload');
   
-  // Profile photo upload
-  profilePhotoUpload.addEventListener('click', function() {
-    profilePhotoInput.click();
-  });
-  
-  profilePhotoInput.addEventListener('change', function(e) {
+  function handlePhotoSelect(e) {
     if (e.target.files && e.target.files[0]) {
       profilePhotoFile = e.target.files[0];
       previewProfilePhoto(profilePhotoFile);
     }
+  }
+  
+  // Profile photo upload - click on photo area
+  profilePhotoUpload.addEventListener('click', function() {
+    profilePhotoInput.click();
   });
   
-  // Additional photos upload
-  additionalPhotosInput.addEventListener('change', function(e) {
-    if (e.target.files) {
-      Array.from(e.target.files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-          additionalPhotos.push(file);
-          previewAdditionalPhoto(file);
-        }
-      });
-    }
-  });
+  profilePhotoInput.addEventListener('change', handlePhotoSelect);
+  
+  // Upload New Photo button
+  if (photoUpload) {
+    photoUpload.addEventListener('change', handlePhotoSelect);
+  }
 }
 
 function previewProfilePhoto(file) {
@@ -1451,38 +1418,6 @@ function previewProfilePhoto(file) {
     placeholder.appendChild(img);
   };
   reader.readAsDataURL(file);
-}
-
-function previewAdditionalPhoto(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const previewContainer = document.getElementById('additionalPhotosPreview');
-    
-    const previewItem = document.createElement('div');
-    previewItem.className = 'photo-preview-item';
-    previewItem.dataset.fileId = Date.now();
-    
-    const img = document.createElement('img');
-    img.src = e.target.result;
-    img.alt = 'Additional photo preview';
-    
-    previewItem.appendChild(img);
-    previewItem.addEventListener('click', function() {
-      const fileId = this.dataset.fileId;
-      removeAdditionalPhoto(fileId);
-    });
-    
-    previewContainer.appendChild(previewItem);
-  };
-  reader.readAsDataURL(file);
-}
-
-function removeAdditionalPhoto(fileId) {
-  const previewItem = document.querySelector(`[data-file-id="${fileId}"]`);
-  if (previewItem) {
-    previewItem.remove();
-    // Note: In a real implementation, you'd want to track which file to remove
-  }
 }
 
 // ==================== PROFILE DATA LOADING ====================
@@ -1536,7 +1471,6 @@ function populateFormFields(profileData) {
   // Professional details
   document.getElementById('agentId').value = profileData.agentId || profileData.agentCode || '';
   document.getElementById('languages').value = profileData.languages || profileData.spokenLanguages || '';
-  document.getElementById('commissionPreference').value = profileData.commissions || profileData.commissionStructure || '';
   document.getElementById('availability').value = profileData.availability || '';
   document.getElementById('workingHours').value = profileData.workingHours || profileData.preferredHours || '';
   document.getElementById('website').value = profileData.website || (profileData.socialMedia && profileData.socialMedia.website) || '';
@@ -1634,7 +1568,7 @@ function setupFormSubmission() {
   
   cancelBtn.addEventListener('click', function() {
     if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-      window.location.href = 'agent_details.html';
+      window.location.href = 'profile_agent.html';
     }
   });
 }
@@ -1670,7 +1604,6 @@ async function saveProfile() {
       // Professional details
       agentId: document.getElementById('agentId').value.trim() || null,
       languages: document.getElementById('languages').value.trim(),
-      commissions: document.getElementById('commissionPreference').value,
       availability: document.getElementById('availability').value,
       workingHours: document.getElementById('workingHours').value.trim(),
       website: document.getElementById('website').value.trim(),
@@ -1720,9 +1653,12 @@ async function saveProfile() {
     console.log("✅ Profile saved successfully to agents collection");
     showToast('Profile updated successfully!', 'success');
     
-    // Redirect back to profile page after a delay
+    // Clear profile cache so profile page fetches fresh data
+    localStorage.removeItem(`agent_${currentUser.uid}`);
+    
+    // Redirect back to agent profile page after a delay
     setTimeout(() => {
-      window.location.href = 'agent_details.html';
+      window.location.href = 'profile_agent.html';
     }, 1500);
     
   } catch (error) {
@@ -1734,7 +1670,7 @@ async function saveProfile() {
 
 function validateForm() {
   const requiredFields = [
-    'fullName', 'title', 'email', 'phone', 'location', 'yearsExperience', 'bio'
+    'fullName', 'title', 'email', 'phone', 'location', 'yearsExperience'
   ];
   
   let isValid = true;
@@ -1752,14 +1688,6 @@ function validateForm() {
       field.style.borderColor = '';
     }
   });
-  
-  // Validate bio length
-  const bio = document.getElementById('bio').value.trim();
-  if (bio.length < 100) {
-    document.getElementById('bio').style.borderColor = 'var(--danger)';
-    isValid = false;
-    errors.push('Bio must be at least 100 characters long');
-  }
   
   // Validate years of experience
   const yearsExp = parseInt(document.getElementById('yearsExperience').value);

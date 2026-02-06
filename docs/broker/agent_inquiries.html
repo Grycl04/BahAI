@@ -6,27 +6,34 @@
 <title>Inquiries - BahAI Real Estate Agent</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../buyer/style.css">
 <style>
+    /* Same design tokens as buyer dashboard - navy + gold */
     :root {
-      --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
-      --secondary: #1976d2;
-      --accent: #ff9800;
-      --agent-color: #10b981;
-      --text-dark: #1a202c;
-      --text-light: #718096;
-      --bg-light: #f8fafc;
-      --bg-white: #ffffff;
-      --border: #e2e8f0;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --unread-bg: #e8f4ff;
-      --unread-border: #b3d9ff;
-      --message-sent: #e3f2fd;
-      --message-received: #f5f5f5;
-      --success: #10b981;
-      --error: #ef4444;
+        --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+        --primary-light: #1e3a5f;
+        --primary-dark: #071e38;
+        --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        --border-radius: 16px;
+        --border-radius-sm: 12px;
+        --border-radius-lg: 24px;
+        --text-dark: #1a202c;
+        --text-light: #718096;
+        --primary: #0b2e52;
+        --bg-light: #f8fafc;
+        --bg-white: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --unread-bg: #e8f4ff;
+        --unread-border: #b3d9ff;
+        --message-sent: #e3f2fd;
+        --message-received: #f5f5f5;
+        --success: #10b981;
+        --error: #ef4444;
     }
     
     * {
@@ -37,7 +44,7 @@
 
     body {
       font-family: 'Inter', Arial, sans-serif;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
@@ -50,7 +57,7 @@
       top: 20px;
       left: 20px;
       z-index: 1001;
-      background: var(--agent-color);
+      background: var(--primary-dark);
       color: white;
       border: none;
       width: 50px;
@@ -58,60 +65,39 @@
       border-radius: 12px;
       font-size: 24px;
       cursor: pointer;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--card-shadow);
     }
 
     .container {
       flex: 1;
       margin-left: 280px;
-      padding: 30px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
       transition: margin-left 0.3s ease;
     }
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      gap: 20px;
-    }
-
-    .page-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, var(--agent-color), var(--primary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1.2;
-    }
-
-    .page-header p {
-      color: var(--text-light);
-      font-size: 16px;
-      line-height: 1.4;
-    }
-
     .refresh-btn {
-      background: var(--agent-color);
+      background: var(--primary-gradient);
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      box-shadow: var(--shadow);
     }
 
     .refresh-btn:hover {
-      background: var(--primary);
       transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     .refresh-btn.refreshing {
@@ -122,17 +108,18 @@
     .inquiries-container {
       display: grid;
       grid-template-columns: 350px 1fr;
-      gap: 25px;
-      height: calc(100vh - 180px);
-      min-height: 600px;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
     }
 
     /* Conversations List */
     .conversations-sidebar {
       background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -143,6 +130,18 @@
       border-bottom: 1px solid var(--border);
     }
 
+    .conversations-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .conversations-header-row h2 {
+      margin-bottom: 0;
+    }
+
     .conversations-header h2 {
       font-size: 18px;
       font-weight: 600;
@@ -151,6 +150,9 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 15px;
+    }
+    .conversations-header h2 i {
+      color: #d4af37;
     }
 
     .index-notice {
@@ -164,7 +166,7 @@
     }
 
     .index-notice a {
-      color: var(--agent-color);
+      color: #d4af37;
       font-weight: 600;
       text-decoration: underline;
     }
@@ -185,7 +187,7 @@
 
     .stat-value {
       font-weight: 700;
-      color: var(--agent-color);
+      color: #d4af37;
       font-size: 20px;
     }
 
@@ -222,9 +224,9 @@
     }
 
     .filter-btn.active {
-      background: var(--agent-color);
+      background: var(--secondary-gradient);
       color: white;
-      border-color: var(--agent-color);
+      border-color: #d4af37;
     }
 
     .conversations-search {
@@ -243,8 +245,8 @@
 
     .conversations-search input:focus {
       outline: none;
-      border-color: var(--agent-color);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
 
     .conversations-search i {
@@ -277,7 +279,7 @@
 
     .conversation-item.active {
       background: var(--unread-bg);
-      border-left: 4px solid var(--agent-color);
+      border-left: 4px solid #d4af37;
     }
 
     .conversation-item.unread {
@@ -288,7 +290,7 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--agent-color), var(--primary));
+      background: var(--primary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -338,8 +340,8 @@
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: var(--agent-color);
-      background: rgba(16, 185, 129, 0.08);
+      color: #d4af37;
+      background: rgba(212, 175, 55, 0.1);
       padding: 4px 8px;
       border-radius: 6px;
       width: fit-content;
@@ -357,7 +359,7 @@
       position: absolute;
       top: 16px;
       right: 20px;
-      background: var(--agent-color);
+      background: var(--secondary-gradient);
       color: white;
       font-size: 11px;
       font-weight: 600;
@@ -403,9 +405,9 @@
     /* Chat Container */
     .chat-container {
       background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -434,7 +436,7 @@
       width: 45px;
       height: 45px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--agent-color), var(--primary));
+      background: var(--primary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -508,7 +510,7 @@
     .chat-property-price {
       font-size: 16px;
       font-weight: 700;
-      color: var(--agent-color);
+      color: #d4af37;
     }
 
     .messages-container {
@@ -571,7 +573,7 @@
     }
 
     .message-bubble.sent .message-content {
-      background: var(--agent-color);
+      background: var(--primary-gradient);
       color: white;
       border-bottom-right-radius: 4px;
     }
@@ -648,12 +650,12 @@
 
     .chat-input:focus {
       outline: none;
-      border-color: var(--agent-color);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
 
     .send-button {
-      background: var(--agent-color);
+      background: var(--primary-gradient);
       color: white;
       border: none;
       width: 44px;
@@ -668,8 +670,8 @@
     }
 
     .send-button:hover {
-      background: var(--primary);
       transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(11, 46, 82, 0.4);
     }
 
     .send-button:disabled {
@@ -711,11 +713,11 @@
     }
 
     .spinner {
-      border: 4px solid var(--bg-light);
-      border-top: 4px solid var(--agent-color);
+      border: 4px solid rgba(212, 175, 55, 0.2);
+      border-top: 4px solid #d4af37;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       animation: spin 1s linear infinite;
       margin-bottom: 20px;
     }
@@ -795,12 +797,12 @@
     .property-quick-price {
       font-size: 16px;
       font-weight: 700;
-      color: var(--agent-color);
+      color: #d4af37;
     }
 
     /* Agent-specific badges */
     .agent-badge {
-      background: var(--agent-color);
+      background: var(--secondary-gradient);
       color: white;
       padding: 2px 8px;
       border-radius: 4px;
@@ -881,13 +883,14 @@
     }
 
     .action-btn.primary {
-      background: var(--agent-color);
+      background: var(--primary-gradient);
       color: white;
-      border-color: var(--agent-color);
+      border-color: var(--primary-dark);
     }
 
     .action-btn.primary:hover {
-      background: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(11, 46, 82, 0.4);
     }
 
     /* Delete Conversation Modal */
@@ -999,7 +1002,7 @@
     @media (max-width: 1024px) {
       .container {
         margin-left: 0;
-        padding: 25px;
+        padding: 0;
       }
       
       .mobile-menu-toggle {
@@ -1010,12 +1013,10 @@
       
       .inquiries-container {
         grid-template-columns: 1fr;
-        height: auto;
-        min-height: calc(100vh - 180px);
       }
       
       .conversations-sidebar {
-        max-height: 400px;
+        max-height: 50vh;
       }
       
       .chat-header {
@@ -1032,7 +1033,7 @@
     /* Large Mobile */
     @media (max-width: 768px) {
       .container {
-        padding: 20px;
+        padding: 0;
       }
       
       .mobile-menu-toggle {
@@ -1041,24 +1042,6 @@
         width: 45px;
         height: 45px;
         font-size: 20px;
-      }
-      
-      .page-header h1 {
-        font-size: 24px;
-      }
-      
-      .page-header p {
-        font-size: 14px;
-      }
-      
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-      }
-      
-      .refresh-btn {
-        align-self: flex-start;
       }
       
       .message-bubble {
@@ -1073,7 +1056,7 @@
     /* Small Mobile */
     @media (max-width: 480px) {
       .container {
-        padding: 15px;
+        padding: 0;
       }
       
       .mobile-menu-toggle {
@@ -1136,23 +1119,18 @@
 
 <!-- Main -->
 <div class="container">
-  <div class="topbar">
-    <div class="page-header">
-      <h1>Buyer Inquiries</h1>
-      <p>Communicate with potential buyers and schedule viewings</p>
-    </div>
-    <button class="refresh-btn" id="refreshBtn">
-      <i class="fas fa-sync-alt"></i> Refresh
-    </button>
-  </div>
-
   <div class="inquiries-container">
     <!-- Conversations Sidebar -->
     <div class="conversations-sidebar">
-      <div class="conversations-header">
+    <div class="conversations-header">
+      <div class="conversations-header-row">
         <h2><i class="fas fa-comments"></i> My Conversations</h2>
-        
-        <div class="index-notice" id="indexNotice">
+        <button class="refresh-btn" id="refreshBtn">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+      
+      <div class="index-notice" id="indexNotice">
           <i class="fas fa-info-circle"></i> 
           <span id="noticeText">No conversations found. Messages from buyers will appear here.</span>
         </div>
@@ -1181,9 +1159,6 @@
           </button>
           <button class="filter-btn" id="filterLeads">
             <i class="fas fa-star"></i> Hot Leads
-          </button>
-          <button class="filter-btn" id="fixDataBtn" style="background: var(--accent); color: white; border-color: var(--accent);">
-            <i class="fas fa-wrench"></i> Fix Data
           </button>
         </div>
         
@@ -1275,6 +1250,7 @@
 </div>
 
 <!-- Sidebar Loader -->
+<script src="../sidebar-user.js"></script>
 <script>
 // Mobile menu functionality
 document.getElementById('mobileMenuToggle').addEventListener('click', function() {
@@ -1304,26 +1280,30 @@ fetch('agent_sidebar.html')
     document.getElementById('sidebar-container').innerHTML = html;
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
-      if (link.getAttribute('href') === 'inquiries-agent.html') {
+      if (link.getAttribute('href') === 'agent_inquiries.html') {
         link.classList.add('active');
       }
     });
+    setupLogoutButton();
   })
   .catch(error => {
     console.error('Error loading sidebar:', error);
-    // Fallback to regular sidebar if agent sidebar doesn't exist
-    fetch('sidebar.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('sidebar-container').innerHTML = html;
-        const links = document.querySelectorAll('.sidebar-link');
-        links.forEach(link => {
-          if (link.getAttribute('href') === 'inquiries-agent.html' || link.getAttribute('href') === 'inquiries.html') {
-            link.classList.add('active');
-          }
-        });
-      });
   });
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) { setTimeout(setupLogoutButton, 100); return; }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') window.performLogout();
+      else window.location.href = "../auth/login.html";
+    }
+  });
+}
 
 // Handle window resize
 window.addEventListener('resize', function() {
@@ -1398,6 +1378,57 @@ function debugLog(...args) {
   }
 }
 
+// Load agent profile for sidebar (agents collection first, then users)
+async function loadAgentProfile(user) {
+  try {
+    const agentDoc = await getDoc(doc(db, "agents", user.uid));
+    if (agentDoc.exists()) {
+      const d = agentDoc.data();
+      const sidebarData = {
+        fullName: d.fullName || d.name || d.displayName,
+        displayName: d.fullName || d.name || d.displayName,
+        email: user.email || d.email,
+        role: d.userType || d.role || 'agent'
+      };
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile(sidebarData);
+      }
+      return;
+    }
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+      const d = userDoc.data();
+      const sidebarData = {
+        fullName: d.fullName || d.name || d.displayName,
+        displayName: d.fullName || d.name || d.displayName,
+        email: user.email || d.email,
+        role: d.userType || d.role || 'agent'
+      };
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile(sidebarData);
+      }
+      return;
+    }
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile({
+        fullName: user.displayName,
+        displayName: user.displayName,
+        email: user.email,
+        role: 'agent'
+      });
+    }
+  } catch (e) {
+    console.warn('Could not load agent profile:', e);
+    if (user && typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile({
+        fullName: user.displayName,
+        email: user.email,
+        role: 'agent'
+      });
+    }
+  }
+}
+
 // Initialize on auth state change
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -1407,6 +1438,8 @@ onAuthStateChanged(auth, async (user) => {
   
   currentUser = user;
   debugLog('👤 Agent logged in:', user.uid, 'Email:', user.email);
+  
+  loadAgentProfile(user);
   
   // Initialize the page
   initPage();
@@ -1455,13 +1488,6 @@ async function loadCurrentUserData() {
 function setupEventListeners() {
   // Refresh button
   document.getElementById('refreshBtn').addEventListener('click', refreshConversations);
-  
-  // Fix Data button
-  document.getElementById('fixDataBtn').addEventListener('click', async function() {
-    if (confirm('This will create conversation documents from your existing messages. Continue?')) {
-      await createConversationsFromMessages();
-    }
-  });
   
   // Filter buttons
   document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
@@ -1828,9 +1854,19 @@ function updateStats() {
   const unread = allConversations.filter(conv => conv.unreadCount?.[currentUser.uid] > 0).length;
   const leads = allConversations.filter(conv => conv.isHotLead).length;
   
+  // Update sidebar stats
   document.querySelectorAll('.stat-value')[0].textContent = total;
   document.querySelectorAll('.stat-value')[1].textContent = unread;
   document.querySelectorAll('.stat-value')[2].textContent = leads;
+  
+  // Update hero stats
+  const totalEl = document.getElementById('totalConversations');
+  const unreadEl = document.getElementById('unreadConversations');
+  const leadsEl = document.getElementById('hotLeads');
+  
+  if (totalEl) totalEl.textContent = total;
+  if (unreadEl) unreadEl.textContent = unread;
+  if (leadsEl) leadsEl.textContent = leads;
 }
 
 // Filter and display conversations
@@ -2024,7 +2060,7 @@ function displayConversations(conversations) {
     const preview = lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage;
     
     // Add hot lead indicator
-    const hotLeadIndicator = conversation.isHotLead ? '<span class="agent-badge" style="margin-left: 8px; background: var(--accent);">HOT</span>' : '';
+    const hotLeadIndicator = conversation.isHotLead ? '<span class="agent-badge" style="margin-left: 8px; background: var(--secondary-gradient);">HOT</span>' : '';
     
     conversationElement.innerHTML = `
       <div class="conversation-avatar" style="background: ${getAvatarColor(displayInfo.displayName)}">${initials}</div>
@@ -2120,7 +2156,7 @@ async function selectConversation(conversationId, buyerId, propertyId = null, br
   document.getElementById('chatUserAvatar').textContent = initials;
   document.getElementById('chatUserAvatar').style.background = getAvatarColor(finalBuyerInfo.displayName);
   document.getElementById('chatUserName').textContent = finalBuyerInfo.displayName;
-  document.getElementById('chatUserStatus').innerHTML = `<i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> Online`;
+  document.getElementById('chatUserStatus').innerHTML = `<i class="fas fa-circle" style="color: #d4af37; font-size: 8px;"></i> Online`;
   
   // Load property data if available
   if (propertyId && !propertyMap.has(propertyId)) {
@@ -2285,7 +2321,7 @@ function showEmptyMessagesState() {
   
   if (currentPropertyId && propertyMap.has(currentPropertyId)) {
     const property = propertyMap.get(currentPropertyId);
-    const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/10b981/white?text=Property';
+    const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
     
     messagesContainer.innerHTML = `
       <div class="property-quick-view" onclick="viewPropertyDetails('${currentPropertyId}')">
@@ -2326,7 +2362,7 @@ function displayMessages(snapshot) {
   // Add property quick view at the top if available
   if (currentPropertyId && propertyMap.has(currentPropertyId)) {
     const property = propertyMap.get(currentPropertyId);
-    const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/10b981/white?text=Property';
+    const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
     
     const propertyView = document.createElement('div');
     propertyView.className = 'property-quick-view';
@@ -2533,7 +2569,7 @@ async function sendMessage() {
     messageInput.style.height = 'auto';
     
     // Show success feedback
-    sendButton.style.background = '#10b981';
+    sendButton.style.background = '#d4af37';
     setTimeout(() => {
       sendButton.style.background = '';
     }, 1000);
@@ -2743,9 +2779,11 @@ window.createConversationsFromMessages = async function() {
   try {
     debugLog('🔄 Creating conversations from existing messages...');
     
-    // Show loading
-    document.getElementById('fixDataBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fixing...';
-    document.getElementById('fixDataBtn').disabled = true;
+    const fixDataBtn = document.getElementById('fixDataBtn');
+    if (fixDataBtn) {
+      fixDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fixing...';
+      fixDataBtn.disabled = true;
+    }
     
     const messagesRef = collection(db, 'messages');
     const messagesSnapshot = await getDocs(messagesRef);
@@ -2845,9 +2883,10 @@ window.createConversationsFromMessages = async function() {
       }
     }
     
-    // Reset button
-    document.getElementById('fixDataBtn').innerHTML = '<i class="fas fa-wrench"></i> Fix Data';
-    document.getElementById('fixDataBtn').disabled = false;
+    if (fixDataBtn) {
+      fixDataBtn.innerHTML = '<i class="fas fa-wrench"></i> Fix Data';
+      fixDataBtn.disabled = false;
+    }
     
     showToast(`Created ${createdCount} conversations from ${messagesSnapshot.size} messages`);
     debugLog(`✅ Created ${createdCount} conversations, ${errorCount} errors`);
@@ -2860,9 +2899,11 @@ window.createConversationsFromMessages = async function() {
   } catch (error) {
     console.error('❌ Error creating conversations from messages:', error);
     
-    // Reset button
-    document.getElementById('fixDataBtn').innerHTML = '<i class="fas fa-wrench"></i> Fix Data';
-    document.getElementById('fixDataBtn').disabled = false;
+    const fixDataBtn = document.getElementById('fixDataBtn');
+    if (fixDataBtn) {
+      fixDataBtn.innerHTML = '<i class="fas fa-wrench"></i> Fix Data';
+      fixDataBtn.disabled = false;
+    }
     
     showError('Failed to create conversations: ' + error.message);
   }

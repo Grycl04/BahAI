@@ -5,19 +5,26 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Add Agent - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../buyer/style.css">
 <style>
+    /* Same design tokens as broker dashboard */
     :root {
-      --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
-      --secondary: #1976d2;
-      --accent: #ff9800;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #667eea 100%);
+      --primary-light: #667eea;
+      --primary-dark: #764ba2;
+      --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-lg: 24px;
       --text-dark: #1a202c;
       --text-light: #718096;
       --bg-light: #f8fafc;
       --bg-white: #ffffff;
-      --border: #e2e8f0;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --border: #e5e7eb;
       --success: #059669;
       --danger: #dc2626;
     }
@@ -36,54 +43,93 @@
       min-height: 100vh;
     }
 
-    /* Main wrapper - Full width */
     .container {
       flex: 1;
       margin-left: 280px;
-      padding: 0;
-      width: calc(100% - 280px);
+      padding: 30px;
+      transition: margin-left 0.3s ease;
     }
-
-    /* Topbar - Full width background */
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 30px 40px;
-      background: var(--bg-white);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--border-radius-sm);
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--card-hover-shadow);
     }
-
-    .page-header h1 {
-      font-size: 28px;
+    /* Hero Section - same as broker dashboard */
+    .hero-section {
+      background: var(--primary-gradient);
+      color: white;
+      border-radius: var(--border-radius-lg);
+      padding: 50px 40px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>');
+      background-size: cover;
+      opacity: 0.1;
+    }
+    .hero-section h1 {
+      font-size: 2.8rem;
       font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
+      margin-bottom: 15px;
+      line-height: 1.2;
+      max-width: 800px;
+      position: relative;
+      z-index: 1;
     }
-
-    .page-header p {
-      color: var(--text-light);
-      font-size: 16px;
+    .hero-section p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
     }
-
+    .hero-actions {
+      margin-top: 25px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
     .back-button {
-      background: var(--bg-light);
-      color: var(--text-dark);
-      border: 2px solid var(--border);
-      padding: 12px 24px;
-      border-radius: 10px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.4);
+      padding: 14px 24px;
+      border-radius: var(--border-radius-sm);
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       text-decoration: none;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
-
     .back-button:hover {
-      background: var(--border);
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
 
     /* Main Content Area - Full page form */
@@ -93,18 +139,15 @@
       margin: 0 auto;
     }
 
-    /* Form takes full width */
     .form-container {
-      background: var(--bg-white);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       overflow: hidden;
     }
-
-    /* Form Header */
     .form-header {
-      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      background: var(--primary-gradient);
       padding: 30px 40px;
       color: white;
     }
@@ -146,11 +189,11 @@
     }
 
     .section-icon {
-      background: var(--primary-light);
+      background: var(--primary-gradient);
       color: white;
       width: 40px;
       height: 40px;
-      border-radius: 10px;
+      border-radius: var(--border-radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -209,12 +252,12 @@
     input, select, textarea {
       width: 100%;
       padding: 14px 16px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--border-radius-sm);
       font-size: 15px;
       font-family: 'Inter', sans-serif;
       transition: all 0.3s ease;
-      background: var(--bg-white);
+      background: white;
     }
 
     textarea {
@@ -224,8 +267,8 @@
 
     input:focus, select:focus, textarea:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     /* Specializations - Improved */
@@ -259,8 +302,8 @@
     }
 
     .specialty-checkbox.checked {
-      background: #e8f4fd;
-      border-color: var(--primary);
+      background: rgba(102, 126, 234, 0.08);
+      border-color: var(--primary-light);
     }
 
     /* Action Buttons - Fixed at bottom */
@@ -296,24 +339,23 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       color: white;
-      box-shadow: var(--shadow);
+      border: none;
     }
-
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
-
     .btn-secondary {
-      background: var(--bg-white);
+      background: white;
       color: var(--text-dark);
-      border: 2px solid var(--border);
+      border: 2px solid #e5e7eb;
     }
-
     .btn-secondary:hover {
-      background: var(--bg-light);
+      border-color: var(--primary-light);
+      background: #f9fafb;
+      transform: translateY(-2px);
     }
 
     .btn:disabled {
@@ -322,13 +364,12 @@
       transform: none !important;
     }
 
-    /* Success Message */
     .success-message {
-      background: #d1fae5;
-      border: 1px solid #a7f3d0;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       color: #065f46;
       padding: 20px;
-      border-radius: 10px;
+      border-radius: var(--border-radius-sm);
       margin-bottom: 30px;
       display: none;
       align-items: center;
@@ -380,8 +421,8 @@
     }
 
     .loader {
-      border: 4px solid var(--bg-light);
-      border-top: 4px solid var(--primary);
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top: 4px solid var(--primary-light);
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -393,18 +434,16 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Information Box */
     .info-box {
-      background: #e8f4fd;
-      border-left: 4px solid var(--primary);
+      background: rgba(102, 126, 234, 0.08);
+      border-left: 4px solid var(--primary-light);
       padding: 25px;
-      border-radius: 10px;
+      border-radius: var(--border-radius-sm);
       margin-top: 40px;
     }
-
     .info-box h3 {
       margin-top: 0;
-      color: var(--primary);
+      color: var(--primary-dark);
       margin-bottom: 15px;
     }
 
@@ -419,80 +458,71 @@
       line-height: 1.5;
     }
 
-    /* Responsive Design */
+    /* Responsive - same as broker dashboard */
     @media (max-width: 1024px) {
       .container {
         margin-left: 0;
-        width: 100%;
-      }
-      
-      .topbar {
         padding: 25px;
       }
-      
+      .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
       .main-content {
-        padding: 25px;
+        padding: 25px 0;
       }
     }
-
     @media (max-width: 768px) {
       .form-grid {
         grid-template-columns: 1fr;
       }
-      
       .specializations-grid {
         grid-template-columns: 1fr;
       }
-      
-      .topbar {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+      .hero-section h1 {
+        font-size: 1.8rem;
       }
-      
+      .hero-section {
+        padding: 30px 24px;
+      }
       .action-section {
         flex-direction: column;
         gap: 15px;
         align-items: stretch;
       }
-      
       .action-buttons {
         flex-direction: column;
       }
-      
       .btn {
         width: 100%;
         justify-content: center;
       }
     }
-
     @media (max-width: 480px) {
-      .topbar {
+      .container {
         padding: 20px;
       }
-      
       .main-content {
-        padding: 20px;
+        padding: 20px 0;
       }
-      
       .form-header,
       .form-body {
         padding: 25px;
       }
-      
       .action-section {
         padding: 25px;
       }
     }
-
-    /* Custom checkbox styling */
     input[type="checkbox"] {
-      accent-color: var(--primary);
+      accent-color: var(--primary-light);
     }
 </style>
 </head>
 
 <body>
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
 
@@ -504,17 +534,17 @@
   </div>
 </div>
 
-<!-- Main Container -->
+<!-- Main Container - same layout as broker dashboard -->
 <div class="container">
-  <!-- Top Bar -->
-  <div class="topbar">
-    <div class="page-header">
-      <h1>Invite New Agent</h1>
-      <p>Send an invitation to join your brokerage team</p>
+  <!-- Hero Section - same design as broker dashboard -->
+  <div class="hero-section">
+    <h1>Invite New Agent</h1>
+    <p>Send an invitation to join your brokerage team</p>
+    <div class="hero-actions">
+      <a href="list_agent.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Agents List
+      </a>
     </div>
-    <a href="list_agent.html" class="back-button">
-      <span>←</span> Back to Agents List
-    </a>
   </div>
 
   <!-- Main Content -->
@@ -542,7 +572,7 @@
           <!-- Personal Information Section -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon">👤</div>
+              <div class="section-icon"><i class="fas fa-user"></i></div>
               <div>
                 <div class="section-title">Personal Information</div>
                 <div class="section-description">Basic details about the agent</div>
@@ -573,7 +603,7 @@
           <!-- Professional Information Section -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon">💼</div>
+              <div class="section-icon"><i class="fas fa-briefcase"></i></div>
               <div>
                 <div class="section-title">Professional Information</div>
                 <div class="section-description">Agent's professional details and credentials</div>
@@ -606,7 +636,7 @@
           <!-- Specializations Section -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon">🎯</div>
+              <div class="section-icon"><i class="fas fa-bullseye"></i></div>
               <div>
                 <div class="section-title">Areas of Specialization</div>
                 <div class="section-description">Select the agent's areas of expertise (optional)</div>
@@ -678,20 +708,47 @@
 </div>
 
 <!-- Sidebar Loader -->
+<script src="../sidebar-user.js"></script>
 <script>
+// Mobile menu functionality
+document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
+      'translateX(-100%)' : 'translateX(0px)';
+  }
+});
+
 // Load sidebar
 fetch('sidebar.html')
   .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
-      if (link.getAttribute('href') === 'agents.html') {
+      if (link.getAttribute('href') === 'add_agent.html') {
         link.classList.add('active');
       }
     });
+    setupLogoutButton();
   })
   .catch(error => console.error('Error loading sidebar:', error));
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) { setTimeout(setupLogoutButton, 100); return; }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') window.performLogout();
+      else window.location.href = "../login.html";
+    }
+  });
+}
 </script>
 
 <!-- Add EmailJS SDK -->
@@ -706,7 +763,7 @@ fetch('sidebar.html')
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged
+  getAuth, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import {
   getFirestore, 
@@ -735,12 +792,24 @@ let currentUser = null;
 // Initialize
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "../login.html";
   } else {
     currentUser = user;
     console.log('👤 Broker logged in:', user.email, 'UID:', user.uid);
   }
 });
+
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userData');
+    window.location.href = "../login.html";
+  } catch (e) {
+    console.error('Logout error:', e);
+    window.location.href = "../login.html";
+  }
+};
 
 // Form submission
 document.getElementById('agentForm').addEventListener('submit', async function(e) {

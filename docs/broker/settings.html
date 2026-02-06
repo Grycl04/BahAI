@@ -952,12 +952,14 @@
 </div>
 
 <!-- Sidebar Loader -->
+<script src="../sidebar-user.js"></script>
 <script>
 // Load sidebar
 fetch('sidebar.html')
   .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
     // Set active state for current page
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
@@ -965,8 +967,24 @@ fetch('sidebar.html')
         link.classList.add('active');
       }
     });
+    setupLogoutButton();
   })
   .catch(error => console.error('Error loading sidebar:', error));
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) { setTimeout(setupLogoutButton, 100); return; }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') window.performLogout();
+      else window.location.href = "../login.html";
+    }
+  });
+}
 </script>
 
 <!-- Firebase Script -->
@@ -1192,11 +1210,23 @@ function showSuccess(message) {
 // Require login and load user data
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "../login.html";
   } else {
     loadUserData();
   }
 });
+
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userData');
+    window.location.href = "../login.html";
+  } catch (e) {
+    console.error('Logout error:', e);
+    window.location.href = "../login.html";
+  }
+};
 </script>
 </body>
 </html>

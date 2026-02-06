@@ -1210,17 +1210,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="commissions">Preferred Commission Structure</label>
-          <select id="commissions">
-            <option value="">Select preference</option>
-            <option value="percentage_based">Percentage-Based</option>
-            <option value="flat_fee">Flat Fee</option>
-            <option value="split_commission">Split Commission</option>
-            <option value="negotiable">Negotiable</option>
-            <option value="broker_dependent">Broker-Dependent</option>
-          </select>
-        </div>
       </div>
 
       <!-- Step 4: Contact & Social Media -->
@@ -1790,8 +1779,6 @@ function populateFormFields(data) {
   document.getElementById('availability').value = data.availability || '';
   document.getElementById('workingHours').value = data.workingHours || '';
   document.getElementById('bio').value = data.bio || '';
-  document.getElementById('commissions').value = data.commissions || '';
-  
   // Specializations
   if (data.propertyTypes && Array.isArray(data.propertyTypes)) {
     profileData.propertyTypes = data.propertyTypes;
@@ -1867,8 +1854,6 @@ function saveStepData(step) {
       skillCheckboxes.forEach(checkbox => {
         profileData.agentSkills.push(checkbox.value);
       });
-      
-      profileData.commissions = document.getElementById('commissions').value;
       break;
       
     case 4:
@@ -2046,7 +2031,6 @@ async function submitProfile() {
       propertyTypes: profileData.propertyTypes || [],
       serviceAreas: profileData.serviceAreas || [],
       agentSkills: profileData.agentSkills || [],
-      commissions: profileData.commissions || '',
       
       // Social & contact
       socialMedia: profileData.socialMedia || {},

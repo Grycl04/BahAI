@@ -8,11 +8,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root {
+      /* Matches broker dashboard - navy + gold */
       --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
-      --secondary: #1976d2;
-      --accent: #ff9800;
+      --primary-dark: #071e38;
+      --primary-light: #1e3a5f;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --secondary: #d4af37;
+      --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --accent: #d4af37;
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
       --text-dark: #1a202c;
       --text-light: #718096;
       --bg-light: #f8fafc;
@@ -69,7 +73,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       color: white;
       border: none;
       padding: 14px 28px;
@@ -86,7 +90,7 @@
     .back-button:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
-      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      background: linear-gradient(135deg, #001a33, var(--primary));
     }
 
     /* Property Header */
@@ -115,18 +119,18 @@
     }
 
     .badge-sale {
-      background: #d1fae5;
-      color: #065f46;
+      background: #3b82f6;
+      color: white;
     }
 
     .badge-rent {
-      background: #fef3c7;
-      color: #92400e;
+      background: #10b981;
+      color: white;
     }
 
     .badge-lease {
-      background: #dbeafe;
-      color: #1e40af;
+      background: #10b981;
+      color: white;
     }
 
     .badge-active {
@@ -195,7 +199,7 @@
     }
 
     .price-section {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
       color: white;
       padding: 25px;
       border-radius: 16px;
@@ -793,12 +797,6 @@
     .calculator-btn {
       background: linear-gradient(135deg, #f59e0b, #d97706);
       color: white;
-    }
-
-    .save-btn {
-      background: var(--bg-white);
-      color: var(--text-dark);
-      border: 1px solid var(--border);
     }
 
     /* Loading State */
@@ -1970,21 +1968,6 @@ function displayPropertyDetails(listing, userInfo) {
                 </div>
             </div>`;
         }
-        
-        // Commission details
-        if (listing.commissionType && listing.commissionValue) {
-            propertyDetailsHTML += `
-            <div class="details-grid" style="margin-top: 20px;">
-                <div class="detail-item">
-                    <span class="detail-label">Broker Commission Type:</span>
-                    <span class="detail-value">${listing.commissionType === 'percentage' ? 'Percentage' : 'Fixed Amount'}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Commission Value:</span>
-                    <span class="detail-value">${listing.commissionType === 'percentage' ? listing.commissionValue + '%' : '₱' + listing.commissionValue.toLocaleString()}</span>
-                </div>
-            </div>`;
-        }
     } else if (listingType === 'lease') {
         // LEASE PROPERTY DETAILS
         propertyDetailsHTML = `
@@ -2057,21 +2040,6 @@ function displayPropertyDetails(listing, userInfo) {
                     <span class="detail-value">${listing.topography.charAt(0).toUpperCase() + listing.topography.slice(1)}</span>
                 </div>
                 ` : ''}
-            </div>`;
-        }
-        
-        // Commission details
-        if (listing.commissionType && listing.commissionValue) {
-            propertyDetailsHTML += `
-            <div class="details-grid" style="margin-top: 20px;">
-                <div class="detail-item">
-                    <span class="detail-label">Broker Commission Type:</span>
-                    <span class="detail-value">${listing.commissionType === 'percentage' ? 'Percentage' : 'Fixed Amount'}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Commission Value:</span>
-                    <span class="detail-value">${listing.commissionType === 'percentage' ? listing.commissionValue + '%' : '₱' + listing.commissionValue.toLocaleString()}</span>
-                </div>
             </div>`;
         }
     }
@@ -2175,9 +2143,6 @@ function displayPropertyDetails(listing, userInfo) {
         <div class="price-section">
             <div class="price-label">Price</div>
             <div class="price-value">${displayPrice}</div>
-            <button id="savePropertyBtn" class="action-button">
-                <i class="far fa-heart"></i> Save Property
-            </button>
         </div>
     </div>
 
@@ -2329,10 +2294,6 @@ function displayPropertyDetails(listing, userInfo) {
                         </div>
                     </div>
                 </div>
-                <button class="action-button" id="contactOwnerBtn">
-                    <i class="fas fa-comment"></i>
-                    Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
-                </button>
             </div>
 
             <!-- Pricing Card -->
@@ -2472,24 +2433,13 @@ function displayPropertyDetails(listing, userInfo) {
         </h3>
         <div id="propertyMap"></div>
     </div>
-    ` : ''}
-
-    <!-- Action Buttons -->
-    <div class="property-actions">
-        <button class="action-btn-large contact-btn" id="contactBtnBottom">
-            <i class="fas fa-phone"></i> Contact Agent
-        </button>
-        <button class="action-btn-large save-btn" id="saveBtnBottom">
-            <i class="far fa-heart"></i> Save Property
-        </button>
-    </div>`;
+    ` : ''}`;
     
     container.innerHTML = html;
     
     // Initialize components
     initializeMediaNavigation(allMedia);
     setupButtonEventListeners(listing, userInfo);
-    updateSaveButtonState();
     initializePropertyCalculator(listing);
 
     // Preload video if first media is video
@@ -2513,124 +2463,7 @@ function displayPropertyDetails(listing, userInfo) {
 }
 
 function setupButtonEventListeners(listing, userInfo) {
-    // Contact buttons
-    document.querySelectorAll('#contactOwnerBtn, #contactBtnBottom').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userType = userInfo.role === 'landlord' ? 'Property Owner' : 'Broker';
-            alert(`Contact Information:\n\n${userType}: ${userInfo.displayName}\nEmail: ${userInfo.email}\nPhone: ${userInfo.phone}\n\nYou can contact this ${userType.toLowerCase()} for more information about the property.`);
-        });
-    });
-
-    // Save buttons
-    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
-        btn.addEventListener('click', function() {
-            toggleSaveProperty();
-        });
-    });
-}
-
-async function updateSaveButtonState() {
-    if (!propertyId) return;
-
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        updateSaveButtonText('Login to Save');
-        return;
-    }
-    
-    try {
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef,
-            where('userId', '==', currentUser.uid),
-            where('propertyId', '==', propertyId)
-        );
-        const snapshot = await getDocs(q);
-        const isSaved = !snapshot.empty;
-        updateSaveButtonText(isSaved ? 'Saved' : 'Save Property', isSaved);
-    } catch (error) {
-        console.error('Error checking saved status:', error);
-        updateSaveButtonText('Error');
-    }
-}
-
-function updateSaveButtonText(text, isSaved = false) {
-    document.querySelectorAll('#savePropertyBtn, #saveBtnBottom').forEach(btn => {
-        if (isSaved) {
-            btn.innerHTML = '<i class="fas fa-heart"></i> Saved';
-            btn.style.background = 'var(--success)';
-            btn.style.color = 'white';
-        } else {
-            if (text === 'Login to Save') {
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Save';
-            } else {
-                btn.innerHTML = '<i class="far fa-heart"></i> ' + text;
-            }
-            btn.style.background = '';
-            btn.style.color = '';
-        }
-    });
-}
-
-async function toggleSaveProperty() {
-    if (!propertyId) return;
-
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        alert('Please login to save properties');
-        return;
-    }
-
-    try {
-        const savedRef = collection(db, 'savedProperties');
-        const q = query(savedRef,
-            where('userId', '==', currentUser.uid),
-            where('propertyId', '==', propertyId)
-        );
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-            await deleteDoc(snapshot.docs[0].ref);
-            showSaveToast('Removed from saved', false);
-            updateSaveButtonText('Save Property', false);
-        } else {
-            await addDoc(collection(db, 'savedProperties'), {
-                userId: currentUser.uid,
-                propertyId: propertyId,
-                savedAt: new Date(),
-                createdAt: new Date()
-            });
-            showSaveToast('Property saved!', false);
-            updateSaveButtonText('Saved', true);
-        }
-    } catch (error) {
-        console.error('Error toggling save:', error);
-        showSaveToast('Error saving property', true);
-    }
-}
-
-function showSaveToast(message, isError = false) {
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${isError ? 'var(--danger)' : 'var(--success)'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 9999;
-        font-weight: 500;
-        box-shadow: var(--shadow-lg);
-        animation: slideIn 0.3s ease;
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    // Contact buttons removed
 }
 
 function displayError(message) {

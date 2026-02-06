@@ -5,15 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Post Property for Sale/Lease - Agent</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../buyer/style.css">
   <style>
-    /* ===== BASE STYLES (BROKER DASHBOARD THEME) ===== */
+    /* ===== BASE STYLES - matches broker add_property (navy + gold) ===== */
     :root {
       --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --primary-dark: #071e38;
+      --primary-light: #1e3a5f;
+      --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
       --secondary: #1976d2;
-      --accent: #ff9800;
+      --accent: #d4af37;
       --text-dark: #1a202c;
       --text-light: #718096;
       --bg-light: #f8fafc;
@@ -21,6 +26,11 @@
       --border: #e2e8f0;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-lg: 24px;
     }
     
     * { 
@@ -35,20 +45,6 @@
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
-    }
-
-    /* ===== SIDEBAR CONTAINER ===== */
-    .sidebar {
-      width: 280px;
-      background: var(--primary);
-      color: white;
-      position: fixed;
-      height: 100vh;
-      overflow-y: auto;
-      z-index: 1000;
-      transition: all 0.3s ease;
-      left: 0;
-      top: 0;
     }
 
     /* Mobile Menu Toggle */
@@ -69,47 +65,77 @@
       box-shadow: var(--shadow-lg);
     }
 
-    /* ===== MAIN CONTENT CONTAINER ===== */
-    .container {
+    /* Main content - same as broker dashboard */
+    .main-content {
       flex: 1;
-      margin-left: 280px;
       padding: 30px;
-      transition: all 0.3s ease;
-      width: calc(100% - 280px);
+      margin-left: 280px;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
     }
 
-    /* ===== PAGE HEADER ===== */
-    .topbar {
-      display: flex;
-      justify-content: space-between;
+    .mobile-toggle, .mobile-menu-toggle {
+      display: none;
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--card-hover-shadow);
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
       align-items: center;
-      margin-bottom: 30px;
-      gap: 20px;
+      justify-content: center;
     }
 
-    .page-header h1 {
-      font-size: 28px;
+    /* Hero Section - same as broker dashboard */
+    .hero-section {
+      background: var(--primary-gradient);
+      color: white;
+      border-radius: var(--border-radius-lg);
+      padding: 50px 40px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>');
+      background-size: cover;
+      opacity: 0.1;
+    }
+    .hero-section h1 {
+      font-size: 2.8rem;
       font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin-bottom: 15px;
       line-height: 1.2;
+      max-width: 800px;
+      position: relative;
+      z-index: 1;
     }
-
-    .page-header p {
-      color: var(--text-light);
-      font-size: 16px;
-      line-height: 1.4;
+    .hero-section p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin-bottom: 0;
+      position: relative;
+      z-index: 1;
     }
-
-    .header-actions {
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
+    .hero-actions { margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap; position: relative; z-index: 1; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px; }
+    .page-title h1 { font-size: 28px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.2; }
+    .page-title p { color: var(--text-light); font-size: 16px; line-height: 1.4; }
+    .header-actions { display: flex; gap: 15px; align-items: center; }
 
     /* ===== KYC BADGE ===== */
     .kyc-badge {
@@ -123,28 +149,28 @@
     }
 
     .kyc-badge.pending {
-      background: #feebc8;
-      color: #744210;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
     }
 
     .kyc-badge.approved {
-      background: #c6f6d5;
-      color: #22543d;
+      background: var(--secondary-gradient);
+      color: white;
     }
 
     .kyc-badge.rejected {
-      background: #fed7d7;
-      color: #742a2a;
+      background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+      color: #991b1b;
     }
 
-    /* ===== CARD STYLES ===== */
+    /* Card - same as broker dashboard */
     .card {
       background: var(--bg-white);
-      border-radius: 16px;
+      border-radius: var(--border-radius);
       padding: 30px;
       margin-bottom: 25px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       position: relative;
       overflow: hidden;
       max-width: 1200px;
@@ -159,7 +185,7 @@
       left: 0;
       width: 100%;
       height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
     }
 
     /* ===== TYPE SELECTION ===== */
@@ -768,16 +794,32 @@
 
     /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 1024px) {
-      .container {
+      .main-content {
         margin-left: 0;
         padding: 25px;
-        width: 100%;
       }
       
-      .mobile-menu-toggle {
+      .mobile-toggle, .mobile-menu-toggle {
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+      
+      .hero-section h1 {
+        font-size: 1.8rem;
+      }
+      
+      .hero-section {
+        padding: 30px 24px;
+      }
+      
+      .type-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+      
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
       }
       
       .type-grid {
@@ -797,7 +839,7 @@
     }
 
     @media (max-width: 768px) {
-      .container {
+      .main-content {
         padding: 20px;
       }
       
@@ -837,7 +879,7 @@
     }
 
     @media (max-width: 480px) {
-      .container {
+      .main-content {
         padding: 15px;
       }
       
@@ -845,8 +887,16 @@
         padding: 20px;
       }
       
-      .page-header h1 {
-        font-size: 24px;
+      .hero-section h1 {
+        font-size: 1.5rem;
+      }
+      
+      .section-title {
+        font-size: 1.1rem;
+      }
+      
+      .amenities-grid {
+        grid-template-columns: 1fr;
       }
       
       .section-title {
@@ -868,23 +918,26 @@
   </style>
 </head>
 <body>
-<!-- Mobile Menu Toggle -->
-<button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+  <!-- Mobile Menu Toggle - same as broker dashboard -->
+  <button class="mobile-toggle mobile-menu-toggle" id="mobileToggle" aria-label="Toggle menu">
+    <i class="bi bi-list"></i>
+  </button>
 
-<!-- Include Sidebar -->
-<div id="sidebar-container"></div>
-
-<!-- Main -->
-<div class="container">
-  <div class="topbar">
-    <div class="page-header">
-      <h1>Add New Property</h1>
-      <p>List property for sale or lease on behalf of broker</p>
-    </div>
-    <div class="header-actions">
-      <div id="kycBadge" class="kyc-badge" style="display: none;">
-        <i class="bi bi-shield-check"></i>
-        <span id="kycBadgeText">KYC Status</span>
+  <!-- Sidebar will be loaded here -->
+  <div id="sidebar-container"></div>
+  
+  <!-- Main Content - same layout as broker dashboard -->
+  <div class="main-content" id="mainContent">
+  <!-- Hero Section - same design as broker dashboard -->
+  <div class="hero-section">
+    <h1>Add New Property</h1>
+    <p>List your property for sale or long-term lease</p>
+    <div class="hero-actions" id="heroActionsContainer">
+      <div class="header-actions">
+        <div id="kycBadge" class="kyc-badge" style="display: none;">
+          <i class="bi bi-shield-check"></i>
+          <span id="kycBadgeText">KYC Status</span>
+        </div>
       </div>
     </div>
   </div>
@@ -1067,53 +1120,6 @@
             </div>
           </div>
           <input type="hidden" id="saleTypeInput" name="saleType" required>
-        </div>
-      </div>
-      
-      <!-- Commission Information -->
-      <h3 class="section-title"><i class="bi bi-briefcase"></i> Commission Information</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="brokerCommissionType" class="required">Broker Commission Type</label>
-          <select id="brokerCommissionType" required>
-            <option value="">-- Select --</option>
-            <option value="percentage">Percentage of Sale Price</option>
-            <option value="fixed">Fixed Amount</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="brokerCommissionValue" class="required">Broker Commission Value</label>
-          <div class="input-with-icon">
-            <i class="bi bi-percent"></i>
-            <input type="number" id="brokerCommissionValue" placeholder="e.g., 3 or 50000" min="0" step="0.1" required>
-          </div>
-          <small style="color: var(--text-light); display: block; margin-top: 5px;">
-            Enter percentage (e.g., 3 for 3%) or fixed amount in ₱
-          </small>
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="agentCommissionType">Your Commission Type (Optional)</label>
-          <select id="agentCommissionType">
-            <option value="">-- Select --</option>
-            <option value="percentage">Percentage of Sale Price</option>
-            <option value="percentage_of_broker">Percentage of Broker's Commission</option>
-            <option value="fixed">Fixed Amount</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="agentCommissionValue">Your Commission Value</label>
-          <div class="input-with-icon">
-            <i class="bi bi-percent"></i>
-            <input type="number" id="agentCommissionValue" placeholder="e.g., 1 or 10000" min="0" step="0.1">
-          </div>
-          <small style="color: var(--text-light); display: block; margin-top: 5px;">
-            Commission arrangement with your broker
-          </small>
         </div>
       </div>
 
@@ -1302,49 +1308,45 @@
 
       <!-- Lease Terms -->
       <h3 class="section-title"><i class="bi bi-calendar-check"></i> Lease Terms</h3>
+      <div class="form-group">
+        <label for="leaseType" class="required">Lease Type</label>
+        <div class="lease-term-grid">
+          <div class="lease-option" onclick="selectLeaseType('gross')">
+            <h4>Gross Lease</h4>
+            <p style="font-size: 13px; color: var(--text-light);">Rent includes all operating expenses</p>
+          </div>
+          <div class="lease-option" onclick="selectLeaseType('net')">
+            <h4>Net Lease</h4>
+            <p style="font-size: 13px; color: var(--text-light);">Tenant pays rent + some expenses</p>
+          </div>
+          <div class="lease-option" onclick="selectLeaseType('triple-net')">
+            <h4>Triple Net (NNN)</h4>
+            <p style="font-size: 13px; color: var(--text-light);">Tenant pays all expenses</p>
+          </div>
+        </div>
+        <input type="hidden" id="leaseTypeInput" name="leaseType" required>
+      </div>
       <div class="form-grid">
         <div class="form-group">
-          <label for="leaseType" class="required">Lease Type</label>
-          <div class="lease-term-grid">
-            <div class="lease-option" onclick="selectLeaseType('gross')">
-              <h4>Gross Lease</h4>
-              <p style="font-size: 13px; color: var(--text-light);">Rent includes all operating expenses</p>
-            </div>
-            <div class="lease-option" onclick="selectLeaseType('net')">
-              <h4>Net Lease</h4>
-              <p style="font-size: 13px; color: var(--text-light);">Tenant pays rent + some expenses</p>
-            </div>
-            <div class="lease-option" onclick="selectLeaseType('triple-net')">
-              <h4>Triple Net (NNN)</h4>
-              <p style="font-size: 13px; color: var(--text-light);">Tenant pays all expenses</p>
-            </div>
-          </div>
-          <input type="hidden" id="leaseTypeInput" name="leaseType" required>
+          <label for="leaseDuration" class="required">Lease Duration</label>
+          <select id="leaseDuration" required>
+            <option value="">-- Select Duration --</option>
+            <option value="1">1 Year</option>
+            <option value="2">2 Years</option>
+            <option value="3">3 Years</option>
+            <option value="5">5 Years</option>
+            <option value="10">10 Years</option>
+            <option value="15">15+ Years</option>
+          </select>
         </div>
-        
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="leaseDuration" class="required">Lease Duration</label>
-            <select id="leaseDuration" required>
-              <option value="">-- Select Duration --</option>
-              <option value="1">1 Year</option>
-              <option value="2">2 Years</option>
-              <option value="3">3 Years</option>
-              <option value="5">5 Years</option>
-              <option value="10">10 Years</option>
-              <option value="15">15+ Years</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="renewalOption">Renewal Option</label>
-            <select id="renewalOption">
-              <option value="">-- Select Option --</option>
-              <option value="automatic">Automatic Renewal</option>
-              <option value="negotiable">Negotiable</option>
-              <option value="none">No Renewal Option</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label for="renewalOption">Renewal Option</label>
+          <select id="renewalOption">
+            <option value="">-- Select Option --</option>
+            <option value="automatic">Automatic Renewal</option>
+            <option value="negotiable">Negotiable</option>
+            <option value="none">No Renewal Option</option>
+          </select>
         </div>
       </div>
 
@@ -1387,53 +1389,6 @@
         </div>
       </div>
       
-      <!-- Commission Information -->
-      <h3 class="section-title"><i class="bi bi-briefcase"></i> Commission Information</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="leaseBrokerCommissionType" class="required">Broker Commission Type</label>
-          <select id="leaseBrokerCommissionType" required>
-            <option value="">-- Select --</option>
-            <option value="percentage">Percentage of Annual Rent</option>
-            <option value="fixed">Fixed Amount</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="leaseBrokerCommissionValue" class="required">Broker Commission Value</label>
-          <div class="input-with-icon">
-            <i class="bi bi-percent"></i>
-            <input type="number" id="leaseBrokerCommissionValue" placeholder="e.g., 10 or 50000" min="0" step="0.1" required>
-          </div>
-          <small style="color: var(--text-light); display: block; margin-top: 5px;">
-            Enter percentage (e.g., 10 for 10%) or fixed amount in ₱
-          </small>
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="leaseAgentCommissionType">Your Commission Type (Optional)</label>
-          <select id="leaseAgentCommissionType">
-            <option value="">-- Select --</option>
-            <option value="percentage">Percentage of Annual Rent</option>
-            <option value="percentage_of_broker">Percentage of Broker's Commission</option>
-            <option value="fixed">Fixed Amount</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="leaseAgentCommissionValue">Your Commission Value</label>
-          <div class="input-with-icon">
-            <i class="bi bi-percent"></i>
-            <input type="number" id="leaseAgentCommissionValue" placeholder="e.g., 2 or 20000" min="0" step="0.1">
-          </div>
-          <small style="color: var(--text-light); display: block; margin-top: 5px;">
-            Commission arrangement with your broker
-          </small>
-        </div>
-      </div>
-
       <!-- Location Details -->
       <h3 class="section-title"><i class="bi bi-geo-alt"></i> Location Details</h3>
       <div class="form-grid">
@@ -1563,19 +1518,20 @@
 
       <!-- Restrictions & Conditions -->
       <h3 class="section-title"><i class="bi bi-file-earmark-lock"></i> Restrictions & Conditions</h3>
-      <div class="form-group">
-        <label for="restrictions">Use Restrictions</label>
-        <textarea id="restrictions" placeholder="Describe any use restrictions, zoning limitations, or special conditions..." rows="4"></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label for="maintenance">Maintenance Responsibility</label>
-        <select id="maintenance">
-          <option value="">-- Select Responsibility --</option>
-          <option value="landlord">Landlord</option>
-          <option value="tenant">Tenant</option>
-          <option value="shared">Shared</option>
-        </select>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="restrictions">Use Restrictions</label>
+          <textarea id="restrictions" placeholder="Describe any use restrictions, zoning limitations, or special conditions..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="maintenance">Maintenance Responsibility</label>
+          <select id="maintenance">
+            <option value="">-- Select Responsibility --</option>
+            <option value="landlord">Landlord</option>
+            <option value="tenant">Tenant</option>
+            <option value="shared">Shared</option>
+          </select>
+        </div>
       </div>
 
       <!-- Property Description -->
@@ -1636,6 +1592,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="../sidebar-user.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk&libraries=places" async defer></script>
 
 <script>
@@ -1652,10 +1609,10 @@
   // ===== SIDEBAR LOADER =====
   document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu functionality
-    document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+    document.getElementById('mobileToggle').addEventListener('click', function() {
       const sidebar = document.querySelector('.sidebar');
       if (sidebar) {
-        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
+        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
           'translateX(-100%)' : 'translateX(0px)';
       }
     });
@@ -1667,10 +1624,9 @@
         document.getElementById('sidebar-container').innerHTML = html;
         const links = document.querySelectorAll('.sidebar-link');
         links.forEach(link => {
-          if (link.getAttribute('href') === 'agent_add_property.html') {
-            link.classList.add('active');
-          }
+          if (link.getAttribute('href') === 'agent_add_property.html') link.classList.add('active');
         });
+        if (typeof setupLogoutButton === 'function') setupLogoutButton();
       })
       .catch(error => console.error('Error loading sidebar:', error));
     
@@ -1766,27 +1722,54 @@
   let selectedSaleType = null;
   let selectedLeaseType = null;
 
-  // ===== USER PROFILE =====
+  // ===== USER PROFILE (agents collection first, then users) =====
   async function loadUserProfile() {
     try {
+      const agentDoc = await firebase.firestore().collection('agents').doc(currentUser.uid).get();
+      if (agentDoc.exists) {
+        const d = agentDoc.data();
+        const sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: currentUser.email || d.email,
+          role: d.userType || d.role || 'agent'
+        };
+        if (typeof window.updateSidebarUserProfile === 'function') {
+          window.updateSidebarUserProfile(sidebarData);
+        }
+        return;
+      }
       const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
       if (userDoc.exists) {
-        const userData = userDoc.data();
-        // Update sidebar user info if elements exist
-        const userNameEl = document.getElementById('userName');
-        const userEmailEl = document.getElementById('userEmail');
-        const userAvatarEl = document.getElementById('userAvatar');
-        
-        if (userNameEl) userNameEl.textContent = userData.name || 'Agent';
-        if (userEmailEl) userEmailEl.textContent = currentUser.email;
-        
-        // Set avatar initial
-        if (userAvatarEl && userData.name) {
-          userAvatarEl.textContent = userData.name.charAt(0).toUpperCase();
+        const d = userDoc.data();
+        const sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: currentUser.email || d.email,
+          role: d.userType || d.role || 'agent'
+        };
+        if (typeof window.updateSidebarUserProfile === 'function') {
+          window.updateSidebarUserProfile(sidebarData);
         }
+        return;
+      }
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile({
+          fullName: currentUser.displayName,
+          displayName: currentUser.displayName,
+          email: currentUser.email,
+          role: 'agent'
+        });
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile({
+          fullName: currentUser.displayName,
+          email: currentUser.email,
+          role: 'agent'
+        });
+      }
     }
   }
 
@@ -2701,7 +2684,7 @@
     const requiredFields = [
       'saleTitle', 'salePropertyCategory', 'salePropertyType', 'saleBedrooms', 'saleBathrooms',
       'saleFloorArea', 'salePrice', 'saleAddress', 'saleCity', 'saleProvince',
-      'brokerCommissionType', 'brokerCommissionValue', 'saleDescription'
+      'saleDescription'
     ];
     
     for (const fieldId of requiredFields) {
@@ -2734,7 +2717,7 @@
   function validateLeaseForm() {
     const requiredFields = [
       'leaseTitle', 'leasePropertyCategory', 'leasePropertyType', 'totalArea',
-      'leaseDuration', 'annualRent', 'leaseBrokerCommissionType', 'leaseBrokerCommissionValue',
+      'leaseDuration', 'annualRent',
       'leaseAddress', 'leaseCity', 'leaseProvince', 'leaseDescription'
     ];
     
@@ -2780,12 +2763,6 @@
       });
     }
     
-    const brokerCommissionType = document.getElementById('brokerCommissionType').value;
-    const brokerCommissionValue = parseFloat(document.getElementById('brokerCommissionValue').value);
-    const agentCommissionType = document.getElementById('agentCommissionType').value;
-    const agentCommissionValue = document.getElementById('agentCommissionValue').value ? 
-      parseFloat(document.getElementById('agentCommissionValue').value) : null;
-    
     return {
       title: document.getElementById('saleTitle').value,
       propertyCategory: document.getElementById('salePropertyCategory').value,
@@ -2801,10 +2778,6 @@
       salePrice: parseFloat(document.getElementById('salePrice').value),
       priceNegotiable: document.getElementById('priceNegotiable').value,
       saleType: document.getElementById('saleTypeInput').value,
-      brokerCommissionType: brokerCommissionType,
-      brokerCommissionValue: brokerCommissionValue,
-      agentCommissionType: agentCommissionType || null,
-      agentCommissionValue: agentCommissionValue,
       address: document.getElementById('saleAddress').value,
       location: document.getElementById('saleAddress').value,
       city: document.getElementById('saleCity').value,
@@ -2839,12 +2812,6 @@
       });
     }
     
-    const brokerCommissionType = document.getElementById('leaseBrokerCommissionType').value;
-    const brokerCommissionValue = parseFloat(document.getElementById('leaseBrokerCommissionValue').value);
-    const agentCommissionType = document.getElementById('leaseAgentCommissionType').value;
-    const agentCommissionValue = document.getElementById('leaseAgentCommissionValue').value ? 
-      parseFloat(document.getElementById('leaseAgentCommissionValue').value) : null;
-    
     return {
       title: document.getElementById('leaseTitle').value,
       propertyCategory: document.getElementById('leasePropertyCategory').value,
@@ -2862,10 +2829,6 @@
         parseFloat(document.getElementById('securityBond').value) : null,
       advancePayment: document.getElementById('advancePayment').value ? 
         parseInt(document.getElementById('advancePayment').value) : 1,
-      brokerCommissionType: brokerCommissionType,
-      brokerCommissionValue: brokerCommissionValue,
-      agentCommissionType: agentCommissionType || null,
-      agentCommissionValue: agentCommissionValue,
       address: document.getElementById('leaseAddress').value,
       location: document.getElementById('leaseAddress').value,
       city: document.getElementById('leaseCity').value,
