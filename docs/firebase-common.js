@@ -1,13 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-import { 
-  getAuth, 
-  initializeAuth, 
-  browserLocalPersistence,
-  browserPopupRedirectResolver,
-  browserSessionPersistence,
-  setPersistence,
-  indexedDBLocalPersistence
-} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
 
@@ -25,14 +17,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// IMPORTANT: Initialize auth with custom settings to prevent auto-linking
-const auth = initializeAuth(app, {
-  persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence],
-  popupRedirectResolver: browserPopupRedirectResolver
-});
-
-// Optional: Set persistence (keeps users logged in)
-setPersistence(auth, browserLocalPersistence);
+// SIMPLIFY: Use getAuth instead of initializeAuth
+const auth = getAuth(app);
 
 const db = getFirestore(app);
 const storage = getStorage(app);

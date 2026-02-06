@@ -836,30 +836,62 @@
       </p>
     </div>
   </div>
-
+<script>
+  // Clear problematic Firebase storage before loading
+  (function() {
+    console.log('Clearing Firebase storage...');
+    
+    // Clear localStorage
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.includes('firebase') || key.includes('auth')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
+    // Clear indexedDB (if used)
+    if (window.indexedDB) {
+      indexedDB.databases().then(dbs => {
+        dbs.forEach(db => {
+          if (db.name.includes('firebase')) {
+            indexedDB.deleteDatabase(db.name);
+          }
+        });
+      });
+    }
+    
+    console.log('Storage cleared');
+  })();
+</script>
   <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
   <script type="module">
-      console.log('=== FIREBASE DEBUG ===');
-  console.log('Document location:', {
-    href: window.location.href,
-    hostname: window.location.hostname,
-    origin: window.location.origin,
-    protocol: window.location.protocol,
-    referrer: document.referrer
-  });
+  // Clear auth state on page load
+  try {
+    localStorage.removeItem('firebase:authUser:AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4:[DEFAULT]');
+    sessionStorage.removeItem('firebase:authUser:AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4:[DEFAULT]');
+  } catch (e) {
+    console.log('Cleanup error:', e);
+  }
+
+  import { auth, db, storage } from './firebase-common.js';
   
-  // Check Firebase endpoints
-  const endpoints = [
-    'https://bahai-1b76d.firebaseapp.com/__/auth/handler',
-    'https://identitytoolkit.googleapis.com',
-    'https://securetoken.googleapis.com'
-  ];
+  console.log('Auth initialized with domain:', auth.config.authDomain);
   
-  endpoints.forEach(endpoint => {
-    fetch(endpoint, { method: 'HEAD', mode: 'no-cors' })
-      .then(() => console.log(`✓ ${endpoint} reachable`))
-      .catch(() => console.warn(`✗ ${endpoint} blocked`));
-  });
+  // Test auth initialization
+  auth.authStateReady()
+    .then(() => {
+      console.log('✅ Firebase Auth ready');
+    })
+    .catch(error => {
+      console.error('❌ Firebase Auth error:', error);
+      console.error('Full error:', JSON.stringify(error, null, 2));
+    });
+
     import { auth, db, storage } from './firebase-common.js';
   console.log('Auth loaded:', auth);
     import { 
@@ -868,6 +900,8 @@
       GoogleAuthProvider,
       fetchSignInMethodsForEmail
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+
     import { 
       doc, 
       getDoc, 
