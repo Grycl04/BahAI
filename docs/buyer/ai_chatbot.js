@@ -1,8 +1,35 @@
-// ai_chatbot.js - Complete Updated Version with Local Python Backend
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-// Your Python backend URL - LOCAL DEVELOPMENT
-const PYTHON_CHAT_API = "http://localhost:10000/api/chat";
+// Function to determine the correct backend URL based on environment
+const getBackendUrl = () => {
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    
+    console.log("🌐 Detected hostname:", hostname, "Port:", port);
+    
+    // Check if we're in local development
+    const isLocal = hostname === 'localhost' || 
+                    hostname === '127.0.0.1' || 
+                    hostname.startsWith('192.168.') ||
+                    hostname.startsWith('10.0.') ||
+                    (hostname === '' && port !== '');
+    
+    // Check for Live Server (common ports)
+    const isLiveServer = port === '5500' || port === '5501' || port === '8080' || port === '3000';
+    
+    // Check if it's a development domain
+    const isDev = hostname.includes('.local') || 
+                  hostname.includes('dev-') || 
+                  hostname.includes('-dev.');
+    
+    if (isLocal || isLiveServer || isDev) {
+        console.log("🚀 Using LOCAL backend (localhost:10000)");
+        return "http://localhost:10000/api/chat";
+    } else {
+        console.log("☁️ Using PRODUCTION backend (Render)");
+        return "https://bahai.onrender.com/api/chat";
+    }
+};
 
 // Initialize chatbot in your dashboard
 export function initChatbot() {
@@ -17,6 +44,9 @@ export function initChatbot() {
         console.error("❌ Chatbot elements not found!");
         return;
     }
+    
+    // Show backend info for debugging
+    console.log("🌐 Backend URL:", getBackendUrl());
     
     // Show welcome message on first load
     showWelcomeMessage();
@@ -70,21 +100,27 @@ export async function processChatMessage(userMessage) {
             user_id: currentUser ? currentUser.uid : 'anonymous'
         };
         
-        console.log("📤 Sending to Python backend:", requestData);
+        console.log("📤 Sending to backend:", requestData);
         
         let data;
+        let backendUrl = getBackendUrl();
+        
         try {
-            // Call Python backend with timeout
+            // Call backend with timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 
+                backendUrl.includes('localhost') ? 10000 : 15000); // Longer timeout for Render
             
-            const response = await fetch(PYTHON_CHAT_API, {
+            console.log("🌐 Attempting to connect to:", backendUrl);
+            
+            const response = await fetch(backendUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(requestData),
-                signal: controller.signal
+                signal: controller.signal,
+                mode: 'cors'
             });
             
             clearTimeout(timeoutId);
@@ -94,7 +130,7 @@ export async function processChatMessage(userMessage) {
             }
             
             const text = await response.text();
-            console.log("📥 Raw response:", text.substring(0, 200));
+            console.log("📥 Raw response received");
             
             // Clean the response
             const cleanText = text.replace(/undefined/g, 'null');
@@ -102,14 +138,61 @@ export async function processChatMessage(userMessage) {
             
         } catch (fetchError) {
             console.error('Fetch error:', fetchError);
-            // Use fallback response
-            data = {
-                success: true,
-                response: `I received your query: "${userMessage}". The AI backend is being optimized. Try using the search filters for now.`,
-                properties: [],
-                intent: 'fallback',
-                properties_found: 0
-            };
+            
+            // Try alternative endpoint if the primary fails
+            const alternativeUrl = backendUrl.includes('localhost') 
+                ? "https://bahai.onrender.com/api/chat" 
+                : "http://localhost:10000/api/chat";
+            
+            console.log("🔄 Trying alternative endpoint:", alternativeUrl);
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(alternativeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    const cleanText = text.replace(/undefined/g, 'null');
+                    data = JSON.parse(cleanText);
+                    console.log("✅ Connected to alternative endpoint");
+                } else {
+                    throw new Error(`Alternative endpoint failed: ${response.status}`);
+                }
+            } catch (fallbackError) {
+                console.error('Fallback also failed:', fallbackError);
+                
+                // Use fallback response
+                data = {
+                    success: true,
+                    response: `I received your query: "${userMessage}". 
+                    
+The AI service is temporarily unavailable. Here's what you can do:
+
+1. **Use the search filters** above to find properties
+2. **Browse by category** using the category cards
+3. **Try asking simpler questions** like:
+   • "Find apartments in Batangas"
+   • "Show houses under 3M"
+   • "Properties with 3 bedrooms"
+
+You can also contact support if you need immediate assistance.`,
+                    properties: [],
+                    intent: 'fallback',
+                    properties_found: 0
+                };
+            }
         }
         
         // Remove typing indicator
@@ -150,7 +233,7 @@ export async function processChatMessage(userMessage) {
         
         // Show user-friendly error
         addMessageToChat(
-            "I'm currently learning! Try asking: 'Find apartments in Batangas City' or use the search filters above.", 
+            "I'm having trouble connecting right now. You can still use the search filters above to find properties in Batangas!", 
             'bot'
         );
         
