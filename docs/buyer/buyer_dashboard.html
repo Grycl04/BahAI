@@ -2623,35 +2623,38 @@ document.addEventListener('DOMContentLoaded', () => {
             guestMessage.style.display = 'block';
             
             // Show guest recommendations
-setTimeout(() => {
-    if (typeof initChatbot === 'function') {
-        console.log('🤖 Initializing AI chatbot...');
-        initChatbot();
-        
-        // Add sample demo prompts for easy testing
-        addDemoPrompts();
-    } else {
-        console.warn('⚠️ initChatbot function not found. Make sure ai_chatbot.js is loaded.');
-        
-        // Try to load it dynamically
-        const script = document.createElement('script');
-        script.src = 'ai_chatbot.js';
-        script.type = 'module';
-        script.onload = () => {
-            console.log('✅ AI chatbot script loaded dynamically');
-            if (typeof initChatbot === 'function') {
-                initChatbot();
-                addDemoPrompts();
-            }
-        };
-        script.onerror = () => {
-            console.error('❌ Failed to load AI chatbot script');
-            showChatbotError();
-        };
-        document.body.appendChild(script);
-    }
-}, 1500);
+            showGuestRecommendations();
         }
+        
+        // Initialize chatbot for all users (logged-in and guests)
+        setTimeout(() => {
+            if (typeof initChatbot === 'function') {
+                console.log('🤖 Initializing AI chatbot...');
+                initChatbot();
+                
+                // Add sample demo prompts for easy testing
+                addDemoPrompts();
+            } else {
+                console.warn('⚠️ initChatbot function not found. Make sure ai_chatbot.js is loaded.');
+                
+                // Try to load it dynamically
+                const script = document.createElement('script');
+                script.src = 'ai_chatbot.js';
+                script.type = 'module';
+                script.onload = () => {
+                    console.log('✅ AI chatbot script loaded dynamically');
+                    if (typeof initChatbot === 'function') {
+                        initChatbot();
+                        addDemoPrompts();
+                    }
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to load AI chatbot script');
+                    showChatbotError();
+                };
+                document.body.appendChild(script);
+            }
+        }, 1500);
     });
 });
 
