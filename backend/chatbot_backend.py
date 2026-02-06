@@ -22,7 +22,13 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import FieldFilter
 
-
+# Google Maps API
+try:
+    import googlemaps
+    GOOGLE_MAPS_AVAILABLE = True
+except ImportError:
+    GOOGLE_MAPS_AVAILABLE = False
+    logging.warning("Google Maps library not installed. Install with: pip install googlemaps")
 
 # Suppress warnings
 warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
@@ -53,7 +59,7 @@ def home():
     return jsonify({
         "service": "Bah.AI Property Chatbot API",
         "status": "online",
-        "version": "3.6.2",
+        "version": "3.7.0",  # Updated version
         "timestamp": datetime.now().isoformat(),
         "endpoints": {
             "/": "Service status (GET)",
@@ -65,7 +71,9 @@ def home():
             "general_searches": True,
             "criteria_searches": True,
             "financing_queries": True,
-            "document_queries": True
+            "document_queries": True,
+            "landmark_proximity": True,
+            "description_checking": True
         }
     })
 @app.route('/api/debug-files', methods=['GET'])
@@ -321,12 +329,61 @@ def preprocess_text(text):
     return text
 
 # ========== ENTITY EXTRACTION ==========
+def classify_landmark_type(landmark: str) -> str:
+    """Classify the type of landmark"""
+    landmark_lower = landmark.lower()
+    
+    # School-related keywords
+    school_keywords = ['school', 'university', 'college', 'campus', 'academy', 'institute', 'elementary', 
+                      'high school', 'highschool', 'primary school', 'secondary school', 'univ', 'col', 
+                      'education', 'student', 'academic']
+    for keyword in school_keywords:
+        if keyword in landmark_lower:
+            return 'school'
+    
+    # Hospital-related keywords
+    hospital_keywords = ['hospital', 'medical center', 'clinic', 'health center', 'healthcare', 'medical', 
+                        'infirmary', 'doctor', 'health']
+    for keyword in hospital_keywords:
+        if keyword in landmark_lower:
+            return 'hospital'
+    
+    # Mall/shopping keywords
+    mall_keywords = ['mall', 'shopping', 'shopping center', 'commercial center', 'market', 'sm ', 'robinsons', 
+                    'ayala mall', 'department store', 'supermarket']
+    for keyword in mall_keywords:
+        if keyword in landmark_lower:
+            return 'mall'
+    
+    # Transportation keywords
+    transport_keywords = ['port', 'pier', 'terminal', 'bus terminal', 'airport', 'train station', 'lrt', 
+                         'mrt', 'transportation', 'bus station']
+    for keyword in transport_keywords:
+        if keyword in landmark_lower:
+            return 'transportation'
+    
+    # Beach/nature keywords
+    nature_keywords = ['beach', 'volcano', 'lake', 'mountain', 'park', 'garden', 'resort', 'taal', 'nature', 
+                      'sea', 'ocean', 'river']
+    for keyword in nature_keywords:
+        if keyword in landmark_lower:
+            return 'nature'
+    
+    # Church/religious keywords
+    church_keywords = ['church', 'cathedral', 'basilica', 'chapel', 'temple', 'mosque', 'religious', 'worship']
+    for keyword in church_keywords:
+        if keyword in landmark_lower:
+            return 'church'
+    
+    return 'general'
+
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
         'property_type': None,
         'location': None,
         'landmark': None,
+        'landmark_type': None,
         'feature': None,  
         'price_range': None, 
         'bedrooms': None,
@@ -344,6 +401,8 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'documents_info': None,
         'family_info': None,
         'has_need_query': False,
+        'proximity': 'near',
+        'google_maps_check': False,
     }
     
     query_lower = query.lower()
@@ -664,10 +723,28 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         entities['feature'] = 'furnished'
     
     # Landmark detection
-    if 'near' in query_lower or 'close to' in query_lower or 'around' in query_lower or 'beside' in query_lower:
-        match = re.search(r'(?:near|close to|around|beside|next to)\s+(\w+\s*\w*)', query_lower)
+    landmark_patterns = [
+        (r'(?:near|close to|around|beside|next to|within walking distance of|walking distance to)\s+(?:the\s+)?(.+?)(?:\s+(?:in|at)\s+|$)', 'general'),
+        (r'properties\s+(?:near|close to|around)\s+(?:the\s+)?(.+?)(?:\s+|$)', 'general'),
+    ]
+    
+    for pattern, landmark_type in landmark_patterns:
+        match = re.search(pattern, query_lower)
         if match:
-            entities['landmark'] = match.group(1).strip()
+            landmark = match.group(1).strip()
+            entities['landmark'] = landmark
+            entities['landmark_type'] = classify_landmark_type(landmark)
+            entities['google_maps_check'] = True
+            break
+    
+    # If no pattern match, try simple detection
+    if not entities['landmark'] and 'near' in query_lower:
+        parts = query_lower.split('near')
+        if len(parts) > 1:
+            landmark = parts[1].strip()
+            entities['landmark'] = landmark
+            entities['landmark_type'] = classify_landmark_type(landmark)
+            entities['google_maps_check'] = True
     
     # General search detection
     if entities.get('property_type') and not has_specific_location:
@@ -676,6 +753,324 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     
     logger.info(f"✅ Entities extracted: {entities}")
     return entities
+
+# ========== LANDMARK PROXIMITY CHECKING ==========
+def check_property_near_landmark(property_data: Dict[str, Any], landmark: str, landmark_type: str, api_key: str = None) -> Dict[str, Any]:
+    """
+    Check if a property is near a specific landmark using Google Maps API
+    Returns: {'is_near': bool, 'distance': str, 'duration': str, 'landmark_found': str, 'match_type': str}
+    """
+    result = {
+        'is_near': False,
+        'distance': 'Not checked',
+        'duration': 'Unknown',
+        'landmark_found': None,
+        'match_type': 'not_checked'
+    }
+    
+    # If no API key or coordinates, fallback to description check
+    if not api_key or 'latitude' not in property_data or 'longitude' not in property_data:
+        return check_property_description_for_landmark(property_data, landmark, landmark_type)
+    
+    try:
+        # Initialize Google Maps client
+        gmaps = googlemaps.Client(key=api_key)
+        
+        # Property coordinates
+        property_location = (property_data['latitude'], property_data['longitude'])
+        
+        # Search for the landmark near the property
+        places_result = gmaps.places_nearby(
+            location=property_location,
+            keyword=landmark,
+            radius=2000,  # 2km radius
+            type='school' if landmark_type == 'school' else None
+        )
+        
+        if places_result['results']:
+            # Get the closest landmark
+            closest = places_result['results'][0]
+            landmark_location = (
+                closest['geometry']['location']['lat'],
+                closest['geometry']['location']['lng']
+            )
+            
+            # Calculate walking distance
+            distance_matrix = gmaps.distance_matrix(
+                origins=[property_location],
+                destinations=[landmark_location],
+                mode='walking'
+            )
+            
+            if distance_matrix['rows'][0]['elements'][0]['status'] == 'OK':
+                element = distance_matrix['rows'][0]['elements'][0]
+                distance = element['distance']['text']
+                duration = element['duration']['text']
+                
+                # Consider "near" if within 2km walking distance
+                distance_value = element['distance']['value']  # in meters
+                result['is_near'] = distance_value <= 2000  # 2km
+                result['distance'] = distance
+                result['duration'] = duration
+                result['landmark_found'] = closest['name']
+                result['match_type'] = 'google_maps'
+        
+    except Exception as e:
+        logger.error(f"❌ Google Maps API error: {e}")
+        # Fallback to description check
+        return check_property_description_for_landmark(property_data, landmark, landmark_type)
+    
+    return result
+
+def check_property_description_for_landmark(property_data: Dict[str, Any], landmark: str, landmark_type: str) -> Dict[str, Any]:
+    """
+    Check property description and title for mentions of being near landmarks
+    """
+    result = {
+        'is_near': False,
+        'distance': 'Not mentioned',
+        'landmark_found': None,
+        'match_type': 'not_found'
+    }
+    
+    description = property_data.get('description', '').lower()
+    title = property_data.get('title', '').lower()
+    address = property_data.get('address', '').lower()
+    
+    all_text = f"{title} {description} {address}"
+    
+    # Define comprehensive keyword sets
+    if landmark_type == 'school':
+        # Exact matches for specific schools mentioned
+        if 'school' in landmark.lower():
+            school_name = landmark.lower()
+            if school_name in all_text:
+                result['is_near'] = True
+                result['distance'] = 'Exact match in description'
+                result['landmark_found'] = landmark
+                result['match_type'] = 'exact_match'
+                return result
+        
+        # School proximity keywords (with confidence scores)
+        proximity_keywords = [
+            # Direct proximity mentions (high confidence)
+            ('near school', 1.0),
+            ('close to school', 1.0),
+            ('walking distance to school', 1.0),
+            ('proximity to school', 1.0),
+            ('beside school', 1.0),
+            ('adjacent to school', 1.0),
+            ('next to school', 1.0),
+            ('school nearby', 1.0),
+            
+            # General school area mentions (medium-high confidence)
+            ('school district', 0.9),
+            ('school zone', 0.9),
+            ('school area', 0.8),
+            ('near campus', 0.9),
+            ('close to campus', 0.9),
+            ('university area', 0.8),
+            ('college town', 0.8),
+            ('educational hub', 0.8),
+            
+            # Education-related mentions (medium confidence)
+            ('educational institutions', 0.7),
+            ('academic institutions', 0.7),
+            ('learning centers', 0.6),
+            ('good for students', 0.7),
+            ('student-friendly', 0.7),
+            ('family-friendly near schools', 0.8),
+            ('education access', 0.6),
+            
+            # Specific school types (high confidence)
+            ('near elementary school', 1.0),
+            ('near high school', 1.0),
+            ('near university', 1.0),
+            ('near college', 1.0),
+            ('near international school', 1.0),
+            ('near private school', 1.0),
+            ('near public school', 1.0),
+            
+            # Transportation to schools (medium confidence)
+            ('short drive to school', 0.7),
+            ('minutes to school', 0.7),
+            ('accessible to schools', 0.7),
+            ('school bus route', 0.6),
+            ('school shuttle', 0.6),
+            
+            # Area benefits (medium confidence)
+            ('good schools area', 0.8),
+            ('school-friendly community', 0.7),
+            ('near educational facilities', 0.8),
+            ('academic environment', 0.6),
+        ]
+        
+        # School name patterns
+        school_patterns = [
+            r'near\s+(\w+\s+school)',
+            r'close\s+to\s+(\w+\s+school)',
+            r'walking\s+distance\s+to\s+(\w+\s+school)',
+            r'proximity\s+to\s+(\w+\s+school)',
+            r'(\w+\s+school)\s+proximity',
+            r'(\w+\s+university)\s+nearby',
+            r'(\w+\s+college)\s+area',
+            r'(\w+\s+academy)\s+near',
+            r'(\w+\s+institute)\s+accessible',
+        ]
+        
+        # Check for exact proximity mentions
+        for keyword, confidence in proximity_keywords:
+            if keyword in all_text:
+                result['is_near'] = True
+                result['distance'] = f'Mentioned: "{keyword}"'
+                result['landmark_found'] = landmark
+                result['match_type'] = 'proximity_keyword'
+                result['confidence'] = confidence
+                break
+        
+        # Check for school name patterns
+        if not result['is_near']:
+            for pattern in school_patterns:
+                match = re.search(pattern, all_text)
+                if match:
+                    school_name_found = match.group(1)
+                    result['is_near'] = True
+                    result['distance'] = f'Near {school_name_found.title()}'
+                    result['landmark_found'] = school_name_found.title()
+                    result['match_type'] = 'school_pattern'
+                    break
+        
+        # Check for general education mentions
+        if not result['is_near']:
+            education_keywords = [
+                'education', 'academic', 'campus', 'university', 'college', 
+                'student', 'tuition', 'faculty', 'scholar', 'learning',
+                'study', 'teacher', 'professor', 'academy', 'institute'
+            ]
+            
+            education_count = sum(1 for word in education_keywords if word in all_text)
+            if education_count >= 3:
+                result['is_near'] = True
+                result['distance'] = 'Education-focused area'
+                result['landmark_found'] = 'Educational institutions'
+                result['match_type'] = 'education_general'
+    
+    # Similar logic for other landmark types
+    elif landmark_type == 'hospital':
+        hospital_keywords = [
+            ('near hospital', 1.0),
+            ('close to hospital', 1.0),
+            ('medical center', 0.8),
+            ('healthcare facilities', 0.7),
+            ('accessible to hospital', 0.6),
+            ('emergency services', 0.5),
+            ('walking distance to hospital', 1.0),
+        ]
+        
+        for keyword, confidence in hospital_keywords:
+            if keyword in all_text:
+                result['is_near'] = True
+                result['distance'] = f'Mentioned: "{keyword}"'
+                result['landmark_found'] = landmark
+                result['match_type'] = 'proximity_keyword'
+                break
+    
+    elif landmark_type == 'mall':
+        mall_keywords = [
+            ('near mall', 1.0),
+            ('close to mall', 1.0),
+            ('shopping center', 0.8),
+            ('walking distance to mall', 1.0),
+            ('accessible to mall', 0.7),
+        ]
+        
+        for keyword, confidence in mall_keywords:
+            if keyword in all_text:
+                result['is_near'] = True
+                result['distance'] = f'Mentioned: "{keyword}"'
+                result['landmark_found'] = landmark
+                result['match_type'] = 'proximity_keyword'
+                break
+    
+    return result
+
+def calculate_proximity_score(proximity_info: Dict[str, Any]) -> float:
+    """Calculate a score based on how confidently we know the property is near the landmark"""
+    score = 0.0
+    
+    # Base score for being near
+    if proximity_info.get('is_near'):
+        score += 1.0
+    
+    # Match type scoring
+    match_type = proximity_info.get('match_type')
+    match_type_scores = {
+        'google_maps': 1.0,          # Direct Google Maps verification
+        'exact_match': 0.95,         # Exact school name match
+        'proximity_keyword': 0.9,    # Direct proximity mention
+        'school_pattern': 0.85,      # School name pattern match
+        'education_general': 0.7,    # General education mentions
+        'not_found': 0.0,
+        'not_checked': 0.0
+    }
+    
+    if match_type in match_type_scores:
+        score += match_type_scores[match_type]
+    
+    # Distance-based scoring (if available from API)
+    distance = proximity_info.get('distance', '')
+    if 'km' in distance:
+        try:
+            match = re.search(r'(\d+\.?\d*)\s*km', distance)
+            if match:
+                km = float(match.group(1))
+                if km <= 0.5:
+                    score += 1.0  # Very close (≤500m)
+                elif km <= 1.0:
+                    score += 0.8  # Close (≤1km)
+                elif km <= 2.0:
+                    score += 0.6  # Walking distance (≤2km)
+                elif km <= 5.0:
+                    score += 0.3  # Short drive
+        except:
+            pass
+    elif 'm' in distance and 'km' not in distance:
+        try:
+            match = re.search(r'(\d+)\s*m', distance)
+            if match:
+                meters = float(match.group(1))
+                if meters <= 500:
+                    score += 1.0  # Very close
+                elif meters <= 1000:
+                    score += 0.8  # Close
+                elif meters <= 2000:
+                    score += 0.6  # Walking distance
+        except:
+            pass
+    
+    # Confidence score from keyword matching
+    if 'confidence' in proximity_info:
+        score += proximity_info['confidence']
+    
+    return min(score, 3.0)  # Cap at 3.0
+
+def check_amenities_for_landmark(property_data: Dict[str, Any], landmark_type: str) -> bool:
+    """Check if amenities list mentions schools or educational facilities"""
+    amenities = property_data.get('amenities', [])
+    
+    if landmark_type == 'school':
+        school_amenities = [
+            'school', 'education', 'campus', 'university', 'college',
+            'academic', 'student', 'learning', 'study', 'educational'
+        ]
+        
+        for amenity in amenities:
+            amenity_lower = str(amenity).lower()
+            for keyword in school_amenities:
+                if keyword in amenity_lower:
+                    return True
+    
+    return False
 
 # ========== HELPER FUNCTIONS ==========
 def add_price_numeric_value(property_data: Dict) -> Dict:
@@ -1108,7 +1503,10 @@ def standardize_property_data(property_data: Dict) -> Dict:
         'financingOptions': property_data.get('financingOptions', []),
         'saleType': property_data.get('saleType', 'Not specified'),
         'salePrice': property_data.get('salePrice', 0),
-        'price_numeric': property_data.get('price_numeric', 0)
+        'price_numeric': property_data.get('price_numeric', 0),
+        'latitude': property_data.get('latitude', None),
+        'longitude': property_data.get('longitude', None),
+        'amenities': property_data.get('amenities', [])
     }
     
     if property_data.get('installment_details'):
@@ -1123,7 +1521,7 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     base_properties = [
         {
             'id': 'mock_1',
-            'title': 'Modern House in Nasugbu',
+            'title': 'Modern House Near Schools in Nasugbu',
             'propertyType': 'house',
             'type': 'rent',
             'city': 'Nasugbu',
@@ -1133,14 +1531,16 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '3',
             'bathrooms': '2',
             'floorArea': 120,
-            'description': 'Beautiful modern house near the beach',
+            'description': 'Beautiful modern house near Nasugbu Elementary School. Walking distance to schools and perfect for families. Close to educational institutions.',
             'imageUrls': [],
             'status': 'available',
-            'amenities': ['Swimming Pool', 'Garden', 'Parking']
+            'amenities': ['Swimming Pool', 'Garden', 'Parking', 'Near Schools'],
+            'latitude': 14.0735,
+            'longitude': 120.6354
         },
         {
             'id': 'mock_2',
-            'title': 'Beachfront Condo Unit',
+            'title': 'Beachfront Condo Unit with School Proximity',
             'propertyType': 'condo',
             'type': 'sale',
             'saleType': 'installment',
@@ -1151,27 +1551,32 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '2',
             'bathrooms': '2',
             'floorArea': 80,
-            'description': 'Luxury beachfront condo with ocean view',
+            'description': 'Luxury beachfront condo with ocean view. Near Nasugbu National High School. Educational facilities accessible within 5 minutes.',
             'imageUrls': [],
             'status': 'available',
-            'financingOptions': ['Bank Financing - BDO', 'Pag-IBIG Housing Loan']
+            'financingOptions': ['Bank Financing - BDO', 'Pag-IBIG Housing Loan'],
+            'amenities': ['Pool', 'Gym', '24/7 Security'],
+            'latitude': 14.0750,
+            'longitude': 120.6360
         },
         {
             'id': 'mock_3',
-            'title': 'Commercial Space in Lipa',
+            'title': 'Commercial Space in Lipa Near Universities',
             'propertyType': 'commercial_building',
             'type': 'lease',
             'city': 'Lipa City',
             'province': 'Batangas',
             'address': '789 Business District, Lipa',
             'annualRent': 1200000,
-            'description': 'Prime commercial space for business',
+            'description': 'Prime commercial space for business. Located near University of Batangas Lipa Campus. Student-friendly area with good foot traffic.',
             'imageUrls': [],
-            'status': 'available'
+            'status': 'available',
+            'latitude': 13.9410,
+            'longitude': 121.1630
         },
         {
             'id': 'mock_4',
-            'title': 'Apartment in Batangas City',
+            'title': 'Apartment Near Batangas State University',
             'propertyType': 'apartment',
             'type': 'rent',
             'city': 'Batangas City',
@@ -1181,13 +1586,16 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '2',
             'bathrooms': '1',
             'floorArea': 50,
-            'description': 'Clean and affordable apartment',
+            'description': 'Clean and affordable apartment. Walking distance to Batangas State University. Perfect for students and young professionals.',
             'imageUrls': [],
-            'status': 'available'
+            'status': 'available',
+            'amenities': ['WiFi', 'Laundry Area', 'Study Area'],
+            'latitude': 13.7565,
+            'longitude': 121.0583
         },
         {
             'id': 'mock_5',
-            'title': 'Townhouse in Sto. Tomas',
+            'title': 'Townhouse in School District Sto. Tomas',
             'propertyType': 'townhouse',
             'type': 'sale',
             'saleType': 'bank_financing',
@@ -1198,14 +1606,17 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '3',
             'bathrooms': '2',
             'floorArea': 90,
-            'description': 'Modern townhouse with garage',
+            'description': 'Modern townhouse with garage. Located in established school district. Near Sto. Tomas Elementary School and High School.',
             'imageUrls': [],
             'status': 'available',
-            'financingOptions': ['Bank Financing - Metrobank', 'Outright Payment']
+            'financingOptions': ['Bank Financing - Metrobank', 'Outright Payment'],
+            'amenities': ['Garage', 'Garden', 'Security'],
+            'latitude': 14.0735,
+            'longitude': 121.1410
         },
         {
             'id': 'mock_6',
-            'title': 'Family House in Lipa',
+            'title': 'Family House with School Access in Lipa',
             'propertyType': 'house',
             'type': 'sale',
             'saleType': 'installment',
@@ -1216,10 +1627,32 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '4',
             'bathrooms': '3',
             'floorArea': 150,
-            'description': 'Spacious family house with installment payment option',
+            'description': 'Spacious family house with installment payment option. School bus route passes nearby. Educational hub with multiple schools in the area.',
             'imageUrls': [],
             'status': 'available',
-            'financingOptions': ['In-house Installment Plan', 'Bank Financing - UnionBank']
+            'financingOptions': ['In-house Installment Plan', 'Bank Financing - UnionBank'],
+            'amenities': ['Large Yard', 'Parking for 2', 'Study Room'],
+            'latitude': 13.9440,
+            'longitude': 121.1620
+        },
+        {
+            'id': 'mock_7',
+            'title': 'Student Dormitory Near Campus',
+            'propertyType': 'dormitory',
+            'type': 'rent',
+            'city': 'Lipa City',
+            'province': 'Batangas',
+            'address': '404 Student Village, Lipa',
+            'monthlyRent': 8000,
+            'bedrooms': '1',
+            'bathrooms': '1',
+            'floorArea': 25,
+            'description': 'Student dormitory with all amenities. Right beside University of Batangas. Perfect for college students.',
+            'imageUrls': [],
+            'status': 'available',
+            'amenities': ['WiFi', 'Study Room', 'Laundry', 'Cafeteria'],
+            'latitude': 13.9430,
+            'longitude': 121.1610
         }
     ]
     
@@ -1245,7 +1678,7 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             type_mapping = {
                 'house': ['house', 'bungalow', 'duplex'],
                 'condo': ['condo', 'condominium', 'penthouse', 'studio'],
-                'apartment': ['apartment', 'room', 'boarding_house'],
+                'apartment': ['apartment', 'room', 'boarding_house', 'dormitory'],
                 'commercial': ['commercial', 'office', 'retail', 'warehouse'],
                 'townhouse': ['townhouse']
             }
@@ -1454,7 +1887,7 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                 logger.info("💡 Will apply price filtering client-side")
         
         # Execute query
-        limit_count = 20
+        limit_count = 50  # Get more for landmark filtering
         logger.info(f"🔍 Executing Firestore query (limit: {limit_count})...")
         docs = query.limit(limit_count).get()
         
@@ -1565,6 +1998,66 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         properties = filtered_properties
         logger.info(f"🔍 After client-side filtering: {len(properties)} properties")
         
+        # NEW: Enhanced filtering for landmark queries
+        if entities.get('landmark') and entities.get('google_maps_check'):
+            filtered_by_proximity = []
+            google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+            landmark = entities['landmark']
+            landmark_type = entities['landmark_type']
+            
+            logger.info(f"📍 Filtering properties near {landmark} (type: {landmark_type})")
+            
+            for prop in properties:
+                has_proximity = False
+                proximity_info = {}
+                
+                # Method 1: Google Maps API check (if coordinates available)
+                if ('latitude' in prop and 'longitude' in prop and 
+                    google_maps_api_key and GOOGLE_MAPS_AVAILABLE):
+                    api_result = check_property_near_landmark(
+                        prop, 
+                        landmark, 
+                        landmark_type,
+                        google_maps_api_key
+                    )
+                    
+                    if api_result['is_near']:
+                        has_proximity = True
+                        proximity_info = api_result
+                        logger.info(f"✅ Google Maps: Property '{prop.get('title')}' is near {landmark}")
+                
+                # Method 2: Enhanced description check (always performed as backup)
+                if not has_proximity:
+                    desc_result = check_property_description_for_landmark(prop, landmark, landmark_type)
+                    if desc_result['is_near']:
+                        has_proximity = True
+                        proximity_info = desc_result
+                        logger.info(f"✅ Description: Property '{prop.get('title')}' mentions {landmark_type}")
+                
+                # Method 3: Check amenities list for schools/landmarks
+                if not has_proximity and landmark_type == 'school':
+                    if check_amenities_for_landmark(prop, landmark_type):
+                        has_proximity = True
+                        proximity_info = {
+                            'is_near': True,
+                            'distance': 'Listed as amenity',
+                            'landmark_found': landmark,
+                            'match_type': 'amenity'
+                        }
+                        logger.info(f"✅ Amenity: Property '{prop.get('title')}' has school-related amenity")
+                
+                # If property is near the landmark, add it to results
+                if has_proximity:
+                    prop['proximity_info'] = proximity_info
+                    prop['proximity_score'] = calculate_proximity_score(proximity_info)
+                    filtered_by_proximity.append(prop)
+            
+            # Sort by proximity score (highest first)
+            filtered_by_proximity.sort(key=lambda x: x.get('proximity_score', 0), reverse=True)
+            properties = filtered_by_proximity
+            
+            logger.info(f"📍 After proximity filtering: {len(properties)} properties near {landmark}")
+        
         # Fallback for no results
         if len(properties) == 0 and sale_type:
             logger.info("🔄 No exact matches found, trying fallback search...")
@@ -1625,6 +2118,125 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
     return properties
 
 # ========== RESPONSE GENERATION ==========
+def generate_near_landmark_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for properties near landmarks"""
+    
+    landmark = entities.get('landmark', 'that location')
+    landmark_type = entities.get('landmark_type', 'landmark')
+    
+    if properties:
+        response = f"📍 **Properties Near {landmark.title()}**\n\n"
+        
+        # Categorize properties by verification method
+        verified_by_maps = []
+        mentioned_in_desc = []
+        other_proximity = []
+        
+        for prop in properties:
+            proximity_info = prop.get('proximity_info', {})
+            match_type = proximity_info.get('match_type', '')
+            
+            if match_type == 'google_maps':
+                verified_by_maps.append(prop)
+            elif match_type in ['proximity_keyword', 'exact_match', 'school_pattern']:
+                mentioned_in_desc.append(prop)
+            else:
+                other_proximity.append(prop)
+        
+        total_count = len(verified_by_maps) + len(mentioned_in_desc) + len(other_proximity)
+        response += f"I found {total_count} properties near {landmark}:\n\n"
+        
+        # Show Google Maps verified properties first
+        if verified_by_maps:
+            response += "**📍 Verified by Distance:**\n"
+            for i, prop in enumerate(verified_by_maps[:3]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                
+                proximity = prop.get('proximity_info', {})
+                distance = proximity.get('distance', 'Distance not available')
+                landmark_name = proximity.get('landmark_found', landmark)
+                
+                response += f"{i+1}. **{title}** in {location}\n"
+                response += f"   💰 {price}\n"
+                response += f"   📍 **Distance:** {distance} from {landmark_name}\n"
+                
+                if proximity.get('duration'):
+                    response += f"   🚶 **Walking time:** {proximity['duration']}\n"
+                
+                response += "\n"
+        
+        # Show properties mentioned in description
+        if mentioned_in_desc:
+            response += "**📝 Mentioned in Description:**\n"
+            for i, prop in enumerate(mentioned_in_desc[:3]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                
+                proximity = prop.get('proximity_info', {})
+                distance = proximity.get('distance', 'Mentioned in description')
+                
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+                response += f"   ✅ {distance}\n\n"
+        
+        # Show other proximity properties
+        if other_proximity and not (verified_by_maps or mentioned_in_desc):
+            response += "**🏫 School-Area Properties:**\n"
+            for i, prop in enumerate(other_proximity[:3]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+                
+                # Show school-related features if available
+                amenities = prop.get('amenities', [])
+                school_amenities = [a for a in amenities if any(kw in str(a).lower() 
+                                                               for kw in ['school', 'education', 'campus'])]
+                if school_amenities:
+                    response += f"   ✅ Amenities: {', '.join(school_amenities[:2])}\n"
+                
+                response += "\n"
+        
+        # Add tips based on landmark type
+        if landmark_type == 'school':
+            response += "**🏫 School Proximity Benefits:**\n"
+            response += "• **Walking distance** (≤2km) saves transportation time and costs\n"
+            response += "• **Educational access** for children's development\n"
+            response += "• **Property value** tends to be more stable near good schools\n"
+            response += "• **Community** often family-friendly with similar-aged children\n\n"
+            
+            response += "**🔍 Search Tips:**\n"
+            response += "• Try specific school names: *'properties near Batangas State University'*\n"
+            response += "• Add property type: *'houses near schools in Lipa'*\n"
+            response += "• Specify budget: *'condos near schools under 3M'*\n"
+            
+        elif landmark_type == 'hospital':
+            response += "**🏥 Hospital Proximity Benefits:**\n"
+            response += "• **Emergency access** for medical needs\n"
+            response += "• **Convenience** for regular medical checkups\n"
+            response += "• **Medical professionals** often live nearby\n"
+            response += "• **24/7 access** to healthcare services\n"
+            
+        elif landmark_type == 'mall':
+            response += "**🛍️ Mall Proximity Benefits:**\n"
+            response += "• **Shopping convenience** within walking distance\n"
+            response += "• **Entertainment options** like cinemas and restaurants\n"
+            response += "• **Public transportation** hubs are often nearby\n"
+            response += "• **Urban lifestyle** with easy access to amenities\n"
+        
+    else:
+        response = f"I couldn't find any properties near {landmark}.\n\n"
+        response += "💡 **Suggestions:**\n"
+        response += f"• Try a different landmark (schools, hospitals, malls, etc.)\n"
+        response += "• Search in a specific location: *'properties near schools in Batangas City'*\n"
+        response += "• Broaden your search: *'properties in areas with good schools'*\n"
+        response += "• Check properties that mention schools in their descriptions\n"
+    
+    return response
+
 def generate_documents_only_response(entities: Dict[str, Any]) -> str:
     """Generate response ONLY for document requirements (no properties)"""
     
@@ -2182,6 +2794,9 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     if intent == 'financing':
         return generate_financing_response(entities, properties)
     
+    if intent == 'find_near_landmark':
+        return generate_near_landmark_response(entities, properties)
+    
     if intent == 'find_property_with_criteria':
         return generate_criteria_search_response(entities, properties)
     
@@ -2438,6 +3053,14 @@ def chat():
             intent = 'find_property_for_need'
             confidence = max(confidence, 0.9)  # Ensure high confidence
             logger.info(f"🔄 Overriding intent from {old_intent} to {intent} for family/need query: '{query}'")
+        
+        # Special handling for "near schools" queries
+        if 'near school' in query_lower or 'near schools' in query_lower:
+            if intent != 'find_near_landmark':
+                old_intent = intent
+                intent = 'find_near_landmark'
+                confidence = max(confidence, 0.9)
+                logger.info(f"🔄 Overriding intent from {old_intent} to {intent} for school proximity query")
                 
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
@@ -2478,7 +3101,10 @@ def chat():
             'is_general_search': entities.get('has_general_search', False),
             'is_criteria_search': intent == 'find_property_with_criteria',
             'is_financing_query': intent == 'financing',
-            'is_document_query': entities.get('documents_only', False)
+            'is_document_query': entities.get('documents_only', False),
+            'is_landmark_query': intent == 'find_near_landmark',
+            'landmark_type': entities.get('landmark_type'),
+            'google_maps_available': GOOGLE_MAPS_AVAILABLE
         }
         
         return jsonify(result)
@@ -2500,10 +3126,11 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.6.2',
+        'version': '3.7.0',
         'model_loaded': vectorizer is not None and classifier is not None,
         'training_data_loaded': bool(training_data),
         'firebase_connected': db is not None,
+        'google_maps_available': GOOGLE_MAPS_AVAILABLE,
         'model_intents': model_classes,
         'model_features': len(vectorizer.get_feature_names_out()) if vectorizer else 0,
         'spacy_loaded': False, 
@@ -2511,6 +3138,7 @@ def health_check():
         'supports_criteria_searches': True,
         'supports_financing_queries': True,
         'supports_document_queries': True,
+        'supports_landmark_queries': True,
         'timestamp': datetime.now().isoformat()
     })
 
@@ -2518,6 +3146,13 @@ def health_check():
 def test_endpoint():
     """Test endpoint to verify the model is working"""
     test_queries = [
+        "properties near schools",
+        "houses near batangas state university",
+        "apartments near colleges",
+        "properties close to schools",
+        "condos walking distance to campus",
+        "family homes near good schools",
+        "student housing near universities",
         "requirements for bank financing",
         "what documents are needed for installment",
         "documents required for outright purchase",
@@ -2531,7 +3166,6 @@ def test_endpoint():
         "find apartments",
         "show me houses",
         "find apartments in batangas city",
-        "properties near schools",
     ]
     
     results = []
@@ -2549,6 +3183,8 @@ def test_endpoint():
                     'query': query,
                     'intent': intent,
                     'confidence': confidence,
+                    'landmark': entities.get('landmark'),
+                    'landmark_type': entities.get('landmark_type'),
                     'documents_only': entities.get('documents_only'),
                     'sale_type': entities.get('sale_type'),
                     'financing_options': entities.get('financing_options'),
@@ -2567,17 +3203,19 @@ def test_endpoint():
         'test_results': results,
         'model_status': 'loaded' if vectorizer else 'not loaded',
         'training_data_status': 'loaded' if training_data else 'not loaded',
+        'google_maps_available': GOOGLE_MAPS_AVAILABLE,
         'supports_criteria_searches': True,
         'supports_general_searches': True,
         'supports_financing_queries': True,
-        'supports_document_queries': True
+        'supports_document_queries': True,
+        'supports_landmark_queries': True
     })
 
 # ========== MAIN APPLICATION ==========
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6.2")
-    print("   (With environment variable Firebase support)")
+    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.7.0")
+    print("   (With Google Maps integration for landmark proximity)")
     print("="*60)
     
     # Load the trained model
@@ -2589,7 +3227,7 @@ if __name__ == '__main__':
     print(f"\n📂 NLU Model: {'✅ Loaded' if vectorizer else '❌ Not loaded'}")
     print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
     print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
-    print(f"📊 spaCy: {'✅ Loaded' if nlp else '❌ Not loaded'}")
+    print(f"🗺️ Google Maps: {'✅ Available' if GOOGLE_MAPS_AVAILABLE else '❌ Not installed (pip install googlemaps)'}")
     
     if vectorizer:
         print(f"📊 Model intents: {len(model_classes)} intents")
@@ -2608,9 +3246,11 @@ if __name__ == '__main__':
     print("   GET  /api/test   - Test model predictions")
     
     print("\n🔍 Example queries to test:")
-    print("   1. 'requirements for bank financing'")
-    print("   2. 'show me properties that accept installment'")
-    print("   3. 'find houses under 15M with 3 bedrooms'")
+    print("   1. 'properties near schools'")
+    print("   2. 'houses near batangas state university'")
+    print("   3. 'apartments walking distance to campus'")
+    print("   4. 'requirements for bank financing'")
+    print("   5. 'show me houses under 15M with 3 bedrooms'")
     
     print("="*60 + "\n")
     
@@ -2618,6 +3258,13 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     print(f"📡 Server would run on port: {port}")
     print("📡 Gunicorn will start the server in production")
+    
+    # Check for Google Maps API key
+    google_maps_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+    if GOOGLE_MAPS_AVAILABLE and not google_maps_key:
+        print("⚠️  WARNING: GOOGLE_MAPS_API_KEY environment variable not set!")
+        print("💡 Set it to enable distance calculations for landmark queries")
+    elif GOOGLE_MAPS_AVAILABLE and google_maps_key:
+        print("✅ Google Maps API key found")
+    
     app.run(host='0.0.0.0', port=port, debug=False)
-
-
