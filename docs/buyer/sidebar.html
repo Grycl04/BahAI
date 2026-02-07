@@ -6,7 +6,7 @@
     <div class="logo-section">
       <div class="logo">
         <div class="logo-icon">
-          <i class="fas fa-home"></i>
+          <img src="../images/logo_bahai_nobg.png" alt="BahAI Real Estate" />
         </div>
         <div class="logo-text">
           <h1>BahAI</h1>
@@ -14,12 +14,12 @@
         </div>
       </div>
       <div class="user-profile">
-        <div class="user-avatar" id="userAvatar">
-          <i class="fas fa-user"></i>
+        <div class="user-avatar guest-avatar" id="userAvatar">
+          <i class="fas fa-user" style="font-size: 16px; color: #0b2e52;"></i>
         </div>
         <div class="user-info">
-          <div class="user-name" id="userName">Loading...</div>
-          <div class="user-role" id="userRole">Buyer</div>
+          <div class="user-name" id="userName">Guest</div>
+          <div class="user-role guest-role" id="userRole">Browsing without account</div>
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@
           </a>
         </li>
         <li>
-          <a href="messages.html" class="sidebar-link">
+          <a href="messages.html" class="sidebar-link" id="messagesLink" data-guest-redirect="messages.html">
             <div class="nav-icon">
               <i class="fas fa-comments"></i>
             </div>
@@ -55,7 +55,7 @@
           </a>
         </li>
         <li>
-          <a href="liked_properties.html" class="sidebar-link">
+          <a href="liked_properties.html" class="sidebar-link" id="savedLink" data-guest-redirect="liked_properties.html">
             <div class="nav-icon">
               <i class="fas fa-heart"></i>
             </div>
@@ -64,44 +64,19 @@
           </a>
         </li>
         <li>
-          <a href="settings.html" class="sidebar-link">
+          <a href="settings.html" class="sidebar-link" id="settingsLink" data-guest-redirect="settings.html">
             <div class="nav-icon">
-              <i class="fas fa-cog"></i>
+              <i class="fas fa-user"></i>
             </div>
-            <span class="nav-text">Settings</span>
+            <span class="nav-text">Profile</span>
           </a>
         </li>
       </ul>
     </nav>
 
-    <!-- Stats Section -->
-    <div class="sidebar-stats">
-      <div class="stats-title">Quick Stats</div>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-icon">
-            <i class="fas fa-building"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value" id="totalPropertiesStat">0</div>
-            <div class="stat-label">Properties</div>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon">
-            <i class="fas fa-heart"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value" id="savedPropertiesStat">0</div>
-            <div class="stat-label">Saved</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Bottom Section -->
     <div class="sidebar-footer">
-      <div class="ai-status">
+      <a href="buyer_dashboard.html#ai-chatbot-section" class="ai-status" id="aiAssistantLink" title="Go to AI chatbot">
         <div class="ai-status-icon">
           <i class="fas fa-robot"></i>
         </div>
@@ -109,12 +84,12 @@
           <div class="ai-status-title">AI Assistant</div>
           <div class="ai-status-subtitle">Active</div>
         </div>
-      </div>
-      <button id="logoutBtn" class="logout-btn">
+      </a>
+      <button id="logoutBtn" class="logout-btn login-btn">
         <div class="logout-icon">
-          <i class="fas fa-sign-out-alt"></i>
+          <i class="fas fa-sign-in-alt"></i>
         </div>
-        <span class="logout-text">Log Out</span>
+        <span class="logout-text">Login / Sign Up</span>
       </button>
     </div>
   </div>
@@ -122,14 +97,14 @@
 
 <style>
 :root {
-  --sidebar-bg: linear-gradient(180deg, #0b2e52 0%, #0a2647 100%);
-  --sidebar-accent: #667eea;
-  --sidebar-accent-dark: #764ba2;
-  --sidebar-text-light: rgba(255, 255, 255, 0.9);
-  --sidebar-text-muted: rgba(255, 255, 255, 0.7);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-hover: rgba(102, 126, 234, 0.15);
-  --sidebar-active: rgba(102, 126, 234, 0.25);
+  --sidebar-bg: linear-gradient(180deg, #0b2e52 0%, #071e38 100%);
+  --sidebar-accent: #d4af37;
+  --sidebar-accent-dark: #b8860b;
+  --sidebar-text-light: rgba(255, 255, 255, 0.95);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.75);
+  --sidebar-border: rgba(212, 175, 55, 0.15);
+  --sidebar-hover: rgba(212, 175, 55, 0.12);
+  --sidebar-active: rgba(212, 175, 55, 0.22);
 }
 
 /* Font Family */
@@ -201,13 +176,15 @@
 .logo-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, var(--sidebar-accent) 0%, var(--sidebar-accent-dark) 100%);
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .logo-text h1 {
@@ -248,13 +225,20 @@
 .user-avatar {
   width: 45px;
   height: 45px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   font-weight: 600;
+  color: #0b2e52;
+  overflow: hidden;
+}
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-info {
@@ -281,8 +265,26 @@
   content: '';
   width: 6px;
   height: 6px;
-  background: #10b981;
+  background: #d4af37;
   border-radius: 50%;
+}
+
+.user-role.guest-role::before {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.user-avatar.guest-avatar {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.logout-btn.login-btn:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: white;
+}
+
+.logout-btn.login-btn .logout-icon {
+  background: rgba(16, 185, 129, 0.2);
 }
 
 /* Navigation Menu */
@@ -342,7 +344,7 @@
   transform: translateY(-50%);
   width: 4px;
   height: 20px;
-  background: linear-gradient(to bottom, var(--sidebar-accent), var(--sidebar-accent-dark));
+  background: linear-gradient(to bottom, #d4af37, #b8860b);
   border-radius: 0 4px 4px 0;
 }
 
@@ -360,11 +362,12 @@
 }
 
 .sidebar-nav a:hover .nav-icon {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(212, 175, 55, 0.2);
 }
 
 .sidebar-nav a.active .nav-icon {
-  background: linear-gradient(135deg, var(--sidebar-accent) 0%, var(--sidebar-accent-dark) 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+  color: #0b2e52;
 }
 
 .nav-text {
@@ -388,68 +391,6 @@
   display: block;
 }
 
-/* Stats Section */
-.sidebar-stats {
-  padding: 20px 25px;
-  margin: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid var(--sidebar-border);
-}
-
-.stats-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--sidebar-text-muted);
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(102, 126, 234, 0.15);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: var(--sidebar-accent);
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--sidebar-text-light);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--sidebar-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
 /* Sidebar Footer */
 .sidebar-footer {
   padding: 25px;
@@ -462,27 +403,31 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(212, 175, 55, 0.1);
   border-radius: 12px;
   margin-bottom: 20px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.25);
   transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .ai-status:hover {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(212, 175, 55, 0.15);
   transform: translateY(-2px);
 }
 
 .ai-status-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  color: #0b2e52;
 }
 
 .ai-status-text {
@@ -549,32 +494,24 @@
   font-weight: 500;
 }
 
-/* Mobile Responsive */
+/* Mobile/Tablet Responsive */
 @media (max-width: 1024px) {
   .sidebar {
-    width: 260px;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-  
-  .sidebar.active {
-    transform: translateX(0);
+    width: 280px;
   }
   
   .sidebar-overlay {
     display: block;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
   
-  .sidebar.active + .sidebar-overlay {
+  .sidebar.active .sidebar-overlay {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
   }
 }
 
@@ -592,7 +529,6 @@
 
 .logo-section,
 .sidebar-nav,
-.sidebar-stats,
 .sidebar-footer {
   animation: fadeIn 0.5s ease;
 }
@@ -625,12 +561,255 @@
 </style>
 
 <script>
-// User info loading and stats
-document.addEventListener('DOMContentLoaded', function() {
-  // Load user info
-function loadUserInfo() {
+// Immediate guest setup (runs when sidebar loads, before Firebase)
+// Only setup login button - do NOT overwrite nav links here. Links stay as messages.html etc.
+// initializeSidebar will set links to login redirect ONLY when user is confirmed guest.
+(function() {
+  const btn = document.getElementById('logoutBtn');
+  if (btn && btn.classList.contains('login-btn')) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const redirect = encodeURIComponent(window.location.pathname || 'buyer/buyer_dashboard.html');
+      window.location.href = '../login.html?redirect=' + redirect;
+    });
+  }
+})();
+
+// Import Firebase modules if not already imported
+async function initializeSidebar() {
+  // Wait for Firebase globals
+  if (!window.firebaseApp || !window.firebaseAuth || !window.firebaseDB) {
+    console.log('Firebase not available yet, waiting...');
+    setTimeout(initializeSidebar, 100);
+    return;
+  }
+
   try {
-    // Get user data from localStorage or sessionStorage
+    // Import Firebase modules
+    const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
+    const { getFirestore, getDoc, doc, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
+    
+    // Get the Firebase app instance from the main page
+    const app = window.firebaseApp;
+    if (!app) {
+      console.error('Firebase app not found');
+      return;
+    }
+    
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    // Load user info from Firebase
+    async function loadUserInfo() {
+      try {
+        const currentUser = auth.currentUser;
+        const userNameEl = document.getElementById('userName');
+        const userRoleEl = document.getElementById('userRole');
+        const userAvatarEl = document.getElementById('userAvatar');
+        
+        if (!currentUser) {
+          // Guest user - browsing without account
+          if (userNameEl) userNameEl.textContent = 'Guest';
+          if (userRoleEl) {
+            userRoleEl.textContent = 'Browsing without account';
+            userRoleEl.classList.add('guest-role');
+          }
+          if (userAvatarEl) {
+            userAvatarEl.innerHTML = '<i class="fas fa-user" style="font-size: 16px; color: #0b2e52;"></i>';
+            userAvatarEl.classList.add('guest-avatar');
+          }
+          updateSidebarForGuest();
+          return;
+        }
+        
+        userRoleEl?.classList.remove('guest-role');
+        userAvatarEl?.classList.remove('guest-avatar');
+        
+        // Default values
+        let userName = currentUser.displayName || currentUser.email || 'User';
+        let userRole = 'Buyer';
+        let photoURL = currentUser.photoURL || null; // Firebase Auth (Google/social login)
+        
+        // Try to get user data from Firestore
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userName = userData.fullName || userData.email || userName;
+            userRole = userData.role || userData.userType || userRole;
+            // Firestore photoURL (from settings upload) overrides Auth photoURL
+            photoURL = userData.photoURL || userData.profilePhotoURL || photoURL;
+          }
+        } catch (error) {
+          console.log('Could not load user from Firestore:', error);
+        }
+        
+        if (userNameEl) userNameEl.textContent = userName;
+        
+        if (userRoleEl) {
+          const roleMap = {
+            'landlord': 'Property Owner',
+            'broker': 'Licensed Broker',
+            'seller': 'Property Seller',
+            'admin': 'Administrator',
+            'agent': 'Property Agent',
+            'user': 'Buyer'
+          };
+          userRoleEl.textContent = roleMap[userRole] || 'Buyer';
+        }
+        
+        if (userAvatarEl) {
+          const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
+          if (photoURL) {
+            const img = document.createElement('img');
+            img.src = photoURL;
+            img.alt = 'Profile';
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+            img.onerror = function() { userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>'; };
+            userAvatarEl.innerHTML = '';
+            userAvatarEl.appendChild(img);
+          } else {
+            userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>';
+          }
+        }
+        
+        updateSidebarForLoggedIn();
+        
+      } catch (error) {
+        console.error('Error loading user info:', error);
+      }
+    }
+    
+    function updateSidebarForGuest() {
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        const newBtn = logoutBtn.cloneNode(true);
+        newBtn.innerHTML = '<div class="logout-icon"><i class="fas fa-sign-in-alt"></i></div><span class="logout-text">Login / Sign Up</span>';
+        newBtn.classList.add('login-btn');
+        newBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const redirect = encodeURIComponent(window.location.pathname || 'buyer/buyer_dashboard.html');
+          window.location.href = '../login.html?redirect=' + redirect;
+        });
+        logoutBtn.replaceWith(newBtn);
+      }
+      ['messagesLink', 'savedLink', 'settingsLink'].forEach(id => {
+        const link = document.getElementById(id);
+        if (link && link.dataset.guestRedirect) {
+          link.href = '../login.html?redirect=' + encodeURIComponent('buyer/' + link.dataset.guestRedirect);
+          link.title = id === 'messagesLink' ? 'Login to access Messages' : id === 'savedLink' ? 'Login to save properties' : 'Login to access Profile';
+        }
+      });
+    }
+    
+    async function updateSidebarForLoggedIn() {
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        const newBtn = logoutBtn.cloneNode(true);
+        newBtn.innerHTML = '<div class="logout-icon"><i class="fas fa-sign-out-alt"></i></div><span class="logout-text">Log Out</span>';
+        newBtn.classList.remove('login-btn');
+        newBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          if (confirm('Are you sure you want to log out?')) {
+            if (typeof window.performLogout === 'function') {
+              window.performLogout();
+            } else {
+              try {
+                const { signOut } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
+                await signOut(auth);
+                window.location.href = '../login.html';
+              } catch (err) {
+                window.location.href = '../login.html';
+              }
+            }
+          }
+        });
+        logoutBtn.replaceWith(newBtn);
+      }
+      ['messagesLink', 'savedLink', 'settingsLink'].forEach(id => {
+        const link = document.getElementById(id);
+        if (link && link.dataset.guestRedirect) {
+          link.href = link.dataset.guestRedirect;
+          link.title = '';
+        }
+      });
+    }
+    
+    // Load saved count for nav badge
+    async function loadStats() {
+      try {
+        const currentUser = auth.currentUser;
+        const savedBadge = document.getElementById('savedBadge');
+        if (!savedBadge) return;
+        
+        if (!currentUser) {
+          savedBadge.textContent = '';
+          return;
+        }
+        
+        const savedRef = collection(db, 'savedProperties');
+        const savedQuery = query(savedRef, where('userId', '==', currentUser.uid));
+        const savedSnapshot = await getDocs(savedQuery);
+        savedBadge.textContent = savedSnapshot.size > 0 ? savedSnapshot.size : '';
+      } catch (error) {
+        console.log('Could not load saved count:', error);
+      }
+    }
+    
+    function resetStats() {
+      const savedBadge = document.getElementById('savedBadge');
+      if (savedBadge) savedBadge.textContent = '';
+    }
+    
+    // Initialize when auth state changes (login, logout, etc.)
+    onAuthStateChanged(auth, async (user) => {
+      await loadUserInfo();  // Updates profile to Guest when logged out
+      if (user) {
+        await loadStats();
+      } else {
+        resetStats();
+      }
+    });
+    
+    // Initialize now if user is already logged in
+    if (auth.currentUser) {
+      await loadUserInfo();
+      await loadStats();
+    }
+    
+    // Highlight current page
+    function highlightCurrentPage() {
+      const currentPath = window.location.pathname.split('/').pop() || 'buyer_dashboard.html';
+      const links = document.querySelectorAll('.sidebar-link');
+      
+      links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    }
+    
+    highlightCurrentPage();
+    
+    // Refresh stats periodically
+    setInterval(loadStats, 60000); // Every 60 seconds
+    
+  } catch (error) {
+    console.error('Error initializing sidebar:', error);
+    // Fallback to localStorage method
+    loadUserInfoFallback();
+    loadStatsFallback();
+  }
+}
+
+// Fallback functions if Firebase fails
+function loadUserInfoFallback() {
+  try {
     const userData = JSON.parse(localStorage.getItem('userData')) || 
                     JSON.parse(sessionStorage.getItem('userData'));
     
@@ -660,136 +839,71 @@ function loadUserInfo() {
       }
     }
   } catch (error) {
-    console.log('Could not load user info:', error);
+    console.log('Fallback: Could not load user info:', error);
   }
 }
-  
-  // Load stats
-function loadStats() {
+
+function loadStatsFallback() {
   try {
-    // Get saved properties from localStorage
     const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '[]');
-    const savedCount = savedProperties.length;
-    
-    // Update saved count
     const savedBadge = document.getElementById('savedBadge');
-    const savedStat = document.getElementById('savedPropertiesStat');
-    
-    if (savedBadge && savedCount > 0) {
-      savedBadge.textContent = savedCount;
-    }
-    
-    if (savedStat) {
-      savedStat.textContent = savedCount;
-    }
-    
-    // Get total properties count from global variable
-    if (typeof window.allListings !== 'undefined') {
-      const totalStat = document.getElementById('totalPropertiesStat');
-      if (totalStat) {
-        totalStat.textContent = window.allListings.length;
-      }
-    }
-    
-    // Check for new messages (simulated)
-    const messageCount = Math.floor(Math.random() * 3); // Simulated
-    const messageBadge = document.getElementById('messageBadge');
-    if (messageBadge && messageCount > 0) {
-      messageBadge.textContent = messageCount;
-    }
-    
+    if (savedBadge) savedBadge.textContent = savedProperties.length > 0 ? savedProperties.length : '';
   } catch (error) {
-    console.log('Could not load stats:', error);
+    console.log('Fallback: Could not load stats:', error);
   }
 }
+
+// Initialize sidebar - run immediately (sidebar is loaded dynamically, DOMContentLoaded has already fired)
+(function initSidebarDOM() {
+  initializeSidebar();
   
-  // Initialize
-  loadUserInfo();
-  loadStats();
-  
-  // Refresh stats periodically
-  setInterval(loadStats, 30000); // Every 30 seconds
-  
-  // Mobile menu functionality
+  // Overlay click to close sidebar (mobile/tablet)
   const overlay = document.getElementById('sidebarOverlay');
   if (overlay) {
     overlay.addEventListener('click', function() {
       const sidebar = document.querySelector('.sidebar');
-      sidebar.classList.remove('active');
+      if (sidebar) sidebar.classList.remove('active');
     });
   }
   
-  // Highlight current page
-function highlightCurrentPage() {
-  const currentPath = window.location.pathname.split('/').pop() || 'buyer_dashboard.html';
-  const links = document.querySelectorAll('.sidebar-link');
-  
-  links.forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === currentPath) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
-}
-  highlightCurrentPage();
-  
-  // Close sidebar on link click (mobile)
+  // Close sidebar on link click (mobile/tablet)
   document.addEventListener('click', function(e) {
-    if (window.innerWidth <= 768) {
-      if (e.target.closest('.sidebar-link')) {
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
-          sidebar.classList.remove('active');
-        }
+    if (window.innerWidth <= 1024 && e.target.closest('.sidebar-link')) {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) sidebar.classList.remove('active');
+    }
+  });
+  
+  // Make stats updater available globally
+  window.updateSidebarStats = async function() {
+    if (!window.firebaseApp) {
+      loadStatsFallback();
+      return;
+    }
+    try {
+      const { getAuth } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
+      const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
+      const app = window.firebaseApp;
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const currentUser = auth.currentUser;
+      const savedBadge = document.getElementById('savedBadge');
+      if (!savedBadge) return;
+      
+      if (!currentUser) {
+        savedBadge.textContent = '';
+      } else {
+        const savedRef = collection(db, 'savedProperties');
+        const savedQuery = query(savedRef, where('userId', '==', currentUser.uid));
+        const savedSnapshot = await getDocs(savedQuery);
+        savedBadge.textContent = savedSnapshot.size > 0 ? savedSnapshot.size : '';
       }
+    } catch (error) {
+      loadStatsFallback();
     }
-  });
-  
-  // Listen for saved property updates
-  window.addEventListener('storage', function(e) {
-    if (e.key === 'savedProperties') {
-      loadStats();
-    }
-  });
-  
-  // Update stats when properties are loaded
-  const originalLoadAllListings = window.loadAllListings;
-  if (originalLoadAllListings) {
-    window.loadAllListings = async function() {
-      await originalLoadAllListings();
-      loadStats();
-    };
-  }
-});
+  };
+})();
 
-// Make stats updater available globally
-window.updateSidebarStats = function() {
-  const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '[]');
-  const savedCount = savedProperties.length;
-  
-  const savedBadge = document.getElementById('savedBadge');
-  const savedStat = document.getElementById('savedPropertiesStat');
-  
-  if (savedBadge) {
-    if (savedCount > 0) {
-      savedBadge.textContent = savedCount;
-    } else {
-      savedBadge.textContent = '';
-    }
-  }
-  
-  if (savedStat) {
-    savedStat.textContent = savedCount;
-  }
-  
-  // Update total properties if available
-  if (typeof window.allListings !== 'undefined') {
-    const totalStat = document.getElementById('totalPropertiesStat');
-    if (totalStat) {
-      totalStat.textContent = window.allListings.length;
-    }
-  }
-};
+// Export initialization function for main pages to call
+window.initializeSidebar = initializeSidebar;
 </script>

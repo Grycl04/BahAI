@@ -424,7 +424,7 @@
 </head>
 
 <body>
-<script src="../ai_chatbot.js" type="module"></script>
+<script src="./ai_chatbot.js" type="module"></script>
 
 <!-- Mobile Menu Toggle -->
 <button class="mobile-menu-toggle" id="mobileMenuToggle">
@@ -2112,7 +2112,7 @@ async function displayListings(listings) {
     return `
 <div class="listing-card-wrapper">
     <div class="listing-card" data-listing-id="${listing.id}">
-        <a href="property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${title}"></a>
+        <a href="new_property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${title}"></a>
         <div class="listing-card-image-container">
             <img src="${mainPhoto}" alt="${listing.title}" class="listing-image">
             ${typeBadge}
@@ -2183,7 +2183,7 @@ function makePropertyCardsClickable() {
                 const listingId = this.getAttribute('data-listing-id');
                 if (listingId) {
                     // Navigate to property details page
-                    window.location.href = `property_details.html?id=${listingId}`;
+                    window.location.href = `new_property_details.html?id=${listingId}`;
                 }
             });
             
@@ -2754,7 +2754,7 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             return `
                 <div class="listing-card-wrapper">
                     <div class="listing-card" data-listing-id="${property.id}">
-                        <a href="property_details.html?id=${property.id}" class="card-link-overlay" aria-label="View ${title}"></a>
+                        <a href="new_property_details.html?id=${property.id}" class="card-link-overlay" aria-label="View ${title}"></a>
                         <div class="listing-card-image-container" style="position: relative;">
                             <img src="${photo}" alt="${property.title || 'Property'}" class="listing-image">
                             ${typeBadge}

@@ -32,8 +32,16 @@ window.updateSidebarUserProfile = function(userData) {
     userRoleEl.textContent = roleMap[userData.role] || (userData.role === 'agent' ? 'Property Agent' : 'User');
   }
   if (userAvatarEl) {
-    var name = userData.fullName || userData.displayName || userData.email || 'U';
-    var initials = (name + '').split(' ').map(function(n) { return n ? n[0] : ''; }).join('').toUpperCase().substring(0, 2) || 'U';
-    userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>';
+    var photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL;
+    if (photoURL) {
+      userAvatarEl.innerHTML = '<img src="' + photoURL + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      var name = userData.fullName || userData.displayName || userData.email || 'U';
+      var initials = (name + '').split(' ').map(function(n) { return n ? n[0] : ''; }).join('').toUpperCase().substring(0, 2) || 'U';
+      userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>';
+    }
+    userAvatarEl.classList.remove('guest-avatar');
   }
+  // Remove guest styling when we have user data
+  if (userRoleEl) userRoleEl.classList.remove('guest-role');
 };
