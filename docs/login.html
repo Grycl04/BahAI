@@ -34,7 +34,6 @@
       --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-
     /* Add new styles for better error handling */
     .error-message {
       color: var(--error);
@@ -50,18 +49,15 @@
       line-height: 1.4;
     }
 
-
     .error-message.show {
       display: flex;
       animation: slideDown 0.3s ease-out;
     }
 
-
     .error-message i {
       margin-top: 2px;
       flex-shrink: 0;
     }
-
 
     .success-message {
       color: var(--success);
@@ -77,12 +73,10 @@
       line-height: 1.4;
     }
 
-
     .success-message.show {
       display: flex;
       animation: slideDown 0.3s ease-out;
     }
-
 
     .info-message {
       color: var(--info);
@@ -98,28 +92,23 @@
       line-height: 1.4;
     }
 
-
     .info-message.show {
       display: flex;
       animation: slideDown 0.3s ease-out;
     }
-
 
     .form-input.error {
       border-color: var(--error) !important;
       background: rgba(220, 53, 69, 0.02);
     }
 
-
     .form-input.success {
       border-color: var(--success) !important;
     }
 
-
     .form-input:focus.error {
       box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
     }
-
 
     .password-requirements {
       margin-top: 6px;
@@ -128,11 +117,9 @@
       display: none;
     }
 
-
     .password-requirements.show {
       display: block;
     }
-
 
     .requirement {
       display: flex;
@@ -141,26 +128,21 @@
       margin-bottom: 4px;
     }
 
-
     .requirement i {
       font-size: 12px;
     }
-
 
     .requirement.valid {
       color: var(--success);
     }
 
-
     .requirement.invalid {
       color: var(--neutral-dark);
     }
 
-
     .shake {
       animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
     }
-
 
     @keyframes shake {
       10%, 90% { transform: translateX(-1px); }
@@ -168,7 +150,6 @@
       30%, 50%, 70% { transform: translateX(-3px); }
       40%, 60% { transform: translateX(3px); }
     }
-
 
     @keyframes slideDown {
       from {
@@ -180,7 +161,6 @@
         transform: translateY(0);
       }
     }
-
 
     .notification {
       position: fixed;
@@ -198,13 +178,11 @@
       max-width: 400px;
     }
 
-
     .notification.error {
       background: var(--error);
       color: white;
       border-left: 4px solid #c82333;
     }
-
 
     .notification.success {
       background: var(--success);
@@ -212,13 +190,11 @@
       border-left: 4px solid #218838;
     }
 
-
     .notification.info {
       background: var(--primary);
       color: white;
       border-left: 4px solid var(--primary-dark);
     }
-
 
     .notification.warning {
       background: var(--warning);
@@ -226,18 +202,15 @@
       border-left: 4px solid #e0a800;
     }
 
-
     @keyframes slideInRight {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
 
-
     @keyframes slideOutRight {
       from { transform: translateX(0); opacity: 1; }
       to { transform: translateX(100%); opacity: 0; }
     }
-
 
     /* Existing styles remain the same... */
     * {
@@ -245,7 +218,6 @@
       padding: 0;
       box-sizing: border-box;
     }
-
 
     body {
       font-family: 'Poppins', Arial, sans-serif;
@@ -259,7 +231,6 @@
       line-height: 1.6;
     }
 
-
     .login-wrapper {
       width: 100%;
       max-width: 1200px;
@@ -272,12 +243,10 @@
       animation: fadeIn 0.8s ease-out;
     }
 
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
 
     .visual-side {
       flex: 1;
@@ -291,7 +260,6 @@
       overflow: hidden;
     }
 
-
     .visual-side::before {
       content: '';
       position: absolute;
@@ -303,13 +271,11 @@
       opacity: 0.2;
     }
 
-
     .visual-content {
       position: relative;
       z-index: 1;
       max-width: 500px;
     }
-
 
     .visual-title {
       font-size: 42px;
@@ -318,7 +284,6 @@
       line-height: 1.2;
     }
 
-
     .visual-subtitle {
       font-size: 20px;
       font-weight: 300;
@@ -326,12 +291,10 @@
       opacity: 0.9;
     }
 
-
     .visual-features {
       list-style: none;
       margin-top: 40px;
     }
-
 
     .visual-features li {
       display: flex;
@@ -340,14 +303,12 @@
       font-size: 16px;
     }
 
-
     .visual-features i {
       color: var(--accent);
       margin-right: 15px;
       font-size: 20px;
       flex-shrink: 0;
     }
-
 
     .form-side {
       flex: 1;
@@ -358,13 +319,11 @@
       background: var(--white);
     }
 
-
     .logo-container {
       display: flex;
       align-items: center;
       margin-bottom: 40px;
     }
-
 
     .logo-icon {
       width: 50px;
@@ -380,23 +339,19 @@
       font-weight: 700;
     }
 
-
     .logo-text {
       font-size: 28px;
       font-weight: 700;
       color: var(--primary);
     }
 
-
     .logo-text span {
       color: var(--accent);
     }
 
-
     .login-header {
       margin-bottom: 40px;
     }
-
 
     .login-title {
       font-size: 36px;
@@ -405,30 +360,25 @@
       margin-bottom: 12px;
     }
 
-
     .login-subtitle {
       color: var(--text-light);
       font-size: 16px;
       font-weight: 400;
     }
 
-
     .login-subtitle strong {
       color: var(--primary);
       font-weight: 600;
     }
 
-
     .login-form {
       width: 100%;
     }
-
 
     .form-group {
       margin-bottom: 28px;
       position: relative;
     }
-
 
     .form-label {
       display: block;
@@ -438,11 +388,9 @@
       margin-bottom: 10px;
     }
 
-
     .input-container {
       position: relative;
     }
-
 
     .form-input {
       width: 100%;
@@ -456,7 +404,6 @@
       color: var(--text-dark);
     }
 
-
     .form-input:focus {
       outline: none;
       border-color: var(--primary);
@@ -464,11 +411,9 @@
       box-shadow: 0 0 0 4px rgba(11, 61, 97, 0.1);
     }
 
-
     .form-input::placeholder {
       color: var(--neutral-dark);
     }
-
 
     .password-toggle {
       position: absolute;
@@ -484,11 +429,9 @@
       transition: var(--transition);
     }
 
-
     .password-toggle:hover {
       color: var(--primary);
     }
-
 
     .forgot-password {
       display: inline-block;
@@ -502,12 +445,10 @@
       transition: var(--transition);
     }
 
-
     .forgot-password:hover {
       color: var(--primary-dark);
       text-decoration: underline;
     }
-
 
     .btn {
       width: 100%;
@@ -525,24 +466,20 @@
       gap: 10px;
     }
 
-
     .btn-primary {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
       box-shadow: var(--shadow-md);
     }
 
-
     .btn-primary:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
     }
 
-
     .btn-primary:active {
       transform: translateY(-1px);
     }
-
 
     .divider {
       display: flex;
@@ -552,7 +489,6 @@
       font-size: 14px;
     }
 
-
     .divider::before,
     .divider::after {
       content: '';
@@ -561,11 +497,9 @@
       background: var(--neutral-medium);
     }
 
-
     .divider span {
       padding: 0 15px;
     }
-
 
     .btn-google {
       background: var(--white);
@@ -574,7 +508,6 @@
       font-weight: 500;
     }
 
-
     .btn-google:hover {
       border-color: var(--primary);
       background: var(--neutral-light);
@@ -582,12 +515,10 @@
       box-shadow: var(--shadow-sm);
     }
 
-
     .btn-google i {
       color: #DB4437;
       font-size: 18px;
     }
-
 
     .signup-link {
       text-align: center;
@@ -598,7 +529,6 @@
       border-top: 1px solid var(--neutral-medium);
     }
 
-
     .signup-link a {
       color: var(--primary);
       text-decoration: none;
@@ -607,12 +537,10 @@
       margin-left: 5px;
     }
 
-
     .signup-link a:hover {
       color: var(--primary-dark);
       text-decoration: underline;
     }
-
 
     @media (max-width: 1024px) {
       .login-wrapper {
@@ -633,7 +561,6 @@
         font-size: 32px;
       }
     }
-
 
     @media (max-width: 768px) {
       .login-wrapper {
@@ -663,7 +590,6 @@
         margin-bottom: 30px;
       }
     }
-
 
     @media (max-width: 640px) {
       .login-wrapper {
@@ -701,7 +627,6 @@
         font-size: 15px;
       }
     }
-
 
     @media (max-width: 480px) {
       body {
@@ -744,7 +669,6 @@
       }
     }
 
-
     @media (max-width: 360px) {
       .visual-side,
       .form-side {
@@ -760,7 +684,6 @@
       }
     }
 
-
     .form-input:focus,
     .btn:focus,
     .forgot-password:focus,
@@ -770,27 +693,22 @@
       outline-offset: 2px;
     }
 
-
     .form-group {
       animation: slideUp 0.5s ease-out forwards;
       opacity: 0;
     }
 
-
     .form-group:nth-child(1) {
       animation-delay: 0.1s;
     }
-
 
     .form-group:nth-child(2) {
       animation-delay: 0.2s;
     }
 
-
     .form-actions {
       animation-delay: 0.3s;
     }
-
 
     @keyframes slideUp {
       from {
@@ -833,7 +751,6 @@
         <p class="login-subtitle">Login to your account.</p>
       </div>
 
-
       <form id="loginForm" class="login-form">
         <div class="form-group">
           <label for="email" class="form-label">Email Address</label>
@@ -853,7 +770,6 @@
             <span>Please enter a valid email address (e.g., name@example.com)</span>
           </div>
         </div>
-
 
         <div class="form-group">
           <label for="password" class="form-label">Password</label>
@@ -895,7 +811,6 @@
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
-
         <div class="form-group">
           <button type="submit" class="btn btn-primary" id="submitBtn">
             <i class="fas fa-sign-in-alt"></i>
@@ -903,11 +818,9 @@
           </button>
         </div>
 
-
         <div class="divider">
           <span>Or continue with</span>
         </div>
-
 
         <div class="form-group">
           <button type="button" id="googleLoginBtn" class="btn btn-google">
@@ -917,7 +830,6 @@
         </div>
       </form>
 
-
       <p class="signup-link">
         Don't have an account?
         <a href="signup.html">Sign up here</a>
@@ -925,122 +837,102 @@
     </div>
   </div>
 
-
-<script>
-  // Nuclear option: Clear ALL Firebase-related storage
-  (function nuclearClear() {
-    console.log('🚨 NUCLEAR CLEAR of Firebase storage');
-   
-    // Clear ALL localStorage items that might be Firebase related
-    const allKeys = Object.keys(localStorage);
-    allKeys.forEach(key => {
-      if (key.includes('firebase') ||
-          key.includes('auth') ||
-          key.includes('Firebase') ||
-          key.includes('token') ||
-          key.includes('user')) {
-        console.log('Removing:', key.substring(0, 50) + '...');
-        localStorage.removeItem(key);
-      }
-    });
-   
-    // Clear sessionStorage
-    sessionStorage.clear();
-   
-    // Clear cookies that might interfere
-    document.cookie.split(";").forEach(function(c) {
-      document.cookie = c.replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/;domain=" + window.location.hostname);
-      document.cookie = c.replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/;domain=." + window.location.hostname);
-    });
-   
-    console.log('✅ Storage cleared');
-  })();
-</script>
-
-
   <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
   <script type="module">
-    // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
-  let auth, db;
- 
-  try {
-    // Import with fallback
-    const firebaseModule = await import('./firebase-common.js').catch(async (e) => {
-      console.warn('Primary import failed, trying fallback...');
-      return await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js')
-        .then(async (firebase) => {
-          const firebaseConfig = {
-            apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-            authDomain: "bahai-1b76d.firebaseapp.com",
-            projectId: "bahai-1b76d",
-            storageBucket: "bahai-1b76d.firebasestorage.app",
-            messagingSenderId: "646878644941",
-            appId: "1:646878644941:web:5b4ccc3412250337587784",
-            measurementId: "G-PDW1PRZTM9"
-          };
-         
-          const app = firebase.initializeApp(firebaseConfig);
-          const { getAuth } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js');
-          const { getFirestore } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
-         
-          return {
-            auth: getAuth(app),
-            db: getFirestore(app)
-          };
+    // Clear Firebase cache on page load
+    function clearFirebaseCache() {
+      try {
+        // Clear specific Firebase storage keys
+        const firebaseKeys = [
+          'firebase:authUser:AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4:[DEFAULT]',
+          'firebase:host:bahai-1b76d.firebaseapp.com',
+          'FirebaseLocalStorageDb',
+          'FIREBASE_AUTH_TOKEN',
+          'FIREBASE_AUTH_USER'
+        ];
+        
+        firebaseKeys.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+          } catch (e) {}
         });
-    });
-   
-    if (firebaseModule.auth && firebaseModule.db) {
-      auth = firebaseModule.auth;
-      db = firebaseModule.db;
-      console.log('✅ Firebase loaded successfully');
-    } else {
-      throw new Error('Firebase module structure invalid');
+        
+        // Clear IndexedDB
+        if (window.indexedDB && window.indexedDB.databases) {
+          window.indexedDB.databases().then(databases => {
+            databases.forEach(db => {
+              if (db.name && db.name.includes('firebase')) {
+                window.indexedDB.deleteDatabase(db.name);
+              }
+            });
+          }).catch(() => {});
+        }
+        
+        console.log('Firebase cache cleared');
+      } catch (e) {
+        console.log('No Firebase cache to clear');
+      }
     }
+    
+    // Run cache clearing
+    clearFirebaseCache();
+
+    // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
+    let auth, db;
    
-  } catch (error) {
-    console.error('❌ Critical Firebase error:', error);
-    showNotification('error',
-      '⚠️ Authentication service is temporarily unavailable. ' +
-      'Please try again later or use demo access.'
-    );
-   
-    // Create mock auth for UI consistency
-    auth = {
-      isMock: true,
-      config: { authDomain: 'bahai-1b76d.firebaseapp.com' },
-      authStateReady: () => Promise.resolve(),
-      signOut: () => Promise.resolve()
-    };
-   
-    db = { isMock: true };
-  }
+    try {
+      // Import Firebase modules
+      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js');
+      const { getAuth } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js');
+      const { getFirestore } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+     
+      const firebaseConfig = {
+        apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+        authDomain: "bahai-1b76d.firebaseapp.com",
+        projectId: "bahai-1b76d",
+        storageBucket: "bahai-1b76d.firebasestorage.app",
+        messagingSenderId: "646878644941",
+        appId: "1:646878644941:web:5b4ccc3412250337587784",
+        measurementId: "G-PDW1PRZTM9"
+      };
+     
+      const app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log('✅ Firebase loaded successfully');
+     
+    } catch (error) {
+      console.error('❌ Critical Firebase error:', error);
+      showNotification('error',
+        '⚠️ Authentication service is temporarily unavailable. ' +
+        'Please try again later or use demo access.'
+      );
+     
+      // Create mock auth for UI consistency
+      auth = {
+        isMock: true,
+        signOut: () => Promise.resolve()
+      };
+     
+      db = { isMock: true };
+    }
 
+    // Import Firebase Auth functions
+    import {
+      signInWithEmailAndPassword,
+      signInWithPopup,
+      GoogleAuthProvider,
+      fetchSignInMethodsForEmail
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-  // Continue with the rest of your code...
-  console.log('Auth loaded with domain:', auth.config?.authDomain || 'mock-auth');
- 
-  // Import other Firebase modules
-  import {
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    GoogleAuthProvider,
-    fetchSignInMethodsForEmail
-  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-
-  import {
-    doc,
-    getDoc,
-    setDoc,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
+    import {
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
     const googleProvider = new GoogleAuthProvider();
-
 
     // DOM Elements
     const emailInput = document.getElementById('email');
@@ -1060,7 +952,6 @@
       number: { element: document.getElementById('reqNumber'), test: (pwd) => /\d/.test(pwd) }
     };
 
-
     // Password visibility toggle
     togglePassword.addEventListener('click', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -1068,7 +959,6 @@
       this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
       this.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
     });
-
 
     // Real-time password validation
     passwordInput.addEventListener('input', function() {
@@ -1114,7 +1004,6 @@
       }
     });
 
-
     // Email validation
     emailInput.addEventListener('input', function() {
       if (this.validity.valid) {
@@ -1124,7 +1013,6 @@
         this.classList.add('error');
       }
     });
-
 
     // Form submission
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -1208,7 +1096,6 @@
           )
         ]);
 
-
         if (!docSnap.exists()) {
           showNotification('error', 'User data not found. Please contact support or sign up.');
           await auth.signOut();
@@ -1216,7 +1103,6 @@
           submitText.textContent = 'Login to Dashboard';
           return;
         }
-
 
         const data = docSnap.data();
        
@@ -1227,7 +1113,7 @@
           submitBtn.disabled = false;
           submitText.textContent = 'Login to Dashboard';
           setTimeout(() => {
-            window.location.href = 'admin_login.html'; // Change to your actual admin login page
+            window.location.href = 'admin_login.html';
           }, 1500);
           return;
         }
@@ -1250,7 +1136,6 @@
         setTimeout(() => {
           window.location.href = getRedirectPage(data.role);
         }, 1000);
-
 
       } catch (error) {
         // Reset button state
@@ -1310,7 +1195,6 @@
       }
     });
 
-
     // Google Login
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
@@ -1350,16 +1234,23 @@
         const userRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(userRef);
 
-
         let data;
         if (!docSnap.exists()) {
           // New user - prompt for role (admin removed)
-          const role = prompt("Please select your role:\n• buyer\n• seller\n• broker\n• agent\n• landlord").toLowerCase();
+          const role = prompt("Please select your role:\n• buyer\n• seller\n• broker\n• agent\n• landlord\n\nEnter your role:").toLowerCase();
+         
+          // Validate input
+          if (!role) {
+            showNotification('error', 'Role selection cancelled.');
+            await auth.signOut();
+            return;
+          }
          
           // Valid roles - admin removed
           const validRoles = ['buyer', 'seller', 'broker', 'agent', 'landlord'];
           if (!validRoles.includes(role)) {
             showNotification('error', 'Invalid role selected. Please try again.');
+            await auth.signOut();
             return;
           }
          
@@ -1395,24 +1286,21 @@
           data = docSnap.data();
         }
 
-
         // Check if user is admin - redirect to admin login
         if (data.role === "admin") {
           showNotification('info', 'Admins must use the admin login page.');
           await auth.signOut();
           setTimeout(() => {
-            window.location.href = 'admin_login.html'; // Change to your actual admin login page
+            window.location.href = 'admin_login.html';
           }, 1500);
           return;
         }
-
 
         // ✅ Existing users go straight to dashboard
         showNotification('success', 'Login successful! Redirecting...');
         setTimeout(() => {
           window.location.href = getRedirectPage(data.role);
         }, 1000);
-
 
       } catch (error) {
         let userMessage = 'Google sign-in failed. Please try again.';
@@ -1437,12 +1325,13 @@
               'This email is already in use with a different login method.\n' +
               'Please use the login method you originally signed up with.';
             break;
+          default:
+            userMessage = error.message || 'Google sign-in failed. Please try again.';
         }
        
         showNotification('error', userMessage);
       }
     });
-
 
     // Helper functions
     function validateEmail(email) {
@@ -1450,19 +1339,17 @@
       return re.test(email);
     }
 
-
     function getRedirectPage(role) {
       const pages = {
         "seller": "seller/seller_dashboard.html",
         "buyer": "buyer/buyer_dashboard.html",
         "broker": "broker/broker_dashboard.html",
         "agent": "broker/agent_dashboard.html",
-        "landlord": "landlord/landlord_dashboard.html"
-        // Admin removed - they have separate login
+        "landlord": "landlord/landlord_dashboard.html",
+        "admin": "admin/admin_dashboard.html"
       };
       return pages[role] || "login.html";
     }
-
 
     function showNotification(type, message) {
       const icon = {
@@ -1497,7 +1384,6 @@
         }, 300);
       }, 5000);
     }
-
 
     // Initialize form
     emailInput.focus();
