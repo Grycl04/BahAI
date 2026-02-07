@@ -724,51 +724,106 @@
     </div>
   </div>
 
-  <script>
-    // Clear storage on page load
-    (function clearStorage() {
-      console.log('Clearing authentication storage...');
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key.includes('firebase') || key.includes('auth') || key.includes('token')) {
-          keysToRemove.push(key);
-        }
+<script>
+  // Initialize variables
+  let auth, db;
+  
+  // Clear storage on page load
+  (function clearStorage() {
+    console.log('Clearing authentication storage...');
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.includes('firebase') || key.includes('auth') || key.includes('token')) {
+        keysToRemove.push(key);
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      sessionStorage.clear();
-      console.log('Storage cleared');
-    })();
-
-    // Check if mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-      document.getElementById('mobileInstructions').classList.add('show');
     }
-  </script>
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    sessionStorage.clear();
+    console.log('Storage cleared');
+  })();
 
-<!-- Simplified Firebase Login Script -->
+  // Check if mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile) {
+    document.getElementById('mobileInstructions').classList.add('show');
+  }
+
+  // Copy email button functionality
+  document.getElementById('copyEmailBtn')?.addEventListener('click', function() {
+    navigator.clipboard.writeText('bahai.realestate@gmail.com')
+      .then(() => {
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+          this.innerHTML = originalText;
+        }, 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+  });
+</script>
+
+<!-- Firebase Login Script -->
 <script type="module">
   // Import Firebase modules
-  import { auth, db } from './firebase-common.js';
-  
-  // Check if we're in a restricted environment
-  const isRestrictedEnv = typeof window.self !== 'undefined' && 
-                         window.self !== window.top || 
-                         /chrome-extension:|moz-extension:|ms-browser-extension:/i.test(location.href);
-  
-  // Check if mobile
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  console.log('Environment check:', { isRestrictedEnv, isMobile });
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { 
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-  // Hide mobile instructions
-  document.getElementById('mobileInstructions').style.display = 'none';
+  // Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.appspot.com",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+
+  // Check current domain for OAuth configuration
+  console.log('Current domain:', window.location.hostname);
+  
+  // Configure OAuth provider for Render deployment
+  const provider = new GoogleAuthProvider();
+  provider.addScope('email');
+  provider.addScope('profile');
+  
+  // For Render, use the current domain for OAuth
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('Local development - using localhost OAuth');
+  } else {
+    // For production (Render), use the actual domain
+    const currentDomain = window.location.origin;
+    console.log('Production domain for OAuth:', currentDomain);
+  }
 
   // DOM Elements
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
   const togglePassword = document.getElementById('togglePassword');
+  const loginForm = document.getElementById('loginForm');
+  const googleLoginBtn = document.getElementById('googleLoginBtn');
 
   // Password visibility toggle
   togglePassword.addEventListener('click', function() {
@@ -777,27 +832,29 @@
     this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
   });
 
-  // Email/Password Login - Always works
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  // Email/Password Login
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
 
+    // Validate inputs
+    if (!validateEmail(email)) {
+      showNotification('error', 'Please enter a valid email address');
+      return;
+    }
+    
+    if (password.length < 8) {
+      showNotification('error', 'Password must be at least 8 characters');
+      return;
+    }
+
     try {
-      // Import needed functions
-      const { signInWithEmailAndPassword } = await import(
-        "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-      );
-      
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
       // Get user data from Firestore
-      const { doc, getDoc } = await import(
-        "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"
-      );
-      
       const userRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(userRef);
 
@@ -827,6 +884,9 @@
         case 'auth/invalid-email':
           message += 'Invalid email address';
           break;
+        case 'auth/too-many-requests':
+          message += 'Too many attempts. Please try again later or reset your password';
+          break;
         default:
           message += error.message;
       }
@@ -836,114 +896,83 @@
   });
 
   // Google Login Handler
-  document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+  googleLoginBtn.addEventListener("click", async () => {
     try {
-      // Dynamic imports to avoid issues
-      const { GoogleAuthProvider } = await import(
-        "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-      );
+      showNotification('info', 'Opening Google sign-in...');
       
-      const googleProvider = new GoogleAuthProvider();
-      
-      // Add custom parameters for better UX
-      googleProvider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      
-      if (isRestrictedEnv || isMobile) {
-        // Use a direct OAuth approach for restricted environments
-        await useDirectGoogleOAuth();
+      // Check if mobile device
+      if (isMobile) {
+        // Use redirect for mobile
+        await signInWithRedirect(auth, provider);
       } else {
-        // Use Firebase popup for normal desktop environments
-        const { signInWithPopup } = await import(
-          "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-        );
-        
-        showNotification('info', 'Opening Google sign-in...');
-        const result = await signInWithPopup(auth, googleProvider);
+        // Use popup for desktop
+        const result = await signInWithPopup(auth, provider);
         await handleGoogleSignIn(result.user);
       }
+      
     } catch (error) {
       console.error('Google login error:', error);
       
-      // Fallback to direct OAuth if Firebase fails
-      if (error.code === 'auth/popup-blocked' || 
-          error.code === 'auth/unauthorized-domain' ||
-          error.code === 'auth/operation-not-supported-in-this-environment') {
-        
-        showNotification('info', 'Using alternative Google sign-in method...');
-        await useDirectGoogleOAuth();
-      } else {
-        showNotification('error', 'Google sign-in failed. Please try email login or contact support.');
+      switch(error.code) {
+        case 'auth/popup-blocked':
+          showNotification('warning', 'Popup blocked. Please allow popups or try the mobile method below.');
+          break;
+        case 'auth/popup-closed-by-user':
+          // User closed popup, no action needed
+          break;
+        case 'auth/unauthorized-domain':
+          // This shouldn't happen on Render, but just in case
+          showNotification('error', 'Domain not authorized. Please contact support.');
+          break;
+        default:
+          showNotification('error', 'Google sign-in failed: ' + error.message);
       }
     }
   });
 
-  // Direct Google OAuth (Fallback method)
-  async function useDirectGoogleOAuth() {
+  // Handle OAuth redirect when page loads
+  window.addEventListener('load', async () => {
     try {
-      // Create a custom OAuth URL
-      const clientId = '646878644941'; // Your Firebase web client ID
-      const redirectUri = encodeURIComponent(window.location.origin + '/google-callback.html');
-      const scope = encodeURIComponent('email profile');
-      const state = Date.now().toString();
-      
-      // Store state for verification
-      sessionStorage.setItem('oauth_state', state);
-      sessionStorage.setItem('oauth_redirect', window.location.href);
-      
-      // Build OAuth URL
-      const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?
-        client_id=${clientId}&
-        redirect_uri=${redirectUri}&
-        response_type=id_token&
-        scope=openid%20${scope}&
-        state=${state}&
-        nonce=${Math.random().toString(36).substring(2)}`;
-      
-      // Open in same window for mobile, new window for desktop
-      if (isMobile) {
-        window.location.href = oauthUrl.replace(/\s+/g, '');
-      } else {
-        window.open(oauthUrl.replace(/\s+/g, ''), 'google_auth', 
-          'width=500,height=600,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes');
+      const result = await getRedirectResult(auth);
+      if (result) {
+        console.log('Redirect login successful:', result.user.email);
+        await handleGoogleSignIn(result.user);
       }
     } catch (error) {
-      console.error('Direct OAuth error:', error);
-      showNotification('error', 'Unable to start Google sign-in. Please use email login.');
+      console.error('Redirect login error:', error);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        showNotification('error', 'Authentication error: ' + error.message);
+      }
     }
-  }
+  });
 
   // Handle Google sign-in result
   async function handleGoogleSignIn(user) {
     try {
-      const { doc, getDoc, setDoc, serverTimestamp } = await import(
-        "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"
-      );
-      
       const userRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(userRef);
 
-      let data;
+      let userData;
       if (!docSnap.exists()) {
         // New user - prompt for role
         const role = await promptForRole();
         if (!role) {
-          await auth.signOut(); // Sign out if user cancelled
+          await signOut(auth); // Sign out if user cancelled
           return;
         }
         
-        data = {
+        userData = {
           fullName: user.displayName || 'Google User',
           email: user.email,
           role,
           kycStatus: "not_submitted",
           createdAt: serverTimestamp(),
           provider: "google",
-          photoURL: user.photoURL || ''
+          photoURL: user.photoURL || '',
+          uid: user.uid
         };
         
-        await setDoc(userRef, data);
+        await setDoc(userRef, userData);
         showNotification('success', '✅ Account created!');
         
         setTimeout(() => {
@@ -951,11 +980,11 @@
         }, 1500);
         
       } else {
-        data = docSnap.data();
+        userData = docSnap.data();
         showNotification('success', 'Login successful! Redirecting...');
         
         setTimeout(() => {
-          window.location.href = getRedirectPage(data.role);
+          window.location.href = getRedirectPage(userData.role);
         }, 1000);
       }
 
@@ -965,7 +994,7 @@
     }
   }
 
-  // Role selection modal (keep your existing function)
+  // Role selection modal
   function promptForRole() {
     return new Promise((resolve) => {
       const modal = document.createElement('div');
@@ -1029,6 +1058,11 @@
     return pages[role] || "login.html";
   }
 
+  function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
   function showNotification(type, message) {
     const icon = {
       error: '<i class="fas fa-exclamation-circle"></i>',
@@ -1054,42 +1088,7 @@
     }, 4000);
   }
 
-  // Check for returning OAuth
-  checkForOAuthReturn();
-  
-  async function checkForOAuthReturn() {
-    const urlParams = new URLSearchParams(window.location.hash.substring(1));
-    const idToken = urlParams.get('id_token');
-    const state = urlParams.get('state');
-    
-    if (idToken && state) {
-      const savedState = sessionStorage.getItem('oauth_state');
-      if (state === savedState) {
-        try {
-          // Import needed for token verification
-          const { signInWithCredential, GoogleAuthProvider } = await import(
-            "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-          );
-          
-          const credential = GoogleAuthProvider.credential(idToken);
-          const result = await signInWithCredential(auth, credential);
-          
-          // Clear OAuth data
-          sessionStorage.removeItem('oauth_state');
-          sessionStorage.removeItem('oauth_redirect');
-          
-          // Handle the signed-in user
-          await handleGoogleSignIn(result.user);
-          
-        } catch (error) {
-          console.error('OAuth callback error:', error);
-          showNotification('error', 'Authentication failed. Please try again.');
-        }
-      }
-    }
-  }
-
-  // Initialize
+  // Initialize - focus on email input
   emailInput.focus();
 </script>
 </body>
