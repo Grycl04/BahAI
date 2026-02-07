@@ -1,13 +1,8 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
 import { 
   getAuth, 
-  initializeAuth, 
   browserLocalPersistence,
-  browserPopupRedirectResolver,
-  browserSessionPersistence,
-  setPersistence,
-  indexedDBLocalPersistence,
-  inMemoryPersistence
+  setPersistence
 } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
@@ -26,18 +21,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// IMPORTANT: Initialize auth with custom settings for mobile compatibility
-let auth;
-try {
-  // Try to initialize with persistence
-  auth = initializeAuth(app, {
-    persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence],
-    popupRedirectResolver: browserPopupRedirectResolver
-  });
-} catch (error) {
-  console.warn('Auth initialization failed, using getAuth:', error);
-  auth = getAuth(app);
-}
+// Initialize Auth with proper error handling
+const auth = getAuth(app);
 
 // Set persistence
 try {
