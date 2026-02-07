@@ -666,258 +666,46 @@
   </div>
 
   <!-- Firebase + Role Redirect Script -->
-  <script type="module">
-    import { auth, db } from './firebase-common.js';
-    import { 
-      signInWithEmailAndPassword, 
-      signInWithPopup, 
-      GoogleAuthProvider 
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { 
-      doc, 
-      getDoc, 
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+<script type="module">
+  import { auth } from './firebase-common.js';
+  import { 
+    signInWithEmailAndPassword, 
+    signInWithPopup, 
+    GoogleAuthProvider 
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
+  console.log("Firebase Auth object:", auth);
+  console.log("Auth domain:", auth.app.options.authDomain);
+  console.log("Current origin:", window.location.origin);
+
+  // Test if Firebase is properly initialized
+  try {
     const googleProvider = new GoogleAuthProvider();
-
-    // Form validation
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const emailError = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
-    const togglePassword = document.getElementById('togglePassword');
+    console.log("Google provider created:", googleProvider);
     
-    // Password visibility toggle
-    togglePassword.addEventListener('click', function() {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-      this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-    });
-    
-    // Input validation
-    emailInput.addEventListener('input', function() {
-      if (this.validity.valid) {
-        this.classList.remove('error');
-        emailError.classList.remove('show');
-      }
-    });
-    
-    passwordInput.addEventListener('input', function() {
-      if (this.value.length >= 8) {
-        this.classList.remove('error');
-        passwordError.classList.remove('show');
-      }
-    });
-    
-    // Form submission with validation
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      let isValid = true;
-      
-      // Validate email
-      if (!emailInput.value || !emailInput.validity.valid) {
-        emailInput.classList.add('error');
-        emailError.classList.add('show');
-        isValid = false;
-      }
-      
-      // Validate password
-      if (!passwordInput.value || passwordInput.value.length < 8) {
-        passwordInput.classList.add('error');
-        passwordError.classList.add('show');
-        isValid = false;
-      }
-      
-      if (!isValid) {
-        return;
-      }
-      
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
+    // Add a simple test function
+    window.testFirebase = async () => {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-
-        if (!docSnap.exists()) {
-          showError("⚠️ User data not found!");
-          return;
-        }
-
-        const data = docSnap.data();
-
-        // 🚫 Only block login if status is pending (waiting for approval)
-        if (data.kycStatus === "pending") {
-          showError("🕒 Your KYC is still pending approval. Please wait for verification to complete.");
-          return;
-        }
-
-        // ✅ Allow login for: approved, not_submitted, and rejected
-        // They can access dashboard, but posting will be blocked for non-approved users
-        const role = data.role;
-        window.location.href = getRedirectPage(role);
-
+        // Try to sign in with test credentials
+        const testEmail = "test@example.com";
+        const testPassword = "test123456";
+        await signInWithEmailAndPassword(auth, testEmail, testPassword);
       } catch (error) {
-        showError("❌ Login failed: " + error.message);
+        console.log("Firebase test error details:", {
+          code: error.code,
+          message: error.message,
+          customData: error.customData,
+          name: error.name
+        });
       }
-    });
-
-    // ✅ Google Login
-    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        const userRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userRef);
-
-        let data;
-        if (!docSnap.exists()) {
-          const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
-          data = {
-            fullName: user.displayName,
-            email: user.email,
-            role,
-            kycStatus: "not_submitted",
-            createdAt: serverTimestamp()
-          };
-          await setDoc(userRef, data);
-          showSuccess("✅ Account created! Please complete KYC verification to post properties.");
-          setTimeout(() => {
-            window.location.href = getRedirectPage(role);
-          }, 1500);
-          return;
-        } else {
-          data = docSnap.data();
-        }
-
-        // 🚫 Only block if pending
-        if (data.kycStatus === "pending") {
-          showInfo("🕒 Your KYC is still pending approval. You can access your dashboard but cannot post properties yet.");
-          setTimeout(() => {
-            window.location.href = getRedirectPage(data.role);
-          }, 2000);
-          return;
-        }
-
-        // ✅ Allow login regardless of KYC status
-        window.location.href = getRedirectPage(data.role);
-
-      } catch (error) {
-        showError("❌ Google sign-in failed: " + error.message);
-      }
-    });
-
-    // ✅ Role-Based Redirect - always send to role dashboard after login
-    function getRedirectPage(role) {
-      switch (role) {
-        case "seller":
-          return "seller/seller_dashboard.html";
-        case "buyer":
-          return "buyer/buyer_dashboard.html";
-        case "broker":
-          return "broker/broker_dashboard.html";
-        case "agent":
-          return "broker/agent_dashboard.html";
-        case "landlord":
-          return "landlord/landlord_dashboard.html";
-        case "admin":
-          return "admin/approve_users.html";
-        default:
-          return "buyer/buyer_dashboard.html";
-      }
-    }
+    };
     
-    // UI feedback functions
-    function showError(message) {
-      // Create a temporary error message
-      const errorDiv = document.createElement('div');
-      errorDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--error);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      errorDiv.textContent = message;
-      document.body.appendChild(errorDiv);
-      
-      setTimeout(() => {
-        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(errorDiv), 300);
-      }, 4000);
-    }
+    // Run test
+    window.testFirebase();
     
-    function showSuccess(message) {
-      const successDiv = document.createElement('div');
-      successDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--success);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      successDiv.textContent = message;
-      document.body.appendChild(successDiv);
-      
-      setTimeout(() => {
-        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(successDiv), 300);
-      }, 4000);
-    }
-    
-    function showInfo(message) {
-      const infoDiv = document.createElement('div');
-      infoDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--primary);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      infoDiv.textContent = message;
-      document.body.appendChild(infoDiv);
-      
-      setTimeout(() => {
-        infoDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(infoDiv), 300);
-      }, 4000);
-    }
-    
-    // Add CSS for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  </script>
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
+</script>
 </body>
 </html>

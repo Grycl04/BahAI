@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Test</title>
+</head>
+<body>
+  <h1>Firebase Connection Test</h1>
+  <div id="status"></div>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+      authDomain: "bahai-1b76d.firebaseapp.com",
+      projectId: "bahai-1b76d",
+      storageBucket: "bahai-1b76d.firebasestorage.app",
+      messagingSenderId: "646878644941",
+      appId: "1:646878644941:web:5b4ccc3412250337587784",
+      measurementId: "G-PDW1PRZTM9"
+    };
+    
+    try {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      
+      document.getElementById('status').innerHTML = `
+        <p style="color: green;">✅ Firebase Initialized Successfully</p>
+        <p>Domain: ${window.location.origin}</p>
+        <p>Auth Domain: ${firebaseConfig.authDomain}</p>
+        <p>Project ID: ${firebaseConfig.projectId}</p>
+      `;
+      
+      console.log("Firebase auth object:", auth);
+    } catch (error) {
+      document.getElementById('status').innerHTML = `
+        <p style="color: red;">❌ Firebase Error: ${error.message}</p>
+        <p>Code: ${error.code}</p>
+      `;
+      console.error("Firebase error:", error);
+    }
+  </script>
+</body>
+</html>
