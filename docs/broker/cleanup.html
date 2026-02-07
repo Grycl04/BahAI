@@ -1,0 +1,88 @@
+<!-- Create a temporary cleanup.html file -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleanup Duplicates</title>
+</head>
+<body>
+    <h1>Cleaning up duplicate agents...</h1>
+    <div id="status"></div>
+    
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, deleteDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+        authDomain: "bahai-1b76d.firebaseapp.com",
+        projectId: "bahai-1b76d",
+        storageBucket: "bahai-1b76d.appspot.com",
+        messagingSenderId: "646878644941",
+        appId: "1:646878644941:web:5b4ccc3412250337587784"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    async function cleanupAllDuplicates() {
+        const status = document.getElementById('status');
+        
+        try {
+            status.innerHTML = "🔍 Searching for duplicate agents...";
+            
+            // Get all documents from users collection
+            const usersQuery = query(collection(db, "users"));
+            const usersSnapshot = await getDocs(usersQuery);
+            
+            let migratedCount = 0;
+            let deletedCount = 0;
+            
+            for (const userDoc of usersSnapshot.docs) {
+                const userData = userDoc.data();
+                const userId = userDoc.id;
+                
+                // Check if it's an agent
+                const isAgent = userData.userType === 'agent' || userData.role === 'agent';
+                
+                if (isAgent) {
+                    status.innerHTML = `🔄 Processing agent: ${userData.fullName || userId}`;
+                    
+                    // Check if exists in agents collection
+                    const agentDocRef = doc(db, "agents", userId);
+                    const agentDocSnap = await getDoc(agentDocRef);
+                    
+                    if (agentDocSnap.exists()) {
+                        // Both exist - delete from users
+                        await deleteDoc(doc(db, "users", userId));
+                        deletedCount++;
+                        console.log(`✅ Deleted duplicate: ${userId}`);
+                    } else {
+                        // Only in users - migrate to agents
+                        await setDoc(doc(db, "agents", userId), userData);
+                        await deleteDoc(doc(db, "users", userId));
+                        migratedCount++;
+                        console.log(`✅ Migrated: ${userId}`);
+                    }
+                }
+            }
+            
+            status.innerHTML = `
+                <h2>✅ Cleanup Complete!</h2>
+                <p>Migrated agents: ${migratedCount}</p>
+                <p>Deleted duplicates: ${deletedCount}</p>
+                <p>All agent data is now in the 'agents' collection only.</p>
+            `;
+            
+        } catch (error) {
+            console.error("Cleanup error:", error);
+            status.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+    
+    // Run cleanup
+    cleanupAllDuplicates();
+    </script>
+</body>
+</html>

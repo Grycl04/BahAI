@@ -1691,39 +1691,49 @@
   // ===== USER PROFILE =====
   async function loadUserProfile() {
     try {
-      const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        // Format for sidebar-user.js (expects fullName, role)
-        const sidebarData = {
-          fullName: userData.name || userData.fullName || userData.displayName,
-          displayName: userData.name || userData.displayName,
-          email: currentUser.email || userData.email,
-          role: userData.userType || userData.role || 'broker'
+      let sidebarData = {};
+      const brokerDoc = await firebase.firestore().collection('brokers').doc(currentUser.uid).get();
+      if (brokerDoc.exists) {
+        const brokerData = brokerDoc.data();
+        sidebarData = {
+          fullName: brokerData.fullName || brokerData.name || brokerData.displayName || currentUser.displayName || (currentUser.email && currentUser.email.split('@')[0]) || 'Broker',
+          displayName: brokerData.fullName || brokerData.name || brokerData.displayName || currentUser.displayName,
+          email: brokerData.email || currentUser.email,
+          role: brokerData.role || 'broker',
+          photoURL: brokerData.photoURL || brokerData.profilePhoto || brokerData.profileImage || brokerData.imageURL || currentUser.photoURL
         };
-        if (typeof window.updateSidebarUserProfile === 'function') {
-          window.updateSidebarUserProfile(sidebarData);
-        }
       } else {
-        // Fallback: use Firebase Auth data
-        const sidebarData = {
-          fullName: currentUser.displayName,
-          displayName: currentUser.displayName,
-          email: currentUser.email,
-          role: 'broker'
-        };
-        if (typeof window.updateSidebarUserProfile === 'function') {
-          window.updateSidebarUserProfile(sidebarData);
+        const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          sidebarData = {
+            fullName: userData.name || userData.fullName || userData.displayName || currentUser.displayName || (currentUser.email && currentUser.email.split('@')[0]) || 'Broker',
+            displayName: userData.name || userData.displayName || userData.fullName,
+            email: currentUser.email || userData.email,
+            role: userData.userType || userData.role || 'broker',
+            photoURL: userData.photoURL || userData.profilePhotoURL || currentUser.photoURL
+          };
+        } else {
+          sidebarData = {
+            fullName: currentUser.displayName || (currentUser.email && currentUser.email.split('@')[0]) || 'Broker',
+            displayName: currentUser.displayName,
+            email: currentUser.email,
+            role: 'broker',
+            photoURL: currentUser.photoURL
+          };
         }
+      }
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile(sidebarData);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
-      // Fallback to auth data on error
       if (typeof window.updateSidebarUserProfile === 'function') {
         window.updateSidebarUserProfile({
           fullName: currentUser.displayName,
           email: currentUser.email,
-          role: 'broker'
+          role: 'broker',
+          photoURL: currentUser.photoURL
         });
       }
     }
