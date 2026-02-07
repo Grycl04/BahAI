@@ -735,7 +735,7 @@
             </div>
             <div id="phoneError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
-              <span>Please enter a valid phone number</span>
+  <span>Please enter a valid Philippine phone number (09XXXXXXXXX, +639XXXXXXXXX, or 639XXXXXXXXX)</span>
             </div>
           </div>
         </div>
@@ -940,12 +940,13 @@ el('signupForm').addEventListener('submit', async (e) => {
   }
   
   // Validate phone - basic validation
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  if (!phone || !phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))) {
-    phoneInput.classList.add('error');
-    phoneError.classList.add('show');
-    isValid = false;
-  }
+const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
+if (!phone || !phPhoneRegex.test(cleanedPhone)) {
+  phoneInput.classList.add('error');
+  phoneError.classList.add('show');
+  isValid = false;
+}
   
   // Validate role
   if (!role) {
