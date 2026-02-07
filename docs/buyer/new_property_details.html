@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Property Details - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --primary: #0b2e52;
+  --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+  --accent: #d4af37;
+  --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+  --text-dark: #1a202c;
+  --text-light: #64748b;
+  --bg-light: #f8fafc;
+  --bg-white: #ffffff;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; }
+
+.mobile-menu-toggle { display: none; position: fixed; top: 20px; left: 20px; z-index: 1001;
+  background: var(--primary-gradient); color: white; border: none; width: 50px; height: 50px;
+  border-radius: 12px; font-size: 24px; cursor: pointer; }
+.main { flex: 1; margin-left: 280px; padding: 24px; max-width: 1200px; margin-right: auto; }
+
+.back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; margin-bottom: 24px;
+  background: white; border: 2px solid var(--border); border-radius: var(--radius); color: var(--text-dark);
+  font-weight: 600; text-decoration: none; transition: all 0.2s; }
+.back-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Hero Gallery */
+.gallery-hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--primary); margin-bottom: 24px; }
+.gallery-hero img { width: 100%; height: 420px; object-fit: cover; display: block; }
+.gallery-badges { position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+.badge { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-sale { background: var(--accent); color: white; }
+.badge-rent { background: #059669; color: white; }
+.badge-lease { background: #0ea5e9; color: white; }
+.badge-active { background: white; color: var(--primary); }
+.save-btn-float { position: absolute; top: 20px; right: 20px; padding: 12px 24px; border-radius: 12px;
+  border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  background: white; color: var(--primary); box-shadow: var(--shadow-lg); transition: all 0.2s; }
+.save-btn-float:hover { transform: translateY(-2px); }
+.save-btn-float.saved { background: var(--success); color: white; border: none; }
+.gallery-thumbs { display: flex; gap: 8px; padding: 12px; background: rgba(0,0,0,0.5); overflow-x: auto; }
+.gallery-thumbs img { width: 80px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+.gallery-thumbs img:hover, .gallery-thumbs img.active { opacity: 1; border: 2px solid white; }
+
+/* Content Grid */
+.content-grid { display: grid; grid-template-columns: 1fr 420px; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+
+/* Cards */
+.card { background: white; border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+.card-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+
+/* Property Header */
+.prop-header { margin-bottom: 24px; }
+.prop-title { font-size: 28px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; line-height: 1.3; }
+.prop-location { display: flex; align-items: center; gap: 8px; color: var(--text-light); font-size: 15px; margin-bottom: 16px; }
+.prop-price { font-size: 32px; font-weight: 800; color: var(--primary); margin-bottom: 20px; }
+.prop-stats { display: flex; flex-wrap: wrap; gap: 24px; }
+.stat { display: flex; align-items: center; gap: 10px; }
+.stat i { color: var(--primary); font-size: 18px; }
+.stat span { font-weight: 600; color: var(--text-dark); }
+
+/* Detail Rows */
+.detail-grid { display: grid; gap: 12px; }
+.detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 16px; background: var(--bg-light); border-radius: var(--radius); }
+.detail-label { font-size: 13px; color: var(--text-light); font-weight: 500; }
+.detail-value { font-size: 15px; font-weight: 600; color: var(--text-dark); text-align: right; }
+
+/* Contact Card */
+.contact-card { background: var(--primary-gradient); color: white; border-radius: var(--radius-lg); padding: 28px; display: flex; flex-direction: column; width: 100%; }
+.contact-header { font-size: 20px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+.contact-profile { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; }
+.contact-avatar { width: 88px; height: 88px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 28px; overflow: hidden; flex-shrink: 0; }
+.contact-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.contact-profile-info { flex: 1; min-width: 0; }
+.contact-name { font-size: 22px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; word-break: break-word; }
+.contact-role { font-size: 16px; opacity: 0.95; }
+.contact-methods { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.contact-method { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(255,255,255,0.1); border-radius: var(--radius); font-size: 16px; min-height: 52px; }
+.contact-method i { width: 24px; text-align: center; font-size: 18px; flex-shrink: 0; }
+.contact-method span { word-break: break-word; overflow-wrap: break-word; }
+.contact-btn { width: 100%; padding: 14px 24px; border-radius: var(--radius); border: none; font-weight: 600; font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: white; color: var(--primary); transition: all 0.2s; }
+.contact-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.save-btn-card { width: 100%; padding: 14px; margin-top: 12px; background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.4); }
+.save-btn-card:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
+
+/* Amenities */
+.amenities-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.amenity-chip { padding: 8px 16px; background: var(--bg-light); border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+
+/* Description */
+.desc-text { font-size: 15px; line-height: 1.7; color: var(--text-dark); white-space: pre-wrap; }
+
+/* Map */
+.map-container { height: 280px; border-radius: var(--radius); overflow: hidden; background: var(--bg-light); }
+
+/* Loading */
+.loading-state { text-align: center; padding: 80px 20px; color: var(--text-light); }
+.loading-state .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Message Modal */
+.message-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; padding: 20px; }
+.message-modal.show { display: flex; opacity: 1; }
+.message-modal-content { width: 90%; max-width: 700px; max-height: 85vh; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden; }
+.message-header { padding: 24px 28px; background: var(--primary-gradient); color: white; display: flex; justify-content: space-between; align-items: center; }
+.message-header h2 { font-size: 1.25rem; font-weight: 600; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.message-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; margin-left: 12px; }
+.message-close:hover { background: rgba(255,255,255,0.3); }
+.message-broker-card { padding: 20px 28px; background: var(--bg-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+.message-broker-avatar { width: 52px; height: 52px; min-width: 52px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.1rem; flex-shrink: 0; overflow: hidden; }
+.message-broker-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.message-broker-name { font-weight: 600; color: var(--text-dark); font-size: 1rem; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.message-broker-role { font-size: 0.85rem; color: var(--text-light); }
+.messages-container { flex: 1; padding: 24px 28px; overflow-y: auto; min-height: 280px; max-height: 360px; background: #f9fafb; }
+.message-bubble { margin-bottom: 16px; max-width: 80%; }
+.message-bubble.sent { margin-left: auto; }
+.message-bubble.received { margin-right: auto; }
+.message-bubble-content { background: white; padding: 14px 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.message-bubble.sent .message-bubble-content { background: var(--primary-gradient); color: white; }
+.message-time { display: block; font-size: 0.75rem; opacity: 0.8; margin-top: 6px; }
+.message-bubble.sent .message-time { color: rgba(255,255,255,0.9); }
+.loading-messages, .no-messages { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.message-input-area { padding: 20px 28px; background: white; border-top: 1px solid var(--border); }
+.message-textarea { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; resize: none; min-height: 80px; max-height: 140px; margin-bottom: 14px; }
+.message-textarea:focus { outline: none; border-color: var(--primary); }
+.message-actions { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 12px; }
+.contact-info { flex: 1; font-size: 0.85rem; color: var(--text-light); display: flex; gap: 16px; overflow: hidden; }
+.contact-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.send-btn { background: var(--primary-gradient); color: white; border: none; padding: 12px 24px; border-radius: var(--radius); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(11,46,82,0.25); }
+.quick-contact-buttons { display: flex; gap: 10px; }
+.quick-contact-btn { flex: 1; padding: 12px; border-radius: var(--radius); text-align: center; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.email-btn { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
+.call-btn { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+
+/* Compact Mortgage Calculator */
+.calc-widget { background: white; border-radius: var(--radius-lg); padding: 20px; margin-top: 20px; box-shadow: var(--shadow); }
+.calc-widget h3 { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.calc-input-group { margin-bottom: 12px; }
+.calc-input-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-light); margin-bottom: 4px; }
+.calc-input-group input[type="number"], .calc-input-group select { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; }
+.calc-input-group input[type="range"] { width: 100%; height: 6px; margin: 4px 0; }
+.calc-range-row { display: flex; align-items: center; gap: 10px; }
+.calc-range-row .range-val { font-size: 13px; font-weight: 600; color: var(--primary); min-width: 40px; }
+.calc-btn { width: 100%; padding: 12px; border: none; border-radius: var(--radius); font-weight: 600; font-size: 14px; cursor: pointer; background: var(--primary-gradient); color: white; margin-top: 8px; }
+.calc-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.calc-results { background: var(--primary-gradient); color: white; padding: 16px; border-radius: var(--radius); margin-top: 12px; font-size: 13px; }
+.calc-results .monthly { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.calc-results .note { font-size: 11px; opacity: 0.9; margin-top: 8px; }
+</style>
+</head>
+<body>
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menu">☰</button>
+<div id="sidebar-container"></div>
+
+<main class="main">
+  <a href="javascript:history.back()" class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Back</a>
+  
+  <div id="propertyContent">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading property details...</p>
+    </div>
+  </div>
+</main>
+
+<!-- Message Modal -->
+<div class="message-modal" id="messageModal">
+  <div class="message-modal-content">
+    <div class="message-header">
+      <h2 id="messageBrokerName">Chat</h2>
+      <button class="message-close" id="closeMessageModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="message-broker-card">
+      <div class="message-broker-avatar" id="messageBrokerAvatar">B</div>
+      <div class="message-broker-info">
+        <div class="message-broker-name" id="messageBrokerFullName">Loading...</div>
+        <div class="message-broker-role">
+          <span id="messageBrokerType">Contact</span> • <span id="messageBrokerContact">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="messages-container" id="messagesContainer">
+      <div class="loading-messages"><div class="spinner"></div><p>Loading messages...</p></div>
+    </div>
+    <div class="message-input-area">
+      <textarea class="message-textarea" id="messageInput" placeholder="Type your message here..." rows="3"></textarea>
+      <div class="message-actions">
+        <div class="contact-info">
+          <span id="brokerEmailInfo">📧 Email: —</span>
+          <span id="brokerPhoneInfo">📞 Phone: —</span>
+        </div>
+        <button class="send-btn" id="sendMessageBtn"><i class="fas fa-paper-plane"></i> Send Message</button>
+      </div>
+      <div class="quick-contact-buttons">
+        <a href="#" class="quick-contact-btn email-btn" id="quickEmailBtn"><i class="fas fa-envelope"></i> Send Email</a>
+        <a href="#" class="quick-contact-btn call-btn" id="quickCallBtn"><i class="fas fa-phone"></i> Call</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, addDoc, deleteDoc, setDoc, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+window.firebaseApp = app;
+
+const urlParams = new URLSearchParams(window.location.search);
+const propertyId = urlParams.get('id');
+
+let currentListing = null;
+let currentUserInfo = null;
+let currentConversationId = null;
+let messageListener = null;
+
+const labels = {
+  propertyCategory: { residential: "Residential", commercial: "Commercial", land: "Land", condo: "Condominium", special: "Special Purpose" },
+  furnishing: { furnished: "Fully Furnished", "semi-furnished": "Semi-Furnished", unfurnished: "Unfurnished" },
+  saleType: { outright: "Outright Cash", installment: "Installment", bank_financing: "Bank Financing" },
+  leaseType: { gross: "Gross Lease", net: "Net Lease", "triple-net": "Triple Net" },
+  paymentTerms: { monthly: "Monthly", quarterly: "Quarterly", "semi-annual": "Semi-Annual", annual: "Annual" },
+  maintenance: { landlord: "Landlord", tenant: "Tenant", shared: "Shared" },
+  zoning: { commercial: "Commercial", industrial: "Industrial", residential: "Residential", agricultural: "Agricultural", mixed_use: "Mixed Use", tourism: "Tourism" }
+};
+
+function getListingType(l) {
+  if (l.listingType === 'lease' || l.type === 'lease') return 'lease';
+  if (l.listingType === 'rent' || l.type === 'rent') return 'rent';
+  if (l.listingType === 'sale' || l.type === 'sale') return 'sale';
+  if (l.monthlyRent != null && l.monthlyRent > 0) return 'rent';
+  if (l.annualRent != null && l.annualRent > 0) return 'lease';
+  if ((l.pricing || l.salePrice) > 0) return 'sale';
+  return 'sale';
+}
+
+function getDisplayPrice(l) {
+  const t = getListingType(l);
+  if (t === 'rent') return '₱' + (l.monthlyRent || 0).toLocaleString() + '/month';
+  if (t === 'lease') return '₱' + (l.annualRent || 0).toLocaleString() + '/year';
+  return '₱' + (l.pricing || l.salePrice || 0).toLocaleString();
+}
+
+function getAddress(l) {
+  const parts = [l.location || l.address, l.city, l.province].filter(Boolean);
+  return parts.length ? parts.join(', ') : 'Location not specified';
+}
+
+async function loadUserInfo(userId) {
+  if (!userId) return { displayName: 'Unknown', email: 'N/A', phone: 'N/A', role: 'user', photoURL: null };
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      const d = userDoc.data();
+      return {
+        displayName: d.fullName || d.email?.split('@')[0] || 'User',
+        email: d.email || 'N/A',
+        phone: d.phone || 'N/A',
+        role: d.role || 'user',
+        photoURL: d.photoURL || d.profilePhotoURL || null
+      };
+    }
+    const brokerDoc = await getDoc(doc(db, "brokers", userId));
+    if (brokerDoc.exists()) {
+      const d = brokerDoc.data();
+      return {
+        displayName: d.fullName || d.name || 'Broker',
+        email: d.email || 'N/A',
+        phone: d.phone || 'N/A',
+        role: 'broker',
+        photoURL: d.photoURL || d.profilePhoto || d.profileImage || null
+      };
+    }
+  } catch (e) { console.warn(e); }
+  return { displayName: 'User', email: 'N/A', phone: 'N/A', role: 'user', photoURL: null };
+}
+
+async function loadProperty() {
+  if (!propertyId) {
+    document.getElementById('propertyContent').innerHTML = '<div class="card"><p style="padding:40px;text-align:center;">No property ID provided.</p></div>';
+    return;
+  }
+  try {
+    const propDoc = await getDoc(doc(db, "properties", propertyId));
+    if (!propDoc.exists()) {
+      document.getElementById('propertyContent').innerHTML = '<div class="card"><p style="padding:40px;text-align:center;">Property not found.</p></div>';
+      return;
+    }
+    currentListing = { id: propDoc.id, ...propDoc.data() };
+    currentUserInfo = await loadUserInfo(currentListing.userId);
+    renderProperty();
+    setupSaveButton();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('propertyContent').innerHTML = '<div class="card"><p style="padding:40px;text-align:center;color:red;">Error loading property.</p></div>';
+  }
+}
+
+function renderDetailSection(title, icon, items) {
+  if (!items || items.length === 0) return '';
+  return `
+    <div class="card">
+      <h3 class="card-title"><i class="fas fa-${icon}"></i> ${title}</h3>
+      <div class="detail-grid">
+        ${items.map(([label, value]) => `
+          <div class="detail-row">
+            <span class="detail-label">${label}</span>
+            <span class="detail-value">${value || '—'}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function renderProperty() {
+  const l = currentListing;
+  const u = currentUserInfo;
+  const type = getListingType(l);
+  const photos = l.photos || l.imageUrls || [];
+  const mainImg = photos[0] || 'https://via.placeholder.com/800x400/0b2e52/white?text=No+Image';
+  const amenities = l.amenities || [];
+  const initials = (u.displayName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  const avatarHtml = u.photoURL
+    ? `<img src="${u.photoURL}" alt="${u.displayName}" onerror="this.parentElement.innerHTML='${initials}'">`
+    : initials;
+
+  const badgeClass = type === 'sale' ? 'badge-sale' : type === 'rent' ? 'badge-rent' : 'badge-lease';
+  const badgeText = type === 'sale' ? 'For Sale' : type === 'rent' ? 'For Rent' : 'For Lease';
+
+  let basicItems = [
+    ['Property Category', labels.propertyCategory[l.propertyCategory] || l.propertyCategory],
+    ['Property Type', (l.propertyType || '').replace(/_/g, ' ')],
+    ['Bedrooms', l.bedrooms || (type === 'rent' && l.propertyType === 'studio' ? 'Studio' : '—')],
+    ['Bathrooms', l.bathrooms || '—'],
+    ['Floor Area', l.floorArea || l.totalArea ? (l.floorArea || l.totalArea) + ' sqm' : '—'],
+    ['Lot Area', l.lotArea ? l.lotArea + ' sqm' : '—'],
+    ['Furnishing', labels.furnishing[l.furnishing] || l.furnishing || '—'],
+    ['Year Built', l.yearBuilt || '—']
+  ];
+
+  let saleItems = [];
+  if (type === 'sale') {
+    saleItems = [
+      ['Sale Price', '₱' + (l.salePrice || l.pricing || 0).toLocaleString()],
+      ['Price Negotiable', l.priceNegotiable === 'yes' ? 'Yes' : 'No'],
+      ['Sale Type', labels.saleType[l.saleType] || l.saleType || '—']
+    ];
+  }
+
+  let rentLeaseItems = [];
+  if (type === 'rent') {
+    rentLeaseItems = [
+      ['Monthly Rent', '₱' + (l.monthlyRent || 0).toLocaleString()],
+      ['Security Deposit', l.securityDeposit ? '₱' + l.securityDeposit.toLocaleString() : '—']
+    ];
+  } else if (type === 'lease') {
+    rentLeaseItems = [
+      ['Annual Rent', '₱' + (l.annualRent || 0).toLocaleString()],
+      ['Lease Type', labels.leaseType[l.leaseType] || l.leaseType || '—'],
+      ['Lease Duration', l.leaseDuration ? l.leaseDuration + ' years' : '—'],
+      ['Renewal Option', l.renewalOption || '—'],
+      ['Payment Terms', labels.paymentTerms[l.paymentTerms] || l.paymentTerms || '—'],
+      ['Security Bond', l.securityBond ? '₱' + l.securityBond.toLocaleString() : '—'],
+      ['Advance Payment', l.advancePayment ? l.advancePayment + ' month(s)' : '—'],
+      ['Zoning', labels.zoning[l.zoning] || l.zoning || '—'],
+      ['Access Road', l.accessRoad || '—'],
+      ['Frontage', l.frontage ? l.frontage + ' m' : '—'],
+      ['Utilities', l.utilities || '—'],
+      ['Restrictions', l.restrictions || '—'],
+      ['Maintenance', labels.maintenance[l.maintenance] || l.maintenance || '—']
+    ];
+  }
+
+  const locationItems = [
+    ['Address', l.address || l.location],
+    ['City', l.city],
+    ['Province', l.province]
+  ].filter(([, v]) => v);
+
+  const roleText = u.role === 'landlord' ? 'Property Owner' : u.role === 'broker' ? 'Licensed Broker' : 'Posted by';
+
+  const html = `
+    <div class="gallery-hero">
+      <img src="${mainImg}" alt="${l.title}" id="mainGalleryImg">
+      <div class="gallery-badges">
+        <span class="badge ${badgeClass}">${badgeText}</span>
+        <span class="badge badge-active">${l.status === 'active' ? 'Available' : (l.status || 'Available')}</span>
+      </div>
+      <button class="save-btn-float" id="saveBtnFloat">
+        <i class="far fa-heart" id="saveIcon"></i>
+        <span id="saveText">Save Property</span>
+      </button>
+      ${photos.length > 1 ? `
+      <div class="gallery-thumbs">
+        ${photos.map((url, i) => `<img src="${url}" alt="" class="${i === 0 ? 'active' : ''}" data-index="${i}">`).join('')}
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="content-grid">
+      <div>
+        <div class="card prop-header">
+          <h1 class="prop-title">${l.title || 'Untitled Property'}</h1>
+          <div class="prop-location"><i class="fas fa-map-marker-alt"></i> ${getAddress(l)}</div>
+          <div class="prop-price">${getDisplayPrice(l)}</div>
+          <div class="prop-stats">
+            <div class="stat"><i class="fas fa-bed"></i><span>${l.bedrooms || (type === 'rent' && l.propertyType === 'studio' ? 'Studio' : '—')} Beds</span></div>
+            <div class="stat"><i class="fas fa-bath"></i><span>${l.bathrooms || '—'} Baths</span></div>
+            <div class="stat"><i class="fas fa-ruler-combined"></i><span>${l.floorArea || l.totalArea || '—'} sqm</span></div>
+            ${l.lotArea ? `<div class="stat"><i class="bi bi-map"></i><span>${l.lotArea} sqm Lot</span></div>` : ''}
+          </div>
+        </div>
+
+        ${l.description ? `
+        <div class="card">
+          <h3 class="card-title"><i class="fas fa-align-left"></i> Description</h3>
+          <div class="desc-text">${l.description}</div>
+        </div>
+        ` : ''}
+
+        ${renderDetailSection('Basic Information', 'info-circle', basicItems)}
+        ${saleItems.length ? renderDetailSection('Sale Information', 'cash-stack', saleItems) : ''}
+        ${rentLeaseItems.length ? renderDetailSection(type === 'rent' ? 'Rent Information' : 'Lease Information', 'file-text', rentLeaseItems) : ''}
+        ${locationItems.length ? renderDetailSection('Location', 'geo-alt', locationItems) : ''}
+
+        ${amenities.length ? `
+        <div class="card">
+          <h3 class="card-title"><i class="fas fa-star"></i> Amenities & Features</h3>
+          <div class="amenities-grid">
+            ${amenities.map(a => `<span class="amenity-chip"><i class="fas fa-check"></i> ${a}</span>`).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        ${l.latitude && l.longitude ? `
+        <div class="card">
+          <h3 class="card-title"><i class="fas fa-map"></i> Map</h3>
+          <div class="map-container" id="mapContainer">
+            <a href="https://www.google.com/maps?q=${l.latitude},${l.longitude}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--bg-light);color:var(--primary);font-weight:600;text-decoration:none;">
+              <i class="fas fa-map-marker-alt" style="margin-right:8px;"></i> View on Google Maps
+            </a>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+
+      <div>
+        <div class="contact-card">
+          <div class="contact-header"><i class="fas fa-user"></i> Contact ${u.role === 'landlord' ? 'Owner' : 'Broker'}</div>
+          <div class="contact-profile">
+            <div class="contact-avatar">${avatarHtml}</div>
+            <div class="contact-profile-info">
+              <div class="contact-name">${u.displayName || 'Owner'}</div>
+              <div class="contact-role">${roleText}</div>
+            </div>
+          </div>
+          <div class="contact-methods">
+            <div class="contact-method"><i class="fas fa-envelope"></i> <span>${u.email || 'Not provided'}</span></div>
+            <div class="contact-method"><i class="fas fa-phone"></i> <span>${u.phone || 'Not provided'}</span></div>
+          </div>
+          <button class="contact-btn" id="contactBtn"><i class="fas fa-comment"></i> Message</button>
+          <button class="contact-btn save-btn-card" id="saveBtnCard"><i class="far fa-heart"></i> <span id="saveTextCard">Save Property</span></button>
+        </div>
+        ${type === 'sale' ? `
+        <div class="calc-widget">
+          <h3><i class="fas fa-calculator"></i> Mortgage Calculator</h3>
+          <div class="calc-input-group">
+            <label>Property Price (₱)</label>
+            <input type="number" id="calc-price" placeholder="0" min="0" value="${l.pricing || l.salePrice || ''}">
+          </div>
+          <div class="calc-input-group">
+            <label>Down Payment</label>
+            <div class="calc-range-row">
+              <input type="range" id="calc-down" min="0" max="50" value="20">
+              <span class="range-val" id="calc-down-val">20%</span>
+            </div>
+          </div>
+          <div class="calc-input-group">
+            <label>Term / Rate</label>
+            <div style="display:flex;gap:10px;">
+              <select id="calc-term" style="flex:1;">
+                <option value="5">5 yrs</option>
+                <option value="10">10 yrs</option>
+                <option value="15" selected>15 yrs</option>
+                <option value="20">20 yrs</option>
+                <option value="30">30 yrs</option>
+              </select>
+              <select id="calc-rate" style="flex:1;">
+                <option value="5">5%</option>
+                <option value="6">6%</option>
+                <option value="6.5" selected>6.5%</option>
+                <option value="7">7%</option>
+                <option value="8">8%</option>
+                <option value="10">10%</option>
+              </select>
+            </div>
+          </div>
+          <button class="calc-btn" id="calc-mortgage-btn">Calculate</button>
+          <div class="calc-results" id="calc-results-mortgage" style="display:none;"></div>
+        </div>
+        ` : type === 'rent' ? `
+        <div class="calc-widget">
+          <h3><i class="fas fa-calculator"></i> Rent Affordability</h3>
+          <div class="calc-input-group">
+            <label>Monthly Rent (₱)</label>
+            <input type="number" id="calc-rent" placeholder="0" min="0" value="${l.monthlyRent || ''}">
+          </div>
+          <div class="calc-input-group">
+            <label>Your Monthly Income (₱)</label>
+            <input type="number" id="calc-income" placeholder="0" min="0">
+          </div>
+          <button class="calc-btn" id="calc-rent-btn">Check</button>
+          <div class="calc-results" id="calc-results-rent" style="display:none;"></div>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('propertyContent').innerHTML = html;
+
+  if (photos.length > 1) {
+    document.querySelectorAll('.gallery-thumbs img').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        document.querySelectorAll('.gallery-thumbs img').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        document.getElementById('mainGalleryImg').src = photos[thumb.dataset.index];
+      });
+    });
+  }
+
+  document.getElementById('contactBtn').addEventListener('click', () => {
+    if (auth.currentUser) {
+      openMessageModal(l.userId, l.id);
+    } else {
+      window.location.href = '../login.html?redirect=buyer/new_property_details.html?id=' + propertyId;
+    }
+  });
+
+  initMortgageCalc(l, type);
+}
+
+function initMortgageCalc(l, type) {
+  if (type === 'sale') {
+    const downEl = document.getElementById('calc-down');
+    const downVal = document.getElementById('calc-down-val');
+    if (downEl) downEl.addEventListener('input', () => { if (downVal) downVal.textContent = downEl.value + '%'; });
+    const btn = document.getElementById('calc-mortgage-btn');
+    const price = l.pricing || l.salePrice;
+    if (btn) btn.addEventListener('click', () => {
+      const priceInput = document.getElementById('calc-price');
+      if (priceInput && price && !priceInput.value) priceInput.value = price;
+      calculateMortgage();
+    });
+    if (price) setTimeout(() => calculateMortgage(), 200);
+  } else if (type === 'rent') {
+    const btn = document.getElementById('calc-rent-btn');
+    if (btn) btn.addEventListener('click', calculateRentAffordability);
+  }
+}
+
+function calculateMortgage() {
+  const priceEl = document.getElementById('calc-price');
+  const downEl = document.getElementById('calc-down');
+  const termEl = document.getElementById('calc-term');
+  const rateEl = document.getElementById('calc-rate');
+  const resultsEl = document.getElementById('calc-results-mortgage');
+  if (!priceEl || !resultsEl) return;
+  const price = parseFloat(priceEl.value) || 0;
+  if (price <= 0) {
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = '<span style="color:#fecaca;">Enter a valid price</span>';
+    return;
+  }
+  const downPct = parseFloat(downEl?.value) || 20;
+  const term = parseInt(termEl?.value) || 15;
+  const rate = parseFloat(rateEl?.value) || 6.5;
+  const downAmt = price * downPct / 100;
+  const loan = price - downAmt;
+  const r = rate / 100 / 12;
+  const n = term * 12;
+  const monthly = loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const totalInt = monthly * n - loan;
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = `
+    <div class="monthly">₱${monthly.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}<span style="font-size:12px;font-weight:400;">/mo</span></div>
+    <div>Down: ₱${downAmt.toLocaleString(0)} (${downPct}%)</div>
+    <div>Total interest: ₱${totalInt.toLocaleString(0)}</div>
+    <div class="note">Estimate only. Actual terms may vary.</div>
+  `;
+}
+
+function calculateRentAffordability() {
+  const rentEl = document.getElementById('calc-rent');
+  const incomeEl = document.getElementById('calc-income');
+  const resultsEl = document.getElementById('calc-results-rent');
+  if (!rentEl || !incomeEl || !resultsEl) return;
+  const rent = parseFloat(rentEl.value) || 0;
+  const income = parseFloat(incomeEl.value) || 0;
+  if (rent <= 0 || income <= 0) {
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = '<span style="color:#fecaca;">Enter rent and income</span>';
+    return;
+  }
+  const pct = (rent / income * 100).toFixed(1);
+  const status = pct <= 30 ? 'Within budget ✓' : pct <= 40 ? 'Moderate' : 'May be tight';
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = `
+    <div class="monthly">${pct}% of income</div>
+    <div>${status}</div>
+    <div class="note">Rent under 30% of income is recommended.</div>
+  `;
+}
+
+function formatMessageTime(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function updateMessagingModal(userInfo, property) {
+  const name = userInfo.displayName || 'Contact';
+  const roleText = userInfo.role === 'landlord' ? 'Property Owner' : userInfo.role === 'broker' ? 'Licensed Broker' : 'Contact';
+  document.getElementById('messageBrokerName').textContent = `Message ${name}`;
+  document.getElementById('messageBrokerFullName').textContent = name;
+  document.getElementById('messageBrokerType').textContent = roleText;
+  document.getElementById('messageBrokerContact').textContent = userInfo.email || 'Not provided';
+  document.getElementById('brokerEmailInfo').textContent = `📧 ${userInfo.email || 'Not provided'}`;
+  document.getElementById('brokerPhoneInfo').textContent = `📞 ${userInfo.phone || 'Not provided'}`;
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
+  const avatarEl = document.getElementById('messageBrokerAvatar');
+  if (userInfo.photoURL) {
+    avatarEl.setAttribute('data-fallback', initials);
+    avatarEl.innerHTML = `<img src="${(userInfo.photoURL || '').replace(/"/g, '&quot;')}" alt="${(name || '').replace(/"/g, '&quot;')}" onerror="var p=this.parentElement;p.innerHTML=p.getAttribute('data-fallback')||'U'">`;
+  } else {
+    avatarEl.removeAttribute('data-fallback');
+    avatarEl.innerHTML = initials;
+  }
+  const quickEmailBtn = document.getElementById('quickEmailBtn');
+  const quickCallBtn = document.getElementById('quickCallBtn');
+  if (userInfo.email && userInfo.email !== 'N/A' && userInfo.email !== 'Not provided') {
+    const subject = property?.title ? `Inquiry: ${property.title}` : 'Property Inquiry';
+    const body = property?.title ? `Hello ${name},\n\nI'm interested in your property: ${property.title}.\n\nPlease send me more information.` : '';
+    quickEmailBtn.href = `mailto:${userInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    quickEmailBtn.style.display = 'flex';
+  } else {
+    quickEmailBtn.style.display = 'none';
+  }
+  if (userInfo.phone && userInfo.phone !== 'N/A' && userInfo.phone !== 'Not provided') {
+    quickCallBtn.href = `tel:${userInfo.phone}`;
+    quickCallBtn.style.display = 'flex';
+  } else {
+    quickCallBtn.style.display = 'none';
+  }
+  const msgInput = document.getElementById('messageInput');
+  msgInput.placeholder = property?.title ? `Hi ${name}, I'm interested in ${(property.title || '').substring(0, 40)}...` : 'Type your message here...';
+}
+
+function loadMessages(conversationId, brokerId) {
+  const messagesContainer = document.getElementById('messagesContainer');
+  if (messageListener) { messageListener(); messageListener = null; }
+  messagesContainer.innerHTML = '<div class="loading-messages"><div class="spinner"></div><p>Loading messages...</p></div>';
+  try {
+    const messagesQuery = query(collection(db, 'messages'), where('conversationId', '==', conversationId), orderBy('timestamp', 'asc'));
+    messageListener = onSnapshot(messagesQuery,
+      (snapshot) => {
+        messagesContainer.innerHTML = '';
+        if (snapshot.empty) {
+          messagesContainer.innerHTML = '<div class="no-messages"><div style="font-size:48px;margin-bottom:16px;">💬</div><h3>No messages yet</h3><p>Start the conversation by sending a message below.</p></div>';
+          return;
+        }
+        const currentUser = auth.currentUser;
+        snapshot.forEach((d) => {
+          const msg = d.data();
+          const isSent = msg.senderId === currentUser.uid;
+          const el = document.createElement('div');
+          el.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+          let ts = 'Just now';
+          if (msg.timestamp) {
+            const d = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date();
+            ts = formatMessageTime(d);
+          }
+          el.innerHTML = `<div class="message-bubble-content"><div>${(msg.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><span class="message-time">${ts}</span></div>`;
+          messagesContainer.appendChild(el);
+        });
+        setTimeout(() => { messagesContainer.scrollTop = messagesContainer.scrollHeight; }, 100);
+      },
+      (err) => {
+        console.error(err);
+        messagesContainer.innerHTML = '<div class="no-messages"><div style="font-size:48px;margin-bottom:16px;">💬</div><h3>Ready to chat</h3><p>Send your first message below.</p></div>';
+      }
+    );
+  } catch (e) {
+    console.error(e);
+    messagesContainer.innerHTML = '<div class="no-messages"><div style="font-size:48px;margin-bottom:16px;">💬</div><h3>Ready to chat</h3><p>Send your first message below.</p></div>';
+  }
+}
+
+async function sendMessage() {
+  const messageInput = document.getElementById('messageInput');
+  const text = messageInput.value.trim();
+  const sendBtn = document.getElementById('sendMessageBtn');
+  if (!text) { messageInput.focus(); return; }
+  if (!currentConversationId || !auth.currentUser) {
+    alert('Unable to send message. Please refresh and try again.');
+    return;
+  }
+  const parts = currentConversationId.split('_');
+  const brokerId = parts.find(id => id !== auth.currentUser.uid);
+  if (!brokerId) { alert('Unable to identify recipient.'); return; }
+  const origHtml = sendBtn.innerHTML;
+  sendBtn.innerHTML = '<div class="spinner" style="border:2px solid rgba(255,255,255,0.3);border-top:2px solid white;width:16px;height:16px;border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
+  sendBtn.disabled = true;
+  messageInput.disabled = true;
+  try {
+    const convRef = doc(db, 'conversations', currentConversationId);
+    const convSnap = await getDoc(convRef);
+    await setDoc(convRef, {
+      participants: [auth.currentUser.uid, brokerId],
+      lastMessage: text.substring(0, 100),
+      lastMessageTime: serverTimestamp(),
+      lastSenderId: auth.currentUser.uid,
+      unreadCount: { [brokerId]: (convSnap.exists() ? (convSnap.data().unreadCount?.[brokerId] || 0) + 1 : 1) },
+      buyerId: auth.currentUser.uid,
+      brokerId,
+      propertyId: currentListing?.id || null,
+      propertyTitle: currentListing?.title || null,
+      buyerName: auth.currentUser.displayName || auth.currentUser.email,
+      createdAt: convSnap.exists() ? convSnap.data().createdAt : serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await addDoc(collection(db, 'messages'), {
+      conversationId: currentConversationId,
+      senderId: auth.currentUser.uid,
+      receiverId: brokerId,
+      text,
+      timestamp: serverTimestamp(),
+      read: false,
+      type: 'text',
+      propertyId: currentListing?.id || null,
+      senderName: auth.currentUser.displayName || auth.currentUser.email
+    });
+    messageInput.value = '';
+    messageInput.disabled = false;
+    sendBtn.innerHTML = '✓ Sent';
+    sendBtn.style.background = '#10b981';
+    setTimeout(() => { sendBtn.innerHTML = origHtml; sendBtn.style.background = ''; sendBtn.disabled = false; }, 1500);
+    setTimeout(() => { document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight; }, 100);
+  } catch (e) {
+    console.error(e);
+    sendBtn.innerHTML = origHtml;
+    sendBtn.disabled = false;
+    messageInput.disabled = false;
+    alert('Failed to send message. Please try again.');
+  }
+}
+
+function closeMessageModal() {
+  const modal = document.getElementById('messageModal');
+  modal.classList.remove('show');
+  document.body.style.overflow = 'auto';
+  if (messageListener) { messageListener(); messageListener = null; }
+  currentConversationId = null;
+  document.getElementById('messageInput').value = '';
+}
+
+async function openMessageModal(userId, propId) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    window.location.href = '../login.html?redirect=buyer/new_property_details.html?id=' + propertyId;
+    return;
+  }
+  let userInfo = currentUserInfo;
+  if (userInfo?.displayName && userId === currentListing?.userId) {
+    userInfo = { ...userInfo, email: userInfo.email || 'Not provided', phone: userInfo.phone || 'Not provided' };
+  } else {
+    userInfo = await loadUserInfo(userId);
+  }
+  currentConversationId = [currentUser.uid, userId].sort().join('_');
+  updateMessagingModal(userInfo, currentListing);
+  document.getElementById('messageModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  loadMessages(currentConversationId, userId);
+  setTimeout(() => document.getElementById('messageInput').focus(), 300);
+}
+
+async function setupSaveButton() {
+  const updateSaveUI = (isSaved) => {
+    ['saveBtnFloat', 'saveBtnCard'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.classList.toggle('saved', isSaved);
+      const icon = btn.querySelector('i');
+      if (icon) icon.className = isSaved ? 'fas fa-heart' : 'far fa-heart';
+      const text = btn.querySelector('span');
+      if (text) text.textContent = isSaved ? 'Saved' : (id === 'saveBtnCard' ? 'Save Property' : 'Save Property');
+    });
+  };
+
+  const checkSaved = async () => {
+    if (!auth.currentUser) return false;
+    const q = query(collection(db, 'savedProperties'), where('userId', '==', auth.currentUser.uid), where('propertyId', '==', propertyId));
+    const snap = await getDocs(q);
+    return !snap.empty;
+  };
+
+  const toggleSave = async () => {
+    if (!auth.currentUser) {
+      window.location.href = '../login.html?redirect=buyer/new_property_details.html?id=' + propertyId;
+      return;
+    }
+    try {
+      const isSaved = await checkSaved();
+      if (isSaved) {
+        const q = query(collection(db, 'savedProperties'), where('userId', '==', auth.currentUser.uid), where('propertyId', '==', propertyId));
+        const snap = await getDocs(q);
+        if (!snap.empty) await deleteDoc(snap.docs[0].ref);
+        updateSaveUI(false);
+        showToast('Removed from saved');
+      } else {
+        await addDoc(collection(db, 'savedProperties'), { userId: auth.currentUser.uid, propertyId, savedAt: new Date(), createdAt: new Date() });
+        updateSaveUI(true);
+        showToast('Property saved!');
+      }
+      if (typeof window.updateSidebarStats === 'function') window.updateSidebarStats();
+    } catch (e) {
+      showToast('Error saving', true);
+    }
+  };
+
+  const saved = await checkSaved();
+  updateSaveUI(saved);
+
+  document.getElementById('saveBtnFloat')?.addEventListener('click', toggleSave);
+  document.getElementById('saveBtnCard')?.addEventListener('click', toggleSave);
+}
+
+function showToast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `position:fixed;top:20px;right:20px;padding:14px 24px;border-radius:12px;z-index:9999;font-weight:600;background:${isError ? '#ef4444' : '#10b981'};color:white;box-shadow:0 10px 25px rgba(0,0,0,0.2);`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+window.contactBroker = openMessageModal;
+
+document.getElementById('closeMessageModal').addEventListener('click', closeMessageModal);
+document.getElementById('messageModal').addEventListener('click', (e) => { if (e.target.id === 'messageModal') closeMessageModal(); });
+document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+document.getElementById('messageInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+onAuthStateChanged(auth, () => {
+  if (propertyId) loadProperty();
+});
+
+if (propertyId) loadProperty();
+</script>
+
+<script src="../sidebar-user.js"></script>
+<script src="buyer-sidebar-loader.js"></script>
+<script>
+loadBuyerSidebar('new_property_details.html');
+</script>
+</body>
+</html>

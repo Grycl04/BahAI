@@ -7,27 +7,17 @@ const getBackendUrl = () => {
     
     console.log("🌐 Detected hostname:", hostname, "Port:", port);
     
-    // Check if we're in local development
-    const isLocal = hostname === 'localhost' || 
-                    hostname === '127.0.0.1' || 
-                    hostname.startsWith('192.168.') ||
-                    hostname.startsWith('10.0.') ||
-                    (hostname === '' && port !== '');
-    
-    // Check for Live Server (common ports)
-    const isLiveServer = port === '5500' || port === '5501' || port === '8080' || port === '3000';
-    
-    // Check if it's a development domain
-    const isDev = hostname.includes('.local') || 
-                  hostname.includes('dev-') || 
-                  hostname.includes('-dev.');
-    
-    if (isLocal || isLiveServer || isDev) {
-        console.log("🚀 Using LOCAL backend (localhost:10000)");
-        return "http://localhost:10000/api/chat";
-    } else {
+    // TEMPORARY FIX: Hardcode to your Render backend for testing
+    // Check if we're on your frontend domain
+    if (hostname.includes('render.com') || 
+        hostname.includes('bahai-frontend') ||
+        hostname.includes('bahai')) {
         console.log("☁️ Using PRODUCTION backend (Render)");
         return "https://bahai.onrender.com/api/chat";
+    } else {
+        // For local development
+        console.log("🚀 Using LOCAL backend (localhost:10000)");
+        return "http://localhost:10000/api/chat";
     }
 };
 
@@ -46,7 +36,8 @@ export function initChatbot() {
     }
     
     // Show backend info for debugging
-    console.log("🌐 Backend URL:", getBackendUrl());
+    const backendUrl = getBackendUrl();
+    console.log("🌐 Backend URL:", backendUrl);
     
     // Show welcome message on first load
     showWelcomeMessage();
@@ -79,17 +70,30 @@ export function initChatbot() {
         });
     }
     
+    // Add demo prompts
+    setTimeout(addDemoPrompts, 1000);
+    
     console.log("✅ AI Chatbot Initialized!");
 }
 
 // Main function to process chat messages
 export async function processChatMessage(userMessage) {
+    const chatInput = document.getElementById('chatInput');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+    
     try {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         
         // Add user message to chat
         addMessageToChat(userMessage, 'user');
+        
+        // Disable input while processing
+        if (chatInput) chatInput.disabled = true;
+        if (sendChatBtn) {
+            sendChatBtn.disabled = true;
+            sendChatBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        }
         
         // Show typing indicator
         const typingMessage = addTypingIndicator();
@@ -108,8 +112,7 @@ export async function processChatMessage(userMessage) {
         try {
             // Call backend with timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 
-                backendUrl.includes('localhost') ? 10000 : 15000); // Longer timeout for Render
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for Render
             
             console.log("🌐 Attempting to connect to:", backendUrl);
             
@@ -117,6 +120,7 @@ export async function processChatMessage(userMessage) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(requestData),
                 signal: controller.signal,
@@ -130,85 +134,105 @@ export async function processChatMessage(userMessage) {
             }
             
             const text = await response.text();
-            console.log("📥 Raw response received");
+            console.log("📥 Raw response received:", text.substring(0, 200) + "...");
             
             // Clean the response
             const cleanText = text.replace(/undefined/g, 'null');
-            data = JSON.parse(cleanText);
-            
-        } catch (fetchError) {
-            console.error('Fetch error:', fetchError);
-            
-            // Try alternative endpoint if the primary fails
-            const alternativeUrl = backendUrl.includes('localhost') 
-                ? "https://bahai.onrender.com/api/chat" 
-                : "http://localhost:10000/api/chat";
-            
-            console.log("🔄 Trying alternative endpoint:", alternativeUrl);
-            
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-                
-                const response = await fetch(alternativeUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData),
-                    signal: controller.signal,
-                    mode: 'cors'
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (response.ok) {
-                    const text = await response.text();
-                    const cleanText = text.replace(/undefined/g, 'null');
-                    data = JSON.parse(cleanText);
-                    console.log("✅ Connected to alternative endpoint");
-                } else {
-                    throw new Error(`Alternative endpoint failed: ${response.status}`);
-                }
-            } catch (fallbackError) {
-                console.error('Fallback also failed:', fallbackError);
-                
-                // Use fallback response
+                data = JSON.parse(cleanText);
+            } catch (parseError) {
+                console.error("❌ JSON parse error:", parseError);
+                // Create a fallback response
                 data = {
-                    success: true,
-                    response: `I received your query: "${userMessage}". 
-                    
-The AI service is temporarily unavailable. Here's what you can do:
-
-1. **Use the search filters** above to find properties
-2. **Browse by category** using the category cards
-3. **Try asking simpler questions** like:
-   • "Find apartments in Batangas"
-   • "Show houses under 3M"
-   • "Properties with 3 bedrooms"
-
-You can also contact support if you need immediate assistance.`,
+                    success: false,
+                    response: `I received your query: "${userMessage}", but there was an issue processing the response.`,
                     properties: [],
-                    intent: 'fallback',
+                    intent: 'error',
                     properties_found: 0
                 };
             }
+            
+        } catch (fetchError) {
+            console.error('🌐 Fetch error:', fetchError);
+            
+            // Remove typing indicator first
+            if (typingMessage) typingMessage.remove();
+            
+            // Show user-friendly error based on error type
+            if (fetchError.name === 'AbortError') {
+                addMessageToChat(
+                    "⏱️ The request timed out. This is common with free hosting services when they're starting up. Please try again in a few moments or use the search filters above to find properties immediately.",
+                    'bot'
+                );
+            } else {
+                // Try alternative endpoint
+                const alternativeUrl = backendUrl.includes('localhost') 
+                    ? "https://bahai.onrender.com/api/chat" 
+                    : "http://localhost:10000/api/chat";
+                
+                console.log("🔄 Trying alternative endpoint:", alternativeUrl);
+                
+                try {
+                    const alternativeController = new AbortController();
+                    const alternativeTimeout = setTimeout(() => alternativeController.abort(), 10000);
+                    
+                    const fallbackResponse = await fetch(alternativeUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData),
+                        signal: alternativeController.signal,
+                        mode: 'cors'
+                    });
+                    
+                    clearTimeout(alternativeTimeout);
+                    
+                    if (fallbackResponse.ok) {
+                        const text = await fallbackResponse.text();
+                        const cleanText = text.replace(/undefined/g, 'null');
+                        data = JSON.parse(cleanText);
+                        console.log("✅ Connected to alternative endpoint");
+                    } else {
+                        throw new Error(`Alternative endpoint failed: ${fallbackResponse.status}`);
+                    }
+                } catch (fallbackError) {
+                    console.error('❌ Fallback also failed:', fallbackError);
+                    
+                    // Use comprehensive fallback response
+                    data = {
+                        success: true,
+                        response: `I received your query: **"${userMessage}"**\n\n📢 **Important Notice:** The AI service is temporarily experiencing high load or starting up (common with free hosting).\n\n🔍 **In the meantime, here's what you can do:**\n\n1️⃣ **Use the search filters above** - Find properties by location, type, and price\n2️⃣ **Browse by category** - Check out the property category cards below\n3️⃣ **Try these quick searches:**\n   • "Apartments in Batangas City"\n   • "Houses under ₱3M"\n   • "Properties with 3 bedrooms"\n\n💡 **Tip:** The AI service usually becomes available within 30-60 seconds of first access.`,
+                        properties: [],
+                        intent: 'fallback',
+                        properties_found: 0
+                    };
+                }
+            }
         }
         
-        // Remove typing indicator
-        typingMessage.remove();
+        // Remove typing indicator if still exists
+        if (typingMessage && typingMessage.parentNode) {
+            typingMessage.remove();
+        }
         
         // Remove demo prompts when user sends a message
-        const demoPrompts = document.querySelector('.demo-prompts');
+        const demoPrompts = document.querySelector('.demo-prompts-container');
         if (demoPrompts) {
             demoPrompts.remove();
         }
         
         // Display response
-        addMessageToChat(data.response, 'bot');
+        if (data && data.response) {
+            addMessageToChat(data.response, 'bot');
+        } else if (data && data.message) {
+            addMessageToChat(data.message, 'bot');
+        } else {
+            addMessageToChat("I received your message but couldn't process it properly. Please try again.", 'bot');
+        }
         
         // If properties were found, display them
-        if (data.properties && data.properties.length > 0) {
+        if (data && data.properties && data.properties.length > 0) {
             displayPropertiesInChat(data.properties);
         }
         
@@ -223,36 +247,51 @@ You can also contact support if you need immediate assistance.`,
         }
         
     } catch (error) {
-        console.error('Error in processChatMessage:', error);
+        console.error('💥 Error in processChatMessage:', error);
         
         // Remove typing indicator
         document.querySelector('.typing-indicator')?.remove();
         
         // Remove demo prompts on error
-        document.querySelector('.demo-prompts')?.remove();
+        document.querySelector('.demo-prompts-container')?.remove();
         
         // Show user-friendly error
         addMessageToChat(
-            "I'm having trouble connecting right now. You can still use the search filters above to find properties in Batangas!", 
+            "I'm having trouble connecting right now. 😔\n\nYou can still:\n• Use the search filters above 🔍\n• Browse property categories 🏠\n• Try again in a moment ⏳\n\nThe backend might be starting up (this is normal with free hosting).",
             'bot'
         );
         
         // Show demo prompts again after error
         setTimeout(addDemoPrompts, 500);
+    } finally {
+        // Re-enable input
+        if (chatInput) {
+            chatInput.disabled = false;
+            chatInput.focus();
+        }
+        if (sendChatBtn) {
+            sendChatBtn.disabled = false;
+            sendChatBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
+        }
     }
 }
 
 // Add messages to chat UI
 function addMessageToChat(message, sender) {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     
     const avatar = sender === 'user' ? '👤' : '🤖';
     
-    // Convert newlines to HTML breaks
-    const formattedMessage = message.replace(/\n/g, '<br>');
+    // Convert newlines to HTML breaks and basic markdown
+    let formattedMessage = message
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/•/g, '•');
     
     messageDiv.innerHTML = `
         <div class="avatar">${avatar}</div>
@@ -264,9 +303,12 @@ function addMessageToChat(message, sender) {
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
 // Add typing indicator
 function addTypingIndicator() {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return null;
+    
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message bot typing-indicator';
     typingDiv.innerHTML = `
@@ -277,6 +319,9 @@ function addTypingIndicator() {
                 <span></span>
                 <span></span>
             </div>
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                Connecting to AI service... This might take a moment on first access.
+            </p>
         </div>
     `;
     chatMessages.appendChild(typingDiv);
@@ -287,33 +332,46 @@ function addTypingIndicator() {
 // Display properties in chat
 function displayPropertiesInChat(properties) {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages || !properties || properties.length === 0) return;
     
     const propertiesDiv = document.createElement('div');
     propertiesDiv.className = 'chat-properties-container';
     
-    let html = '<div class="properties-grid">';
+    let html = `
+        <div style="margin-bottom: 10px; font-weight: 600; color: var(--text-dark);">
+            🏠 Found ${properties.length} matching properties:
+        </div>
+        <div class="properties-grid">
+    `;
     
     // Show max 3 properties in chat
     properties.slice(0, 3).forEach(prop => {
         const price = getDisplayPrice(prop);
         const bedrooms = prop.bedrooms || 'N/A';
         const area = prop.floorArea || prop.totalArea || 'N/A';
-        const photo = prop.photos?.[0] || prop.imageUrls?.[0] || 'https://via.placeholder.com/200x150';
+        const title = prop.title || 'Untitled Property';
+        const location = prop.address || prop.city || prop.location || 'Location not specified';
+        const photo = prop.photos?.[0] || prop.imageUrls?.[0] || 
+            `https://via.placeholder.com/300x200/0b2e52/white?text=${encodeURIComponent(title.substring(0, 20))}`;
         
         html += `
             <div class="property-card-chat">
                 <div class="property-image">
-                    <img src="${photo}" alt="${prop.title}" onerror="this.src='https://via.placeholder.com/200x150'">
+                    <img src="${photo}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x200/0b2e52/white?text=Property'">
                 </div>
                 <div class="property-info">
-                    <h4>${prop.title || 'Untitled Property'}</h4>
-                    <p class="location">📍 ${prop.address || prop.city || 'Location not specified'}</p>
+                    <h4>${title.length > 40 ? title.substring(0, 40) + '...' : title}</h4>
+                    <p class="location">📍 ${location.length > 30 ? location.substring(0, 30) + '...' : location}</p>
                     <div class="details">
-                        <span>🛏️ ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>
+                        ${bedrooms ? `<span>🛏️ ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>` : ''}
                         ${area && area !== 'N/A' ? `<span>📐 ${area} sqm</span>` : ''}
                     </div>
                     <p class="price">${price}</p>
-                    <a href="property_details.html?id=${prop.id}" target="_blank" class="view-btn">View Details</a>
+                    <a href="new_property_details.html?id=${prop.id || prop.property_id || ''}" 
+                       target="_blank" 
+                       class="view-btn">
+                        View Details
+                    </a>
                 </div>
             </div>
         `;
@@ -322,11 +380,14 @@ function displayPropertiesInChat(properties) {
     html += '</div>';
     
     if (properties.length > 3) {
-        html += `<p style="text-align: center; margin-top: 10px;">
-                    <a href="search_results.html" style="color: var(--primary); text-decoration: underline;">
-                        View all ${properties.length} properties →
-                    </a>
-                 </p>`;
+        html += `
+            <p style="text-align: center; margin-top: 15px;">
+                <a href="search_results.html" 
+                   style="color: #0b6e4f; text-decoration: underline; font-weight: 600;">
+                    🔍 View all ${properties.length} properties in search results →
+                </a>
+            </p>
+        `;
     }
     
     propertiesDiv.innerHTML = html;
@@ -337,6 +398,8 @@ function displayPropertiesInChat(properties) {
 
 // Helper function to format price
 function getDisplayPrice(property) {
+    if (!property) return 'Price on inquiry';
+    
     if (property.monthlyRent) {
         return `₱${property.monthlyRent.toLocaleString()}/month`;
     } else if (property.annualRent) {
@@ -371,7 +434,8 @@ async function logChatInteraction(query, response, user) {
             propertiesFound: response.properties_found || 0,
             timestamp: new Date(),
             modelUsed: response.model_used || 'unknown',
-            confidence: response.confidence || 0
+            confidence: response.confidence || 0,
+            success: response.success || false
         });
         
         console.log('✅ Chat interaction logged');
@@ -382,7 +446,7 @@ async function logChatInteraction(query, response, user) {
 }
 
 function addDemoPrompts() {
-    const existingPrompts = document.querySelector('.demo-prompts');
+    const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
     
     const chatMessages = document.getElementById('chatMessages');
@@ -406,35 +470,35 @@ function addDemoPrompts() {
     const shuffled = [...allPrompts].sort(() => Math.random() - 0.5);
     const selectedPrompts = shuffled.slice(0, 4);
     
- const demoSection = document.createElement('div');
-demoSection.className = 'demo-prompts-container';
-demoSection.innerHTML = `
-    <div class="demo-prompts-title">
-        <i class="fas fa-bolt"></i> Quick Prompts
-        <span style="font-size: 12px; margin-left: 10px; background: rgba(102, 126, 234, 0.1); 
-            padding: 2px 8px; border-radius: 12px; font-weight: 600; color: var(--primary);">
-            ${selectedPrompts.length}/10 Questions
-        </span>
-    </div>
-    <div class="demo-prompts-buttons">
-        ${selectedPrompts.map(prompt => `
-            <button class="demo-prompt-btn" data-prompt="${prompt.text}" data-id="${prompt.id}">
-                <span class="prompt-icon">${prompt.emoji}</span>
-                <span>${prompt.text}</span>
-            </button>
-        `).join('')}
-    </div>
-    <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-size: 11px; color: #888;">
-            <i class="fas fa-sync-alt fa-xs"></i> Prompts change on refresh
+    const demoSection = document.createElement('div');
+    demoSection.className = 'demo-prompts-container';
+    demoSection.innerHTML = `
+        <div class="demo-prompts-title">
+            <i class="fas fa-bolt"></i> Quick Prompts
+            <span style="font-size: 12px; margin-left: 10px; background: rgba(102, 126, 234, 0.1); 
+                padding: 2px 8px; border-radius: 12px; font-weight: 600; color: var(--primary);">
+                ${selectedPrompts.length}/10 Questions
+            </span>
         </div>
-        <button id="refreshPrompts" 
-                style="font-size: 11px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); 
-                       color: var(--primary); cursor: pointer; padding: 4px 10px; border-radius: 12px; font-weight: 500;">
-            <i class="fas fa-redo-alt"></i> New set
-        </button>
-    </div>
-`;
+        <div class="demo-prompts-buttons">
+            ${selectedPrompts.map(prompt => `
+                <button class="demo-prompt-btn" data-prompt="${prompt.text}" data-id="${prompt.id}">
+                    <span class="prompt-icon">${prompt.emoji}</span>
+                    <span>${prompt.text}</span>
+                </button>
+            `).join('')}
+        </div>
+        <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 11px; color: #888;">
+                <i class="fas fa-sync-alt fa-xs"></i> Prompts change on refresh
+            </div>
+            <button id="refreshPrompts" 
+                    style="font-size: 11px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); 
+                           color: var(--primary); cursor: pointer; padding: 4px 10px; border-radius: 12px; font-weight: 500;">
+                <i class="fas fa-redo-alt"></i> New set
+            </button>
+        </div>
+    `;
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
@@ -443,16 +507,19 @@ demoSection.innerHTML = `
         document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const prompt = this.getAttribute('data-prompt');
-                document.getElementById('chatInput').value = prompt;
-                document.getElementById('chatInput').focus();
-                
-                // Brief visual feedback
-                this.style.transform = 'scale(0.98)';
-                this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.2)';
-                setTimeout(() => {
-                    this.style.transform = '';
-                    this.style.boxShadow = '';
-                }, 200);
+                const chatInput = document.getElementById('chatInput');
+                if (chatInput) {
+                    chatInput.value = prompt;
+                    chatInput.focus();
+                    
+                    // Brief visual feedback
+                    this.style.transform = 'scale(0.98)';
+                    this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.2)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.boxShadow = '';
+                    }, 200);
+                }
             });
         });
         
@@ -489,38 +556,29 @@ function showWelcomeMessage() {
                             <p style="margin: 0; font-size: 12px; color: #666;">Specialized in Batangas Properties</p>
                         </div>
                     </div>
-                    <p style="color: var(--text-dark); margin-bottom: 15px;">
-                        Hello! I'm your AI property assistant for Batangas. I can help you with all 10 types of property questions:
+                    <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
+                        Hello! I'm your AI property assistant for Batangas. I can help you with:
                     </p>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 600; color: var(--primary);">Q1</div>
-                            <div style="font-size: 11px;">Basic property search</div>
+                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
+                            <div style="font-weight: 600; color: #667eea;">🔍</div>
+                            <div style="font-size: 11px; margin-top: 5px;">Find properties</div>
                         </div>
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 600; color: var(--primary);">Q2</div>
-                            <div style="font-size: 11px;">Detailed criteria</div>
+                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
+                            <div style="font-weight: 600; color: #667eea;">💰</div>
+                            <div style="font-size: 11px; margin-top: 5px;">Financing info</div>
                         </div>
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 600; color: var(--primary);">Q3-6</div>
-                            <div style="font-size: 11px;">Special needs & features</div>
+                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
+                            <div style="font-weight: 600; color: #667eea;">📍</div>
+                            <div style="font-size: 11px; margin-top: 5px;">Location details</div>
                         </div>
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 600; color: var(--primary);">Q7-10</div>
-                            <div style="font-size: 11px;">Financing & lifestyle</div>
+                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
+                            <div style="font-weight: 600; color: #667eea;">🏠</div>
+                            <div style="font-size: 11px; margin-top: 5px;">Property features</div>
                         </div>
                     </div>
-                    <p style="color: var(--text-dark); margin-bottom: 10px;">
-                        <strong>Try asking about:</strong>
-                    </p>
-                    <ul style="color: var(--text-dark); font-size: 13px; margin: 0 0 15px 15px; padding: 0;">
-                        <li>Finding specific properties</li>
-                        <li>Financing options & documents</li>
-                        <li>Location information</li>
-                        <li>Property features & amenities</li>
-                    </ul>
-                    <p style="color: #666; font-size: 12px; font-style: italic;">
-                        <i class="fas fa-lightbulb"></i> Try the quick prompts below to get started!
+                    <p style="color: #666; font-size: 12px; font-style: italic; margin-top: 15px; padding: 10px; background: rgba(102, 126, 234, 0.05); border-radius: 8px;">
+                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> On first use, the AI service may take 30-60 seconds to start (free hosting). Try the quick prompts below!
                     </p>
                 </div>
             `;
@@ -532,9 +590,6 @@ function showWelcomeMessage() {
                 <div class="content">${welcomeMessage}</div>
             `;
             chatMessages.appendChild(welcomeDiv);
-            
-            // Show demo prompts after welcome message
-            setTimeout(addDemoPrompts, 500);
         }, 300);
     }
 }
@@ -551,6 +606,7 @@ chatbotStyles.textContent = `
         border-radius: 10px;
         margin-bottom: 15px;
         border: 1px solid #e9ecef;
+        scroll-behavior: smooth;
     }
     
     .message {
@@ -574,10 +630,11 @@ chatbotStyles.textContent = `
         font-size: 20px;
         margin: 0 10px;
         flex-shrink: 0;
+        color: white;
     }
     
     .message.user .avatar {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
     }
     
     .message .content {
@@ -586,16 +643,21 @@ chatbotStyles.textContent = `
         border-radius: 18px;
         background: white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        line-height: 1.5;
     }
     
     .message.user .content {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
         color: white;
     }
     
     .message.bot .content {
         background: white;
         color: #333;
+    }
+    
+    .message .content strong {
+        color: inherit;
     }
     
     /* Chat input area */
@@ -612,11 +674,18 @@ chatbotStyles.textContent = `
         border-radius: 10px;
         font-size: 15px;
         transition: border-color 0.3s;
+        font-family: inherit;
     }
     
     .chat-input input:focus {
         outline: none;
         border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .chat-input input:disabled {
+        background: #f8f9fa;
+        cursor: not-allowed;
     }
     
     .chat-input button {
@@ -627,12 +696,21 @@ chatbotStyles.textContent = `
         border-radius: 10px;
         cursor: pointer;
         font-weight: 600;
-        transition: transform 0.3s;
+        transition: all 0.3s;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     
-    .chat-input button:hover {
+    .chat-input button:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .chat-input button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
     
     .chat-input .voice-btn {
@@ -649,6 +727,7 @@ chatbotStyles.textContent = `
         background: #f8f9fa;
         border-radius: 10px;
         border: 1px solid #e9ecef;
+        animation: slideIn 0.5s ease;
     }
     
     .properties-grid {
@@ -664,6 +743,7 @@ chatbotStyles.textContent = `
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         transition: transform 0.2s;
+        border: 1px solid #e9ecef;
     }
     
     .property-card-chat:hover {
@@ -680,6 +760,11 @@ chatbotStyles.textContent = `
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s;
+    }
+    
+    .property-card-chat:hover .property-image img {
+        transform: scale(1.05);
     }
     
     .property-card-chat .property-info {
@@ -690,12 +775,14 @@ chatbotStyles.textContent = `
         margin: 0 0 8px 0;
         font-size: 16px;
         color: #333;
+        line-height: 1.3;
     }
     
     .property-card-chat .location {
         font-size: 14px;
         color: #666;
         margin: 0 0 10px 0;
+        line-height: 1.3;
     }
     
     .property-card-chat .details {
@@ -710,27 +797,35 @@ chatbotStyles.textContent = `
         font-weight: bold;
         color: #0b6e4f;
         margin: 10px 0;
+        font-size: 16px;
     }
     
     .property-card-chat .view-btn {
         display: inline-block;
-        background: #0b6e4f;
+        background: linear-gradient(135deg, #0b6e4f 0%, #0d8a63 100%);
         color: white;
         padding: 8px 15px;
         border-radius: 5px;
         text-decoration: none;
         font-size: 14px;
-        transition: background 0.3s;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .property-card-chat .view-btn:hover {
         background: #094d38;
+        transform: translateY(-1px);
     }
     
     /* Typing indicator */
     .typing-indicator .typing {
         display: flex;
         gap: 4px;
+        margin-bottom: 5px;
     }
     
     .typing-indicator .typing span {
@@ -772,6 +867,57 @@ chatbotStyles.textContent = `
         line-height: 1.4;
     }
     
+    /* Demo prompts styling */
+    .demo-prompts-container {
+        margin-top: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .demo-prompts-title {
+        font-size: 14px;
+        color: var(--text-dark);
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .demo-prompts-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .demo-prompt-btn {
+        background: white;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #333;
+    }
+    
+    .demo-prompt-btn:hover {
+        background: rgba(102, 126, 234, 0.05);
+        border-color: rgba(102, 126, 234, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .demo-prompt-btn .prompt-icon {
+        font-size: 14px;
+    }
+    
     @keyframes typing {
         0%, 60%, 100% {
             transform: translateY(0);
@@ -787,9 +933,74 @@ chatbotStyles.textContent = `
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Scrollbar styling */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
 `;
 
-document.head.appendChild(chatbotStyles);
+// Add styles to document
+if (!document.querySelector('#chatbot-styles')) {
+    chatbotStyles.id = 'chatbot-styles';
+    document.head.appendChild(chatbotStyles);
+}
+
+// Function to ping backend and keep it awake (for Render free tier)
+function keepBackendAlive() {
+    // Only ping in production
+    if (window.location.hostname.includes('render.com') || 
+        window.location.hostname.includes('bahai-frontend')) {
+        
+        // Initial ping after page load
+        setTimeout(() => {
+            fetch('https://bahai.onrender.com/api/health', { 
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache'
+            })
+            .then(res => console.log('✅ Backend pinged successfully'))
+            .catch(err => console.log('⚠️ Backend ping failed:', err.message));
+        }, 2000);
+        
+        // Regular pings every 5 minutes
+        setInterval(() => {
+            fetch('https://bahai.onrender.com/api/health', { 
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache'
+            })
+            .then(() => console.log('✅ Backend kept alive'))
+            .catch(err => console.log('⚠️ Keep-alive failed:', err.message));
+        }, 5 * 60 * 1000); // Every 5 minutes
+    }
+}
+
+// Start keep-alive when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', keepBackendAlive);
+} else {
+    keepBackendAlive();
+}
 
 // Make functions available globally
 window.processChatMessage = processChatMessage;
