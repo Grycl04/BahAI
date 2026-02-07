@@ -6,7 +6,8 @@ import {
   browserPopupRedirectResolver,
   browserSessionPersistence,
   setPersistence,
-  indexedDBLocalPersistence
+  indexedDBLocalPersistence,
+  inMemoryPersistence
 } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
@@ -14,7 +15,7 @@ import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-s
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-authDomain: "bahai-1b76d.firebaseapp.com",
+  authDomain: "bahai-1b76d.firebaseapp.com",
   projectId: "bahai-1b76d",
   storageBucket: "bahai-1b76d.firebasestorage.app",
   messagingSenderId: "646878644941",
@@ -25,14 +26,25 @@ authDomain: "bahai-1b76d.firebaseapp.com",
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// IMPORTANT: Initialize auth with custom settings to prevent auto-linking
-const auth = initializeAuth(app, {
-  persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence],
-  popupRedirectResolver: browserPopupRedirectResolver
-});
+// IMPORTANT: Initialize auth with custom settings for mobile compatibility
+let auth;
+try {
+  // Try to initialize with persistence
+  auth = initializeAuth(app, {
+    persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence],
+    popupRedirectResolver: browserPopupRedirectResolver
+  });
+} catch (error) {
+  console.warn('Auth initialization failed, using getAuth:', error);
+  auth = getAuth(app);
+}
 
-// Optional: Set persistence (keeps users logged in)
-setPersistence(auth, browserLocalPersistence);
+// Set persistence
+try {
+  await setPersistence(auth, browserLocalPersistence);
+} catch (error) {
+  console.warn('Could not set persistence:', error);
+}
 
 const db = getFirestore(app);
 const storage = getStorage(app);
