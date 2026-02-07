@@ -34,7 +34,154 @@
       --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    /* Notification Styles */
+
+    /* Add new styles for better error handling */
+    .error-message {
+      color: var(--error);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(220, 53, 69, 0.08);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--error);
+      line-height: 1.4;
+    }
+
+
+    .error-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+
+    .error-message i {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+
+    .success-message {
+      color: var(--success);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(40, 167, 69, 0.08);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--success);
+      line-height: 1.4;
+    }
+
+
+    .success-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+
+    .info-message {
+      color: var(--info);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(23, 162, 184, 0.08);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--info);
+      line-height: 1.4;
+    }
+
+
+    .info-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+
+    .form-input.error {
+      border-color: var(--error) !important;
+      background: rgba(220, 53, 69, 0.02);
+    }
+
+
+    .form-input.success {
+      border-color: var(--success) !important;
+    }
+
+
+    .form-input:focus.error {
+      box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
+    }
+
+
+    .password-requirements {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--neutral-dark);
+      display: none;
+    }
+
+
+    .password-requirements.show {
+      display: block;
+    }
+
+
+    .requirement {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+
+    .requirement i {
+      font-size: 12px;
+    }
+
+
+    .requirement.valid {
+      color: var(--success);
+    }
+
+
+    .requirement.invalid {
+      color: var(--neutral-dark);
+    }
+
+
+    .shake {
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+
+    @keyframes shake {
+      10%, 90% { transform: translateX(-1px); }
+      20%, 80% { transform: translateX(2px); }
+      30%, 50%, 70% { transform: translateX(-3px); }
+      40%, 60% { transform: translateX(3px); }
+    }
+
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
     .notification {
       position: fixed;
       top: 20px;
@@ -51,11 +198,13 @@
       max-width: 400px;
     }
 
+
     .notification.error {
       background: var(--error);
       color: white;
       border-left: 4px solid #c82333;
     }
+
 
     .notification.success {
       background: var(--success);
@@ -63,11 +212,13 @@
       border-left: 4px solid #218838;
     }
 
+
     .notification.info {
       background: var(--primary);
       color: white;
       border-left: 4px solid var(--primary-dark);
     }
+
 
     .notification.warning {
       background: var(--warning);
@@ -75,171 +226,26 @@
       border-left: 4px solid #e0a800;
     }
 
+
     @keyframes slideInRight {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+
 
     @keyframes slideOutRight {
       from { transform: translateX(0); opacity: 1; }
       to { transform: translateX(100%); opacity: 0; }
     }
 
-    /* Mobile Google Instructions */
-    .mobile-instructions {
-      display: none;
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: var(--radius-md);
-      padding: 15px;
-      margin-top: 15px;
-      text-align: center;
-    }
 
-    .mobile-instructions.show {
-      display: block;
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    .mobile-steps {
-      text-align: left;
-      margin: 15px 0;
-    }
-
-    .mobile-steps li {
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .copy-email-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-      font-weight: 500;
-      transition: var(--transition);
-      margin: 10px 0;
-    }
-
-    .copy-email-btn:hover {
-      background: var(--primary-dark);
-    }
-
-    .copy-email-btn i {
-      font-size: 14px;
-    }
-
-    /* Modal Styles */
-    .role-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    .role-modal-content {
-      background: var(--white);
-      padding: 30px;
-      border-radius: var(--radius-lg);
-      max-width: 400px;
-      width: 90%;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .role-modal h3 {
-      margin-bottom: 20px;
-      color: var(--primary);
-      font-size: 22px;
-    }
-
-    .role-modal p {
-      margin-bottom: 20px;
-      color: var(--text-light);
-      line-height: 1.5;
-    }
-
-    .role-options {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 25px;
-    }
-
-    .role-option-btn {
-      padding: 12px;
-      border: 2px solid var(--neutral-medium);
-      border-radius: var(--radius-md);
-      background: white;
-      cursor: pointer;
-      text-align: left;
-      font-family: 'Poppins', sans-serif;
-      font-size: 15px;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .role-option-btn:hover {
-      border-color: var(--primary);
-      background: var(--neutral-light);
-    }
-
-    .role-option-btn i {
-      font-size: 18px;
-      color: var(--primary);
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .modal-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-      font-weight: 500;
-      transition: var(--transition);
-    }
-
-    .modal-btn-cancel {
-      background: var(--neutral-medium);
-      color: var(--text-dark);
-    }
-
-    .modal-btn-cancel:hover {
-      background: var(--neutral-dark);
-      color: white;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* Existing styles... */
+    /* Existing styles remain the same... */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+
 
     body {
       font-family: 'Poppins', Arial, sans-serif;
@@ -253,6 +259,7 @@
       line-height: 1.6;
     }
 
+
     .login-wrapper {
       width: 100%;
       max-width: 1200px;
@@ -264,6 +271,13 @@
       overflow: hidden;
       animation: fadeIn 0.8s ease-out;
     }
+
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
 
     .visual-side {
       flex: 1;
@@ -277,6 +291,7 @@
       overflow: hidden;
     }
 
+
     .visual-side::before {
       content: '';
       position: absolute;
@@ -288,11 +303,13 @@
       opacity: 0.2;
     }
 
+
     .visual-content {
       position: relative;
       z-index: 1;
       max-width: 500px;
     }
+
 
     .visual-title {
       font-size: 42px;
@@ -301,6 +318,7 @@
       line-height: 1.2;
     }
 
+
     .visual-subtitle {
       font-size: 20px;
       font-weight: 300;
@@ -308,10 +326,12 @@
       opacity: 0.9;
     }
 
+
     .visual-features {
       list-style: none;
       margin-top: 40px;
     }
+
 
     .visual-features li {
       display: flex;
@@ -320,12 +340,14 @@
       font-size: 16px;
     }
 
+
     .visual-features i {
       color: var(--accent);
       margin-right: 15px;
       font-size: 20px;
       flex-shrink: 0;
     }
+
 
     .form-side {
       flex: 1;
@@ -336,24 +358,28 @@
       background: var(--white);
     }
 
+
     .logo-container {
       display: flex;
       align-items: center;
       margin-bottom: 40px;
     }
 
+
     .logo-icon {
-      width: 56px;
-      height: 56px;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-right: 15px;
-      flex-shrink: 0;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
     }
-    .logo-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
+
 
     .logo-text {
       font-size: 28px;
@@ -361,13 +387,16 @@
       color: var(--primary);
     }
 
+
     .logo-text span {
       color: var(--accent);
     }
 
+
     .login-header {
       margin-bottom: 40px;
     }
+
 
     .login-title {
       font-size: 36px;
@@ -376,25 +405,30 @@
       margin-bottom: 12px;
     }
 
+
     .login-subtitle {
       color: var(--text-light);
       font-size: 16px;
       font-weight: 400;
     }
 
+
     .login-subtitle strong {
       color: var(--primary);
       font-weight: 600;
     }
 
+
     .login-form {
       width: 100%;
     }
+
 
     .form-group {
       margin-bottom: 28px;
       position: relative;
     }
+
 
     .form-label {
       display: block;
@@ -404,9 +438,11 @@
       margin-bottom: 10px;
     }
 
+
     .input-container {
       position: relative;
     }
+
 
     .form-input {
       width: 100%;
@@ -420,6 +456,7 @@
       color: var(--text-dark);
     }
 
+
     .form-input:focus {
       outline: none;
       border-color: var(--primary);
@@ -427,9 +464,11 @@
       box-shadow: 0 0 0 4px rgba(11, 61, 97, 0.1);
     }
 
+
     .form-input::placeholder {
       color: var(--neutral-dark);
     }
+
 
     .password-toggle {
       position: absolute;
@@ -445,9 +484,11 @@
       transition: var(--transition);
     }
 
+
     .password-toggle:hover {
       color: var(--primary);
     }
+
 
     .forgot-password {
       display: inline-block;
@@ -461,10 +502,12 @@
       transition: var(--transition);
     }
 
+
     .forgot-password:hover {
       color: var(--primary-dark);
       text-decoration: underline;
     }
+
 
     .btn {
       width: 100%;
@@ -482,20 +525,24 @@
       gap: 10px;
     }
 
+
     .btn-primary {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
       box-shadow: var(--shadow-md);
     }
 
+
     .btn-primary:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
     }
 
+
     .btn-primary:active {
       transform: translateY(-1px);
     }
+
 
     .divider {
       display: flex;
@@ -505,6 +552,7 @@
       font-size: 14px;
     }
 
+
     .divider::before,
     .divider::after {
       content: '';
@@ -513,9 +561,11 @@
       background: var(--neutral-medium);
     }
 
+
     .divider span {
       padding: 0 15px;
     }
+
 
     .btn-google {
       background: var(--white);
@@ -524,6 +574,7 @@
       font-weight: 500;
     }
 
+
     .btn-google:hover {
       border-color: var(--primary);
       background: var(--neutral-light);
@@ -531,10 +582,12 @@
       box-shadow: var(--shadow-sm);
     }
 
+
     .btn-google i {
       color: #DB4437;
       font-size: 18px;
     }
+
 
     .signup-link {
       text-align: center;
@@ -545,6 +598,7 @@
       border-top: 1px solid var(--neutral-medium);
     }
 
+
     .signup-link a {
       color: var(--primary);
       text-decoration: none;
@@ -553,56 +607,199 @@
       margin-left: 5px;
     }
 
+
     .signup-link a:hover {
       color: var(--primary-dark);
       text-decoration: underline;
     }
 
-    /* Error Styling */
-    .error-message {
-      color: var(--error);
-      font-size: 14px;
-      margin-top: 8px;
-      display: none;
-      align-items: center;
-      gap: 8px;
+
+    @media (max-width: 1024px) {
+      .login-wrapper {
+        max-width: 900px;
+        min-height: 650px;
+      }
+     
+      .visual-side,
+      .form-side {
+        padding: 50px 40px;
+      }
+     
+      .visual-title {
+        font-size: 36px;
+      }
+     
+      .login-title {
+        font-size: 32px;
+      }
     }
 
-    .error-message.show {
-      display: flex;
-    }
 
-    .form-input.error {
-      border-color: var(--error);
-    }
-
-    /* Responsive Design */
     @media (max-width: 768px) {
       .login-wrapper {
         flex-direction: column;
+        max-width: 600px;
       }
-      
+     
       .visual-side {
         padding: 40px 30px;
         text-align: center;
       }
-      
+     
+      .visual-content {
+        max-width: 100%;
+      }
+     
       .visual-features {
         display: none;
       }
-      
+     
       .form-side {
         padding: 40px 30px;
       }
+     
+      .logo-container {
+        justify-content: center;
+        margin-bottom: 30px;
+      }
     }
 
+
+    @media (max-width: 640px) {
+      .login-wrapper {
+        border-radius: var(--radius-lg);
+      }
+     
+      .visual-side,
+      .form-side {
+        padding: 35px 25px;
+      }
+     
+      .visual-title {
+        font-size: 32px;
+      }
+     
+      .visual-subtitle {
+        font-size: 18px;
+      }
+     
+      .login-title {
+        font-size: 28px;
+      }
+     
+      .login-subtitle {
+        font-size: 15px;
+      }
+     
+      .form-input {
+        padding: 16px 18px;
+        font-size: 15px;
+      }
+     
+      .btn {
+        padding: 16px;
+        font-size: 15px;
+      }
+    }
+
+
     @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+     
+      .login-wrapper {
+        border-radius: var(--radius-lg);
+      }
+     
+      .visual-side,
+      .form-side {
+        padding: 30px 20px;
+      }
+     
+      .logo-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+      }
+     
+      .logo-text {
+        font-size: 24px;
+      }
+     
       .visual-title {
         font-size: 28px;
       }
-      
+     
       .login-title {
         font-size: 24px;
+      }
+     
+      .form-group {
+        margin-bottom: 24px;
+      }
+     
+      .signup-link {
+        font-size: 14px;
+      }
+    }
+
+
+    @media (max-width: 360px) {
+      .visual-side,
+      .form-side {
+        padding: 25px 15px;
+      }
+     
+      .visual-title {
+        font-size: 24px;
+      }
+     
+      .login-title {
+        font-size: 22px;
+      }
+    }
+
+
+    .form-input:focus,
+    .btn:focus,
+    .forgot-password:focus,
+    .signup-link a:focus,
+    .password-toggle:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+
+    .form-group {
+      animation: slideUp 0.5s ease-out forwards;
+      opacity: 0;
+    }
+
+
+    .form-group:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+
+    .form-group:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+
+    .form-actions {
+      animation-delay: 0.3s;
+    }
+
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
   </style>
@@ -614,7 +811,7 @@
       <div class="visual-content">
         <h1 class="visual-title">Your Real Estate Journey Begins Here</h1>
         <p class="visual-subtitle">Access premium tools for agents, brokers, and landlords to manage properties, connect with clients, and grow your business.</p>
-        
+       
         <ul class="visual-features">
           <li><i class="fas fa-home"></i> Manage multiple property listings with ease</li>
           <li><i class="fas fa-chart-line"></i> Track performance with advanced analytics</li>
@@ -623,52 +820,53 @@
         </ul>
       </div>
     </div>
-    
+   
     <!-- Form Side -->
     <div class="form-side">
       <div class="logo-container">
-        <div class="logo-icon">
-          <img src="images/logo-bahai.png" alt="BahAI Real Estate" />
-        </div>
+        <div class="logo-icon">B</div>
         <div class="logo-text">Bah<span>AI</span> Real Estate</div>
       </div>
-      
+     
       <div class="login-header">
         <h1 class="login-title">Welcome Back</h1>
         <p class="login-subtitle">Login to your account.</p>
       </div>
 
+
       <form id="loginForm" class="login-form">
         <div class="form-group">
           <label for="email" class="form-label">Email Address</label>
           <div class="input-container">
-            <input 
-              type="email" 
-              id="email" 
+            <input
+              type="email"
+              id="email"
               class="form-input"
-              placeholder="you@example.com" 
-              required 
+              placeholder="you@example.com"
+              required
               aria-label="Email Address"
               autocomplete="email"
             />
           </div>
           <div id="emailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter a valid email address</span>
+            <span>Please enter a valid email address (e.g., name@example.com)</span>
           </div>
         </div>
+
 
         <div class="form-group">
           <label for="password" class="form-label">Password</label>
           <div class="input-container">
-            <input 
-              type="password" 
-              id="password" 
+            <input
+              type="password"
+              id="password"
               class="form-input"
-              placeholder="Enter your password" 
-              required 
+              placeholder="Enter your password"
+              required
               aria-label="Password"
               autocomplete="current-password"
+              minlength="8"
             />
             <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
               <i class="fas fa-eye"></i>
@@ -676,46 +874,49 @@
           </div>
           <div id="passwordError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Password must be at least 8 characters</span>
+            <span id="passwordErrorText">Password must be at least 8 characters</span>
           </div>
+         
+          <div id="passwordRequirements" class="password-requirements">
+            <div class="requirement invalid" id="reqLength">
+              <i class="fas fa-circle"></i>
+              <span>At least 8 characters</span>
+            </div>
+            <div class="requirement invalid" id="reqLetter">
+              <i class="fas fa-circle"></i>
+              <span>Contains a letter</span>
+            </div>
+            <div class="requirement invalid" id="reqNumber">
+              <i class="fas fa-circle"></i>
+              <span>Contains a number</span>
+            </div>
+          </div>
+         
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
+
         <div class="form-group">
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary" id="submitBtn">
             <i class="fas fa-sign-in-alt"></i>
-            Login to Dashboard
+            <span id="submitText">Login to Dashboard</span>
           </button>
         </div>
+
 
         <div class="divider">
           <span>Or continue with</span>
         </div>
+
 
         <div class="form-group">
           <button type="button" id="googleLoginBtn" class="btn btn-google">
             <i class="fab fa-google"></i>
             Continue with Google
           </button>
-          
-          <!-- Mobile Instructions -->
-          <div id="mobileInstructions" class="mobile-instructions">
-            <p><strong>For Mobile Google Sign-in:</strong></p>
-            <ol class="mobile-steps">
-              <li>1. Copy this email: <strong>bahai.realestate@gmail.com</strong></li>
-              <li>2. Open Gmail app on your phone</li>
-              <li>3. Send a blank email to the copied address</li>
-              <li>4. We'll send you a secure login link</li>
-            </ol>
-            <button type="button" id="copyEmailBtn" class="copy-email-btn">
-              <i class="fas fa-copy"></i> Copy Email Address
-            </button>
-            <p style="font-size: 12px; margin-top: 10px; color: var(--neutral-dark);">
-              <i class="fas fa-info-circle"></i> This is a secure alternative method for mobile devices.
-            </p>
-          </div>
         </div>
       </form>
+
 
       <p class="signup-link">
         Don't have an account?
@@ -724,372 +925,582 @@
     </div>
   </div>
 
+
 <script>
-  // Initialize variables
-  let auth, db;
-  
-  // Clear storage on page load
-  (function clearStorage() {
-    console.log('Clearing authentication storage...');
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.includes('firebase') || key.includes('auth') || key.includes('token')) {
-        keysToRemove.push(key);
+  // Nuclear option: Clear ALL Firebase-related storage
+  (function nuclearClear() {
+    console.log('🚨 NUCLEAR CLEAR of Firebase storage');
+   
+    // Clear ALL localStorage items that might be Firebase related
+    const allKeys = Object.keys(localStorage);
+    allKeys.forEach(key => {
+      if (key.includes('firebase') ||
+          key.includes('auth') ||
+          key.includes('Firebase') ||
+          key.includes('token') ||
+          key.includes('user')) {
+        console.log('Removing:', key.substring(0, 50) + '...');
+        localStorage.removeItem(key);
       }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    });
+   
+    // Clear sessionStorage
     sessionStorage.clear();
-    console.log('Storage cleared');
+   
+    // Clear cookies that might interfere
+    document.cookie.split(";").forEach(function(c) {
+      document.cookie = c.replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/;domain=" + window.location.hostname);
+      document.cookie = c.replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/;domain=." + window.location.hostname);
+    });
+   
+    console.log('✅ Storage cleared');
   })();
-
-  // Check if mobile device
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  if (isMobile) {
-    document.getElementById('mobileInstructions').classList.add('show');
-  }
-
-  // Copy email button functionality
-  document.getElementById('copyEmailBtn')?.addEventListener('click', function() {
-    navigator.clipboard.writeText('bahai.realestate@gmail.com')
-      .then(() => {
-        const originalText = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => {
-          this.innerHTML = originalText;
-        }, 2000);
-      })
-      .catch(err => {
-        console.error('Failed to copy: ', err);
-      });
-  });
 </script>
 
-<!-- Firebase Login Script -->
-<script type="module">
-  // Import Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { 
-    getAuth, 
+
+  <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
+  <script type="module">
+    // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
+  let auth, db;
+ 
+  try {
+    // Import with fallback
+    const firebaseModule = await import('./firebase-common.js').catch(async (e) => {
+      console.warn('Primary import failed, trying fallback...');
+      return await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js')
+        .then(async (firebase) => {
+          const firebaseConfig = {
+            apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+            authDomain: "bahai-1b76d.firebaseapp.com",
+            projectId: "bahai-1b76d",
+            storageBucket: "bahai-1b76d.firebasestorage.app",
+            messagingSenderId: "646878644941",
+            appId: "1:646878644941:web:5b4ccc3412250337587784",
+            measurementId: "G-PDW1PRZTM9"
+          };
+         
+          const app = firebase.initializeApp(firebaseConfig);
+          const { getAuth } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js');
+          const { getFirestore } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+         
+          return {
+            auth: getAuth(app),
+            db: getFirestore(app)
+          };
+        });
+    });
+   
+    if (firebaseModule.auth && firebaseModule.db) {
+      auth = firebaseModule.auth;
+      db = firebaseModule.db;
+      console.log('✅ Firebase loaded successfully');
+    } else {
+      throw new Error('Firebase module structure invalid');
+    }
+   
+  } catch (error) {
+    console.error('❌ Critical Firebase error:', error);
+    showNotification('error',
+      '⚠️ Authentication service is temporarily unavailable. ' +
+      'Please try again later or use demo access.'
+    );
+   
+    // Create mock auth for UI consistency
+    auth = {
+      isMock: true,
+      config: { authDomain: 'bahai-1b76d.firebaseapp.com' },
+      authStateReady: () => Promise.resolve(),
+      signOut: () => Promise.resolve()
+    };
+   
+    db = { isMock: true };
+  }
+
+
+  // Continue with the rest of your code...
+  console.log('Auth loaded with domain:', auth.config?.authDomain || 'mock-auth');
+ 
+  // Import other Firebase modules
+  import {
     signInWithEmailAndPassword,
-    GoogleAuthProvider,
     signInWithPopup,
-    signInWithRedirect,
-    getRedirectResult,
-    signOut
+    GoogleAuthProvider,
+    fetchSignInMethodsForEmail
   } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-  import { 
-    getFirestore,
+
+
+  import {
     doc,
     getDoc,
     setDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-  authDomain: "bahai-1b76d.firebaseapp.com",
-  projectId: "bahai-1b76d",
-  storageBucket: "bahai-1b76d.appspot.com",
-  messagingSenderId: "646878644941",
-  appId: "1:646878644941:web:5b4ccc3412250337587784"
-};
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
 
-  // Check current domain for OAuth configuration
-  console.log('Current domain:', window.location.hostname);
-  
-  // Configure OAuth provider for Render deployment
-  const provider = new GoogleAuthProvider();
-  provider.addScope('email');
-  provider.addScope('profile');
-  
-  // For Render, use the current domain for OAuth
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('Local development - using localhost OAuth');
-  } else {
-    // For production (Render), use the actual domain
-    const currentDomain = window.location.origin;
-    console.log('Production domain for OAuth:', currentDomain);
-  }
 
-  // DOM Elements
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const togglePassword = document.getElementById('togglePassword');
-  const loginForm = document.getElementById('loginForm');
-  const googleLoginBtn = document.getElementById('googleLoginBtn');
+    // DOM Elements
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const passwordErrorText = document.getElementById('passwordErrorText');
+    const passwordRequirements = document.getElementById('passwordRequirements');
+    const togglePassword = document.getElementById('togglePassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+   
+    // Password validation requirements
+    const requirements = {
+      length: { element: document.getElementById('reqLength'), test: (pwd) => pwd.length >= 8 },
+      letter: { element: document.getElementById('reqLetter'), test: (pwd) => /[a-zA-Z]/.test(pwd) },
+      number: { element: document.getElementById('reqNumber'), test: (pwd) => /\d/.test(pwd) }
+    };
 
-  // Password visibility toggle
-  togglePassword.addEventListener('click', function() {
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-  });
 
-  // Email/Password Login
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
+    // Password visibility toggle
+    togglePassword.addEventListener('click', function() {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+      this.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
+    });
 
-    // Validate inputs
-    if (!validateEmail(email)) {
-      showNotification('error', 'Please enter a valid email address');
-      return;
-    }
-    
-    if (password.length < 8) {
-      showNotification('error', 'Password must be at least 8 characters');
-      return;
-    }
 
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      // Get user data from Firestore
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
-
-      if (!docSnap.exists()) {
-        showNotification('error', '⚠️ User data not found! Please contact support.');
-        return;
-      }
-
-      const data = docSnap.data();
-      showNotification('success', 'Login successful! Redirecting...');
-      
-      setTimeout(() => {
-        window.location.href = getRedirectPage(data.role);
-      }, 1000);
-
-    } catch (error) {
-      console.error('Email login error:', error);
-      let message = 'Login failed: ';
-      
-      switch(error.code) {
-        case 'auth/user-not-found':
-          message += 'No account found with this email';
-          break;
-        case 'auth/wrong-password':
-          message += 'Incorrect password';
-          break;
-        case 'auth/invalid-email':
-          message += 'Invalid email address';
-          break;
-        case 'auth/too-many-requests':
-          message += 'Too many attempts. Please try again later or reset your password';
-          break;
-        default:
-          message += error.message;
-      }
-      
-      showNotification('error', message);
-    }
-  });
-
-  // Google Login Handler
-  googleLoginBtn.addEventListener("click", async () => {
-    try {
-      showNotification('info', 'Opening Google sign-in...');
-      
-      // Check if mobile device
-      if (isMobile) {
-        // Use redirect for mobile
-        await signInWithRedirect(auth, provider);
+    // Real-time password validation
+    passwordInput.addEventListener('input', function() {
+      const password = this.value;
+      let allValid = true;
+     
+      // Check each requirement
+      Object.keys(requirements).forEach(key => {
+        const req = requirements[key];
+        const isValid = req.test(password);
+       
+        if (isValid) {
+          req.element.classList.remove('invalid');
+          req.element.classList.add('valid');
+          req.element.innerHTML = '<i class="fas fa-check-circle"></i><span>' + req.element.textContent + '</span>';
+        } else {
+          req.element.classList.remove('valid');
+          req.element.classList.add('invalid');
+          req.element.innerHTML = '<i class="fas fa-circle"></i><span>' + req.element.textContent + '</span>';
+          allValid = false;
+        }
+      });
+     
+      // Show/hide requirements
+      if (password.length > 0) {
+        passwordRequirements.classList.add('show');
       } else {
-        // Use popup for desktop
-        const result = await signInWithPopup(auth, provider);
-        await handleGoogleSignIn(result.user);
+        passwordRequirements.classList.remove('show');
       }
-      
-    } catch (error) {
-      console.error('Google login error:', error);
-      
-      switch(error.code) {
-        case 'auth/popup-blocked':
-          showNotification('warning', 'Popup blocked. Please allow popups or try the mobile method below.');
-          break;
-        case 'auth/popup-closed-by-user':
-          // User closed popup, no action needed
-          break;
-        case 'auth/unauthorized-domain':
-          // This shouldn't happen on Render, but just in case
-          showNotification('error', 'Domain not authorized. Please contact support.');
-          break;
-        default:
-          showNotification('error', 'Google sign-in failed: ' + error.message);
+     
+      // Update input styling
+      if (allValid && password.length >= 8) {
+        this.classList.remove('error');
+        this.classList.add('success');
+        passwordError.classList.remove('show');
+      } else {
+        this.classList.remove('success');
+        if (password.length > 0 && password.length < 8) {
+          this.classList.add('error');
+        } else {
+          this.classList.remove('error');
+        }
       }
-    }
-  });
+    });
 
-  // Handle OAuth redirect when page loads
-  window.addEventListener('load', async () => {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result) {
-        console.log('Redirect login successful:', result.user.email);
-        await handleGoogleSignIn(result.user);
-      }
-    } catch (error) {
-      console.error('Redirect login error:', error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        showNotification('error', 'Authentication error: ' + error.message);
-      }
-    }
-  });
 
-  // Handle Google sign-in result
-  async function handleGoogleSignIn(user) {
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
+    // Email validation
+    emailInput.addEventListener('input', function() {
+      if (this.validity.valid) {
+        this.classList.remove('error');
+        emailError.classList.remove('show');
+      } else {
+        this.classList.add('error');
+      }
+    });
 
-      let userData;
-      if (!docSnap.exists()) {
-        // New user - prompt for role
-        const role = await promptForRole();
-        if (!role) {
-          await signOut(auth); // Sign out if user cancelled
+
+    // Form submission
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+     
+      let isValid = true;
+     
+      // Validate email
+      if (!emailInput.value.trim()) {
+        emailError.querySelector('span').textContent = 'Please enter your email address';
+        emailInput.classList.add('error');
+        emailError.classList.add('show');
+        emailInput.classList.add('shake');
+        isValid = false;
+      } else if (!validateEmail(emailInput.value.trim())) {
+        emailError.querySelector('span').textContent = 'Please enter a valid email address (e.g., name@example.com)';
+        emailInput.classList.add('error');
+        emailError.classList.add('show');
+        emailInput.classList.add('shake');
+        isValid = false;
+      } else {
+        emailInput.classList.remove('error');
+        emailError.classList.remove('show');
+      }
+     
+      // Validate password
+      if (!passwordInput.value.trim()) {
+        passwordErrorText.textContent = 'Please enter your password';
+        passwordInput.classList.add('error');
+        passwordError.classList.add('show');
+        passwordInput.classList.add('shake');
+        isValid = false;
+      } else if (passwordInput.value.length < 8) {
+        passwordErrorText.textContent = 'Password must be at least 8 characters long';
+        passwordInput.classList.add('error');
+        passwordError.classList.add('show');
+        passwordInput.classList.add('shake');
+        isValid = false;
+      } else {
+        passwordInput.classList.remove('error');
+        passwordError.classList.remove('show');
+      }
+     
+      // Remove shake animation after completion
+      setTimeout(() => {
+        emailInput.classList.remove('shake');
+        passwordInput.classList.remove('shake');
+      }, 500);
+     
+      if (!isValid) return;
+     
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+     
+      // Update button state
+      submitBtn.disabled = true;
+      submitText.textContent = 'Signing in...';
+     
+      try {
+        // Check authentication methods before attempting login
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+       
+        // If account exists with Google but not password
+        if (methods.includes("google.com") && !methods.includes("password")) {
+          showNotification('error',
+            'This email is registered with Google Sign-In. Please use "Continue with Google" button.'
+          );
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
           return;
         }
-        
-        userData = {
-          fullName: user.displayName || 'Google User',
-          email: user.email,
-          role,
-          kycStatus: "not_submitted",
-          createdAt: serverTimestamp(),
-          provider: "google",
-          photoURL: user.photoURL || '',
-          uid: user.uid
-        };
-        
-        await setDoc(userRef, userData);
-        showNotification('success', '✅ Account created!');
-        
-        setTimeout(() => {
-          window.location.href = getRedirectPage(role);
-        }, 1500);
-        
-      } else {
-        userData = docSnap.data();
+       
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+       
+        // Get user data
+        const docSnap = await Promise.race([
+          getDoc(doc(db, "users", user.uid)),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Database timeout')), 10000)
+          )
+        ]);
+
+
+        if (!docSnap.exists()) {
+          showNotification('error', 'User data not found. Please contact support or sign up.');
+          await auth.signOut();
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
+          return;
+        }
+
+
+        const data = docSnap.data();
+       
+        // Check if user is admin - redirect to admin login page
+        if (data.role === "admin") {
+          showNotification('info', 'Admins must use the admin login page.');
+          await auth.signOut();
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
+          setTimeout(() => {
+            window.location.href = 'admin_login.html'; // Change to your actual admin login page
+          }, 1500);
+          return;
+        }
+       
+        // Validate data structure
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid user data format');
+        }
+       
+        // Ensure role exists
+        if (!data.role) {
+          data.role = 'buyer';
+          await setDoc(doc(db, "users", user.uid),
+            { role: 'buyer' },
+            { merge: true }
+          );
+        }
+       
         showNotification('success', 'Login successful! Redirecting...');
-        
         setTimeout(() => {
-          window.location.href = getRedirectPage(userData.role);
+          window.location.href = getRedirectPage(data.role);
         }, 1000);
+
+
+      } catch (error) {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitText.textContent = 'Login to Dashboard';
+       
+        // Handle specific Firebase error codes
+        let userMessage = 'Login failed. Please try again.';
+       
+        switch (error.code) {
+          case 'auth/user-not-found':
+            userMessage = 'No account found with this email. Please check or sign up.';
+            emailError.querySelector('span').textContent = userMessage;
+            emailInput.classList.add('error');
+            emailError.classList.add('show');
+            emailInput.classList.add('shake');
+            break;
+           
+          case 'auth/wrong-password':
+            userMessage = 'Incorrect password. Please try again or reset your password.';
+            passwordErrorText.textContent = userMessage;
+            passwordInput.classList.add('error');
+            passwordError.classList.add('show');
+            passwordInput.classList.add('shake');
+            break;
+           
+          case 'auth/invalid-credential':
+            userMessage = 'Invalid email or password. Please check your credentials.';
+            emailError.querySelector('span').textContent = userMessage;
+            emailInput.classList.add('error');
+            emailError.classList.add('show');
+            break;
+           
+          case 'auth/too-many-requests':
+            userMessage = 'Too many failed attempts. Please try again later or reset your password.';
+            break;
+           
+          case 'auth/user-disabled':
+            userMessage = 'This account has been disabled. Please contact support.';
+            break;
+           
+          case 'auth/network-request-failed':
+            userMessage = 'Network error. Please check your connection and try again.';
+            break;
+           
+          default:
+            userMessage = error.message || 'Login failed. Please try again.';
+        }
+       
+        showNotification('error', userMessage);
+       
+        // Clear shake animation
+        setTimeout(() => {
+          emailInput.classList.remove('shake');
+          passwordInput.classList.remove('shake');
+        }, 500);
       }
-
-    } catch (error) {
-      console.error("Error handling Google sign-in:", error);
-      showNotification('error', '❌ Error: ' + error.message);
-    }
-  }
-
-  // Role selection modal
-  function promptForRole() {
-    return new Promise((resolve) => {
-      const modal = document.createElement('div');
-      modal.className = 'role-modal';
-      
-      const modalContent = `
-        <div class="role-modal-content">
-          <h3>Select Your Role</h3>
-          <p>Please select your primary role:</p>
-          <div class="role-options">
-            <button class="role-option-btn" data-role="buyer">
-              <i class="fas fa-user"></i> Buyer
-            </button>
-            <button class="role-option-btn" data-role="seller">
-              <i class="fas fa-home"></i> Seller
-            </button>
-            <button class="role-option-btn" data-role="landlord">
-              <i class="fas fa-building"></i> Landlord
-            </button>
-            <button class="role-option-btn" data-role="agent">
-              <i class="fas fa-handshake"></i> Agent
-            </button>
-            <button class="role-option-btn" data-role="broker">
-              <i class="fas fa-briefcase"></i> Broker
-            </button>
-          </div>
-          <div class="modal-buttons">
-            <button class="modal-btn modal-btn-cancel" id="cancelBtn">Cancel</button>
-          </div>
-        </div>
-      `;
-      
-      modal.innerHTML = modalContent;
-      document.body.appendChild(modal);
-      
-      modal.querySelectorAll('.role-option-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const role = e.target.closest('.role-option-btn').getAttribute('data-role');
-          document.body.removeChild(modal);
-          resolve(role);
-        });
-      });
-      
-      modal.querySelector('#cancelBtn').addEventListener('click', () => {
-        document.body.removeChild(modal);
-        resolve(null);
-      });
     });
-  }
 
-  // Helper functions
-  function getRedirectPage(role) {
-    const pages = {
-      "seller": "seller/seller_dashboard.html",
-      "buyer": "buyer/buyer_dashboard.html",
-      "broker": "broker/broker_dashboard.html",
-      "agent": "broker/agent_dashboard.html",
-      "landlord": "landlord/landlord_dashboard.html",
-      "admin": "admin_login.html"
-    };
-    return pages[role] || "login.html";
-  }
 
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  }
+    // Google Login
+    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+      try {
+        // Get the email from the form if available
+        const emailFromForm = emailInput.value.trim();
+       
+        // Check if this email already has password authentication
+        if (emailFromForm) {
+          try {
+            const methods = await fetchSignInMethodsForEmail(auth, emailFromForm);
+           
+            if (methods.includes("password")) {
+              // Warn user about separate accounts
+              const choice = confirm(
+                `⚠️ IMPORTANT: "${emailFromForm}" is already registered with email/password.\n\n` +
+                `Click OK to login with email/password.\n` +
+                `Click Cancel to create a SEPARATE Google account.\n\n` +
+                `Note: These will be two different accounts!`
+              );
+             
+              if (choice) {
+                // User wants email/password login
+                showNotification('info', 'Please enter your password to continue');
+                passwordInput.focus();
+                return;
+              }
+            }
+          } catch (error) {
+            // Continue with Google if we can't check
+            console.log("Could not check email methods, continuing with Google:", error.message);
+          }
+        }
+       
+        // Proceed with Google sign-in
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        const userRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userRef);
 
-  function showNotification(type, message) {
-    const icon = {
-      error: '<i class="fas fa-exclamation-circle"></i>',
-      success: '<i class="fas fa-check-circle"></i>',
-      info: '<i class="fas fa-info-circle"></i>',
-      warning: '<i class="fas fa-exclamation-triangle"></i>'
-    };
-    
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-      ${icon[type]}
-      <div>${message}</div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Remove after 4 seconds
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
+
+        let data;
+        if (!docSnap.exists()) {
+          // New user - prompt for role (admin removed)
+          const role = prompt("Please select your role:\n• buyer\n• seller\n• broker\n• agent\n• landlord").toLowerCase();
+         
+          // Valid roles - admin removed
+          const validRoles = ['buyer', 'seller', 'broker', 'agent', 'landlord'];
+          if (!validRoles.includes(role)) {
+            showNotification('error', 'Invalid role selected. Please try again.');
+            return;
+          }
+         
+          data = {
+            fullName: user.displayName,
+            email: user.email,
+            role,
+            kycStatus: "not_submitted",
+            createdAt: serverTimestamp(),
+            provider: "google"
+          };
+          await setDoc(userRef, data);
+         
+          // Check if this email might have a password account
+          try {
+            const methods = await fetchSignInMethodsForEmail(auth, user.email);
+            if (methods.includes("password")) {
+              showNotification('warning',
+                '⚠️ Note: A password account also exists for this email. ' +
+                'You now have two separate accounts.'
+              );
+            }
+          } catch (error) {
+            // Ignore error, continue
+          }
+         
+          showNotification('success', 'Google account created successfully!');
+          setTimeout(() => {
+            window.location.href = getRedirectPage(role);
+          }, 1500);
+          return;
+        } else {
+          data = docSnap.data();
+        }
+
+
+        // Check if user is admin - redirect to admin login
+        if (data.role === "admin") {
+          showNotification('info', 'Admins must use the admin login page.');
+          await auth.signOut();
+          setTimeout(() => {
+            window.location.href = 'admin_login.html'; // Change to your actual admin login page
+          }, 1500);
+          return;
+        }
+
+
+        // ✅ Existing users go straight to dashboard
+        showNotification('success', 'Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = getRedirectPage(data.role);
+        }, 1000);
+
+
+      } catch (error) {
+        let userMessage = 'Google sign-in failed. Please try again.';
+       
+        switch (error.code) {
+          case 'auth/account-exists-with-different-credential':
+            userMessage =
+              'This email is already registered with email/password.\n' +
+              'Please login with your email and password instead.';
+            break;
+          case 'auth/popup-closed-by-user':
+            userMessage = 'Google sign-in was cancelled.';
+            break;
+          case 'auth/popup-blocked':
+            userMessage = 'Popup was blocked by browser. Please allow popups and try again.';
+            break;
+          case 'auth/cancelled-popup-request':
+            userMessage = 'Sign-in cancelled. Please try again.';
+            break;
+          case 'auth/email-already-in-use':
+            userMessage =
+              'This email is already in use with a different login method.\n' +
+              'Please use the login method you originally signed up with.';
+            break;
+        }
+       
+        showNotification('error', userMessage);
       }
-    }, 4000);
-  }
+    });
 
-  // Initialize - focus on email input
-  emailInput.focus();
-</script>
+
+    // Helper functions
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+
+    function getRedirectPage(role) {
+      const pages = {
+        "seller": "seller/seller_dashboard.html",
+        "buyer": "buyer/buyer_dashboard.html",
+        "broker": "broker/broker_dashboard.html",
+        "agent": "broker/agent_dashboard.html",
+        "landlord": "landlord/landlord_dashboard.html"
+        // Admin removed - they have separate login
+      };
+      return pages[role] || "login.html";
+    }
+
+
+    function showNotification(type, message) {
+      const icon = {
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        success: '<i class="fas fa-check-circle"></i>',
+        info: '<i class="fas fa-info-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>'
+      };
+     
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        ${icon[type]}
+        <div>${message}</div>
+      `;
+     
+      document.body.appendChild(notification);
+     
+      // Remove existing notifications
+      const existingNotifications = document.querySelectorAll('.notification');
+      if (existingNotifications.length > 3) {
+        existingNotifications[0].remove();
+      }
+     
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 5000);
+    }
+
+
+    // Initialize form
+    emailInput.focus();
+  </script>
 </body>
 </html>
