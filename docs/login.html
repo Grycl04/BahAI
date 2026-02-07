@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #0B3D61;
+      --primary: #0B3D61; /* Dark blue - luxury primary */
       --primary-dark: #082A47;
       --primary-light: #1A5276;
-      --accent: #D4AF37;
+      --accent: #D4AF37; /* Gold accent */
       --accent-dark: #B8941F;
       --neutral-light: #F8F9FA;
       --neutral-medium: #E9ECEF;
@@ -20,8 +20,6 @@
       --text-light: #495057;
       --success: #28A745;
       --error: #DC3545;
-      --warning: #FFC107;
-      --info: #17A2B8;
       --white: #FFFFFF;
       --beige: #F5F0E6;
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -34,185 +32,6 @@
       --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    /* Add new styles for better error handling */
-    .error-message {
-      color: var(--error);
-      font-size: 14px;
-      margin-top: 8px;
-      display: none;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 10px 12px;
-      background: rgba(220, 53, 69, 0.08);
-      border-radius: var(--radius-sm);
-      border-left: 3px solid var(--error);
-      line-height: 1.4;
-    }
-
-    .error-message.show {
-      display: flex;
-      animation: slideDown 0.3s ease-out;
-    }
-
-    .error-message i {
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .success-message {
-      color: var(--success);
-      font-size: 14px;
-      margin-top: 8px;
-      display: none;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 10px 12px;
-      background: rgba(40, 167, 69, 0.08);
-      border-radius: var(--radius-sm);
-      border-left: 3px solid var(--success);
-      line-height: 1.4;
-    }
-
-    .success-message.show {
-      display: flex;
-      animation: slideDown 0.3s ease-out;
-    }
-
-    .info-message {
-      color: var(--info);
-      font-size: 14px;
-      margin-top: 8px;
-      display: none;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 10px 12px;
-      background: rgba(23, 162, 184, 0.08);
-      border-radius: var(--radius-sm);
-      border-left: 3px solid var(--info);
-      line-height: 1.4;
-    }
-
-    .info-message.show {
-      display: flex;
-      animation: slideDown 0.3s ease-out;
-    }
-
-    .form-input.error {
-      border-color: var(--error) !important;
-      background: rgba(220, 53, 69, 0.02);
-    }
-
-    .form-input.success {
-      border-color: var(--success) !important;
-    }
-
-    .form-input:focus.error {
-      box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
-    }
-
-    .password-requirements {
-      margin-top: 6px;
-      font-size: 13px;
-      color: var(--neutral-dark);
-      display: none;
-    }
-
-    .password-requirements.show {
-      display: block;
-    }
-
-    .requirement {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .requirement i {
-      font-size: 12px;
-    }
-
-    .requirement.valid {
-      color: var(--success);
-    }
-
-    .requirement.invalid {
-      color: var(--neutral-dark);
-    }
-
-    .shake {
-      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-    }
-
-    @keyframes shake {
-      10%, 90% { transform: translateX(-1px); }
-      20%, 80% { transform: translateX(2px); }
-      30%, 50%, 70% { transform: translateX(-3px); }
-      40%, 60% { transform: translateX(3px); }
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 16px 24px;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-lg);
-      z-index: 1000;
-      font-weight: 500;
-      animation: slideInRight 0.3s ease-out;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      max-width: 400px;
-    }
-
-    .notification.error {
-      background: var(--error);
-      color: white;
-      border-left: 4px solid #c82333;
-    }
-
-    .notification.success {
-      background: var(--success);
-      color: white;
-      border-left: 4px solid #218838;
-    }
-
-    .notification.info {
-      background: var(--primary);
-      color: white;
-      border-left: 4px solid var(--primary-dark);
-    }
-
-    .notification.warning {
-      background: var(--warning);
-      color: var(--text-dark);
-      border-left: 4px solid #e0a800;
-    }
-
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    @keyframes slideOutRight {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
-
-    /* Existing styles remain the same... */
     * {
       margin: 0;
       padding: 0;
@@ -231,6 +50,7 @@
       line-height: 1.6;
     }
 
+    /* Login Container */
     .login-wrapper {
       width: 100%;
       max-width: 1200px;
@@ -248,6 +68,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Visual Side */
     .visual-side {
       flex: 1;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -310,6 +131,7 @@
       flex-shrink: 0;
     }
 
+    /* Form Side */
     .form-side {
       flex: 1;
       padding: 60px 50px;
@@ -326,17 +148,16 @@
     }
 
     .logo-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 56px;
+      height: 56px;
       margin-right: 15px;
-      color: white;
-      font-size: 24px;
-      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
 
     .logo-text {
@@ -371,6 +192,7 @@
       font-weight: 600;
     }
 
+    /* Form Styles */
     .login-form {
       width: 100%;
     }
@@ -542,21 +364,40 @@
       text-decoration: underline;
     }
 
+    /* Error Styling */
+    .error-message {
+      color: var(--error);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-message.show {
+      display: flex;
+    }
+
+    .form-input.error {
+      border-color: var(--error);
+    }
+
+    /* Responsive Design */
     @media (max-width: 1024px) {
       .login-wrapper {
         max-width: 900px;
         min-height: 650px;
       }
-     
+      
       .visual-side,
       .form-side {
         padding: 50px 40px;
       }
-     
+      
       .visual-title {
         font-size: 36px;
       }
-     
+      
       .login-title {
         font-size: 32px;
       }
@@ -567,24 +408,24 @@
         flex-direction: column;
         max-width: 600px;
       }
-     
+      
       .visual-side {
         padding: 40px 30px;
         text-align: center;
       }
-     
+      
       .visual-content {
         max-width: 100%;
       }
-     
+      
       .visual-features {
         display: none;
       }
-     
+      
       .form-side {
         padding: 40px 30px;
       }
-     
+      
       .logo-container {
         justify-content: center;
         margin-bottom: 30px;
@@ -595,33 +436,33 @@
       .login-wrapper {
         border-radius: var(--radius-lg);
       }
-     
+      
       .visual-side,
       .form-side {
         padding: 35px 25px;
       }
-     
+      
       .visual-title {
         font-size: 32px;
       }
-     
+      
       .visual-subtitle {
         font-size: 18px;
       }
-     
+      
       .login-title {
         font-size: 28px;
       }
-     
+      
       .login-subtitle {
         font-size: 15px;
       }
-     
+      
       .form-input {
         padding: 16px 18px;
         font-size: 15px;
       }
-     
+      
       .btn {
         padding: 16px;
         font-size: 15px;
@@ -632,38 +473,37 @@
       body {
         padding: 15px;
       }
-     
+      
       .login-wrapper {
         border-radius: var(--radius-lg);
       }
-     
+      
       .visual-side,
       .form-side {
         padding: 30px 20px;
       }
-     
+      
       .logo-icon {
         width: 45px;
         height: 45px;
-        font-size: 22px;
       }
-     
+      
       .logo-text {
         font-size: 24px;
       }
-     
+      
       .visual-title {
         font-size: 28px;
       }
-     
+      
       .login-title {
         font-size: 24px;
       }
-     
+      
       .form-group {
         margin-bottom: 24px;
       }
-     
+      
       .signup-link {
         font-size: 14px;
       }
@@ -674,16 +514,17 @@
       .form-side {
         padding: 25px 15px;
       }
-     
+      
       .visual-title {
         font-size: 24px;
       }
-     
+      
       .login-title {
         font-size: 22px;
       }
     }
 
+    /* Accessibility Focus Styles */
     .form-input:focus,
     .btn:focus,
     .forgot-password:focus,
@@ -693,6 +534,7 @@
       outline-offset: 2px;
     }
 
+    /* Animation for form elements */
     .form-group {
       animation: slideUp 0.5s ease-out forwards;
       opacity: 0;
@@ -729,7 +571,7 @@
       <div class="visual-content">
         <h1 class="visual-title">Your Real Estate Journey Begins Here</h1>
         <p class="visual-subtitle">Access premium tools for agents, brokers, and landlords to manage properties, connect with clients, and grow your business.</p>
-       
+        
         <ul class="visual-features">
           <li><i class="fas fa-home"></i> Manage multiple property listings with ease</li>
           <li><i class="fas fa-chart-line"></i> Track performance with advanced analytics</li>
@@ -738,14 +580,16 @@
         </ul>
       </div>
     </div>
-   
+    
     <!-- Form Side -->
     <div class="form-side">
       <div class="logo-container">
-        <div class="logo-icon">B</div>
+        <div class="logo-icon">
+          <img src="images/logo-bahai.png" alt="BahAI Real Estate" />
+        </div>
         <div class="logo-text">Bah<span>AI</span> Real Estate</div>
       </div>
-     
+      
       <div class="login-header">
         <h1 class="login-title">Welcome Back</h1>
         <p class="login-subtitle">Login to your account.</p>
@@ -755,34 +599,33 @@
         <div class="form-group">
           <label for="email" class="form-label">Email Address</label>
           <div class="input-container">
-            <input
-              type="email"
-              id="email"
+            <input 
+              type="email" 
+              id="email" 
               class="form-input"
-              placeholder="you@example.com"
-              required
+              placeholder="you@example.com" 
+              required 
               aria-label="Email Address"
               autocomplete="email"
             />
           </div>
           <div id="emailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter a valid email address (e.g., name@example.com)</span>
+            <span>Please enter a valid email address</span>
           </div>
         </div>
 
         <div class="form-group">
           <label for="password" class="form-label">Password</label>
           <div class="input-container">
-            <input
-              type="password"
-              id="password"
+            <input 
+              type="password" 
+              id="password" 
               class="form-input"
-              placeholder="Enter your password"
-              required
+              placeholder="Enter your password" 
+              required 
               aria-label="Password"
               autocomplete="current-password"
-              minlength="8"
             />
             <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
               <i class="fas fa-eye"></i>
@@ -790,31 +633,15 @@
           </div>
           <div id="passwordError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span id="passwordErrorText">Password must be at least 8 characters</span>
+            <span>Password must be at least 8 characters</span>
           </div>
-         
-          <div id="passwordRequirements" class="password-requirements">
-            <div class="requirement invalid" id="reqLength">
-              <i class="fas fa-circle"></i>
-              <span>At least 8 characters</span>
-            </div>
-            <div class="requirement invalid" id="reqLetter">
-              <i class="fas fa-circle"></i>
-              <span>Contains a letter</span>
-            </div>
-            <div class="requirement invalid" id="reqNumber">
-              <i class="fas fa-circle"></i>
-              <span>Contains a number</span>
-            </div>
-          </div>
-         
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
         <div class="form-group">
-          <button type="submit" class="btn btn-primary" id="submitBtn">
+          <button type="submit" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i>
-            <span id="submitText">Login to Dashboard</span>
+            Login to Dashboard
           </button>
         </div>
 
@@ -837,398 +664,110 @@
     </div>
   </div>
 
-  <!-- Firebase + Role Redirect Script - UPDATED VERSION -->
+  <!-- Firebase + Role Redirect Script -->
   <script type="module">
-    // Clear Firebase cache on page load
-    function clearFirebaseCache() {
-      try {
-        // Clear specific Firebase storage keys
-        const firebaseKeys = [
-          'firebase:authUser:AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4:[DEFAULT]',
-          'firebase:host:bahai-1b76d.firebaseapp.com',
-          'FirebaseLocalStorageDb',
-          'FIREBASE_AUTH_TOKEN',
-          'FIREBASE_AUTH_USER'
-        ];
-        
-        firebaseKeys.forEach(key => {
-          try {
-            localStorage.removeItem(key);
-          } catch (e) {}
-        });
-        
-        // Clear IndexedDB
-        if (window.indexedDB && window.indexedDB.databases) {
-          window.indexedDB.databases().then(databases => {
-            databases.forEach(db => {
-              if (db.name && db.name.includes('firebase')) {
-                window.indexedDB.deleteDatabase(db.name);
-              }
-            });
-          }).catch(() => {});
-        }
-        
-        console.log('Firebase cache cleared');
-      } catch (e) {
-        console.log('No Firebase cache to clear');
-      }
-    }
-    
-    // Run cache clearing
-    clearFirebaseCache();
-
-    // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
-    let auth, db;
-   
-    try {
-      // Import Firebase modules
-      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js');
-      const { getAuth } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js');
-      const { getFirestore } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
-     
-      const firebaseConfig = {
-        apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-        authDomain: "bahai-1b76d.firebaseapp.com",
-        projectId: "bahai-1b76d",
-        storageBucket: "bahai-1b76d.firebasestorage.app",
-        messagingSenderId: "646878644941",
-        appId: "1:646878644941:web:5b4ccc3412250337587784",
-        measurementId: "G-PDW1PRZTM9"
-      };
-     
-      const app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      console.log('✅ Firebase loaded successfully');
-     
-    } catch (error) {
-      console.error('❌ Critical Firebase error:', error);
-      showNotification('error',
-        '⚠️ Authentication service is temporarily unavailable. ' +
-        'Please try again later or use demo access.'
-      );
-     
-      // Create mock auth for UI consistency
-      auth = {
-        isMock: true,
-        signOut: () => Promise.resolve()
-      };
-     
-      db = { isMock: true };
-    }
-
-    // Import Firebase Auth functions
-    import {
-      signInWithEmailAndPassword,
-      signInWithPopup,
-      GoogleAuthProvider,
-      fetchSignInMethodsForEmail
+    import { auth, db } from './firebase-common.js';
+    import { 
+      signInWithEmailAndPassword, 
+      signInWithPopup, 
+      GoogleAuthProvider 
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-    import {
-      doc,
-      getDoc,
+    import { 
+      doc, 
+      getDoc, 
       setDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
     const googleProvider = new GoogleAuthProvider();
 
-    // DOM Elements
+    // Form validation
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const emailError = document.getElementById('emailError');
     const passwordError = document.getElementById('passwordError');
-    const passwordErrorText = document.getElementById('passwordErrorText');
-    const passwordRequirements = document.getElementById('passwordRequirements');
     const togglePassword = document.getElementById('togglePassword');
-    const submitBtn = document.getElementById('submitBtn');
-    const submitText = document.getElementById('submitText');
-   
-    // Password validation requirements
-    const requirements = {
-      length: { element: document.getElementById('reqLength'), test: (pwd) => pwd.length >= 8 },
-      letter: { element: document.getElementById('reqLetter'), test: (pwd) => /[a-zA-Z]/.test(pwd) },
-      number: { element: document.getElementById('reqNumber'), test: (pwd) => /\d/.test(pwd) }
-    };
-
+    
     // Password visibility toggle
     togglePassword.addEventListener('click', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
       passwordInput.setAttribute('type', type);
       this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-      this.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
     });
-
-    // Real-time password validation
-    passwordInput.addEventListener('input', function() {
-      const password = this.value;
-      let allValid = true;
-     
-      // Check each requirement
-      Object.keys(requirements).forEach(key => {
-        const req = requirements[key];
-        const isValid = req.test(password);
-       
-        if (isValid) {
-          req.element.classList.remove('invalid');
-          req.element.classList.add('valid');
-          req.element.innerHTML = '<i class="fas fa-check-circle"></i><span>' + req.element.textContent + '</span>';
-        } else {
-          req.element.classList.remove('valid');
-          req.element.classList.add('invalid');
-          req.element.innerHTML = '<i class="fas fa-circle"></i><span>' + req.element.textContent + '</span>';
-          allValid = false;
-        }
-      });
-     
-      // Show/hide requirements
-      if (password.length > 0) {
-        passwordRequirements.classList.add('show');
-      } else {
-        passwordRequirements.classList.remove('show');
-      }
-     
-      // Update input styling
-      if (allValid && password.length >= 8) {
-        this.classList.remove('error');
-        this.classList.add('success');
-        passwordError.classList.remove('show');
-      } else {
-        this.classList.remove('success');
-        if (password.length > 0 && password.length < 8) {
-          this.classList.add('error');
-        } else {
-          this.classList.remove('error');
-        }
-      }
-    });
-
-    // Email validation
+    
+    // Input validation
     emailInput.addEventListener('input', function() {
       if (this.validity.valid) {
         this.classList.remove('error');
         emailError.classList.remove('show');
-      } else {
-        this.classList.add('error');
       }
     });
-
-    // Form submission
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-     
-      let isValid = true;
-     
-      // Validate email
-      if (!emailInput.value.trim()) {
-        emailError.querySelector('span').textContent = 'Please enter your email address';
-        emailInput.classList.add('error');
-        emailError.classList.add('show');
-        emailInput.classList.add('shake');
-        isValid = false;
-      } else if (!validateEmail(emailInput.value.trim())) {
-        emailError.querySelector('span').textContent = 'Please enter a valid email address (e.g., name@example.com)';
-        emailInput.classList.add('error');
-        emailError.classList.add('show');
-        emailInput.classList.add('shake');
-        isValid = false;
-      } else {
-        emailInput.classList.remove('error');
-        emailError.classList.remove('show');
-      }
-     
-      // Validate password
-      if (!passwordInput.value.trim()) {
-        passwordErrorText.textContent = 'Please enter your password';
-        passwordInput.classList.add('error');
-        passwordError.classList.add('show');
-        passwordInput.classList.add('shake');
-        isValid = false;
-      } else if (passwordInput.value.length < 8) {
-        passwordErrorText.textContent = 'Password must be at least 8 characters long';
-        passwordInput.classList.add('error');
-        passwordError.classList.add('show');
-        passwordInput.classList.add('shake');
-        isValid = false;
-      } else {
-        passwordInput.classList.remove('error');
+    
+    passwordInput.addEventListener('input', function() {
+      if (this.value.length >= 8) {
+        this.classList.remove('error');
         passwordError.classList.remove('show');
       }
-     
-      // Remove shake animation after completion
-      setTimeout(() => {
-        emailInput.classList.remove('shake');
-        passwordInput.classList.remove('shake');
-      }, 500);
-     
-      if (!isValid) return;
-     
+    });
+    
+    // Form submission with validation
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      let isValid = true;
+      
+      // Validate email
+      if (!emailInput.value || !emailInput.validity.valid) {
+        emailInput.classList.add('error');
+        emailError.classList.add('show');
+        isValid = false;
+      }
+      
+      // Validate password
+      if (!passwordInput.value || passwordInput.value.length < 8) {
+        passwordInput.classList.add('error');
+        passwordError.classList.add('show');
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        return;
+      }
+      
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-     
-      // Update button state
-      submitBtn.disabled = true;
-      submitText.textContent = 'Signing in...';
-     
+
       try {
-        // Check authentication methods before attempting login
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-       
-        // If account exists with Google but not password
-        if (methods.includes("google.com") && !methods.includes("password")) {
-          showNotification('error',
-            'This email is registered with Google Sign-In. Please use "Continue with Google" button.'
-          );
-          submitBtn.disabled = false;
-          submitText.textContent = 'Login to Dashboard';
-          return;
-        }
-       
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-       
-        // Get user data
-        const docSnap = await Promise.race([
-          getDoc(doc(db, "users", user.uid)),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Database timeout')), 10000)
-          )
-        ]);
+        const docSnap = await getDoc(doc(db, "users", user.uid));
 
         if (!docSnap.exists()) {
-          showNotification('error', 'User data not found. Please contact support or sign up.');
-          await auth.signOut();
-          submitBtn.disabled = false;
-          submitText.textContent = 'Login to Dashboard';
+          showError("⚠️ User data not found!");
           return;
         }
 
         const data = docSnap.data();
-       
-        // Check if user is admin - redirect to admin login page
-        if (data.role === "admin") {
-          showNotification('info', 'Admins must use the admin login page.');
-          await auth.signOut();
-          submitBtn.disabled = false;
-          submitText.textContent = 'Login to Dashboard';
-          setTimeout(() => {
-            window.location.href = 'admin_login.html';
-          }, 1500);
+
+        // 🚫 Only block login if status is pending (waiting for approval)
+        if (data.kycStatus === "pending") {
+          showError("🕒 Your KYC is still pending approval. Please wait for verification to complete.");
           return;
         }
-       
-        // Validate data structure
-        if (!data || typeof data !== 'object') {
-          throw new Error('Invalid user data format');
-        }
-       
-        // Ensure role exists
-        if (!data.role) {
-          data.role = 'buyer';
-          await setDoc(doc(db, "users", user.uid),
-            { role: 'buyer' },
-            { merge: true }
-          );
-        }
-       
-        showNotification('success', 'Login successful! Redirecting...');
-        setTimeout(() => {
-          window.location.href = getRedirectPage(data.role);
-        }, 1000);
+
+        // ✅ Allow login for: approved, not_submitted, and rejected
+        // They can access dashboard, but posting will be blocked for non-approved users
+        const role = data.role;
+        window.location.href = getRedirectPage(role);
 
       } catch (error) {
-        // Reset button state
-        submitBtn.disabled = false;
-        submitText.textContent = 'Login to Dashboard';
-       
-        // Handle specific Firebase error codes
-        let userMessage = 'Login failed. Please try again.';
-       
-        switch (error.code) {
-          case 'auth/user-not-found':
-            userMessage = 'No account found with this email. Please check or sign up.';
-            emailError.querySelector('span').textContent = userMessage;
-            emailInput.classList.add('error');
-            emailError.classList.add('show');
-            emailInput.classList.add('shake');
-            break;
-           
-          case 'auth/wrong-password':
-            userMessage = 'Incorrect password. Please try again or reset your password.';
-            passwordErrorText.textContent = userMessage;
-            passwordInput.classList.add('error');
-            passwordError.classList.add('show');
-            passwordInput.classList.add('shake');
-            break;
-           
-          case 'auth/invalid-credential':
-            userMessage = 'Invalid email or password. Please check your credentials.';
-            emailError.querySelector('span').textContent = userMessage;
-            emailInput.classList.add('error');
-            emailError.classList.add('show');
-            break;
-           
-          case 'auth/too-many-requests':
-            userMessage = 'Too many failed attempts. Please try again later or reset your password.';
-            break;
-           
-          case 'auth/user-disabled':
-            userMessage = 'This account has been disabled. Please contact support.';
-            break;
-           
-          case 'auth/network-request-failed':
-            userMessage = 'Network error. Please check your connection and try again.';
-            break;
-           
-          default:
-            userMessage = error.message || 'Login failed. Please try again.';
-        }
-       
-        showNotification('error', userMessage);
-       
-        // Clear shake animation
-        setTimeout(() => {
-          emailInput.classList.remove('shake');
-          passwordInput.classList.remove('shake');
-        }, 500);
+        showError("❌ Login failed: " + error.message);
       }
     });
 
-    // Google Login
+    // ✅ Google Login
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
-        // Get the email from the form if available
-        const emailFromForm = emailInput.value.trim();
-       
-        // Check if this email already has password authentication
-        if (emailFromForm) {
-          try {
-            const methods = await fetchSignInMethodsForEmail(auth, emailFromForm);
-           
-            if (methods.includes("password")) {
-              // Warn user about separate accounts
-              const choice = confirm(
-                `⚠️ IMPORTANT: "${emailFromForm}" is already registered with email/password.\n\n` +
-                `Click OK to login with email/password.\n` +
-                `Click Cancel to create a SEPARATE Google account.\n\n` +
-                `Note: These will be two different accounts!`
-              );
-             
-              if (choice) {
-                // User wants email/password login
-                showNotification('info', 'Please enter your password to continue');
-                passwordInput.focus();
-                return;
-              }
-            }
-          } catch (error) {
-            // Continue with Google if we can't check
-            console.log("Could not check email methods, continuing with Google:", error.message);
-          }
-        }
-       
-        // Proceed with Google sign-in
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         const userRef = doc(db, "users", user.uid);
@@ -1236,48 +775,16 @@
 
         let data;
         if (!docSnap.exists()) {
-          // New user - prompt for role (admin removed)
-          const role = prompt("Please select your role:\n• buyer\n• seller\n• broker\n• agent\n• landlord\n\nEnter your role:").toLowerCase();
-         
-          // Validate input
-          if (!role) {
-            showNotification('error', 'Role selection cancelled.');
-            await auth.signOut();
-            return;
-          }
-         
-          // Valid roles - admin removed
-          const validRoles = ['buyer', 'seller', 'broker', 'agent', 'landlord'];
-          if (!validRoles.includes(role)) {
-            showNotification('error', 'Invalid role selected. Please try again.');
-            await auth.signOut();
-            return;
-          }
-         
+          const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
           data = {
             fullName: user.displayName,
             email: user.email,
             role,
             kycStatus: "not_submitted",
-            createdAt: serverTimestamp(),
-            provider: "google"
+            createdAt: serverTimestamp()
           };
           await setDoc(userRef, data);
-         
-          // Check if this email might have a password account
-          try {
-            const methods = await fetchSignInMethodsForEmail(auth, user.email);
-            if (methods.includes("password")) {
-              showNotification('warning',
-                '⚠️ Note: A password account also exists for this email. ' +
-                'You now have two separate accounts.'
-              );
-            }
-          } catch (error) {
-            // Ignore error, continue
-          }
-         
-          showNotification('success', 'Google account created successfully!');
+          showSuccess("✅ Account created! Please complete KYC verification to post properties.");
           setTimeout(() => {
             window.location.href = getRedirectPage(role);
           }, 1500);
@@ -1286,107 +793,130 @@
           data = docSnap.data();
         }
 
-        // Check if user is admin - redirect to admin login
-        if (data.role === "admin") {
-          showNotification('info', 'Admins must use the admin login page.');
-          await auth.signOut();
+        // 🚫 Only block if pending
+        if (data.kycStatus === "pending") {
+          showInfo("🕒 Your KYC is still pending approval. You can access your dashboard but cannot post properties yet.");
           setTimeout(() => {
-            window.location.href = 'admin_login.html';
-          }, 1500);
+            window.location.href = getRedirectPage(data.role);
+          }, 2000);
           return;
         }
 
-        // ✅ Existing users go straight to dashboard
-        showNotification('success', 'Login successful! Redirecting...');
-        setTimeout(() => {
-          window.location.href = getRedirectPage(data.role);
-        }, 1000);
+        // ✅ Allow login regardless of KYC status
+        window.location.href = getRedirectPage(data.role);
 
       } catch (error) {
-        let userMessage = 'Google sign-in failed. Please try again.';
-       
-        switch (error.code) {
-          case 'auth/account-exists-with-different-credential':
-            userMessage =
-              'This email is already registered with email/password.\n' +
-              'Please login with your email and password instead.';
-            break;
-          case 'auth/popup-closed-by-user':
-            userMessage = 'Google sign-in was cancelled.';
-            break;
-          case 'auth/popup-blocked':
-            userMessage = 'Popup was blocked by browser. Please allow popups and try again.';
-            break;
-          case 'auth/cancelled-popup-request':
-            userMessage = 'Sign-in cancelled. Please try again.';
-            break;
-          case 'auth/email-already-in-use':
-            userMessage =
-              'This email is already in use with a different login method.\n' +
-              'Please use the login method you originally signed up with.';
-            break;
-          default:
-            userMessage = error.message || 'Google sign-in failed. Please try again.';
-        }
-       
-        showNotification('error', userMessage);
+        showError("❌ Google sign-in failed: " + error.message);
       }
     });
 
-    // Helper functions
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
-    }
-
+    // ✅ Role-Based Redirect - always send to role dashboard after login
     function getRedirectPage(role) {
-      const pages = {
-        "seller": "seller/seller_dashboard.html",
-        "buyer": "buyer/buyer_dashboard.html",
-        "broker": "broker/broker_dashboard.html",
-        "agent": "broker/agent_dashboard.html",
-        "landlord": "landlord/landlord_dashboard.html",
-        "admin": "admin/admin_dashboard.html"
-      };
-      return pages[role] || "login.html";
-    }
-
-    function showNotification(type, message) {
-      const icon = {
-        error: '<i class="fas fa-exclamation-circle"></i>',
-        success: '<i class="fas fa-check-circle"></i>',
-        info: '<i class="fas fa-info-circle"></i>',
-        warning: '<i class="fas fa-exclamation-triangle"></i>'
-      };
-     
-      const notification = document.createElement('div');
-      notification.className = `notification ${type}`;
-      notification.innerHTML = `
-        ${icon[type]}
-        <div>${message}</div>
-      `;
-     
-      document.body.appendChild(notification);
-     
-      // Remove existing notifications
-      const existingNotifications = document.querySelectorAll('.notification');
-      if (existingNotifications.length > 3) {
-        existingNotifications[0].remove();
+      switch (role) {
+        case "seller":
+          return "seller/seller_dashboard.html";
+        case "buyer":
+          return "buyer/buyer_dashboard.html";
+        case "broker":
+          return "broker/broker_dashboard.html";
+        case "agent":
+          return "broker/agent_dashboard.html";
+        case "landlord":
+          return "landlord/landlord_dashboard.html";
+        case "admin":
+          return "admin/approve_users.html";
+        default:
+          return "buyer/buyer_dashboard.html";
       }
-     
-      // Auto remove after 5 seconds
-      setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-          }
-        }, 300);
-      }, 5000);
     }
-
-    // Initialize form
-    emailInput.focus();
+    
+    // UI feedback functions
+    function showError(message) {
+      // Create a temporary error message
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--error);
+        color: white;
+        padding: 15px 25px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      errorDiv.textContent = message;
+      document.body.appendChild(errorDiv);
+      
+      setTimeout(() => {
+        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(errorDiv), 300);
+      }, 4000);
+    }
+    
+    function showSuccess(message) {
+      const successDiv = document.createElement('div');
+      successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--success);
+        color: white;
+        padding: 15px 25px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      successDiv.textContent = message;
+      document.body.appendChild(successDiv);
+      
+      setTimeout(() => {
+        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(successDiv), 300);
+      }, 4000);
+    }
+    
+    function showInfo(message) {
+      const infoDiv = document.createElement('div');
+      infoDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 15px 25px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      infoDiv.textContent = message;
+      document.body.appendChild(infoDiv);
+      
+      setTimeout(() => {
+        infoDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(infoDiv), 300);
+      }, 4000);
+    }
+    
+    // Add CSS for notifications
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
