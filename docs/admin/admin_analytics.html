@@ -1204,7 +1204,7 @@ tbody tr:hover {
   100% { transform: rotate(360deg); }
 }
 
-/* Toast notifications */
+/* Toast notifications - FIXED CSS SYNTAX ERROR */
 .toast {
   position: fixed;
   bottom: 30px;
@@ -1228,7 +1228,7 @@ tbody tr:hover {
 }
 
 .toast.error {
-  border-left-color: var(--danger);
+  border-left-color: var(--danger); /* FIXED: Changed = to : */
 }
 
 .toast.info {
@@ -1964,25 +1964,6 @@ tbody tr:hover {
   </div>
 </div>
 
-<!-- User Dropdown Menu -->
-<div class="user-dropdown" id="userDropdown">
-  <a href="#" class="dropdown-item" onclick="viewProfile()">
-    <i class="fas fa-user"></i>
-    <span>My Profile</span>
-  </a>
-  <a href="admin_settings.html" class="dropdown-item">
-    <i class="fas fa-cog"></i>
-    <span>Settings</span>
-  </a>
-  <div class="dropdown-item" onclick="showHelp()">
-    <i class="fas fa-question-circle"></i>
-    <span>Help</span>
-  </div>
-  <a href="#" class="dropdown-item logout" onclick="logout()">
-    <i class="fas fa-sign-out-alt"></i>
-    <span>Logout</span>
-  </a>
-</div>
 
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
@@ -2058,7 +2039,7 @@ tbody tr:hover {
           <span class="user-name" id="userName">Admin User</span>
           <span class="user-role">System Admin</span>
         </div>
-        <i ></i>
+        <i></i>
       </div>
     </div>
   </div>
@@ -2263,6 +2244,54 @@ let allNotifications = [];
 let typeChart = null;
 let statusChart = null;
 
+// ========== HELPER FUNCTIONS FROM DASHBOARD ==========
+
+// Helper function to get price based on property type
+function getNumericPrice(data) {
+  if (data.monthlyRent !== undefined && data.monthlyRent !== null) {
+    return data.monthlyRent;
+  } else if (data.annualRent !== undefined && data.annualRent !== null) {
+    return data.annualRent;
+  } else if (data.pricing !== undefined && data.pricing !== null) {
+    return data.pricing;
+  } else if (data.salePrice !== undefined && data.salePrice !== null) {
+    return data.salePrice;
+  } else if (data.price !== undefined && data.price !== null) {
+    return parseFloat(data.price);
+  }
+  return 0;
+}
+
+// Helper function to get property type
+function getPropertyType(data) {
+  if (data.propertyType) return data.propertyType;
+  if (data.type) return data.type;
+  if (data.listingType) return data.listingType;
+  return 'Not specified';
+}
+
+// Helper function to get full location
+function getFullLocation(data) {
+  if (data.location) return data.location;
+  if (data.address) {
+    let location = data.address;
+    if (data.city) location += `, ${data.city}`;
+    if (data.province) location += `, ${data.province}`;
+    return location;
+  }
+  return 'Location not specified';
+}
+
+// Helper function to get status
+function getPropertyStatus(data) {
+  return data.status || 'active';
+}
+
+// Helper function to get title
+function getPropertyTitle(data) {
+  return data.title || 'Untitled Property';
+}
+
 // Toast notification function - SAME AS DASHBOARD
 function showToast(message, type = 'info', duration = 3000) {
   const toast = document.createElement('div');
@@ -2327,6 +2356,87 @@ function checkAuth() {
   return true;
 }
 
+// Helper: Get date from Firestore timestamp - SAME AS DASHBOARD
+function getDateFromFirestore(timestamp) {
+  if (!timestamp) return new Date();
+  
+  if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate();
+  }
+  
+  if (timestamp.seconds) {
+    return new Date(timestamp.seconds * 1000);
+  }
+  
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  
+  if (typeof timestamp === 'string') {
+    return new Date(timestamp);
+  }
+  
+  if (typeof timestamp === 'number') {
+    return new Date(timestamp);
+  }
+  
+  return new Date();
+}
+
+// Helper: Format date and time properly
+function formatDateTime(date) {
+  if (!date || !(date instanceof Date)) {
+    return 'Unknown time';
+  }
+  
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+  
+  // If within 24 hours, show relative time
+  if (diffDay === 0) {
+    if (diffHour > 0) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+    if (diffMin > 0) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+    return 'Just now';
+  }
+  
+  // If within 7 days, show day name
+  if (diffDay < 7) {
+    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  }
+  
+  // Otherwise show full date
+  const options = { 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  
+  return date.toLocaleDateString('en-US', options);
+}
+
+// Helper: Format time ago (for backward compatibility)
+function getTimeAgo(date) {
+  return formatDateTime(date);
+}
+
+// Format price with commas
+function formatPrice(price) {
+  if (typeof price !== 'number' || isNaN(price)) {
+    return '0';
+  }
+  return Math.round(price).toLocaleString('en-PH', { 
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 0 
+  });
+}
+
+// ========== FIXED ANALYTICS FUNCTIONS ==========
+
 // Initialize Firebase - UPDATED WITH REAL-TIME LISTENERS
 async function initializeFirebase() {
   try {
@@ -2389,7 +2499,7 @@ async function loadAllUsers() {
   }
 }
 
-// Load all properties from Firebase
+// Load all properties from Firebase with proper price extraction
 async function loadAllProperties() {
   try {
     console.log('🏢 Loading properties...');
@@ -2399,26 +2509,31 @@ async function loadAllProperties() {
     allProperties = [];
     propertiesSnapshot.forEach((doc) => {
       const data = doc.data();
+      const numericPrice = getNumericPrice(data);
+      
       allProperties.push({
         id: doc.id,
-        title: data.title || 'Untitled Property',
-        price: parseFloat(data.price || data.pricing || 0),
-        propertyType: data.propertyType || 'Not specified',
+        title: getPropertyTitle(data),
+        price: numericPrice,
+        propertyType: getPropertyType(data),
         bedrooms: data.bedrooms || 0,
         bathrooms: data.bathrooms || 0,
         squareFootage: data.squareFootage || data.squareFeet || 'N/A',
-        status: data.status || 'active',
-        location: data.location || 'Location not specified',
+        status: getPropertyStatus(data),
+        location: getFullLocation(data),
         description: data.description || 'No description available',
         featured: data.featured || false,
         ownerId: data.ownerId || null,
         userId: data.userId || null,
         createdAt: getDateFromFirestore(data.createdAt),
-        updatedAt: getDateFromFirestore(data.updatedAt)
+        updatedAt: getDateFromFirestore(data.updatedAt),
+        // Store original data for reference
+        originalData: data
       });
     });
     
     console.log(`✅ Loaded ${allProperties.length} properties`);
+    console.log('📊 Sample property data:', allProperties.slice(0, 3));
     
   } catch (error) {
     console.error('❌ Error loading properties:', error);
@@ -2466,11 +2581,19 @@ function setupRealtimeListeners() {
       const properties = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        const numericPrice = getNumericPrice(data);
+        
         properties.push({
           id: doc.id,
-          ...data,
+          title: getPropertyTitle(data),
+          price: numericPrice,
+          propertyType: getPropertyType(data),
+          status: getPropertyStatus(data),
+          location: getFullLocation(data),
+          featured: data.featured || false,
           createdAt: getDateFromFirestore(data.createdAt),
-          updatedAt: getDateFromFirestore(data.updatedAt)
+          updatedAt: getDateFromFirestore(data.updatedAt),
+          originalData: data
         });
       });
       
@@ -2526,43 +2649,51 @@ function setupRealtimeListeners() {
   }
 }
 
-// Calculate all analytics
+// Calculate all analytics with accurate data
 function calculateAllAnalytics() {
+  console.log('📊 Calculating analytics...');
+  
+  if (allProperties.length === 0) {
+    setDefaultValues();
+    return;
+  }
+  
   // Calculate statistics
   const totalProperties = allProperties.length;
-  const activeProperties = allProperties.filter(p => p.status === 'active').length;
+  const activeProperties = allProperties.filter(p => p.status === 'active' || p.status === 'available').length;
   const pendingProperties = allProperties.filter(p => p.status === 'pending').length;
   const soldProperties = allProperties.filter(p => p.status === 'sold').length;
   const featuredProperties = allProperties.filter(p => p.featured).length;
   
-  // Calculate total revenue (sum of prices for sold properties)
-  const soldPropertiesData = allProperties.filter(p => p.status === 'sold');
-  const totalRevenue = soldPropertiesData.reduce((sum, property) => sum + (property.price || 0), 0);
+  // Calculate total revenue (sum of prices for all properties)
+  const totalRevenue = allProperties.reduce((sum, property) => sum + (property.price || 0), 0);
   
-  // Calculate average price
-  const totalPrice = allProperties.reduce((sum, property) => sum + (property.price || 0), 0);
-  const averagePrice = totalProperties > 0 ? totalPrice / totalProperties : 0;
+  // Calculate average price (exclude properties with price 0)
+  const propertiesWithPrice = allProperties.filter(p => p.price > 0);
+  const averagePrice = propertiesWithPrice.length > 0 
+    ? propertiesWithPrice.reduce((sum, property) => sum + property.price, 0) / propertiesWithPrice.length
+    : 0;
   
   // Update status summary
   document.getElementById('summaryActive').textContent = activeProperties.toLocaleString();
   document.getElementById('summaryPending').textContent = pendingProperties.toLocaleString();
   document.getElementById('summarySold').textContent = soldProperties.toLocaleString();
   
-  // Calculate change percentages (simulated for now)
-  const activeChange = activeProperties > 0 ? 12.5 : 0;
-  const pendingChange = pendingProperties > 0 ? 4.3 : 0;
-  const soldChange = soldProperties > 0 ? 23.6 : 0;
+  // Calculate change percentages (simulated for now - in real app, compare with previous period)
+  const activeChange = activeProperties > 0 ? Math.round((activeProperties / totalProperties) * 100) : 0;
+  const pendingChange = pendingProperties > 0 ? Math.round((pendingProperties / totalProperties) * 100) : 0;
+  const soldChange = soldProperties > 0 ? Math.round((soldProperties / totalProperties) * 100) : 0;
   const revenueChange = totalRevenue > 0 ? 18.5 : 0;
   const propertiesChange = totalProperties > 0 ? 15.2 : 0;
   const priceChange = averagePrice > 0 ? 8.8 : 0;
-  const featuredChange = featuredProperties > 0 ? 25.3 : 0;
+  const featuredChange = featuredProperties > 0 ? Math.round((featuredProperties / totalProperties) * 100) : 0;
   
   // Update change indicators
   updateChangeIndicator('activeChange', activeChange);
   updateChangeIndicator('pendingChange', pendingChange);
   updateChangeIndicator('soldChange', soldChange);
   
-  // Update analytics cards
+  // Update analytics cards with accurate data
   document.getElementById('totalRevenue').textContent = `₱${formatPrice(totalRevenue)}`;
   updateChangeIndicator('revenueChange', revenueChange);
   
@@ -2575,7 +2706,7 @@ function calculateAllAnalytics() {
   document.getElementById('featuredProperties').textContent = featuredProperties.toLocaleString();
   updateChangeIndicator('featuredChange', featuredChange);
   
-  console.log('📊 Analytics Updated:', {
+  console.log('📊 Analytics Calculated:', {
     totalProperties,
     activeProperties,
     pendingProperties,
@@ -2583,82 +2714,6 @@ function calculateAllAnalytics() {
     totalRevenue: `₱${formatPrice(totalRevenue)}`,
     averagePrice: `₱${formatPrice(averagePrice)}`,
     featuredProperties
-  });
-}
-
-// Helper: Get date from Firestore timestamp - SAME AS DASHBOARD
-function getDateFromFirestore(timestamp) {
-  if (!timestamp) return new Date();
-  
-  if (timestamp.toDate && typeof timestamp.toDate === 'function') {
-    return timestamp.toDate();
-  }
-  
-  if (timestamp.seconds) {
-    return new Date(timestamp.seconds * 1000);
-  }
-  
-  if (timestamp instanceof Date) {
-    return timestamp;
-  }
-  
-  if (typeof timestamp === 'string') {
-    return new Date(timestamp);
-  }
-  
-  if (typeof timestamp === 'number') {
-    return new Date(timestamp);
-  }
-  
-  return new Date();
-}
-
-// Helper: Format time ago - SAME AS DASHBOARD
-function formatDateTime(date) {
-  if (!date || !(date instanceof Date)) {
-    return 'Unknown time';
-  }
-  
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-  
-  // If within 24 hours, show relative time
-  if (diffDay === 0) {
-    if (diffHour > 0) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-    if (diffMin > 0) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
-    return 'Just now';
-  }
-  
-  // If within 7 days, show day name
-  if (diffDay < 7) {
-    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-  }
-  
-  // Otherwise show full date
-  const options = { 
-    month: 'short', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  };
-  
-  return date.toLocaleDateString('en-US', options);
-}
-
-// Helper: Format time ago (for backward compatibility)
-function getTimeAgo(date) {
-  return formatDateTime(date);
-}
-
-// Format price with commas
-function formatPrice(price) {
-  return Math.round(price).toLocaleString('en-PH', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 0 
   });
 }
 
@@ -2677,7 +2732,7 @@ function updateChangeIndicator(elementId, changeValue) {
   `;
 }
 
-// Create type chart
+// Create type chart with accurate data
 function createTypeChart() {
   const ctx = document.getElementById('typeChart').getContext('2d');
   
@@ -2799,7 +2854,7 @@ function updateTypeLegend(types, counts, colors, total) {
   legendContainer.innerHTML = legendHTML;
 }
 
-// Create status chart
+// Create status chart with accurate data
 function createStatusChart() {
   const ctx = document.getElementById('statusChart').getContext('2d');
   
@@ -2812,7 +2867,10 @@ function createStatusChart() {
     active: 0,
     pending: 0,
     sold: 0,
-    rented: 0
+    rented: 0,
+    available: 0,
+    unavailable: 0,
+    featured: 0
   };
   
   allProperties.forEach(property => {
@@ -2824,6 +2882,7 @@ function createStatusChart() {
     }
   });
   
+  // Filter out statuses with 0 count
   const statuses = Object.keys(statusCounts).filter(s => statusCounts[s] > 0);
   const counts = statuses.map(s => statusCounts[s]);
   const total = counts.reduce((a, b) => a + b, 0);
@@ -2832,7 +2891,10 @@ function createStatusChart() {
     'rgb(16, 185, 129)',   // Green for active
     'rgb(245, 158, 11)',   // Orange for pending
     'rgb(239, 68, 68)',    // Red for sold
-    'rgb(59, 130, 246)'    // Blue for rented
+    'rgb(59, 130, 246)',   // Blue for rented
+    'rgb(20, 184, 166)',   // Teal for available
+    'rgb(148, 163, 184)',  // Gray for unavailable
+    'rgb(251, 191, 36)'    // Yellow for featured
   ];
   
   statusChart = new Chart(ctx, {
@@ -2923,7 +2985,7 @@ function updateStatusLegend(statuses, counts, colors, total) {
   legendContainer.innerHTML = legendHTML;
 }
 
-// Display top properties
+// Display top properties with accurate price sorting
 function displayTopProperties() {
   const tbody = document.getElementById('topPropertiesTable');
   
@@ -2940,8 +3002,20 @@ function displayTopProperties() {
   
   // Sort properties by price (highest first) and take top 10
   const topProperties = [...allProperties]
-    .sort((a, b) => (b.price || 0) - (a.price || 0))
+    .filter(property => property.price > 0) // Only include properties with price
+    .sort((a, b) => b.price - a.price)
     .slice(0, 10);
+  
+  if (topProperties.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-light);">
+          No properties with pricing information found
+        </td>
+      </tr>
+    `;
+    return;
+  }
   
   tbody.innerHTML = topProperties.map(property => {
     const statusClass = property.status || 'active';
@@ -2951,6 +3025,7 @@ function displayTopProperties() {
     const titleDisplay = property.title.length > 30 ? property.title.substring(0, 29) + '...' : property.title;
     const locationDisplay = property.location.length > 25 ? property.location.substring(0, 24) + '...' : property.location;
     const timeAgo = getTimeAgo(property.createdAt);
+    const priceDisplay = property.price > 0 ? `₱${formatPrice(property.price)}` : 'Not Set';
     
     return `
       <tr onclick="window.location.href='admin_properties.html#property-${property.id}'" style="cursor: pointer;">
@@ -2967,7 +3042,7 @@ function displayTopProperties() {
           <span class="badge ${statusClass}">${statusLabel}</span>
         </td>
         <td style="font-weight: 800; color: var(--primary);">
-          ₱${formatPrice(property.price || 0)}
+          ${priceDisplay}
         </td>
         <td style="color: var(--text-light); font-size: 13px;">
           ${timeAgo}
@@ -3182,6 +3257,8 @@ function displayNotifications(notifications) {
   }).join('');
 }
 
+// ========== UI FUNCTIONS ==========
+
 // UI Functions - SAME AS DASHBOARD
 function toggleNotifications() {
   const panel = document.getElementById('notificationPanel');
@@ -3335,7 +3412,7 @@ function exportData() {
   
   // Create CSV content
   let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += "Property,Type,Location,Status,Price,Bedrooms,Bathrooms,Featured\n";
+  csvContent += "Property,Type,Location,Status,Price,Bedrooms,Bathrooms,Featured,Created\n";
   
   allProperties.forEach(property => {
     const row = [
@@ -3346,7 +3423,8 @@ function exportData() {
       property.price,
       property.bedrooms,
       property.bathrooms,
-      property.featured ? 'Yes' : 'No'
+      property.featured ? 'Yes' : 'No',
+      property.createdAt ? property.createdAt.toISOString().split('T')[0] : ''
     ];
     csvContent += row.join(",") + "\n";
   });

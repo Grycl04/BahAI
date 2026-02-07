@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Property Details - BahAI Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+      --primary: #0b2e52;
+      --primary-dark: #001F3F;
+      --primary-light: #1976d2;
+      --secondary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --accent: #ff9800;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+      --sidebar-width: 260px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: var(--text-dark);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding: 25px 0;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+      overflow-y: auto;
+      z-index: 1000;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 0 25px 30px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: white;
+      text-decoration: none;
+      transition: var(--transition);
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    .logo:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: var(--transition);
+    }
+
+    .logo:hover .logo-icon {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .logo-title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #ffffff 0%, #e6f3ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-subtitle {
+      font-size: 11px;
+      opacity: 0.9;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      padding: 0;
+      flex: 1;
+    }
+
+    .sidebar-nav li {
+      margin: 5px 15px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 15px;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sidebar-link::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: white;
+      transform: translateX(-10px);
+      transition: var(--transition);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .sidebar-link:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .sidebar-link:hover::before {
+      transform: translateX(0);
+    }
+
+    .sidebar-link.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar-link.active::before {
+      transform: translateX(0);
+      background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    .sidebar-icon {
+      width: 22px;
+      height: 22px;
+      display: inline-block;
+      font-size: 18px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-link:hover .sidebar-icon {
+      transform: scale(1.1);
+    }
+
+    .sidebar-link.active .sidebar-icon {
+      transform: scale(1.1);
+    }
+
+    .sidebar-footer {
+      padding: 20px 25px 0;
+      margin-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+    }
+
+    .sidebar-footer a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .sidebar-footer a:hover {
+      color: white;
+      text-decoration: underline;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: var(--transition);
+    }
+
+    .mobile-menu-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .container {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 30px;
+      transition: var(--transition);
+      max-width: calc(100% - var(--sidebar-width));
+    }
+
+    /* Back Button */
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    }
+
+    /* Property Header */
+    .property-header {
+      background: var(--bg-white);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .property-badges {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .property-badge {
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-sale {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+
+    .badge-rent {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #92400e;
+      border: 1px solid #f59e0b;
+    }
+
+    .badge-lease {
+      background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+      color: #1e40af;
+      border: 1px solid #3b82f6;
+    }
+
+    .badge-active {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+
+    .badge-pending {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #92400e;
+      border: 1px solid #f59e0b;
+    }
+
+    .badge-featured {
+      background: linear-gradient(135deg, #fef3c7, #fbbf24);
+      color: #92400e;
+      border: 1px solid #f59e0b;
+    }
+
+    .badge-sold {
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+
+    .property-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      line-height: 1.3;
+    }
+
+    .property-location {
+      color: var(--text-light);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .property-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-light);
+      padding: 12px 20px;
+      border-radius: 12px;
+      min-width: 150px;
+    }
+
+    .stat-icon {
+      font-size: 20px;
+      color: var(--primary);
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .price-section {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 25px;
+      border-radius: 16px;
+      margin-top: 20px;
+    }
+
+    .price-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+
+    .price-value {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    /* Two Column Layout */
+    .two-column-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    /* Image Gallery */
+    .property-gallery {
+      background: var(--bg-white);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .main-image-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .main-property-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .image-navigation {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      transform: translateY(-50%);
+    }
+    
+    .image-nav-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      color: var(--text-dark);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+    }
+    
+    .image-nav-btn:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+    
+    .image-nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .image-counter {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .image-thumbnails {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+    
+    .thumbnail {
+      width: 100px;
+      height: 70px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    
+    .thumbnail:hover {
+      opacity: 0.9;
+    }
+    
+    .thumbnail.active {
+      opacity: 1;
+      border: 3px solid var(--primary);
+    }
+    
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Property Section */
+    .property-section {
+      background: var(--bg-white);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .property-description {
+      line-height: 1.8;
+      font-size: 16px;
+      color: var(--text-dark);
+    }
+
+    /* Amenities Grid */
+    .amenities-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+
+    .amenity-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 15px;
+      background: var(--bg-light);
+      border-radius: 10px;
+      border-left: 4px solid var(--primary);
+    }
+
+    /* Contact Card - REMOVED STICKY POSITIONING */
+    .contact-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+    }
+
+    .contact-header {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .contact-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .contact-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: white;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+    }
+
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .contact-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .contact-role {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .contact-methods {
+      margin-bottom: 25px;
+    }
+
+    .contact-method {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .method-label {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .method-value {
+      font-weight: 500;
+    }
+
+    /* Pricing Card */
+    .pricing-card {
+      background: var(--bg-light);
+      border-radius: 16px;
+      padding: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pricing-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pricing-details {
+      background: var(--bg-white);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .pricing-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pricing-item:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-label {
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .pricing-value {
+      color: var(--text-dark);
+      font-weight: 600;
+    }
+
+    /* Map Section */
+    #propertyMap {
+      width: 100%;
+      height: 400px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-light);
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .static-map {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-light);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .static-map-icon {
+      font-size: 48px;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .static-map-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+
+    .static-map-coordinates {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 20px;
+    }
+
+    .static-map-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .static-map-link:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Action Buttons */
+    .property-actions {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding-top: 30px;
+      border-top: 2px solid var(--border);
+      position: relative;
+      z-index: 1;
+    }
+
+    .action-btn-large {
+      padding: 16px 32px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .action-btn-large:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .calculator-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, var(--secondary), #2563eb);
+      color: white;
+    }
+
+    .btn-back:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    }
+
+    /* ==================== MORTGAGE CALCULATOR MODAL ==================== */
+    .mortgage-calculator-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+      padding: 20px;
+    }
+    
+    .mortgage-calculator-content {
+      background: var(--bg-white);
+      width: 90%;
+      max-width: 500px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .calculator-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .calculator-header h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .calculator-header p {
+      margin: 8px 0 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .calculator-body {
+      padding: 25px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    
+    .calculator-section {
+      margin-bottom: 25px;
+    }
+    
+    .calculator-section h4 {
+      color: var(--primary);
+      margin: 0 0 15px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .price-display {
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .price-display .label {
+      display: block;
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .price-display .amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .price-display .currency {
+      display: block;
+      color: var(--text-light);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .option-btn {
+      padding: 12px;
+      background: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+    
+    .option-btn:hover {
+      background: var(--border);
+    }
+    
+    .option-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .option-btn.custom-option {
+      background: #fef3c7;
+      border-color: #fbbf24;
+      color: #92400e;
+    }
+    
+    .custom-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px;
+      text-align: center;
+      margin-top: 10px;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .result-section {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      color: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    
+    .result-label {
+      display: block;
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    
+    .result-amount {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .result-currency {
+      display: block;
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    
+    .result-note {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 10px;
+      line-height: 1.4;
+      font-style: italic;
+    }
+    
+    .loan-breakdown {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .breakdown-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+    }
+    
+    .breakdown-label {
+      display: block;
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 5px;
+    }
+    
+    .breakdown-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .calculator-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+    
+    .btn-primary {
+      flex: 1;
+      padding: 15px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      flex: 1;
+      padding: 15px;
+      background: var(--bg-light);
+      color: var(--text-dark);
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border);
+      transform: translateY(-1px);
+    }
+    
+    .close-calculator {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ==================== LOADING & ERROR STATES ==================== */
+    .loading-state {
+      text-align: center;
+      padding: 100px 20px;
+      background: var(--bg-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    
+    .spinner {
+      border: 4px solid var(--bg-light);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 100px 20px;
+      background: var(--bg-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #ef4444;
+    }
+
+    /* ==================== TOAST NOTIFICATION ==================== */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 18px 28px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 15px;
+      z-index: 3000;
+      animation: slideInRight 0.3s ease;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-left: 5px solid var(--primary);
+      max-width: 400px;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast.success {
+      background: white;
+      color: #065f46;
+      border-left-color: var(--success);
+    }
+
+    .toast.error {
+      background: white;
+      color: #991b1b;
+      border-left-color: var(--danger);
+    }
+
+    .toast.info {
+      background: white;
+      color: #1e40af;
+      border-left-color: var(--info);
+    }
+
+    /* ==================== RESPONSIVE DESIGN ==================== */
+    @media (max-width: 1024px) {
+      .sidebar {
+        transform: translateX(-100%);
+        width: 300px;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .container {
+        margin-left: 0;
+        padding: 25px;
+        max-width: 100%;
+      }
+
+      .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .two-column-layout {
+        grid-template-columns: 1fr;
+      }
+      
+      .property-stats {
+        flex-direction: column;
+      }
+      
+      .stat-item {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+      
+      .property-title {
+        font-size: 24px;
+      }
+      
+      .property-actions {
+        flex-direction: column;
+      }
+      
+      .action-btn-large {
+        width: 100%;
+      }
+      
+      .main-image-container {
+        height: 300px;
+      }
+    }
+</style>
+</head>
+
+<body>
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="admin_dashboard.html" class="logo">
+      <div class="logo-icon">BA</div>
+      <div class="logo-text">
+        <div class="logo-title">BahAI</div>
+        <div class="logo-subtitle">Admin Dashboard</div>
+      </div>
+    </a>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li><a href="admin_dashboard.html" class="sidebar-link"><span class="sidebar-icon"><i class="fas fa-chart-line"></i></span>Dashboard Overview</a></li>
+    <li><a href="admin_users.html" class="sidebar-link"><span class="sidebar-icon"><i class="fas fa-users"></i></span>User Management</a></li>
+    <li><a href="admin_properties.html" class="sidebar-link active"><span class="sidebar-icon"><i class="fas fa-building"></i></span>Property Listings</a></li>
+    <li><a href="admin_analytics.html" class="sidebar-link"><span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>Reports & Analytics</a></li>
+    <li><a href="admin_settings.html" class="sidebar-link"><span class="sidebar-icon"><i class="fas fa-cog"></i></span>Settings</a></li>
+    <li><a href="admin_login.html" class="sidebar-link"><span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>Login</a></li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div style="margin-bottom: 8px; opacity: 0.7;"></div>
+    <div>© 2026 BahAI Admin</div>
+  </div>
+</div>
+
+<!-- Mortgage Calculator Modal -->
+<div id="mortgageCalculatorModal" class="mortgage-calculator-modal">
+  <div class="mortgage-calculator-content">
+    <div class="calculator-header">
+      <button class="close-calculator" id="closeCalculator">&times;</button>
+      <h3>Mortgage Calculator</h3>
+      <p>Calculate your mortgage credit and organize the purchase of your home.*</p>
+    </div>
+    
+    <div class="calculator-body">
+      <!-- Property Price Section -->
+      <div class="calculator-section">
+        <h4>Property Price</h4>
+        <div class="price-display">
+          <span class="label">Total Property Value</span>
+          <div class="amount" id="propertyPriceDisplay">0</div>
+          <span class="currency">PHP</span>
+        </div>
+      </div>
+      
+      <!-- Deposit Section -->
+      <div class="calculator-section">
+        <h4>Deposit</h4>
+        <div class="options-grid" id="depositOptions">
+          <div class="option-btn" data-value="10">10%</div>
+          <div class="option-btn active" data-value="20">20%</div>
+          <div class="option-btn" data-value="30">30%</div>
+          <div class="option-btn" data-value="40">40%</div>
+          <div class="option-btn" data-value="50">50%</div>
+          <div class="option-btn custom-option" data-value="custom">Custom</div>
+        </div>
+        <input type="number" id="customDeposit" class="custom-input" placeholder="Enter custom %" style="display: none;">
+      </div>
+      
+      <!-- Loan Term Section -->
+      <div class="calculator-section">
+        <h4>Loan Term (years)</h4>
+        <div class="options-grid" id="loanTermOptions">
+          <div class="option-btn" data-value="5">5</div>
+          <div class="option-btn active" data-value="9">9</div>
+          <div class="option-btn" data-value="13">13</div>
+          <div class="option-btn" data-value="17">17</div>
+          <div class="option-btn" data-value="21">21</div>
+          <div class="option-btn" data-value="25">25</div>
+        </div>
+      </div>
+      
+      <!-- Interest Rate Section -->
+      <div class="calculator-section">
+        <h4>Interest Rate</h4>
+        <div class="options-grid" id="interestRateOptions">
+          <div class="option-btn" data-value="0">0%</div>
+          <div class="option-btn" data-value="8">8%</div>
+          <div class="option-btn active" data-value="16">16%</div>
+          <div class="option-btn" data-value="24">24%</div>
+          <div class="option-btn" data-value="32">32%</div>
+          <div class="option-btn custom-option" data-value="custom">Custom</div>
+        </div>
+        <input type="number" id="customInterest" class="custom-input" placeholder="Enter custom %" style="display: none;">
+      </div>
+      
+      <!-- Results Section -->
+      <div class="result-section">
+        <span class="result-label">Estimated Repayment (monthly)</span>
+        <div class="result-amount" id="monthlyPayment">0</div>
+        <span class="result-currency">PHP</span>
+        
+        <div class="loan-breakdown">
+          <div class="breakdown-item">
+            <span class="breakdown-label">Legal expenses</span>
+            <div class="breakdown-value" id="legalExpenses">0</div>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Deposit</span>
+            <div class="breakdown-value" id="depositAmount">0</div>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Mortgage amount</span>
+            <div class="breakdown-value" id="mortgageAmount">0</div>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Interest</span>
+            <div class="breakdown-value" id="totalInterest">0</div>
+          </div>
+        </div>
+        
+        <div class="result-note">
+          *The calculation is approximate, the final amount may vary depending on the financial institution chosen and other conditions not considered in this simulation.
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="calculator-actions">
+        <button class="btn-primary" id="recalculateBtn">Recalculate</button>
+        <button class="btn-secondary" id="closeCalculatorBtn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <!-- Property Details Container -->
+  <div id="propertyDetailsContainer">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading property details...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK v9 -->
+<script type="module">
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { 
+  getFirestore, 
+  getDoc, 
+  doc
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784",
+  measurementId: "G-PDW1PRZTM9"
+};
+
+// Global variables
+let app;
+let db;
+let propertyId = null;
+let currentProperty = null;
+let currentImageIndex = 0;
+let imageUrls = [];
+
+// Mortgage calculator variables
+let propertyPrice = 0;
+let depositPercentage = 20;
+let loanTermYears = 9;
+let interestRate = 16;
+
+// Get property ID from URL - FIXED VERSION
+function getPropertyIdFromUrl() {
+  // Try multiple methods to get the property ID
+  
+  // Method 1: URL query parameter (standard method)
+  const urlParams = new URLSearchParams(window.location.search);
+  const idFromQuery = urlParams.get('id');
+  
+  if (idFromQuery && idFromQuery.trim() !== '') {
+    return idFromQuery.trim();
+  }
+  
+  // Method 2: URL hash/fragment
+  const hash = window.location.hash;
+  if (hash && hash.startsWith('#') && hash.length > 1) {
+    return hash.substring(1).trim();
+  }
+  
+  // Method 3: Check if property ID is in the path
+  const pathParts = window.location.pathname.split('/');
+  for (let part of pathParts) {
+    if (part && part.length > 5 && !part.includes('.html')) {
+      // This might be a property ID (assuming IDs are alphanumeric and not short)
+      return part.trim();
+    }
+  }
+  
+  // Method 4: Check localStorage or sessionStorage for property ID
+  const storedId = localStorage.getItem('lastPropertyId') || sessionStorage.getItem('currentPropertyId');
+  if (storedId) {
+    return storedId.trim();
+  }
+  
+  // Method 5: Display error and ask for property ID
+  console.error("No property ID found in URL");
+  return null;
+}
+
+// Get property ID
+propertyId = getPropertyIdFromUrl();
+
+// If still no ID, show error
+if (!propertyId) {
+  // Try to extract from error message in DOM if present
+  const errorMessage = document.body.innerText || '';
+  const idMatch = errorMessage.match(/Property ID from URL:\s*(\S+)/i);
+  if (idMatch && idMatch[1]) {
+    propertyId = idMatch[1].trim();
+    console.log("Extracted property ID from error message:", propertyId);
+  } else {
+    // Show error UI immediately
+    document.getElementById('propertyDetailsContainer').innerHTML = `
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h3 style="color: var(--danger); margin-bottom: 15px;">No Property ID Found</h3>
+        <p style="color: var(--text-light); margin-bottom: 20px;">Property ID is missing from the URL.</p>
+        <p style="color: var(--text-light); margin-bottom: 30px; font-size: 14px;">
+          Please check the URL or go back to the properties page.
+        </p>
+        <button onclick="window.location.href='admin_properties.html'" class="back-button">
+          <i class="fas fa-arrow-left"></i> Back to Properties
+        </button>
+      </div>`;
+  }
+}
+
+// Toast notification function
+function showToast(message, type = 'info', duration = 3000) {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    ${type === 'success' ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>' : 
+      type === 'error' ? '<i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>' : 
+      '<i class="fas fa-info-circle" style="color: var(--info);"></i>'}
+    <span>${message}</span>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100px)';
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 300);
+  }, duration);
+}
+
+// Helper functions
+function getDisplayPrice(data) {
+  if (data.monthlyRent !== undefined && data.monthlyRent !== null) {
+    return `₱${data.monthlyRent.toLocaleString()}/month`;
+  } else if (data.annualRent !== undefined && data.annualRent !== null) {
+    return `₱${data.annualRent.toLocaleString()}/year`;
+  } else if (data.pricing !== undefined && data.pricing !== null) {
+    return `₱${data.pricing.toLocaleString()}`;
+  } else if (data.salePrice !== undefined && data.salePrice !== null) {
+    return `₱${data.salePrice.toLocaleString()}`;
+  }
+  return '₱0';
+}
+
+function getListingType(data) {
+  if (data.monthlyRent !== undefined && data.monthlyRent !== null) {
+    return 'rent';
+  } else if (data.annualRent !== undefined && data.annualRent !== null) {
+    return 'lease';
+  } else if (data.pricing !== undefined && data.pricing !== null || 
+             data.salePrice !== undefined && data.salePrice !== null) {
+    return 'sale';
+  }
+  return 'sale';
+}
+
+function getTypeBadgeText(type) {
+  switch (type) {
+    case 'rent': return 'FOR RENT';
+    case 'lease': return 'FOR LEASE';
+    case 'sale': 
+    default: return 'FOR SALE';
+  }
+}
+
+function getStatusBadge(data) {
+  const status = data.status || 'active';
+  switch(status) {
+    case 'active': return { text: 'Active', class: 'badge-active' };
+    case 'pending': return { text: 'Pending', class: 'badge-pending' };
+    case 'sold': return { text: 'Sold', class: 'badge-sold' };
+    case 'featured': return { text: 'Featured', class: 'badge-featured' };
+    default: return { text: status, class: 'badge-active' };
+  }
+}
+
+function getCompleteAddress(data) {
+  if (data.location) return data.location;
+  if (data.address) {
+    let location = data.address;
+    if (data.city) location += `, ${data.city}`;
+    if (data.province) location += `, ${data.province}`;
+    return location;
+  }
+  return 'Location not specified';
+}
+
+function findImageField(data) {
+  // First check imageUrls array
+  if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
+    return data.imageUrls[0];
+  }
+  
+  // Check photos array
+  if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
+    return data.photos[0];
+  }
+  
+  // Check single image fields
+  const possibleFields = [
+    'image', 'imageUrl', 'img', 'photo', 'propertyImage', 'mainImage'
+  ];
+  
+  for (const field of possibleFields) {
+    if (data[field] && typeof data[field] === 'string' && data[field].trim() !== '') {
+      return data[field];
+    }
+  }
+  
+  return null;
+}
+
+function getValidImageUrl(data, propertyId = '') {
+  const foundImage = findImageField(data);
+  
+  if (foundImage && 
+      (foundImage.startsWith('http') || foundImage.startsWith('https')) && 
+      !foundImage.includes('example.com')) {
+    return foundImage;
+  }
+  
+  // Use consistent default based on property type
+  const defaultImages = {
+    'rent': 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    'sale': 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    'lease': 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+  };
+  
+  const listingType = getListingType(data);
+  return defaultImages[listingType] || defaultImages['sale'];
+}
+
+// Image navigation functions
+function initializeImageNavigation(images) {
+  if (!images || images.length === 0) return;
+  
+  imageUrls = images;
+  currentImageIndex = 0;
+  
+  const prevBtn = document.querySelector('.prev-btn');
+  const nextBtn = document.querySelector('.next-btn');
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => navigateImage(-1));
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => navigateImage(1));
+  }
+  
+  document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+    thumb.addEventListener('click', () => goToImage(index));
+  });
+  
+  function navigateImage(direction) {
+    const newIndex = currentImageIndex + direction;
+    if (newIndex >= 0 && newIndex < imageUrls.length) {
+      goToImage(newIndex);
+    }
+  }
+  
+  function goToImage(index) {
+    currentImageIndex = index;
+    const mainImage = document.getElementById('mainPropertyImage');
+    if (mainImage) {
+      mainImage.src = imageUrls[index];
+    }
+    
+    // Update thumbnails
+    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+      if (i === index) {
+        thumb.classList.add('active');
+      } else {
+        thumb.classList.remove('active');
+      }
+    });
+    
+    // Update counter
+    const counter = document.querySelector('.image-counter');
+    if (counter) {
+      counter.textContent = `${index + 1} / ${imageUrls.length}`;
+    }
+  }
+}
+
+// ==================== MORTGAGE CALCULATOR FUNCTIONS ====================
+function showMortgageCalculatorModal() {
+  if (!currentProperty) return;
+  
+  // Get the actual property price
+  const listingType = getListingType(currentProperty);
+  
+  if (listingType === 'sale') {
+    propertyPrice = currentProperty.pricing || currentProperty.salePrice || 0;
+  } else if (listingType === 'rent') {
+    const monthlyRent = currentProperty.monthlyRent || 0;
+    propertyPrice = monthlyRent * 12 * 10; // 10 years of rent
+  } else if (listingType === 'lease') {
+    const annualRent = currentProperty.annualRent || 0;
+    propertyPrice = annualRent * 10; // 10 years lease
+  }
+  
+  // Update the calculator with the actual property price
+  document.getElementById('propertyPriceDisplay').textContent = propertyPrice.toLocaleString();
+  
+  // Reset calculator options to defaults
+  depositPercentage = 20;
+  loanTermYears = 9;
+  interestRate = 16;
+  
+  // Update UI to show active options
+  document.querySelectorAll('#depositOptions .option-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.value === '20') {
+      btn.classList.add('active');
+    }
+  });
+  
+  document.querySelectorAll('#loanTermOptions .option-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.value === '9') {
+      btn.classList.add('active');
+    }
+  });
+  
+  document.querySelectorAll('#interestRateOptions .option-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.value === '16') {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Hide custom inputs
+  document.getElementById('customDeposit').style.display = 'none';
+  document.getElementById('customInterest').style.display = 'none';
+  
+  // Calculate initial values
+  calculateMortgage();
+  
+  // Show modal
+  document.getElementById('mortgageCalculatorModal').style.display = 'flex';
+  
+  // Setup calculator event listeners
+  setupCalculatorEventListeners();
+}
+
+function setupCalculatorEventListeners() {
+  // Deposit options
+  const depositBtns = document.querySelectorAll('#depositOptions .option-btn');
+  depositBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      depositBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      if (this.dataset.value === 'custom') {
+        document.getElementById('customDeposit').style.display = 'block';
+        document.getElementById('customDeposit').focus();
+        depositPercentage = parseFloat(document.getElementById('customDeposit').value) || 20;
+      } else {
+        document.getElementById('customDeposit').style.display = 'none';
+        depositPercentage = parseFloat(this.dataset.value);
+      }
+      
+      calculateMortgage();
+    });
+  });
+  
+  // Loan term options
+  const loanTermBtns = document.querySelectorAll('#loanTermOptions .option-btn');
+  loanTermBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      loanTermBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      loanTermYears = parseFloat(this.dataset.value);
+      calculateMortgage();
+    });
+  });
+  
+  // Interest rate options
+  const interestBtns = document.querySelectorAll('#interestRateOptions .option-btn');
+  interestBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      interestBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      if (this.dataset.value === 'custom') {
+        document.getElementById('customInterest').style.display = 'block';
+        document.getElementById('customInterest').focus();
+        interestRate = parseFloat(document.getElementById('customInterest').value) || 16;
+      } else {
+        document.getElementById('customInterest').style.display = 'none';
+        interestRate = parseFloat(this.dataset.value);
+      }
+      
+      calculateMortgage();
+    });
+  });
+  
+  // Custom deposit input
+  const customDepositInput = document.getElementById('customDeposit');
+  if (customDepositInput) {
+    customDepositInput.addEventListener('input', function() {
+      depositPercentage = parseFloat(this.value) || 20;
+      calculateMortgage();
+    });
+  }
+  
+  // Custom interest input
+  const customInterestInput = document.getElementById('customInterest');
+  if (customInterestInput) {
+    customInterestInput.addEventListener('input', function() {
+      interestRate = parseFloat(this.value) || 16;
+      calculateMortgage();
+    });
+  }
+  
+  // Recalculate button
+  const recalculateBtn = document.getElementById('recalculateBtn');
+  if (recalculateBtn) {
+    recalculateBtn.addEventListener('click', calculateMortgage);
+  }
+  
+  // Close buttons
+  const closeCalculatorBtn = document.getElementById('closeCalculator');
+  const closeCalculatorBtn2 = document.getElementById('closeCalculatorBtn');
+  
+  if (closeCalculatorBtn) {
+    closeCalculatorBtn.addEventListener('click', closeCalculatorModal);
+  }
+  
+  if (closeCalculatorBtn2) {
+    closeCalculatorBtn2.addEventListener('click', closeCalculatorModal);
+  }
+  
+  // Close modal when clicking outside
+  const modal = document.getElementById('mortgageCalculatorModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeCalculatorModal();
+      }
+    });
+  }
+}
+
+function calculateMortgage() {
+  // Calculate deposit amount
+  const depositAmount = (propertyPrice * depositPercentage) / 100;
+  const mortgageAmount = propertyPrice - depositAmount;
+  
+  // Calculate monthly payment using mortgage formula
+  const monthlyInterestRate = (interestRate / 100) / 12;
+  const numberOfPayments = loanTermYears * 12;
+  
+  let monthlyPayment = 0;
+  if (monthlyInterestRate > 0) {
+    monthlyPayment = mortgageAmount * 
+      (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfPayments)) / 
+      (Math.pow(1 + monthlyInterestRate, numberOfPayments) - 1);
+  } else {
+    monthlyPayment = mortgageAmount / numberOfPayments;
+  }
+  
+  // Calculate total interest
+  const totalPayment = monthlyPayment * numberOfPayments;
+  const totalInterest = totalPayment - mortgageAmount;
+  
+  // Calculate legal expenses (5% of property price as example)
+  const legalExpenses = propertyPrice * 0.05;
+  
+  // Update display with formatted numbers
+  document.getElementById('depositAmount').textContent = 
+    Math.round(depositAmount).toLocaleString();
+  document.getElementById('mortgageAmount').textContent = 
+    Math.round(mortgageAmount).toLocaleString();
+  document.getElementById('totalInterest').textContent = 
+    Math.round(totalInterest).toLocaleString();
+  document.getElementById('legalExpenses').textContent = 
+    Math.round(legalExpenses).toLocaleString();
+  document.getElementById('monthlyPayment').textContent = 
+    monthlyPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function closeCalculatorModal() {
+  document.getElementById('mortgageCalculatorModal').style.display = 'none';
+}
+
+// ==================== MAP FUNCTIONS ====================
+function initPropertyMap(lat, lng, title) {
+  const mapElement = document.getElementById("propertyMap");
+  if (!mapElement) {
+    console.error("Map element not found");
+    return;
+  }
+
+  try {
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      console.error("Invalid coordinates:", lat, lng);
+      showMapPlaceholder(lat, lng);
+      return;
+    }
+
+    // Create a static map display without Google Maps API
+    const mapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    
+    mapElement.innerHTML = `
+    <div class="static-map">
+      <i class="fas fa-map-marked-alt static-map-icon"></i>
+      <h4 class="static-map-title">Property Location</h4>
+      <p class="static-map-coordinates">${completeAddress || 'Location information'}</p>
+      <p class="static-map-coordinates" style="font-size: 12px; opacity: 0.7;">Coordinates: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}</p>
+      <a href="${mapUrl}" target="_blank" class="static-map-link">
+        <i class="fas fa-external-link-alt"></i> View on Google Maps
+      </a>
+    </div>`;
+  } catch (error) {
+    console.error("Error initializing map:", error);
+    showMapPlaceholder(lat, lng);
+  }
+}
+
+function showMapPlaceholder(lat, lng) {
+  const mapElement = document.getElementById("propertyMap");
+  if (!mapElement) return;
+
+  mapElement.innerHTML = `
+  <div class="static-map">
+    <i class="fas fa-map-marked-alt static-map-icon"></i>
+    <h4 class="static-map-title">Property Location</h4>
+    <p class="static-map-coordinates">Map display is currently unavailable</p>
+    ${lat && lng ? 
+      `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="static-map-link">
+        <i class="fas fa-external-link-alt"></i> Open in Google Maps
+      </a>` : 
+      '<p class="static-map-coordinates">No coordinates available</p>'
+    }
+  </div>`;
+}
+
+// ==================== CONTACT INFORMATION FUNCTIONS ====================
+async function getContactInfo(userId) {
+  if (!userId) {
+    return {
+      name: 'Admin User',
+      email: 'admin@bahai.com',
+      phone: '+63 123 456 7890',
+      initials: 'AD'
+    };
+  }
+
+  try {
+    // Fetch user details from Firebase
+    const userDoc = await getDoc(doc(db, "users", userId));
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      
+      // Extract name from user data
+      let fullName = 'Admin User';
+      if (userData.firstName && userData.lastName) {
+        fullName = `${userData.firstName} ${userData.lastName}`;
+      } else if (userData.name) {
+        fullName = userData.name;
+      } else if (userData.fullName) {
+        fullName = userData.fullName;
+      }
+      
+      // Extract email
+      const email = userData.email || 'admin@bahai.com';
+      
+      // Extract phone
+      const phone = userData.phone || userData.phoneNumber || '+63 123 456 7890';
+      
+      // Generate initials
+      const initials = fullName
+        .split(' ')
+        .map(part => part.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+      
+      return {
+        name: fullName,
+        email: email,
+        phone: phone,
+        initials: initials
+      };
+    } else {
+      // User not found, return default
+      return {
+        name: 'Admin User',
+        email: 'admin@bahai.com',
+        phone: '+63 123 456 7890',
+        initials: 'AD'
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    return {
+      name: 'Admin User',
+      email: 'admin@bahai.com',
+      phone: '+63 123 456 7890',
+      initials: 'AD'
+    };
+  }
+}
+
+// Load property details
+async function loadPropertyDetails() {
+  // If propertyId is not set, show error
+  if (!propertyId) {
+    displayError("No property ID provided. Please check the URL or go back to the properties page.");
+    return;
+  }
+
+  try {
+    console.log("Loading property with ID:", propertyId);
+    
+    // Initialize Firebase
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    
+    const propertyDoc = await getDoc(doc(db, "properties", propertyId));
+    if (!propertyDoc.exists()) {
+      displayError(`Property with ID "${propertyId}" not found in database.`);
+      return;
+    }
+    
+    currentProperty = {
+      id: propertyDoc.id,
+      ...propertyDoc.data()
+    };
+    
+    console.log("Property data loaded:", currentProperty);
+    
+    // Get contact information
+    const contactInfo = await getContactInfo(currentProperty.userId);
+    
+    displayPropertyDetails(currentProperty, contactInfo);
+    
+    showToast("Property details loaded successfully", "success", 2000);
+    
+  } catch (error) {
+    console.error("Error loading property details:", error);
+    displayError("Error loading property details from database. Please try again.");
+  }
+}
+
+function displayPropertyDetails(property, contactInfo) {
+  const container = document.getElementById('propertyDetailsContainer');
+  
+  // Get listing details
+  const listingType = getListingType(property);
+  const displayPrice = getDisplayPrice(property);
+  const typeBadgeText = getTypeBadgeText(listingType);
+  const statusBadge = getStatusBadge(property);
+  const completeAddress = getCompleteAddress(property);
+  
+  // Get images
+  const images = property.photos || property.imageUrls || [];
+  const mainImage = images.length > 0 ? images[0] : getValidImageUrl(property, property.id);
+  
+  // Get amenities
+  const amenities = property.amenities || [];
+  
+  // Use the fetched contact information
+  const userInitials = contactInfo.initials;
+  const userName = contactInfo.name;
+  const userEmail = contactInfo.email;
+  const userPhone = contactInfo.phone;
+  
+  // Build HTML - REMOVED THE DUPLICATE BACK BUTTON IN ACTION BUTTONS SECTION
+  const html = `
+    <div style="margin-bottom: 30px;">
+      <button onclick="window.location.href='admin_properties.html'" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Properties
+      </button>
+    </div>
+
+    <!-- Property Header -->
+    <div class="property-header">
+      <div class="property-badges">
+        <span class="property-badge ${listingType === 'rent' ? 'badge-rent' : listingType === 'lease' ? 'badge-lease' : 'badge-sale'}">
+          ${typeBadgeText}
+        </span>
+        <span class="property-badge ${statusBadge.class}">${statusBadge.text}</span>
+      </div>
+      
+      <h1 class="property-title">${property.title || 'Untitled Property'}</h1>
+      
+      <div class="property-location">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>${completeAddress}</span>
+      </div>
+      
+      <div class="property-stats">
+        <div class="stat-item">
+          <i class="fas fa-bed stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-label">Bedrooms</span>
+            <span class="stat-value">${property.bedrooms || 'N/A'}</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-bath stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-label">Bathrooms</span>
+            <span class="stat-value">${property.bathrooms || 'N/A'}</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-ruler-combined stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-label">Floor Area</span>
+            <span class="stat-value">${property.floorArea || property.totalArea || 'N/A'} sqm</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="price-section">
+        <div class="price-label">Price</div>
+        <div class="price-value">${displayPrice}</div>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="two-column-layout">
+      <!-- Main Content Column -->
+      <div>
+        <!-- Image Gallery -->
+        <div class="property-gallery">
+          <div class="main-image-container">
+            <img src="${mainImage}" alt="${property.title}" id="mainPropertyImage" class="main-property-image">
+            ${images.length > 1 ? `
+            <div class="image-navigation">
+              <button class="image-nav-btn prev-btn">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button class="image-nav-btn next-btn">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="image-counter">
+              1 / ${images.length}
+            </div>
+            ` : ''}
+          </div>
+          ${images.length > 1 ? `
+          <div class="image-thumbnails">
+            ${images.map((img, index) => `
+            <div class="thumbnail ${index === 0 ? 'active' : ''}">
+              <img src="${img}" alt="Thumbnail ${index + 1}">
+            </div>
+            `).join('')}
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Property Description -->
+        <div class="property-section">
+          <h3 class="section-title">
+            <i class="fas fa-align-left"></i>
+            Property Description
+          </h3>
+          <div class="property-description">
+            ${property.description || 'No description available.'}
+          </div>
+        </div>
+
+        <!-- Property Features -->
+        ${amenities.length > 0 ? `
+        <div class="property-section">
+          <h3 class="section-title">
+            <i class="fas fa-star"></i>
+            Features & Amenities
+          </h3>
+          <div class="amenities-grid">
+            ${amenities.map(amenity => `
+            <div class="amenity-item">
+              <i class="fas fa-check-circle"></i>
+              <span>${amenity}</span>
+            </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Location Map -->
+        ${property.latitude && property.longitude ? `
+        <div class="property-section">
+          <h3 class="section-title">
+            <i class="fas fa-map-marked-alt"></i>
+            Property Location
+          </h3>
+          <div id="propertyMap"></div>
+        </div>
+        ` : ''}
+      </div>
+
+      <!-- Sidebar Column -->
+      <div>
+        <!-- Contact Card - REMOVED STICKY POSITIONING -->
+        <div class="contact-card">
+          <h3 class="contact-header">
+            <i class="fas fa-user-circle"></i>
+            Contact Information
+          </h3>
+          <div class="contact-info">
+            <div class="contact-avatar">
+              ${userInitials}
+            </div>
+            <div class="contact-details">
+              <h4 class="contact-name">${userName}</h4>
+              <p class="contact-role">Property Owner</p>
+            </div>
+          </div>
+          <div class="contact-methods">
+            <div class="contact-method">
+              <i class="fas fa-envelope"></i>
+              <div>
+                <div class="method-label">Email</div>
+                <div class="method-value">${userEmail}</div>
+              </div>
+            </div>
+            <div class="contact-method">
+              <i class="fas fa-phone"></i>
+              <div>
+                <div class="method-label">Phone</div>
+                <div class="method-value">${userPhone}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Details -->
+        <div class="pricing-card">
+          <h3 class="pricing-title">
+            <i class="fas fa-money-bill-wave"></i>
+            Pricing Details
+          </h3>
+          <div class="pricing-details">
+            ${property.monthlyRent ? `
+            <div class="pricing-item">
+              <span class="pricing-label">Monthly Rent:</span>
+              <span class="pricing-value">₱${property.monthlyRent.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${property.annualRent ? `
+            <div class="pricing-item">
+              <span class="pricing-label">Annual Rent:</span>
+              <span class="pricing-value">₱${property.annualRent.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${property.pricing ? `
+            <div class="pricing-item">
+              <span class="pricing-label">Sale Price:</span>
+              <span class="pricing-value">₱${property.pricing.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${property.salePrice ? `
+            <div class="pricing-item">
+              <span class="pricing-label">Sale Price:</span>
+              <span class="pricing-value">₱${property.salePrice.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${property.securityDeposit ? `
+            <div class="pricing-item">
+              <span class="pricing-label">Security Deposit:</span>
+              <span class="pricing-value">₱${property.securityDeposit.toLocaleString()}</span>
+            </div>
+            ` : ''}
+            ${property.securityBond ? `
+            <div class="pricing-item">
+              <span class="pricing-label">Security Bond:</span>
+              <span class="pricing-value">₱${property.securityBond.toLocaleString()}</span>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons - REMOVED DUPLICATE BACK BUTTON -->
+    <div class="property-actions">
+      <button class="action-btn-large calculator-btn" onclick="showMortgageCalculatorModal()">
+        <i class="fas fa-calculator"></i> Mortgage Calculator
+      </button>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  
+  // Initialize image navigation if there are multiple images
+  if (images.length > 1) {
+    initializeImageNavigation(images);
+  }
+  
+  // Initialize map if coordinates exist
+  if (property.latitude && property.longitude) {
+    setTimeout(() => {
+      initPropertyMap(property.latitude, property.longitude, property.title);
+    }, 500);
+  }
+}
+
+function displayError(message) {
+  const container = document.getElementById('propertyDetailsContainer');
+  container.innerHTML = `
+    <div class="error-state">
+      <div class="error-icon">⚠️</div>
+      <h3 style="color: var(--danger); margin-bottom: 15px;">Failed to load property</h3>
+      <p style="color: var(--text-light); margin-bottom: 20px;">${message}</p>
+      <p style="color: var(--text-light); margin-bottom: 30px; font-size: 14px;">
+        Property ID: <code>${propertyId || 'Not found'}</code>
+      </p>
+      <div style="display: flex; gap: 15px; justify-content: center;">
+        <button onclick="window.location.href='admin_properties.html'" class="back-button">
+          <i class="fas fa-arrow-left"></i> Back to Properties
+        </button>
+        <button onclick="location.reload()" class="back-button" style="background: linear-gradient(135deg, var(--secondary), #2563eb);">
+          <i class="fas fa-redo"></i> Retry Loading
+        </button>
+      </div>
+    </div>`;
+}
+
+// Mobile menu functionality
+document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('active');
+});
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+  const sidebar = document.getElementById('sidebar');
+  const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  
+  if (window.innerWidth <= 1024 && 
+      sidebar.classList.contains('active') && 
+      !sidebar.contains(event.target) && 
+      !mobileMenuToggle.contains(event.target)) {
+    sidebar.classList.remove('active');
+  }
+});
+
+// Close mobile menu with Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && window.innerWidth <= 1024) {
+    document.getElementById('sidebar').classList.remove('active');
+  }
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Property details page loaded');
+  console.log('Property ID:', propertyId);
+  console.log('Full URL:', window.location.href);
+  
+  if (propertyId) {
+    loadPropertyDetails();
+  } else {
+    // Already handled by the early check
+    console.error('No property ID available');
+  }
+});
+
+// Export functions to global scope
+window.showMortgageCalculatorModal = showMortgageCalculatorModal;
+window.closeCalculatorModal = closeCalculatorModal;
+</script>
+
+</body>
+</html>

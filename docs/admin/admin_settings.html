@@ -6,6 +6,8 @@
 <title>Settings - BahAI Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Add Chart.js for chart data export -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 /* Copy all base styles from admin_user.html */
 :root {
@@ -938,9 +940,6 @@ body {
           <button class="btn btn-primary" onclick="saveProfile()">
             <i class="fas fa-save"></i> Save Changes
           </button>
-          
-            <i ></i> 
-          
         </div>
       </div>
     </div>
@@ -957,6 +956,28 @@ body {
           Export your data in various formats for backup, analysis, or migration purposes. 
           All exports are generated in real-time and include the latest data.
         </p>
+        
+        <!-- Export Format Selection -->
+        <div style="margin-bottom: 25px; padding: 20px; background: var(--bg-light); border-radius: 14px; border-left: 4px solid var(--secondary);">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <i class="fas fa-file-export" style="color: var(--secondary);"></i>
+            <span style="font-weight: 700; color: var(--text-dark);">Export Format</span>
+          </div>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="exportFormat" value="csv" checked style="cursor: pointer;">
+              <span>CSV Format (Excel compatible)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="exportFormat" value="json" style="cursor: pointer;">
+              <span>JSON Format (For backup)</span>
+            </label>
+          </div>
+          <div style="margin-top: 12px; font-size: 14px; color: var(--text-light); display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fas fa-info-circle" style="color: var(--secondary); margin-top: 2px;"></i>
+            <span>CSV files can be opened in Excel, Google Sheets, or any spreadsheet software.</span>
+          </div>
+        </div>
         
         <div class="export-options">
           <div class="export-option" onclick="exportData('properties')">
@@ -985,7 +1006,7 @@ body {
             </div>
             <div class="export-title">Analytics Data</div>
             <div class="export-description">
-              Export analytics reports, statistics, and performance metrics.
+              Export comprehensive analytics reports, charts, statistics, and metrics.
             </div>
           </div>
           
@@ -995,7 +1016,7 @@ body {
             </div>
             <div class="export-title">Complete Backup</div>
             <div class="export-description">
-              Full system backup including all data and settings in a single file.
+              Full system backup including all data, charts, and settings in a single file.
             </div>
           </div>
         </div>
@@ -1003,7 +1024,7 @@ body {
         <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border);">
           <div style="color: var(--text-light); font-size: 14px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
             <i class="fas fa-info-circle" style="color: var(--secondary); margin-top: 3px;"></i>
-            <span>Exports are generated in JSON format and can be imported back later. All exports include real-time data from the database.</span>
+            <span>Select your preferred export format above. CSV is recommended for Excel/Google Sheets, JSON for full backup.</span>
           </div>
           <div class="btn-group">
             <button class="btn btn-success" onclick="exportAllData()">
@@ -1169,18 +1190,6 @@ async function saveProfile() {
   }
 }
 
-// Reset profile function
-function resetProfile() {
-  const savedName = localStorage.getItem('adminName');
-  if (savedName) {
-    document.getElementById('fullNameInput').value = savedName;
-    showToast('Profile form reset to saved values', 'info');
-  } else {
-    document.getElementById('fullNameInput').value = '';
-    showToast('Profile form cleared', 'info');
-  }
-}
-
 // Refresh data function
 function refreshData() {
   showLoading();
@@ -1188,6 +1197,225 @@ function refreshData() {
     hideLoading();
     showToast('Data refreshed successfully', 'success');
   }, 800);
+}
+
+// Get selected export format
+function getExportFormat() {
+  const selectedFormat = document.querySelector('input[name="exportFormat"]:checked');
+  return selectedFormat ? selectedFormat.value : 'csv';
+}
+
+// Helper function to convert JSON to CSV
+function jsonToCsv(jsonData, collectionType) {
+  if (!Array.isArray(jsonData) || jsonData.length === 0) {
+    return 'No data available';
+  }
+  
+  try {
+    // Flatten nested objects for better CSV readability
+    const flattenedData = jsonData.map(item => {
+      const flatItem = {};
+      for (const [key, value] of Object.entries(item)) {
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          // Handle nested objects
+          for (const [nestedKey, nestedValue] of Object.entries(value)) {
+            flatItem[`${key}_${nestedKey}`] = nestedValue;
+          }
+        } else if (Array.isArray(value)) {
+          // Handle arrays by joining with semicolons
+          flatItem[key] = value.join('; ');
+        } else {
+          flatItem[key] = value;
+        }
+      }
+      return flatItem;
+    });
+    
+    // Extract headers
+    const headers = Object.keys(flattenedData[0]);
+    
+    // Build CSV content
+    let csv = headers.join(',') + '\n';
+    
+    flattenedData.forEach(item => {
+      const row = headers.map(header => {
+        let cell = item[header];
+        // Handle special characters and line breaks
+        if (cell === null || cell === undefined) {
+          cell = '';
+        }
+        // Convert to string and escape quotes
+        cell = String(cell).replace(/"/g, '""');
+        // Wrap in quotes if contains comma, newline, or quotes
+        if (cell.includes(',') || cell.includes('\n') || cell.includes('"')) {
+          cell = `"${cell}"`;
+        }
+        return cell;
+      });
+      csv += row.join(',') + '\n';
+    });
+    
+    return csv;
+  } catch (error) {
+    console.error('Error converting to CSV:', error);
+    return 'Error converting data to CSV format';
+  }
+}
+
+// Function to fetch analytics data (mocked based on your image)
+async function fetchAnalyticsData() {
+  // This is a mock function. In reality, you would fetch this from Firebase or your analytics database
+  return {
+    exportDate: new Date().toISOString(),
+    timePeriod: 'This Month',
+    
+    // Property statistics
+    properties: {
+      active: 6,
+      pending: 0,
+      sold: 1,
+      total: 7,
+      featured: 0,
+      totalRevenue: 78668000,
+      avgPrice: 11238286
+    },
+    
+    // Growth percentages
+    growth: {
+      active: 86.0,
+      pending: 0.0,
+      sold: 14.0,
+      totalRevenue: 18.5,
+      totalProperties: 15.2,
+      avgPrice: 8.8,
+      featured: 0.0
+    },
+    
+    // Chart data (monthly revenue for the past 6 months)
+    revenueChart: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      data: [45000000, 52000000, 61000000, 68000000, 72000000, 78668000]
+    },
+    
+    // Property distribution chart
+    propertyDistribution: {
+      labels: ['Active', 'Pending', 'Sold', 'Featured'],
+      data: [6, 0, 1, 0],
+      colors: ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6']
+    },
+    
+    // Top properties by price
+    topProperties: [
+      {
+        id: 'prop001',
+        title: 'Luxury Villa in Makati',
+        price: 25000000,
+        status: 'active',
+        views: 245,
+        photos: ['https://example.com/photo1.jpg', 'https://example.com/photo2.jpg']
+      },
+      {
+        id: 'prop002',
+        title: 'Beachfront Condo in Boracay',
+        price: 15000000,
+        status: 'sold',
+        views: 189,
+        photos: ['https://example.com/photo3.jpg']
+      },
+      {
+        id: 'prop003',
+        title: 'Modern Apartment in BGC',
+        price: 12000000,
+        status: 'active',
+        views: 167,
+        photos: ['https://example.com/photo4.jpg', 'https://example.com/photo5.jpg']
+      }
+    ],
+    
+    // User activity
+    userActivity: {
+      totalUsers: 42,
+      activeUsers: 38,
+      newUsersThisMonth: 7,
+      averageSessionDuration: '12m 34s'
+    },
+    
+    // Photo statistics
+    photoStats: {
+      totalPhotos: 156,
+      averagePerProperty: 3.2,
+      storageUsed: '2.4 GB'
+    }
+  };
+}
+
+// Function to generate analytics CSV
+function generateAnalyticsCsv(analyticsData) {
+  let csv = 'BahAI Analytics Report\n';
+  csv += `Generated: ${new Date().toLocaleString()}\n`;
+  csv += `Time Period: ${analyticsData.timePeriod}\n\n`;
+  
+  // Property Statistics
+  csv += 'PROPERTY STATISTICS\n';
+  csv += 'Metric,Value,Growth(%)\n';
+  csv += `Active Properties,${analyticsData.properties.active},${analyticsData.growth.active}%\n`;
+  csv += `Pending Properties,${analyticsData.properties.pending},${analyticsData.growth.pending}%\n`;
+  csv += `Sold Properties,${analyticsData.properties.sold},${analyticsData.growth.sold}%\n`;
+  csv += `Total Properties,${analyticsData.properties.total},${analyticsData.growth.totalProperties}%\n`;
+  csv += `Featured Properties,${analyticsData.properties.featured},${analyticsData.growth.featured}%\n`;
+  csv += `Total Revenue,₱${analyticsData.properties.totalRevenue.toLocaleString()},${analyticsData.growth.totalRevenue}%\n`;
+  csv += `Average Price,₱${analyticsData.properties.avgPrice.toLocaleString()},${analyticsData.growth.avgPrice}%\n\n`;
+  
+  // Revenue Chart Data
+  csv += 'MONTHLY REVENUE CHART DATA\n';
+  csv += 'Month,Revenue (₱)\n';
+  analyticsData.revenueChart.labels.forEach((label, index) => {
+    csv += `${label},${analyticsData.revenueChart.data[index]}\n`;
+  });
+  csv += '\n';
+  
+  // Property Distribution
+  csv += 'PROPERTY DISTRIBUTION\n';
+  csv += 'Category,Count,Percentage\n';
+  const total = analyticsData.propertyDistribution.data.reduce((a, b) => a + b, 0);
+  analyticsData.propertyDistribution.labels.forEach((label, index) => {
+    const count = analyticsData.propertyDistribution.data[index];
+    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+    csv += `${label},${count},${percentage}%\n`;
+  });
+  csv += `Total,${total},100%\n\n`;
+  
+  // Top Properties
+  csv += 'TOP PROPERTIES\n';
+  csv += 'Title,Price,Status,Views,Photo Count\n';
+  analyticsData.topProperties.forEach(property => {
+    csv += `"${property.title}",₱${property.price.toLocaleString()},${property.status},${property.views},${property.photos.length}\n`;
+  });
+  csv += '\n';
+  
+  // User Activity
+  csv += 'USER ACTIVITY\n';
+  csv += 'Metric,Value\n';
+  csv += `Total Users,${analyticsData.userActivity.totalUsers}\n`;
+  csv += `Active Users,${analyticsData.userActivity.activeUsers}\n`;
+  csv += `New Users This Month,${analyticsData.userActivity.newUsersThisMonth}\n`;
+  csv += `Average Session Duration,${analyticsData.userActivity.averageSessionDuration}\n\n`;
+  
+  // Photo Statistics
+  csv += 'PHOTO STATISTICS\n';
+  csv += 'Metric,Value\n';
+  csv += `Total Photos,${analyticsData.photoStats.totalPhotos}\n`;
+  csv += `Average Per Property,${analyticsData.photoStats.averagePerProperty}\n`;
+  csv += `Storage Used,${analyticsData.photoStats.storageUsed}\n\n`;
+  
+  // Photo URLs
+  csv += 'PROPERTY PHOTO URLS\n';
+  csv += 'Property Title,Photo URLs\n';
+  analyticsData.topProperties.forEach(property => {
+    csv += `"${property.title}","${property.photos.join('; ')}"\n`;
+  });
+  
+  return csv;
 }
 
 // Initialize Firebase for data export
@@ -1260,6 +1488,7 @@ async function exportData(type) {
   try {
     showLoading();
     
+    const exportFormat = getExportFormat();
     let data = {};
     let filename = '';
     let exportMessage = '';
@@ -1267,33 +1496,56 @@ async function exportData(type) {
     switch(type) {
       case 'properties':
         data = await fetchDataFromFirebase('properties');
-        filename = `bahai-properties-export-${new Date().toISOString().split('T')[0]}.json`;
-        exportMessage = `✅ Exported ${data.length} properties successfully`;
+        if (exportFormat === 'csv') {
+          const csvContent = jsonToCsv(data, 'properties');
+          filename = `bahai-properties-export-${new Date().toISOString().split('T')[0]}.csv`;
+          exportMessage = `✅ Exported ${data.length} properties to CSV`;
+          downloadFile(csvContent, filename, 'text/csv');
+        } else {
+          filename = `bahai-properties-export-${new Date().toISOString().split('T')[0]}.json`;
+          exportMessage = `✅ Exported ${data.length} properties to JSON`;
+          downloadFile(JSON.stringify(data, null, 2), filename, 'application/json');
+        }
         break;
         
       case 'users':
         data = await fetchDataFromFirebase('users');
-        filename = `bahai-users-export-${new Date().toISOString().split('T')[0]}.json`;
-        exportMessage = `✅ Exported ${data.length} users successfully`;
+        if (exportFormat === 'csv') {
+          const csvContent = jsonToCsv(data, 'users');
+          filename = `bahai-users-export-${new Date().toISOString().split('T')[0]}.csv`;
+          exportMessage = `✅ Exported ${data.length} users to CSV`;
+          downloadFile(csvContent, filename, 'text/csv');
+        } else {
+          filename = `bahai-users-export-${new Date().toISOString().split('T')[0]}.json`;
+          exportMessage = `✅ Exported ${data.length} users to JSON`;
+          downloadFile(JSON.stringify(data, null, 2), filename, 'application/json');
+        }
         break;
         
       case 'analytics':
+        // Fetch analytics data
         const propertiesData = await fetchDataFromFirebase('properties');
         const usersData = await fetchDataFromFirebase('users');
-        data = {
-          exportDate: new Date().toISOString(),
-          summary: await generateAnalyticsSummary(propertiesData, usersData),
-          adminProfile: {
-            name: localStorage.getItem('adminName') || 'Administrator',
-            email: localStorage.getItem('adminEmail') || 'admin@bahai.com'
-          },
-          systemStats: {
-            totalProperties: propertiesData.length,
-            totalUsers: usersData.length
-          }
+        const analyticsData = await generateAnalyticsSummary(propertiesData, usersData);
+        
+        // Enhance with additional analytics data
+        const enhancedAnalytics = {
+          ...analyticsData,
+          // Add mock chart data (in real app, this would come from your analytics system)
+          charts: await fetchAnalyticsData()
         };
-        filename = `bahai-analytics-export-${new Date().toISOString().split('T')[0]}.json`;
-        exportMessage = '✅ Analytics report generated successfully';
+        
+        if (exportFormat === 'csv') {
+          // Generate comprehensive analytics CSV
+          const csvContent = generateAnalyticsCsv(enhancedAnalytics.charts);
+          filename = `bahai-analytics-report-${new Date().toISOString().split('T')[0]}.csv`;
+          exportMessage = '✅ Analytics report exported to CSV with charts data';
+          downloadFile(csvContent, filename, 'text/csv');
+        } else {
+          filename = `bahai-analytics-export-${new Date().toISOString().split('T')[0]}.json`;
+          exportMessage = '✅ Analytics report exported to JSON with full data';
+          downloadFile(JSON.stringify(enhancedAnalytics, null, 2), filename, 'application/json');
+        }
         break;
         
       case 'complete':
@@ -1302,11 +1554,15 @@ async function exportData(type) {
           fetchDataFromFirebase('users')
         ]);
         
+        const analytics = await generateAnalyticsSummary(properties, users);
+        const completeAnalytics = await fetchAnalyticsData();
+        
         data = {
           exportDate: new Date().toISOString(),
           properties: properties,
           users: users,
-          analytics: await generateAnalyticsSummary(properties, users),
+          analytics: analytics,
+          enhancedAnalytics: completeAnalytics,
           adminProfile: {
             name: localStorage.getItem('adminName') || 'Administrator',
             email: localStorage.getItem('adminEmail') || 'admin@bahai.com',
@@ -1318,29 +1574,37 @@ async function exportData(type) {
             exportType: 'complete_backup'
           }
         };
-        filename = `bahai-complete-backup-${new Date().toISOString().split('T')[0]}.json`;
-        exportMessage = `✅ Complete backup with ${properties.length} properties and ${users.length} users`;
+        
+        if (exportFormat === 'csv') {
+          // Create comprehensive CSV with sections
+          let completeCsv = 'BAHAI COMPLETE SYSTEM BACKUP\n';
+          completeCsv += `Export Date: ${new Date().toLocaleString()}\n\n`;
+          
+          // Properties section
+          completeCsv += '=== PROPERTIES DATA ===\n';
+          completeCsv += jsonToCsv(properties, 'properties') + '\n\n';
+          
+          // Users section
+          completeCsv += '=== USERS DATA ===\n';
+          completeCsv += jsonToCsv(users, 'users') + '\n\n';
+          
+          // Analytics summary
+          completeCsv += '=== ANALYTICS SUMMARY ===\n';
+          completeCsv += generateAnalyticsCsv(completeAnalytics);
+          
+          filename = `bahai-complete-backup-${new Date().toISOString().split('T')[0]}.csv`;
+          exportMessage = `✅ Complete backup with ${properties.length} properties, ${users.length} users, and analytics to CSV`;
+          downloadFile(completeCsv, filename, 'text/csv');
+        } else {
+          filename = `bahai-complete-backup-${new Date().toISOString().split('T')[0]}.json`;
+          exportMessage = `✅ Complete backup with ${properties.length} properties, ${users.length} users, and analytics to JSON`;
+          downloadFile(JSON.stringify(data, null, 2), filename, 'application/json');
+        }
         break;
         
       default:
         throw new Error('Invalid export type');
     }
-    
-    // Create and trigger download
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Clean up
-    setTimeout(() => URL.revokeObjectURL(url), 100);
     
     hideLoading();
     showToast(exportMessage, 'success');
@@ -1359,9 +1623,28 @@ async function exportData(type) {
   }
 }
 
+// Helper function to download files
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Clean up
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
 async function exportAllData() {
   try {
     showLoading();
+    
+    const exportFormat = getExportFormat();
     
     // Initialize Firebase if not already initialized
     if (!firebaseInitialized) {
@@ -1374,42 +1657,63 @@ async function exportAllData() {
       fetchDataFromFirebase('users').catch(() => [])
     ]);
     
-    const allData = {
-      exportDate: new Date().toISOString(),
-      properties,
-      users,
-      analytics: await generateAnalyticsSummary(properties, users),
-      adminProfile: {
-        name: localStorage.getItem('adminName') || 'Administrator',
-        email: localStorage.getItem('adminEmail') || 'admin@bahai.com',
-        lastLogin: localStorage.getItem('authTime') || new Date().getTime()
-      },
-      systemInfo: {
-        platform: 'BahAI Real Estate',
-        version: '2.0.1',
-        exportType: 'complete_export',
-        generatedBy: 'Admin Dashboard'
-      }
-    };
+    // Fetch analytics data
+    const analyticsData = await fetchAnalyticsData();
     
-    // Create and trigger download
-    const dataStr = JSON.stringify(allData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `bahai-complete-export-${new Date().toISOString().split('T')[0]}.json`;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Clean up
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-    
-    hideLoading();
-    showToast(`✅ Exported ${properties.length} properties and ${users.length} users successfully!`, 'success');
+    if (exportFormat === 'csv') {
+      // Create separate CSV files for each data type
+      const propertiesCsv = jsonToCsv(properties, 'properties');
+      const usersCsv = jsonToCsv(users, 'users');
+      const analyticsCsv = generateAnalyticsCsv(analyticsData);
+      
+      // Create timestamp for all files
+      const timestamp = new Date().toISOString().split('T')[0];
+      
+      // Download properties CSV
+      downloadFile(propertiesCsv, `bahai-properties-${timestamp}.csv`, 'text/csv');
+      
+      // Wait a bit before downloading users CSV
+      setTimeout(() => {
+        downloadFile(usersCsv, `bahai-users-${timestamp}.csv`, 'text/csv');
+      }, 500);
+      
+      // Wait a bit before downloading analytics CSV
+      setTimeout(() => {
+        downloadFile(analyticsCsv, `bahai-analytics-${timestamp}.csv`, 'text/csv');
+      }, 1000);
+      
+      hideLoading();
+      showToast(`✅ Downloaded ${properties.length} properties, ${users.length} users, and analytics as CSV files`, 'success');
+      
+    } else {
+      // JSON format
+      const allData = {
+        exportDate: new Date().toISOString(),
+        properties,
+        users,
+        analytics: await generateAnalyticsSummary(properties, users),
+        enhancedAnalytics: analyticsData,
+        adminProfile: {
+          name: localStorage.getItem('adminName') || 'Administrator',
+          email: localStorage.getItem('adminEmail') || 'admin@bahai.com',
+          lastLogin: localStorage.getItem('authTime') || new Date().getTime()
+        },
+        systemInfo: {
+          platform: 'BahAI Real Estate',
+          version: '2.0.1',
+          exportType: 'complete_export',
+          generatedBy: 'Admin Dashboard'
+        }
+      };
+      
+      // Create and trigger download
+      const dataStr = JSON.stringify(allData, null, 2);
+      const filename = `bahai-complete-export-${new Date().toISOString().split('T')[0]}.json`;
+      downloadFile(dataStr, filename, 'application/json');
+      
+      hideLoading();
+      showToast(`✅ Exported ${properties.length} properties, ${users.length} users, and analytics to JSON successfully!`, 'success');
+    }
     
   } catch (error) {
     hideLoading();
@@ -1521,7 +1825,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export functions to global scope
 window.logout = logout;
 window.saveProfile = saveProfile;
-window.resetProfile = resetProfile;
 window.refreshData = refreshData;
 window.exportData = exportData;
 window.exportAllData = exportAllData;

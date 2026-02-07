@@ -556,6 +556,18 @@ body {
   border: 1px solid #f59e0b;
 }
 
+.badge.available {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.badge.unavailable {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
 .property-meta {
   display: flex;
   justify-content: space-between;
@@ -1192,6 +1204,8 @@ body {
       <option value="featured">⭐ Featured</option>
       <option value="sold">🏷️ Sold</option>
       <option value="rented">🏠 Rented</option>
+      <option value="available">✅ Available</option>
+      <option value="unavailable">❌ Unavailable</option>
     </select>
     <select class="filter-select" id="typeFilter">
       <option value="">🏠 All Types</option>
@@ -1274,6 +1288,8 @@ body {
               <option value="featured">Featured</option>
               <option value="sold">Sold</option>
               <option value="rented">Rented</option>
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
             </select>
           </div>
           
@@ -1310,17 +1326,6 @@ body {
         </button>
       </form>
     </div>
-  </div>
-</div>
-
-<!-- View Property Modal -->
-<div class="modal" id="viewModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 class="modal-title" id="viewTitle">Property Details</h3>
-      <button class="modal-close" onclick="closeViewModal()">×</button>
-    </div>
-    <div class="modal-body" id="viewBody"></div>
   </div>
 </div>
 
@@ -1380,6 +1385,8 @@ body {
               <option value="featured">Featured</option>
               <option value="sold">Sold</option>
               <option value="rented">Rented</option>
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
             </select>
           </div>
           
@@ -1455,6 +1462,83 @@ let firebaseInitialized = false;
 let allProperties = [];
 let currentEditId = null;
 
+// Helper function to get price based on property type
+function getDisplayPrice(data) {
+  if (data.monthlyRent !== undefined && data.monthlyRent !== null) {
+    return `₱${data.monthlyRent.toLocaleString()}/month`;
+  } else if (data.annualRent !== undefined && data.annualRent !== null) {
+    return `₱${data.annualRent.toLocaleString()}/year`;
+  } else if (data.pricing !== undefined && data.pricing !== null) {
+    return `₱${data.pricing.toLocaleString()}`;
+  } else if (data.salePrice !== undefined && data.salePrice !== null) {
+    return `₱${data.salePrice.toLocaleString()}`;
+  }
+  return '₱0';
+}
+
+// Helper function to get numeric price for sorting
+function getNumericPrice(data) {
+  if (data.monthlyRent !== undefined && data.monthlyRent !== null) {
+    return data.monthlyRent;
+  } else if (data.annualRent !== undefined && data.annualRent !== null) {
+    return data.annualRent;
+  } else if (data.pricing !== undefined && data.pricing !== null) {
+    return data.pricing;
+  } else if (data.salePrice !== undefined && data.salePrice !== null) {
+    return data.salePrice;
+  }
+  return 0;
+}
+
+// Helper function to get property type
+function getPropertyType(data) {
+  if (data.propertyType) return data.propertyType;
+  if (data.type) return data.type;
+  if (data.listingType) return data.listingType;
+  return 'Not specified';
+}
+
+// Helper function to get full location
+function getFullLocation(data) {
+  if (data.location) return data.location;
+  if (data.address) {
+    let location = data.address;
+    if (data.city) location += `, ${data.city}`;
+    if (data.province) location += `, ${data.province}`;
+    return location;
+  }
+  return 'Location not specified';
+}
+
+// Helper function to get bedrooms display
+function getBedroomsDisplay(data) {
+  if (data.bedrooms === 'studio' || data.bedrooms === 0) return 'Studio';
+  return data.bedrooms || 0;
+}
+
+// Helper function to get area display
+function getAreaDisplay(data) {
+  if (data.floorArea) return `${data.floorArea} sqm`;
+  if (data.totalArea) return `${data.totalArea} sqm`;
+  if (data.squareFootage) return data.squareFootage;
+  return 'N/A';
+}
+
+// Helper function to get status badge
+function getStatusBadge(data) {
+  const status = data.status || 'active';
+  switch(status) {
+    case 'active': return { text: 'Active', class: 'active' };
+    case 'pending': return { text: 'Pending', class: 'pending' };
+    case 'sold': return { text: 'Sold', class: 'sold' };
+    case 'rented': return { text: 'Rented', class: 'rented' };
+    case 'featured': return { text: 'Featured', class: 'featured' };
+    case 'available': return { text: 'Available', class: 'available' };
+    case 'unavailable': return { text: 'Unavailable', class: 'unavailable' };
+    default: return { text: status, class: 'pending' };
+  }
+}
+
 // Toast notification function
 function showToast(message, type = 'info', duration = 3000) {
   const toast = document.createElement('div');
@@ -1486,45 +1570,37 @@ function hideLoading() {
   document.getElementById('loadingOverlay').classList.remove('show');
 }
 
-// Function to check ALL possible image field names in database
+// Function to find image from data
 function findImageField(data) {
   console.log('🔍 Searching for image in data:', data);
   
-  // List of possible image field names (including variations)
+  // First check imageUrls array (from landlord forms)
+  if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
+    console.log(`✅ Found image in imageUrls array: ${data.imageUrls[0]}`);
+    return data.imageUrls[0];
+  }
+  
+  // Check photos array (alternative field name)
+  if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
+    console.log(`✅ Found image in photos array: ${data.photos[0]}`);
+    return data.photos[0];
+  }
+  
+  // Check single image fields
   const possibleFields = [
     'image', 'imageUrl', 'img', 'photo', 'picture', 
     'propertyImage', 'mainImage', 'thumbnail',
     'imageURL', 'image_url', 'img_url',
-    'photos', 'images', 'propertyImages',
     'property_image', 'property_picture'
   ];
   
-  // First, check for exact matches
   for (const field of possibleFields) {
     if (data[field] && 
         typeof data[field] === 'string' && 
-        data[field].trim() !== '') {
+        data[field].trim() !== '' &&
+        (data[field].startsWith('http') || data[field].startsWith('https'))) {
       console.log(`✅ Found image in field "${field}": ${data[field]}`);
       return data[field];
-    }
-  }
-  
-  // Check for array of images
-  for (const field of possibleFields) {
-    if (Array.isArray(data[field]) && data[field].length > 0) {
-      console.log(`✅ Found image array in field "${field}": ${data[field][0]}`);
-      return data[field][0];
-    }
-  }
-  
-  // Check for nested objects
-  for (const field of possibleFields) {
-    if (data[field] && typeof data[field] === 'object') {
-      // Try to find url property in nested object
-      if (data[field].url) {
-        console.log(`✅ Found image in nested field "${field}.url": ${data[field].url}`);
-        return data[field].url;
-      }
     }
   }
   
@@ -1534,39 +1610,47 @@ function findImageField(data) {
 
 // Get valid image URL with fallback
 function getValidImageUrl(data, propertyId = '') {
-  console.log('🖼️ Getting image URL for property:', propertyId);
-  
-  // First, try to find image from database
   const foundImage = findImageField(data);
   
   if (foundImage && 
-      foundImage.startsWith('http') && 
-      !foundImage.includes('example.com')) {
-    console.log(`✅ Using database image: ${foundImage}`);
+      (foundImage.startsWith('http') || foundImage.startsWith('https')) && 
+      !foundImage.includes('example.com') &&
+      !foundImage.includes('placeholder.com')) {
     return foundImage;
   }
   
-  // If no valid image found, use consistent default based on property ID
-  const defaultImages = [
-    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
-  ];
+  // Use consistent default based on property type
+  const defaultImages = {
+    'rent': [
+      'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    ],
+    'sale': [
+      'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    ],
+    'lease': [
+      'https://images.unsplash.com/photo-1487956382158-bb926046304a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1497366754035-f200968a6e72?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    ]
+  };
   
-  // Use property ID to get consistent default image
+  const propertyType = data.type || data.listingType || 'sale';
+  const images = defaultImages[propertyType] || defaultImages['sale'];
+  
+  // Use property ID for consistent selection
   let index = 0;
   if (propertyId) {
-    // Create a simple hash from property ID for consistent selection
     const hash = propertyId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    index = hash % defaultImages.length;
+    index = hash % images.length;
   } else {
-    index = Math.floor(Math.random() * defaultImages.length);
+    index = Math.floor(Math.random() * images.length);
   }
   
-  console.log(`⚠️ Using default image ${index + 1}/${defaultImages.length}`);
-  return defaultImages[index];
+  return images[index];
 }
 
 // Initialize Firebase
@@ -1607,48 +1691,53 @@ async function loadProperties() {
     const snapshot = await getDocs(q);
     
     allProperties = [];
-    let imageCount = 0;
     
     snapshot.forEach(doc => {
       const data = doc.data();
       const propertyId = doc.id;
       
-      console.log(`\n📄 Processing property: ${data.title || 'Untitled'} (ID: ${propertyId})`);
+      console.log(`📄 Processing property: ${data.title || 'Untitled'} (ID: ${propertyId})`);
+      console.log('Raw data:', data);
       
-      // Get image URL from database
       const imageUrl = getValidImageUrl(data, propertyId);
-      
-      if (imageUrl && !imageUrl.includes('unsplash.com')) {
-        imageCount++;
-        console.log(`✅ Using database image`);
-      } else {
-        console.log(`⚠️ Using default image`);
-      }
+      const statusBadge = getStatusBadge(data);
       
       allProperties.push({
         id: propertyId,
         title: data.title || 'Untitled Property',
-        pricing: data.pricing || data.price || 0,
-        propertyType: data.propertyType || 'Not specified',
-        bedrooms: data.bedrooms || 0,
+        price: getDisplayPrice(data),
+        numericPrice: getNumericPrice(data),
+        propertyType: getPropertyType(data),
+        propertyCategory: data.propertyCategory || 'Not specified',
+        bedrooms: getBedroomsDisplay(data),
         bathrooms: data.bathrooms || 0,
-        squareFootage: data.squareFootage || data.squareFeet || 'N/A',
+        area: getAreaDisplay(data),
         status: data.status || 'active',
-        location: data.location || 'Location not specified',
+        statusBadge: statusBadge,
+        location: getFullLocation(data),
         description: data.description || 'No description available',
         image: imageUrl,
         featured: data.featured || false,
-        ownerId: data.ownerId || null,
-        userId: data.userId || null,
+        ownerId: data.ownerId || data.userId || null,
+        userId: data.userId || data.ownerId || null,
         createdAt: data.createdAt?.toDate?.() || new Date(),
         updatedAt: data.updatedAt?.toDate?.() || new Date(),
-        // Store raw data for debugging
-        _rawData: data
+        // Store all original data
+        originalData: data,
+        // Additional fields from landlord forms
+        monthlyRent: data.monthlyRent,
+        annualRent: data.annualRent,
+        securityDeposit: data.securityDeposit,
+        securityBond: data.securityBond,
+        minimumStay: data.minimumStay,
+        leaseDuration: data.leaseDuration,
+        amenities: data.amenities || [],
+        latitude: data.latitude,
+        longitude: data.longitude
       });
     });
     
-    console.log(`\n📊 FINAL STATS:`);
-    console.log(`Total properties: ${allProperties.length}`);
+    console.log(`\n📊 FINAL STATS: ${allProperties.length} properties loaded`);
     
     // Update statistics
     updateStats();
@@ -1668,32 +1757,12 @@ async function loadProperties() {
   }
 }
 
-// Set default values when Firebase fails
-function setDefaultValues() {
-  document.getElementById('totalProperties').textContent = '0';
-  document.getElementById('activeProperties').textContent = '0';
-  document.getElementById('featuredProperties').textContent = '0';
-  document.getElementById('soldProperties').textContent = '0';
-  
-  const propertiesGrid = document.getElementById('propertiesGrid');
-  propertiesGrid.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-state-icon">❌</div>
-      <h3>Error Loading Properties</h3>
-      <p style="color: var(--danger); font-size: 14px; margin-bottom: 10px;">Unable to connect to database</p>
-      <p style="margin-bottom: 20px; font-size: 14px;">Check your internet connection and Firebase configuration.</p>
-      <button onclick="loadProperties()" class="btn-action btn-edit" style="background: linear-gradient(135deg, var(--secondary), #2563eb); color: white;">
-        <i class="fas fa-sync-alt"></i> Retry Loading
-      </button>
-    </div>
-  `;
-}
-
+// Update statistics
 function updateStats() {
   const total = allProperties.length;
-  const active = allProperties.filter(p => p.status === 'active').length;
+  const active = allProperties.filter(p => p.status === 'active' || p.status === 'available').length;
   const featured = allProperties.filter(p => p.status === 'featured').length;
-  const sold = allProperties.filter(p => p.status === 'sold').length;
+  const sold = allProperties.filter(p => p.status === 'sold' || p.status === 'rented').length;
   
   document.getElementById('totalProperties').textContent = total;
   document.getElementById('activeProperties').textContent = active;
@@ -1701,6 +1770,13 @@ function updateStats() {
   document.getElementById('soldProperties').textContent = sold;
 }
 
+// Function to view property details in new page
+function viewProperty(propertyId) {
+  // Redirect to property_details.html with the property ID as parameter
+  window.location.href = `property_details.html?id=${propertyId}`;
+}
+
+// Display properties in grid
 function displayProperties(properties) {
   const grid = document.getElementById('propertiesGrid');
   
@@ -1719,15 +1795,7 @@ function displayProperties(properties) {
   }
   
   grid.innerHTML = properties.map(property => {
-    const statusClass = property.status || 'active';
-    const statusText = property.status || 'active';
-    
-    // Format price with commas
-    const formattedPrice = new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      minimumFractionDigits: 0
-    }).format(property.pricing);
+    const statusBadge = property.statusBadge || getStatusBadge(property);
     
     // Format date
     const date = new Date(property.createdAt);
@@ -1736,8 +1804,6 @@ function displayProperties(properties) {
       month: 'short',
       day: 'numeric'
     });
-    
-    console.log(`🖼️ Displaying property "${property.title}" with image: ${property.image}`);
     
     return `
       <div class="property-card" data-id="${property.id}">
@@ -1748,7 +1814,7 @@ function displayProperties(properties) {
                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';" 
                loading="lazy" />
           <div style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.8); color: white; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; letter-spacing: 0.5px;">
-            ${property.status || 'Active'}
+            ${statusBadge.text}
           </div>
         </div>
         <div class="property-content">
@@ -1759,27 +1825,27 @@ function displayProperties(properties) {
                 <i class="fas fa-map-marker-alt"></i> ${property.location.length > 35 ? property.location.substring(0, 35) + '...' : property.location}
               </div>
             </div>
-            <div class="property-price" title="${formattedPrice}">${formattedPrice}</div>
+            <div class="property-price" title="${property.price}">${property.price}</div>
           </div>
           
           <div class="property-details">
             <div class="detail" title="${property.bedrooms} bedrooms">
-              <i class="fas fa-bed"></i> ${property.bedrooms || 0} Beds
+              <i class="fas fa-bed"></i> ${property.bedrooms}
             </div>
             <div class="detail" title="${property.bathrooms} bathrooms">
-              <i class="fas fa-bath"></i> ${property.bathrooms || 0} Baths
+              <i class="fas fa-bath"></i> ${property.bathrooms} Baths
             </div>
-            <div class="detail" title="${property.squareFootage}">
-              <i class="fas fa-vector-square"></i> ${property.squareFootage}
+            <div class="detail" title="${property.area}">
+              <i class="fas fa-vector-square"></i> ${property.area}
             </div>
             <div class="detail" title="${property.propertyType}">
               <i class="fas fa-home"></i> ${property.propertyType}
             </div>
           </div>
           
-          <div class="badge ${statusClass}" title="Status: ${statusText}">
-            <i class="fas fa-${statusText === 'active' ? 'check-circle' : statusText === 'featured' ? 'star' : statusText === 'sold' ? 'tag' : 'clock'}"></i>
-            ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}
+          <div class="badge ${statusBadge.class}" title="Status: ${statusBadge.text}">
+            <i class="fas fa-${statusBadge.text.toLowerCase() === 'active' ? 'check-circle' : statusBadge.text.toLowerCase() === 'featured' ? 'star' : statusBadge.text.toLowerCase() === 'sold' ? 'tag' : 'clock'}"></i>
+            ${statusBadge.text}
           </div>
           
           <div class="property-meta">
@@ -1787,7 +1853,7 @@ function displayProperties(properties) {
               <i class="far fa-calendar-alt"></i> Added: ${formattedDate}
             </div>
             <div class="property-id" style="color: var(--text-light); font-size: 11px; font-family: monospace;">
-              ID: ${property.id.substring(0, 8)}...
+              ${property.propertyCategory || 'Property'}
             </div>
           </div>
           
@@ -1806,6 +1872,53 @@ function displayProperties(properties) {
       </div>
     `;
   }).join('');
+}
+
+// Edit property - populate form with correct fields
+async function editProperty(propertyId) {
+  try {
+    showLoading();
+    const docRef = doc(db, 'properties', propertyId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error('Property not found!');
+    }
+    
+    const property = docSnap.data();
+    currentEditId = propertyId;
+    
+    // Get image from database
+    const foundImage = findImageField(property);
+    
+    // Determine numeric price (for sale properties)
+    let numericPrice = 0;
+    if (property.pricing) numericPrice = property.pricing;
+    else if (property.salePrice) numericPrice = property.salePrice;
+    else if (property.monthlyRent) numericPrice = property.monthlyRent;
+    else if (property.annualRent) numericPrice = property.annualRent;
+    
+    document.getElementById('editId').value = propertyId;
+    document.getElementById('editTitle').value = property.title || '';
+    document.getElementById('editPrice').value = numericPrice;
+    document.getElementById('editType').value = property.propertyType || '';
+    document.getElementById('editBedrooms').value = property.bedrooms || '';
+    document.getElementById('editBathrooms').value = property.bathrooms || '';
+    document.getElementById('editSquareFootage').value = property.floorArea || property.totalArea || '';
+    document.getElementById('editStatus').value = property.status || 'active';
+    document.getElementById('editLocation').value = property.location || property.address || '';
+    document.getElementById('editDescription').value = property.description || '';
+    document.getElementById('editImage').value = foundImage || '';
+    document.getElementById('editOwnerId').value = property.ownerId || '';
+    document.getElementById('editUserId').value = property.userId || '';
+    
+    hideLoading();
+    openEditModal();
+  } catch (error) {
+    hideLoading();
+    console.error('Error loading property for edit:', error);
+    showToast('❌ Error loading property: ' + error.message, 'error');
+  }
 }
 
 // Filter functionality
@@ -1841,216 +1954,17 @@ function applyFilters() {
       filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       break;
     case 'price-high':
-      filtered.sort((a, b) => b.pricing - a.pricing);
+      filtered.sort((a, b) => b.numericPrice - a.numericPrice);
       break;
     case 'price-low':
-      filtered.sort((a, b) => a.pricing - b.pricing);
+      filtered.sort((a, b) => a.numericPrice - b.numericPrice);
       break;
   }
   
   displayProperties(filtered);
 }
 
-// Modal functions
-function openEditModal() {
-  document.getElementById('editModal').classList.add('show');
-}
-
-function closeEditModal() {
-  document.getElementById('editModal').classList.remove('show');
-  document.getElementById('editForm').reset();
-  currentEditId = null;
-}
-
-function openAddModal() {
-  document.getElementById('addModal').classList.add('show');
-}
-
-function closeAddModal() {
-  document.getElementById('addModal').classList.remove('show');
-  document.getElementById('addForm').reset();
-}
-
-function openViewModal() {
-  document.getElementById('viewModal').classList.add('show');
-}
-
-function closeViewModal() {
-  document.getElementById('viewModal').classList.remove('show');
-}
-
-// Property CRUD operations
-async function viewProperty(propertyId) {
-  try {
-    showLoading();
-    const docRef = doc(db, 'properties', propertyId);
-    const docSnap = await getDoc(docRef);
-    
-    if (!docSnap.exists()) {
-      throw new Error('Property not found!');
-    }
-    
-    const property = { id: docSnap.id, ...docSnap.data() };
-    const createdAt = property.createdAt?.toDate?.() || new Date();
-    const updatedAt = property.updatedAt?.toDate?.() || new Date();
-    
-    document.getElementById('viewTitle').textContent = property.title || 'Property Details';
-    
-    const formattedPrice = new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      minimumFractionDigits: 0
-    }).format(property.pricing || property.price || 0);
-    
-    // Get image URL
-    const imageUrl = getValidImageUrl(property, propertyId);
-    
-    document.getElementById('viewBody').innerHTML = `
-      <div style="margin-bottom: 20px; position: relative;">
-        <img src="${imageUrl}" 
-             style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px;"
-             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80';"
-             alt="${property.title || 'Property Image'}" />
-        <div style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 14px;">
-          ${property.status || 'Active'}
-        </div>
-      </div>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-        <div>
-          <div style="margin-bottom: 15px;">
-            <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Price</div>
-            <div style="font-size: 24px; font-weight: 800; color: var(--primary);">${formattedPrice}</div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Property Type</div>
-            <div style="font-weight: 700;"><i class="fas fa-home"></i> ${property.propertyType || 'Not specified'}</div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Status</div>
-            <div><span class="badge ${property.status || 'active'}">${property.status || 'active'}</span></div>
-          </div>
-        </div>
-        
-        <div>
-          <div style="margin-bottom: 15px;">
-            <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Bedrooms</div>
-            <div style="font-weight: 700;"><i class="fas fa-bed"></i> ${property.bedrooms || 0}</div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Bathrooms</div>
-            <div style="font-weight: 700;"><i class="fas fa-bath"></i> ${property.bathrooms || 0}</div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Square Footage</div>
-            <div style="font-weight: 700;"><i class="fas fa-vector-square"></i> ${property.squareFootage || property.squareFeet || 'N/A'}</div>
-          </div>
-        </div>
-      </div>
-      
-      <div style="margin-bottom: 20px;">
-        <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Location</div>
-        <div style="font-weight: 700;"><i class="fas fa-map-marker-alt"></i> ${property.location || 'Location not specified'}</div>
-      </div>
-      
-      <div style="margin-bottom: 20px;">
-        <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Description</div>
-        <div style="line-height: 1.6; background: var(--bg-light); padding: 15px; border-radius: 10px; border: 1px solid var(--border); min-height: 100px;">
-          ${property.description || 'No description provided'}
-        </div>
-      </div>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-        <div>
-          <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Created Date</div>
-          <div style="font-weight: 700;"><i class="far fa-calendar-alt"></i> ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}</div>
-        </div>
-        <div>
-          <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Last Updated</div>
-          <div style="font-weight: 700;"><i class="fas fa-history"></i> ${updatedAt.toLocaleDateString()} ${updatedAt.toLocaleTimeString()}</div>
-        </div>
-      </div>
-      
-      ${property.ownerId ? `
-      <div style="margin-bottom: 10px;">
-        <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">Owner ID</div>
-        <div style="font-weight: 700; font-family: monospace; background: var(--bg-light); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);">
-          ${property.ownerId}
-        </div>
-      </div>
-      ` : ''}
-      
-      ${property.userId ? `
-      <div style="margin-bottom: 10px;">
-        <div style="color: var(--text-light); font-size: 14px; margin-bottom: 5px;">User ID</div>
-        <div style="font-weight: 700; font-family: monospace; background: var(--bg-light); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);">
-          ${property.userId}
-        </div>
-      </div>
-      ` : ''}
-      
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button class="btn-action btn-edit" onclick="editProperty('${property.id}'); closeViewModal();" style="flex: 1; background: linear-gradient(135deg, #fef3c7, #fbbf24); color: #92400e;">
-          <i class="fas fa-edit"></i> Edit Property
-        </button>
-        <button class="btn-action btn-delete" onclick="deleteProperty('${property.id}'); closeViewModal();" style="flex: 1; background: linear-gradient(135deg, var(--danger), #dc2626); color: white;">
-          <i class="fas fa-trash-alt"></i> Delete Property
-        </button>
-      </div>
-    `;
-    
-    hideLoading();
-    openViewModal();
-  } catch (error) {
-    hideLoading();
-    console.error('Error viewing property:', error);
-    showToast('❌ Error loading property details: ' + error.message, 'error');
-  }
-}
-
-async function editProperty(propertyId) {
-  try {
-    showLoading();
-    const docRef = doc(db, 'properties', propertyId);
-    const docSnap = await getDoc(docRef);
-    
-    if (!docSnap.exists()) {
-      throw new Error('Property not found!');
-    }
-    
-    const property = docSnap.data();
-    currentEditId = propertyId;
-    
-    // Find image from database
-    const foundImage = findImageField(property);
-    
-    document.getElementById('editId').value = propertyId;
-    document.getElementById('editTitle').value = property.title || '';
-    document.getElementById('editPrice').value = property.pricing || property.price || 0;
-    document.getElementById('editType').value = property.propertyType || '';
-    document.getElementById('editBedrooms').value = property.bedrooms || '';
-    document.getElementById('editBathrooms').value = property.bathrooms || '';
-    document.getElementById('editSquareFootage').value = property.squareFootage || property.squareFeet || '';
-    document.getElementById('editStatus').value = property.status || 'active';
-    document.getElementById('editLocation').value = property.location || '';
-    document.getElementById('editDescription').value = property.description || '';
-    document.getElementById('editImage').value = foundImage || property.image || '';
-    document.getElementById('editOwnerId').value = property.ownerId || '';
-    document.getElementById('editUserId').value = property.userId || '';
-    
-    hideLoading();
-    openEditModal();
-  } catch (error) {
-    hideLoading();
-    console.error('Error loading property for edit:', error);
-    showToast('❌ Error loading property: ' + error.message, 'error');
-  }
-}
-
+// Delete property
 async function deleteProperty(propertyId) {
   if (!confirm('⚠️ Are you sure you want to delete this property?\n\nThis action cannot be undone and will permanently remove the property from the database.')) {
     return;
@@ -2087,7 +2001,7 @@ async function deleteProperty(propertyId) {
   }
 }
 
-// Form submissions
+// Form submissions - Updated to match landlord field structure
 document.getElementById('editForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
@@ -2106,7 +2020,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
       propertyType: document.getElementById('editType').value,
       bedrooms: parseInt(document.getElementById('editBedrooms').value) || 0,
       bathrooms: parseInt(document.getElementById('editBathrooms').value) || 0,
-      squareFootage: document.getElementById('editSquareFootage').value.trim() || '',
+      floorArea: parseInt(document.getElementById('editSquareFootage').value) || 0,
       status: document.getElementById('editStatus').value,
       location: document.getElementById('editLocation').value.trim(),
       description: document.getElementById('editDescription').value.trim() || '',
@@ -2125,6 +2039,8 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
       allProperties[index] = { 
         ...allProperties[index], 
         ...updatedProperty,
+        price: getDisplayPrice(updatedProperty),
+        numericPrice: getNumericPrice(updatedProperty),
         updatedAt: new Date() 
       };
     }
@@ -2146,6 +2062,7 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
   }
 });
 
+// Add new property
 document.getElementById('addForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
@@ -2162,7 +2079,7 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
       propertyType: document.getElementById('addType').value,
       bedrooms: parseInt(document.getElementById('addBedrooms').value) || 0,
       bathrooms: parseInt(document.getElementById('addBathrooms').value) || 0,
-      squareFootage: document.getElementById('addSquareFootage').value.trim() || '',
+      floorArea: parseInt(document.getElementById('addSquareFootage').value) || 0,
       status: document.getElementById('addStatus').value,
       location: document.getElementById('addLocation').value.trim(),
       description: document.getElementById('addDescription').value.trim() || '',
@@ -2175,10 +2092,15 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
     
     const docRef = await addDoc(collection(db, 'properties'), newProperty);
     
-    // Add to local array with the new ID and current timestamp
+    // Add to local array with the new ID
     const propertyWithId = {
       id: docRef.id,
       ...newProperty,
+      price: getDisplayPrice(newProperty),
+      numericPrice: getNumericPrice(newProperty),
+      statusBadge: getStatusBadge(newProperty),
+      area: getAreaDisplay(newProperty),
+      location: getFullLocation(newProperty),
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -2200,6 +2122,26 @@ document.getElementById('addForm').addEventListener('submit', async function(e) 
     submitBtn.classList.remove('loading');
   }
 });
+
+// Modal functions
+function openEditModal() {
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+  document.getElementById('editForm').reset();
+  currentEditId = null;
+}
+
+function openAddModal() {
+  document.getElementById('addModal').classList.add('show');
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('show');
+  document.getElementById('addForm').reset();
+}
 
 // Refresh button
 document.getElementById('refreshBtn').addEventListener('click', function() {
@@ -2231,7 +2173,6 @@ document.addEventListener('click', function(event) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeEditModal();
-    closeViewModal();
     closeAddModal();
     
     // Close mobile menu on mobile
@@ -2247,25 +2188,37 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeFirebase();
 });
 
-// Auto-refresh every 5 minutes
-setInterval(() => {
-  if (firebaseInitialized) {
-    loadProperties();
-  }
-}, 5 * 60 * 1000); // 5 minutes
-
 // Export functions to global scope
 window.openAddModal = openAddModal;
 window.closeAddModal = closeAddModal;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
-window.openViewModal = openViewModal;
-window.closeViewModal = closeViewModal;
 window.viewProperty = viewProperty;
 window.editProperty = editProperty;
 window.deleteProperty = deleteProperty;
 window.loadProperties = loadProperties;
 window.applyFilters = applyFilters;
+
+// Utility functions for setDefaultValues and other missing functions
+function setDefaultValues() {
+  document.getElementById('totalProperties').textContent = '0';
+  document.getElementById('activeProperties').textContent = '0';
+  document.getElementById('featuredProperties').textContent = '0';
+  document.getElementById('soldProperties').textContent = '0';
+  
+  const propertiesGrid = document.getElementById('propertiesGrid');
+  propertiesGrid.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">❌</div>
+      <h3>Error Loading Properties</h3>
+      <p style="color: var(--danger); font-size: 14px; margin-bottom: 10px;">Unable to connect to database</p>
+      <p style="margin-bottom: 20px; font-size: 14px;">Check your internet connection and Firebase configuration.</p>
+      <button onclick="loadProperties()" class="btn-action btn-edit" style="background: linear-gradient(135deg, var(--secondary), #2563eb); color: white;">
+        <i class="fas fa-sync-alt"></i> Retry Loading
+      </button>
+    </div>
+  `;
+}
 </script>
 </body>
 </html>

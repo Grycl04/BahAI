@@ -787,336 +787,350 @@
   </div>
 
   <script type="module">
-    import { auth, db } from './firebase-common.js';
-    import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { auth, db } from './firebase-common.js';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+// FIX: Add getDoc to imports
+import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    const el = id => document.getElementById(id);
-    const googleProvider = new GoogleAuthProvider();
+const el = id => document.getElementById(id);
+const googleProvider = new GoogleAuthProvider();
 
-    // Password validation function
-    function validatePassword(password) {
-      const minLength = 8;
-      const hasUpper = /[A-Z]/.test(password);
-      const hasLower = /[a-z]/.test(password);
-      const hasNumber = /\d/.test(password);
-      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+// Password validation function
+function validatePassword(password) {
+  const minLength = 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-      if (password.length < minLength) return 'Password must be at least 8 characters long.';
-      if (!hasUpper) return 'Password must include at least one uppercase letter.';
-      if (!hasLower) return 'Password must include at least one lowercase letter.';
-      if (!hasNumber) return 'Password must include at least one number.';
-      if (!hasSpecial) return 'Password must include at least one special character (e.g., !@#$).';
-      return null; // Valid
+  if (password.length < minLength) return 'Password must be at least 8 characters long.';
+  if (!hasUpper) return 'Password must include at least one uppercase letter.';
+  if (!hasLower) return 'Password must include at least one lowercase letter.';
+  if (!hasNumber) return 'Password must include at least one number.';
+  if (!hasSpecial) return 'Password must include at least one special character (e.g., !@#$).';
+  return null; // Valid
+}
+
+// Real-time password strength feedback
+el('password').addEventListener('input', () => {
+  const password = el('password').value;
+  const strengthEl = el('passwordStrength');
+  
+  if (password.length === 0) {
+    strengthEl.textContent = '';
+    strengthEl.className = 'password-strength';
+    return;
+  }
+  
+  const error = validatePassword(password);
+  
+  if (error) {
+    strengthEl.textContent = `Weak: ${error}`;
+    strengthEl.className = 'password-strength strength-weak';
+  } else {
+    // Calculate strength score
+    let score = 0;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+    
+    if (score >= 4) {
+      strengthEl.textContent = 'Strong password!';
+      strengthEl.className = 'password-strength strength-strong';
+    } else {
+      strengthEl.textContent = 'Good password, but could be stronger';
+      strengthEl.className = 'password-strength strength-good';
     }
+  }
+});
 
-    // Real-time password strength feedback
-    el('password').addEventListener('input', () => {
-      const password = el('password').value;
-      const strengthEl = el('passwordStrength');
-      
-      if (password.length === 0) {
-        strengthEl.textContent = '';
-        strengthEl.className = 'password-strength';
+// Password visibility toggle
+el('togglePassword').addEventListener('click', function() {
+  const passwordInput = el('password');
+  const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+  passwordInput.setAttribute('type', type);
+  this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+});
+
+// Form validation
+const fullNameInput = el('fullName');
+const emailInput = el('email');
+const passwordInput = el('password');
+const phoneInput = el('phone');
+const roleSelect = el('role');
+
+const nameError = el('nameError');
+const emailError = el('emailError');
+const passwordError = el('passwordError');
+const phoneError = el('phoneError');
+const roleError = el('roleError');
+
+// Input validation
+fullNameInput.addEventListener('input', function() {
+  if (this.value.trim()) {
+    this.classList.remove('error');
+    nameError.classList.remove('show');
+  }
+});
+
+emailInput.addEventListener('input', function() {
+  if (this.validity.valid) {
+    this.classList.remove('error');
+    emailError.classList.remove('show');
+  }
+});
+
+passwordInput.addEventListener('input', function() {
+  const error = validatePassword(this.value);
+  if (!error) {
+    this.classList.remove('error');
+    passwordError.classList.remove('show');
+  }
+});
+
+phoneInput.addEventListener('input', function() {
+  if (this.value.trim()) {
+    this.classList.remove('error');
+    phoneError.classList.remove('show');
+  }
+});
+
+roleSelect.addEventListener('change', function() {
+  if (this.value) {
+    this.classList.remove('error');
+    roleError.classList.remove('show');
+  }
+});
+
+// Form submission with validation
+el('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const fullName = fullNameInput.value.trim();
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  const phone = phoneInput.value.trim();
+  const role = roleSelect.value;
+
+  let isValid = true;
+  
+  // Validate full name
+  if (!fullName) {
+    fullNameInput.classList.add('error');
+    nameError.classList.add('show');
+    isValid = false;
+  }
+  
+  // Validate email
+  if (!email || !emailInput.validity.valid) {
+    emailInput.classList.add('error');
+    emailError.classList.add('show');
+    isValid = false;
+  }
+  
+  // Validate password
+  const passwordErrorMsg = validatePassword(password);
+  if (passwordErrorMsg) {
+    passwordInput.classList.add('error');
+    passwordError.classList.add('show');
+    passwordError.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${passwordErrorMsg}</span>`;
+    isValid = false;
+  }
+  
+  // Validate phone - basic validation
+  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+  if (!phone || !phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))) {
+    phoneInput.classList.add('error');
+    phoneError.classList.add('show');
+    isValid = false;
+  }
+  
+  // Validate role
+  if (!role) {
+    roleSelect.classList.add('error');
+    roleError.classList.add('show');
+    isValid = false;
+  }
+  
+  if (!isValid) {
+    return;
+  }
+
+  try {
+    const signupBtn = document.querySelector('.btn-primary');
+    signupBtn.disabled = true;
+    signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+    
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    await setDoc(doc(db, 'users', uid), {
+      fullName, email, phone, role,
+      kycStatus: "not_submitted",
+      createdAt: serverTimestamp()
+    });
+
+    // Updated redirect paths to match the login page
+    const dashboardMap = {
+      broker: 'broker/broker_dashboard.html',
+      agent: 'broker/agent_dashboard.html',
+      seller: 'seller/seller_dashboard.html',
+      landlord: 'landlord/landlord_dashboard.html'
+    };
+    
+    const redirectUrl = dashboardMap[role] || 'login.html';
+    
+    showSuccess('✅ Account created successfully! Redirecting...');
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 1500);
+    
+  } catch (err) {
+    showError('❌ Sign up failed: ' + (err.message || 'Unknown error'));
+    const signupBtn = document.querySelector('.btn-primary');
+    signupBtn.disabled = false;
+    signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+  }
+});
+
+// ✅ Google Signup
+el('googleSignupBtn').addEventListener('click', async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    let data;
+    if (!docSnap.exists()) {
+      const role = prompt("Enter your role (broker/agent/seller/landlord):").toLowerCase();
+      // Validate role input
+      const validRoles = ['broker', 'agent', 'seller', 'landlord'];
+      if (!validRoles.includes(role)) {
+        showError("❌ Invalid role. Please enter: broker, agent, seller, or landlord");
         return;
       }
-      
-      const error = validatePassword(password);
-      
-      if (error) {
-        strengthEl.textContent = `Weak: ${error}`;
-        strengthEl.className = 'password-strength strength-weak';
-      } else {
-        // Calculate strength score
-        let score = 0;
-        if (password.length >= 12) score++;
-        if (/[A-Z]/.test(password)) score++;
-        if (/[a-z]/.test(password)) score++;
-        if (/\d/.test(password)) score++;
-        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
-        
-        if (score >= 4) {
-          strengthEl.textContent = 'Strong password!';
-          strengthEl.className = 'password-strength strength-strong';
-        } else {
-          strengthEl.textContent = 'Good password, but could be stronger';
-          strengthEl.className = 'password-strength strength-good';
-        }
-      }
-    });
-
-    // Password visibility toggle
-    el('togglePassword').addEventListener('click', function() {
-      const passwordInput = el('password');
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-      this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-    });
-
-    // Form validation
-    const fullNameInput = el('fullName');
-    const emailInput = el('email');
-    const passwordInput = el('password');
-    const phoneInput = el('phone');
-    const roleSelect = el('role');
-    
-    const nameError = el('nameError');
-    const emailError = el('emailError');
-    const passwordError = el('passwordError');
-    const phoneError = el('phoneError');
-    const roleError = el('roleError');
-
-    // Input validation
-    fullNameInput.addEventListener('input', function() {
-      if (this.value.trim()) {
-        this.classList.remove('error');
-        nameError.classList.remove('show');
-      }
-    });
-    
-    emailInput.addEventListener('input', function() {
-      if (this.validity.valid) {
-        this.classList.remove('error');
-        emailError.classList.remove('show');
-      }
-    });
-    
-    passwordInput.addEventListener('input', function() {
-      const error = validatePassword(this.value);
-      if (!error) {
-        this.classList.remove('error');
-        passwordError.classList.remove('show');
-      }
-    });
-    
-    phoneInput.addEventListener('input', function() {
-      if (this.value.trim()) {
-        this.classList.remove('error');
-        phoneError.classList.remove('show');
-      }
-    });
-    
-    roleSelect.addEventListener('change', function() {
-      if (this.value) {
-        this.classList.remove('error');
-        roleError.classList.remove('show');
-      }
-    });
-
-    // Form submission with validation
-    el('signupForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const fullName = fullNameInput.value.trim();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const phone = phoneInput.value.trim();
-      const role = roleSelect.value;
-
-      let isValid = true;
-      
-      // Validate full name
-      if (!fullName) {
-        fullNameInput.classList.add('error');
-        nameError.classList.add('show');
-        isValid = false;
-      }
-      
-      // Validate email
-      if (!email || !emailInput.validity.valid) {
-        emailInput.classList.add('error');
-        emailError.classList.add('show');
-        isValid = false;
-      }
-      
-      // Validate password
-      const passwordErrorMsg = validatePassword(password);
-      if (passwordErrorMsg) {
-        passwordInput.classList.add('error');
-        passwordError.classList.add('show');
-        passwordError.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${passwordErrorMsg}</span>`;
-        isValid = false;
-      }
-      
-      // Validate phone
-      if (!phone) {
-        phoneInput.classList.add('error');
-        phoneError.classList.add('show');
-        isValid = false;
-      }
-      
-      // Validate role
-      if (!role) {
-        roleSelect.classList.add('error');
-        roleError.classList.add('show');
-        isValid = false;
-      }
-      
-      if (!isValid) {
-        return;
-      }
-
-      try {
-        const signupBtn = el('signupBtn');
-        signupBtn.disabled = true;
-        signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
-        
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = cred.user.uid;
-
-        await setDoc(doc(db, 'users', uid), {
-          fullName, email, phone, role,
-          kycStatus: "not_submitted",
-          createdAt: serverTimestamp()
-        });
-
-        // Updated redirect paths to match the login page
+      data = {
+        fullName: user.displayName,
+        email: user.email,
+        role,
+        kycStatus: "not_submitted",
+        createdAt: serverTimestamp()
+      };
+      await setDoc(userRef, data);
+      showSuccess("✅ Account created! Please complete KYC verification to post properties.");
+      setTimeout(() => {
         const dashboardMap = {
           broker: 'broker/broker_dashboard.html',
           agent: 'broker/agent_dashboard.html',
           seller: 'seller/seller_dashboard.html',
           landlord: 'landlord/landlord_dashboard.html'
         };
-        
-        const redirectUrl = dashboardMap[role] || 'login.html';
-        
-        showSuccess('✅ Account created successfully! Redirecting...');
-        setTimeout(() => {
-          window.location.href = redirectUrl;
-        }, 1500);
-        
-      } catch (err) {
-        showError('❌ Sign up failed: ' + (err.message || 'Unknown error'));
-        const signupBtn = document.querySelector('.btn-primary');
-        signupBtn.disabled = false;
-        signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-      }
-    });
-
-    // ✅ Google Signup
-    el('googleSignupBtn').addEventListener('click', async () => {
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        const userRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userRef);
-
-        let data;
-        if (!docSnap.exists()) {
-          const role = prompt("Enter your role (buyer/seller/broker/agent/landlord):").toLowerCase();
-          data = {
-            fullName: user.displayName,
-            email: user.email,
-            role,
-            kycStatus: "not_submitted",
-            createdAt: serverTimestamp()
-          };
-          await setDoc(userRef, data);
-          showSuccess("✅ Account created! Please complete KYC verification to post properties.");
-          setTimeout(() => {
-            const dashboardMap = {
-              broker: 'broker/broker_dashboard.html',
-              agent: 'broker/agent_dashboard.html',
-              seller: 'seller/seller_dashboard.html',
-              landlord: 'landlord/landlord_dashboard.html'
-            };
-            window.location.href = dashboardMap[role] || 'login.html';
-          }, 1500);
-          return;
-        } else {
-          data = docSnap.data();
-        }
-
-        // Redirect based on role
-        const dashboardMap = {
-          broker: 'broker/broker_dashboard.html',
-          agent: 'broker/agent_dashboard.html',
-          seller: 'seller/seller_dashboard.html',
-          landlord: 'landlord/landlord_dashboard.html'
-        };
-        window.location.href = dashboardMap[data.role] || 'login.html';
-
-      } catch (error) {
-        showError("❌ Google sign-in failed: " + error.message);
-      }
-    });
-
-    // Allow form submission with Enter key
-    document.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        document.querySelector('.btn-primary').click();
-      }
-    });
-    
-    // UI feedback functions (same as login page)
-    function showError(message) {
-      const errorDiv = document.createElement('div');
-      errorDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--error);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      errorDiv.textContent = message;
-      document.body.appendChild(errorDiv);
-      
-      setTimeout(() => {
-        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(errorDiv), 300);
-      }, 4000);
+        window.location.href = dashboardMap[role] || 'login.html';
+      }, 1500);
+      return;
+    } else {
+      data = docSnap.data();
     }
-    
-    function showSuccess(message) {
-      const successDiv = document.createElement('div');
-      successDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--success);
-        color: white;
-        padding: 15px 25px;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-      `;
-      successDiv.textContent = message;
-      document.body.appendChild(successDiv);
-      
-      setTimeout(() => {
-        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(successDiv), 300);
-      }, 4000);
-    }
-    
-    // Add CSS for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-      .fa-spinner {
-        animation: spin 1s linear infinite;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
+
+    // Redirect based on role
+    const dashboardMap = {
+      broker: 'broker/broker_dashboard.html',
+      agent: 'broker/agent_dashboard.html',
+      seller: 'seller/seller_dashboard.html',
+      landlord: 'landlord/landlord_dashboard.html'
+    };
+    window.location.href = dashboardMap[data.role] || 'login.html';
+
+  } catch (error) {
+    showError("❌ Google sign-in failed: " + error.message);
+  }
+});
+
+// Allow form submission with Enter key
+document.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+    document.querySelector('.btn-primary').click();
+  }
+});
+
+// UI feedback functions
+function showError(message) {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--error);
+    color: white;
+    padding: 15px 25px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    font-weight: 500;
+    animation: slideInRight 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  `;
+  errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+  document.body.appendChild(errorDiv);
+  
+  setTimeout(() => {
+    errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+    setTimeout(() => document.body.removeChild(errorDiv), 300);
+  }, 4000);
+}
+
+function showSuccess(message) {
+  const successDiv = document.createElement('div');
+  successDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--success);
+    color: white;
+    padding: 15px 25px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    font-weight: 500;
+    animation: slideInRight 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  `;
+  successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+  document.body.appendChild(successDiv);
+  
+  setTimeout(() => {
+    successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+    setTimeout(() => document.body.removeChild(successDiv), 300);
+  }, 4000);
+}
+
+// Add CSS for notifications
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  .fa-spinner {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
   </script>
 </body>
 </html>

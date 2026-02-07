@@ -213,56 +213,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Mobile Google Instructions */
-    .mobile-instructions {
-      display: none;
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: var(--radius-md);
-      padding: 15px;
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    .mobile-instructions.show {
-      display: block;
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    .mobile-steps {
-      text-align: left;
-      margin: 15px 0;
-    }
-
-    .mobile-steps li {
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .copy-email-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-      font-weight: 500;
-      transition: var(--transition);
-      margin: 10px 0;
-    }
-
-    .copy-email-btn:hover {
-      background: var(--primary-dark);
-    }
-
-    .copy-email-btn i {
-      font-size: 14px;
-    }
-
     /* Role Modal Styles */
     .role-modal {
       position: fixed;
@@ -704,9 +654,7 @@
     .btn:focus,
     .forgot-password:focus,
     .signup-link a:focus,
-    .password-toggle:focus,
-    .copy-email-btn:focus,
-    .role-option-btn:focus {
+    .password-toggle:focus {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
@@ -962,23 +910,6 @@
             <i class="fab fa-google"></i>
             Continue with Google
           </button>
-          
-          <!-- Mobile Instructions -->
-          <div id="mobileInstructions" class="mobile-instructions">
-            <p><strong>For Mobile Google Sign-in:</strong></p>
-            <ol class="mobile-steps">
-              <li>1. Copy this email: <strong>bahai.realestate@gmail.com</strong></li>
-              <li>2. Open Gmail app on your phone</li>
-              <li>3. Send a blank email to the copied address</li>
-              <li>4. We'll send you a secure login link</li>
-            </ol>
-            <button type="button" id="copyEmailBtn" class="copy-email-btn">
-              <i class="fas fa-copy"></i> Copy Email Address
-            </button>
-            <p style="font-size: 12px; margin-top: 10px; color: var(--neutral-dark);">
-              <i class="fas fa-info-circle"></i> This is a secure alternative method for mobile devices.
-            </p>
-          </div>
         </div>
       </form>
 
@@ -989,20 +920,11 @@
     </div>
   </div>
 
-  <!-- Initialize mobile check -->
-  <script>
-    // Check if mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-      document.getElementById('mobileInstructions').classList.add('show');
-    }
-  </script>
-
   <!-- Integrated Firebase Login Script -->
   <script type="module">
     // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
     let auth, db;
-    let useRedirect = isMobile; // Use redirect for mobile, popup for desktop
+    let useRedirect = false; // Use popup for all devices
     
     try {
       // Import with fallback
@@ -1061,7 +983,8 @@
     import {
       signInWithEmailAndPassword,
       GoogleAuthProvider,
-      fetchSignInMethodsForEmail
+      fetchSignInMethodsForEmail,
+      signInWithPopup
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     import {
@@ -1070,35 +993,6 @@
       setDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-    // Dynamic import for Google auth methods based on device
-    async function getGoogleAuthMethods() {
-      if (useRedirect) {
-        const { signInWithRedirect, getRedirectResult } = await import(
-          "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-        );
-        return { signInWithRedirect, getRedirectResult };
-      } else {
-        const { signInWithPopup } = await import(
-          "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-        );
-        return { signInWithPopup };
-      }
-    }
-
-    // Handle redirect result if on mobile
-    if (useRedirect) {
-      getGoogleAuthMethods().then(async ({ getRedirectResult }) => {
-        try {
-          const result = await getRedirectResult(auth);
-          if (result) {
-            await handleGoogleSignIn(result.user);
-          }
-        } catch (error) {
-          console.log("No redirect result or error:", error.message);
-        }
-      });
-    }
 
     const googleProvider = new GoogleAuthProvider();
 
@@ -1113,7 +1007,6 @@
     const togglePassword = document.getElementById('togglePassword');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
-    const copyEmailBtn = document.getElementById('copyEmailBtn');
     
     // Password validation requirements
     const requirements = {
@@ -1121,22 +1014,6 @@
       letter: { element: document.getElementById('reqLetter'), test: (pwd) => /[a-zA-Z]/.test(pwd) },
       number: { element: document.getElementById('reqNumber'), test: (pwd) => /\d/.test(pwd) }
     };
-
-    // Copy email button for mobile
-    if (copyEmailBtn) {
-      copyEmailBtn.addEventListener('click', function() {
-        const email = 'bahai.realestate@gmail.com';
-        navigator.clipboard.writeText(email).then(() => {
-          showNotification('success', 'Email address copied to clipboard!');
-          // Open Gmail app or compose
-          setTimeout(() => {
-            window.open('mailto:' + email + '?subject=Login Request&body=Please send me a login link.', '_blank');
-          }, 1000);
-        }).catch(err => {
-          showNotification('error', 'Could not copy email: ' + err.message);
-        });
-      });
-    }
 
     // Password visibility toggle
     togglePassword.addEventListener('click', function() {
@@ -1424,23 +1301,15 @@
           }
         }
        
-        // Get appropriate auth method based on device
-        const authMethods = await getGoogleAuthMethods();
+        // Use popup for all devices
+        const result = await signInWithPopup(auth, googleProvider);
+        await handleGoogleSignIn(result.user);
         
-        if (useRedirect) {
-          // Mobile: Use redirect
-          showNotification('info', 'Redirecting to Google for sign-in...');
-          await authMethods.signInWithRedirect(auth, googleProvider);
-        } else {
-          // Desktop: Use popup
-          const result = await authMethods.signInWithPopup(auth, googleProvider);
-          await handleGoogleSignIn(result.user);
-        }
       } catch (error) {
         let userMessage = 'Google sign-in failed. ';
         
         if (error.code === 'auth/popup-blocked') {
-          userMessage += 'Popup was blocked. Please allow popups or try the mobile alternative.';
+          userMessage += 'Popup was blocked. Please allow popups and try again.';
         } else if (error.code === 'auth/popup-closed-by-user') {
           userMessage += 'Popup was closed. Please try again.';
         } else if (error.code === 'auth/account-exists-with-different-credential') {

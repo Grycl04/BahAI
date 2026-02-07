@@ -580,12 +580,6 @@ tbody tr:hover {
   border: 1px solid #fbbf24;
 }
 
-.badge.verified {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  color: #065f46;
-  border: 1px solid #6ee7b7;
-}
-
 /* Make action buttons more compact */
 .action-buttons {
   display: flex;
@@ -629,6 +623,27 @@ tbody tr:hover {
   color: white;
   transform: translateY(-3px) scale(1.05);
   box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* KYC verification icon styles */
+.kyc-icon {
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.kyc-verified {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.kyc-not-verified {
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.1);
 }
 
 /* Custom scrollbar styling */
@@ -1121,6 +1136,12 @@ tbody tr:hover {
     font-size: 13px;
     min-width: 35px;
   }
+  
+  .kyc-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
 }
 </style>
 </head>
@@ -1219,6 +1240,11 @@ tbody tr:hover {
       <option value="inactive">❌ Inactive</option>
       <option value="pending">⏳ Pending</option>
     </select>
+    <select class="filter-select" id="kycFilter">
+      <option value="">📋 All KYC</option>
+      <option value="verified">✅ Verified</option>
+      <option value="not_verified">❌ Not Verified</option>
+    </select>
   </div>
 
   <div class="table-container">
@@ -1231,12 +1257,13 @@ tbody tr:hover {
             <th>Account Status</th>
             <th>Phone</th>
             <th>Joined Date</th>
+            <th>KYC Verified</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="usersTableBody">
           <tr class="table-loading">
-            <td colspan="6">
+            <td colspan="7">
               <div class="loading-spinner"></div>
               <div>Loading users from database...</div>
             </td>
@@ -1278,10 +1305,11 @@ tbody tr:hover {
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
 <!-- Firebase SDK v9 (modular) -->
 <script type="module">
-// Import Firebase modules - NO AUTHENTICATION NEEDED
+// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { 
   getFirestore, 
@@ -1289,8 +1317,19 @@ import {
   getDocs, 
   doc, 
   getDoc,
-  deleteDoc
+  deleteDoc,
+  updateDoc,
+  query,
+  where,
+  writeBatch,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { 
+  getStorage,
+  ref,
+  listAll,
+  deleteObject
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -1305,10 +1344,80 @@ const firebaseConfig = {
 
 // Global variables
 let db;
+let storage;
 let allUsers = [];
 let currentFilteredUsers = [];
 let currentPage = 1;
 const usersPerPage = 15;
+
+// Helper function to convert Firestore timestamp to Date
+function convertFirestoreTimestamp(timestamp) {
+  if (!timestamp) return new Date();
+  
+  // If it's a Firestore Timestamp object
+  if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate();
+  }
+  
+  // If it's already a Date object
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  
+  // If it's a string that can be parsed as a date
+  if (typeof timestamp === 'string') {
+    const date = new Date(timestamp);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  
+  // If it's an object with seconds/nanoseconds (Firestore format)
+  if (timestamp.seconds && timestamp.nanoseconds) {
+    return new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
+  }
+  
+  // If it's a number (milliseconds or seconds)
+  if (typeof timestamp === 'number') {
+    // Check if it's seconds (Firestore style) or milliseconds
+    if (timestamp < 10000000000) { // If it's less than 10^10, it's probably seconds
+      return new Date(timestamp * 1000);
+    } else {
+      return new Date(timestamp);
+    }
+  }
+  
+  // Default to current date
+  return new Date();
+}
+
+// Helper function to format date for display
+function formatDate(date) {
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return 'N/A';
+  }
+  
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+// Helper function to format date with time for details modal
+function formatDateTime(date) {
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return 'N/A';
+  }
+  
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
 
 // Toast notification function
 function showToast(message, type = 'info', duration = 3000) {
@@ -1388,10 +1497,11 @@ async function initializeFirebase() {
     console.log('🔧 Initializing Firebase...');
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    storage = getStorage(app);
     
     console.log('✅ Firebase initialized successfully');
     
-    // Load users immediately (no authentication needed)
+    // Load users immediately
     await loadUsers();
     
   } catch (error) {
@@ -1409,7 +1519,7 @@ async function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = `
       <tr class="table-loading">
-        <td colspan="6">
+        <td colspan="7">
           <div class="loading-spinner"></div>
           <div>Loading users from database...</div>
         </td>
@@ -1419,7 +1529,7 @@ async function loadUsers() {
     allUsers = [];
     currentPage = 1; // Reset to first page
     
-    // Load ONLY from users collection (not brokers/agents)
+    // Load from users collection
     const usersRef = collection(db, 'users');
     const snapshot = await getDocs(usersRef);
     
@@ -1427,24 +1537,134 @@ async function loadUsers() {
     
     snapshot.forEach(doc => {
       const data = doc.data();
+      const docId = doc.id;
+      
+      // Log all data for debugging
+      console.log(`User ${docId}:`, data);
+      
+      // Get accurate creation date from multiple possible fields
+      let createdAtDate = new Date(); // Default to now
+      
+      // Check multiple possible date fields
+      const dateFields = [
+        'createdAt',
+        'createdDate',
+        'dateCreated',
+        'timestamp',
+        'created',
+        'joinedDate',
+        'registrationDate',
+        'signupDate'
+      ];
+      
+      for (const field of dateFields) {
+        if (data[field]) {
+          const convertedDate = convertFirestoreTimestamp(data[field]);
+          if (convertedDate && !isNaN(convertedDate.getTime())) {
+            createdAtDate = convertedDate;
+            console.log(`📅 User ${docId}: Using date from ${field}: ${createdAtDate}`);
+            break;
+          }
+        }
+      }
+      
+      // Check KYC verification status
+      let kycVerified = false;
+      const userName = data.name || data.displayName || data.fullName || '';
+      
+      // Comprehensive KYC check including "approved" status
+      const verificationFields = [
+        'kycVerified',
+        'kycStatus',
+        'isKYCVerified',
+        'verificationStatus',
+        'verified',
+        'kyc_verified',
+        'kycVerificationStatus',
+        'isVerified'
+      ];
+      
+      for (const field of verificationFields) {
+        if (data[field] !== undefined && data[field] !== null) {
+          const value = data[field];
+          const stringValue = String(value).toLowerCase();
+          
+          // Check for various approved/verified statuses
+          if (value === true || 
+              stringValue === 'true' || 
+              stringValue === 'verified' ||
+              stringValue === 'approved' ||  // ADDED: Check for "approved"
+              stringValue === 'yes' ||
+              stringValue === 'completed' ||
+              stringValue === 'accepted') {
+            kycVerified = true;
+            console.log(`✅ ${userName} is KYC verified via field: ${field} = ${value}`);
+            break;
+          }
+        }
+      }
+      
+      // Special debug for Eloisa Tacla
+      if (userName.toLowerCase().includes('eloisa')) {
+        console.log(`🔍 DEBUG Eloisa Tacla - All fields:`);
+        Object.keys(data).forEach(key => {
+          console.log(`  ${key}: ${data[key]} (type: ${typeof data[key]})`);
+        });
+        console.log(`🔍 KYC Verified status: ${kycVerified}`);
+      }
+      
+      // Debug for Justine Bieber
+      if (userName.toLowerCase().includes('justine')) {
+        console.log(`🔍 DEBUG Justine Bieber - All fields:`);
+        Object.keys(data).forEach(key => {
+          console.log(`  ${key}: ${data[key]} (type: ${typeof data[key]})`);
+        });
+        console.log(`🔍 KYC Verified status: ${kycVerified}`);
+        console.log(`🔍 kycStatus field: ${data.kycStatus}`);
+      }
+      
       allUsers.push({
-        id: doc.id,
+        id: docId,
         collection: 'users',
-        name: data.name || data.displayName || data.fullName || 'No Name',
+        name: userName,
         email: data.email || 'No Email',
         phone: data.phone || data.phoneNumber || data.contactNumber || 'No Phone',
         role: data.role || 'user',
         status: data.status || data.accountStatus || 'active',
         photoURL: data.photoURL || data.profilePicture || null,
-        createdAt: data.createdAt?.toDate?.() || new Date(),
+        createdAt: createdAtDate,
+        createdAtRaw: data.createdAt, // Keep raw for debugging
         address: data.address || 'No Address',
         notes: data.notes || '',
-        verified: data.verified || false,
+        kycVerified: kycVerified,
         active: data.active !== false
       });
     });
     
-    console.log(`✅ Total loaded ${allUsers.length} users from Firestore`);
+    // Log date debugging info
+    console.log('📅 Date debugging:');
+    allUsers.slice(0, 5).forEach(user => {
+      console.log(`  ${user.name}: ${user.createdAt} (raw: ${JSON.stringify(user.createdAtRaw)})`);
+    });
+    
+    // Count statistics
+    const verifiedCount = allUsers.filter(u => u.kycVerified === true).length;
+    const eligibleUsers = allUsers.filter(u => {
+      const role = (u.role || '').toLowerCase();
+      return ['broker', 'landlord', 'agent'].includes(role);
+    });
+    const eligibleVerified = eligibleUsers.filter(u => u.kycVerified === true).length;
+    
+    console.log(`📊 Total users: ${allUsers.length}`);
+    console.log(`✅ Total KYC verified users: ${verifiedCount}`);
+    console.log(`👥 KYC-eligible users (broker/landlord/agent): ${eligibleUsers.length}`);
+    console.log(`✅ KYC-eligible AND verified: ${eligibleVerified}`);
+    
+    // List all KYC verified users for debugging
+    console.log('✅ List of KYC verified users:');
+    allUsers.filter(u => u.kycVerified === true).forEach(user => {
+      console.log(`  - ${user.name} (${user.email}) - Role: ${user.role}`);
+    });
     
     // Update statistics
     updateStats();
@@ -1453,7 +1673,7 @@ async function loadUsers() {
     applyFilters();
     
     hideLoading();
-    showToast(`Successfully loaded ${allUsers.length} users`, 'success');
+    showToast(`Loaded ${allUsers.length} users, ${eligibleVerified} KYC verified`, 'success');
     
   } catch (error) {
     console.error('❌ Error loading users:', error);
@@ -1472,7 +1692,7 @@ function setDefaultValues() {
   const tbody = document.getElementById('usersTableBody');
   tbody.innerHTML = `
     <tr>
-      <td colspan="6" style="text-align: center; padding: 40px;">
+      <td colspan="7" style="text-align: center; padding: 40px;">
         <div style="color: var(--danger); margin-bottom: 15px; font-weight: 600; font-size: 16px;">⚠️ Database Connection Error</div>
         <div style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">Unable to connect to the database server</div>
         <button onclick="loadUsers()" style="background: linear-gradient(135deg, var(--secondary), #2563eb); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
@@ -1504,7 +1724,7 @@ function displayFilteredUsers() {
   if (currentFilteredUsers.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 60px;">
+        <td colspan="7" style="text-align: center; padding: 60px;">
           <div style="font-size: 48px; color: var(--border); margin-bottom: 20px;">👤</div>
           <div style="color: var(--text-dark); font-size: 18px; font-weight: 600; margin-bottom: 10px;">No Users Found</div>
           <div style="color: var(--text-light); font-size: 14px; margin-bottom: 25px;">The database is empty or no users match your search criteria</div>
@@ -1526,24 +1746,38 @@ function displayFilteredUsers() {
   const paginatedUsers = currentFilteredUsers.slice(startIndex, endIndex);
   
   // Sort users by creation date (newest first)
-  paginatedUsers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  paginatedUsers.sort((a, b) => b.createdAt - a.createdAt);
   
   tbody.innerHTML = paginatedUsers.map(user => {
     const initials = user.name 
       ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
       : 'U';
     
-    const formattedDate = user.createdAt ? user.createdAt.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }) : 'N/A';
+    // Use the formatted date function
+    const formattedDate = formatDate(user.createdAt);
     
     // Determine status badge
     const status = user.active === false ? 'inactive' : (user.status || 'active');
     
     // Convert role to lowercase for consistent badge classes
     const roleLower = user.role ? user.role.toLowerCase() : 'user';
+    
+    // Simple KYC icon: green check for verified, dash for not verified
+    // KYC only applies to broker, landlord, and agent
+    const kycRoles = ['broker', 'landlord', 'agent'];
+    const isKYCEligible = kycRoles.includes(roleLower);
+    
+    let kycIcon = '';
+    if (!isKYCEligible) {
+      // Not eligible for KYC - show dash
+      kycIcon = '<div class="kyc-icon kyc-not-verified"><i class="fas fa-minus"></i></div>';
+    } else if (user.kycVerified === true) {
+      // KYC Verified - show green check
+      kycIcon = '<div class="kyc-icon kyc-verified"><i class="fas fa-check"></i></div>';
+    } else {
+      // Eligible but not verified - show dash
+      kycIcon = '<div class="kyc-icon kyc-not-verified"><i class="fas fa-minus"></i></div>';
+    }
     
     return `
       <tr>
@@ -1562,6 +1796,9 @@ function displayFilteredUsers() {
         <td><span class="badge ${status}">${status}</span></td>
         <td>${user.phone}</td>
         <td>${formattedDate}</td>
+        <td>
+          ${kycIcon}
+        </td>
         <td>
           <div class="action-buttons">
             <button class="btn-icon btn-view" onclick="viewUser('${user.id}')" title="View Details">
@@ -1585,11 +1822,13 @@ function displayFilteredUsers() {
 document.getElementById('searchInput').addEventListener('input', applyFilters);
 document.getElementById('roleFilter').addEventListener('change', applyFilters);
 document.getElementById('statusFilter').addEventListener('change', applyFilters);
+document.getElementById('kycFilter').addEventListener('change', applyFilters);
 
 function applyFilters() {
   const searchTerm = document.getElementById('searchInput').value.toLowerCase();
   const roleFilter = document.getElementById('roleFilter').value;
   const statusFilter = document.getElementById('statusFilter').value;
+  const kycFilter = document.getElementById('kycFilter').value;
   
   currentFilteredUsers = allUsers.filter(user => {
     const matchesSearch = !searchTerm ||
@@ -1605,7 +1844,17 @@ function applyFilters() {
     const userStatus = user.active === false ? 'inactive' : (user.status || 'active');
     const matchesStatus = !statusFilter || userStatus === statusFilter;
     
-    return matchesSearch && matchesRole && matchesStatus;
+    // Filter by KYC status
+    let matchesKYC = true;
+    if (kycFilter) {
+      if (kycFilter === 'verified') {
+        matchesKYC = user.kycVerified === true;
+      } else if (kycFilter === 'not_verified') {
+        matchesKYC = user.kycVerified !== true;
+      }
+    }
+    
+    return matchesSearch && matchesRole && matchesStatus && matchesKYC;
   });
   
   // Reset to first page when filtering
@@ -1630,13 +1879,62 @@ async function viewUser(userId) {
     
     document.getElementById('modalTitle').textContent = `👤 ${user.name || user.displayName || 'Unknown User'}`;
     
-    const formattedDate = user.createdAt ? 
-      (user.createdAt.toDate ? user.createdAt.toDate().toLocaleString() : new Date(user.createdAt).toLocaleString()) : 
-      'N/A';
+    // Get accurate dates for display
+    const joinedDate = convertFirestoreTimestamp(user.createdAt || user.createdDate || user.timestamp);
+    const formattedJoinedDate = formatDateTime(joinedDate);
     
-    const lastLoginDate = user.lastLogin ? 
-      (user.lastLogin.toDate ? user.lastLogin.toDate().toLocaleString() : new Date(user.lastLogin).toLocaleString()) : 
-      'Never';
+    const lastLoginDate = user.lastLogin ? convertFirestoreTimestamp(user.lastLogin) : null;
+    const formattedLastLogin = lastLoginDate ? formatDateTime(lastLoginDate) : 'Never';
+    
+    // Check if user is eligible for KYC
+    const kycRoles = ['broker', 'landlord', 'agent'];
+    const userRole = (user.role || '').toLowerCase();
+    const isKYCEligible = kycRoles.includes(userRole);
+    
+    // Determine KYC status
+    let kycStatus = 'Not Verified';
+    let kycIcon = '<i class="fas fa-minus kyc-not-verified"></i>';
+    
+    if (isKYCEligible) {
+      // Comprehensive KYC check for modal (including "approved")
+      let isVerified = false;
+      const verificationFields = [
+        'kycVerified',
+        'kycStatus',
+        'isKYCVerified',
+        'verificationStatus',
+        'verified',
+        'kyc_verified',
+        'kycVerificationStatus',
+        'isVerified'
+      ];
+      
+      for (const field of verificationFields) {
+        if (user[field] !== undefined && user[field] !== null) {
+          const value = user[field];
+          const stringValue = String(value).toLowerCase();
+          
+          // Check for various approved/verified statuses
+          if (value === true || 
+              stringValue === 'true' || 
+              stringValue === 'verified' ||
+              stringValue === 'approved' ||  // ADDED: Check for "approved"
+              stringValue === 'yes' ||
+              stringValue === 'completed' ||
+              stringValue === 'accepted') {
+            isVerified = true;
+            break;
+          }
+        }
+      }
+      
+      if (isVerified) {
+        kycStatus = '✅ Verified';
+        kycIcon = '<i class="fas fa-check kyc-verified"></i>';
+      }
+    } else {
+      kycStatus = 'N/A (Not eligible)';
+    }
     
     document.getElementById('modalBody').innerHTML = `
       <div class="info-grid">
@@ -1658,23 +1956,25 @@ async function viewUser(userId) {
         </div>
         <div class="info-row">
           <span class="info-label">Role:</span>
-          <span class="info-value"><span class="badge ${user.role ? user.role.toLowerCase() : 'user'}">${user.role || 'user'}</span></span>
+          <span class="info-value"><span class="badge ${userRole}">${user.role || 'user'}</span></span>
         </div>
         <div class="info-row">
           <span class="info-label">Status:</span>
           <span class="info-value"><span class="badge ${user.active === false ? 'inactive' : (user.status || 'active')}">${user.active === false ? 'inactive' : (user.status || 'active')}</span></span>
         </div>
         <div class="info-row">
-          <span class="info-label">Verified:</span>
-          <span class="info-value"><span class="badge ${user.verified ? 'verified' : 'not_submitted'}">${user.verified ? '✅ Yes' : '❌ No'}</span></span>
+          <span class="info-label">KYC Verified:</span>
+          <span class="info-value">
+            ${kycIcon} ${kycStatus}
+          </span>
         </div>
         <div class="info-row">
-          <span class="info-label">Created Date:</span>
-          <span class="info-value">${formattedDate}</span>
+          <span class="info-label">Joined Date:</span>
+          <span class="info-value">${formattedJoinedDate}</span>
         </div>
         <div class="info-row">
           <span class="info-label">Last Login:</span>
-          <span class="info-value">${lastLoginDate}</span>
+          <span class="info-value">${formattedLastLogin}</span>
         </div>
         <div class="info-row">
           <span class="info-label">User ID:</span>
@@ -1702,39 +2002,122 @@ async function viewUser(userId) {
   }
 }
 
-function closeUserModal() {
-  document.getElementById('userModal').classList.remove('show');
-}
-
-// Delete user
+// Function to delete user and their listings
 async function deleteUser(userId) {
-  if (!confirm('⚠️ Are you sure you want to delete this user?\n\nThis action cannot be undone and will permanently remove the user from the database.')) {
+  if (!confirm('⚠️ DELETE USER AND ALL DATA\n\nAre you sure you want to delete this user?\n\nThis will permanently delete:\n• User account\n• All property listings\n• Profile images\n• KYC documents\n\nThis action cannot be undone!')) {
     return;
   }
   
   try {
     showLoading();
     
-    // Delete from Firestore
+    // Get user details first
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (!userDoc.exists()) {
+      throw new Error('User not found');
+    }
+    
+    const user = userDoc.data();
+    
+    // Step 1: Delete all properties uploaded by this user
+    console.log('🗑️ Deleting user properties...');
+    const propertiesQuery = query(
+      collection(db, 'properties'),
+      where('userId', '==', userId)
+    );
+    
+    const propertiesSnapshot = await getDocs(propertiesQuery);
+    const deletePromises = [];
+    
+    // Delete property images from storage
+    for (const propertyDoc of propertiesSnapshot.docs) {
+      const propertyData = propertyDoc.data();
+      
+      // Delete property images if they exist
+      if (propertyData.images && Array.isArray(propertyData.images)) {
+        for (const imageUrl of propertyData.images) {
+          try {
+            // Extract the path from the URL
+            const pathStart = imageUrl.indexOf('/o/') + 3;
+            const pathEnd = imageUrl.indexOf('?');
+            if (pathStart > 3 && pathEnd > pathStart) {
+              const filePath = decodeURIComponent(imageUrl.substring(pathStart, pathEnd));
+              const imageRef = ref(storage, filePath);
+              deletePromises.push(deleteObject(imageRef));
+            }
+          } catch (error) {
+            console.warn('Could not delete image:', error);
+          }
+        }
+      }
+      
+      // Delete property document
+      deletePromises.push(deleteDoc(propertyDoc.ref));
+    }
+    
+    // Step 2: Delete user's KYC documents from storage
+    console.log('🗑️ Deleting KYC documents...');
+    if (user.kycDocuments && Array.isArray(user.kycDocuments)) {
+      for (const docUrl of user.kycDocuments) {
+        try {
+          // Extract the path from the URL
+          const pathStart = docUrl.indexOf('/o/') + 3;
+          const pathEnd = docUrl.indexOf('?');
+          if (pathStart > 3 && pathEnd > pathStart) {
+            const filePath = decodeURIComponent(docUrl.substring(pathStart, pathEnd));
+            const docRef = ref(storage, filePath);
+            deletePromises.push(deleteObject(docRef));
+          }
+        } catch (error) {
+          console.warn('Could not delete KYC document:', error);
+        }
+      }
+    }
+    
+    // Step 3: Delete user's profile picture
+    console.log('🗑️ Deleting profile picture...');
+    if (user.photoURL) {
+      try {
+        const pathStart = user.photoURL.indexOf('/o/') + 3;
+        const pathEnd = user.photoURL.indexOf('?');
+        if (pathStart > 3 && pathEnd > pathStart) {
+          const filePath = decodeURIComponent(user.photoURL.substring(pathStart, pathEnd));
+          const profileRef = ref(storage, filePath);
+          deletePromises.push(deleteObject(profileRef));
+        }
+      } catch (error) {
+        console.warn('Could not delete profile picture:', error);
+      }
+    }
+    
+    // Step 4: Wait for all storage deletions to complete
+    await Promise.all(deletePromises);
+    
+    // Step 5: Delete user document from Firestore
+    console.log('🗑️ Deleting user document...');
     await deleteDoc(doc(db, 'users', userId));
     
-    // Remove user from local arrays
+    // Step 6: Update local arrays
     allUsers = allUsers.filter(u => u.id !== userId);
     currentFilteredUsers = currentFilteredUsers.filter(u => u.id !== userId);
     
-    // Update display
+    // Step 7: Update display and stats
     updateStats();
     displayFilteredUsers();
     
     hideLoading();
     
-    showToast('✅ User deleted successfully!', 'success');
+    showToast('✅ User and all associated data deleted successfully!', 'success');
     
   } catch (error) {
     hideLoading();
-    console.error('Error deleting user:', error);
+    console.error('❌ Error deleting user:', error);
     showToast('❌ Error deleting user: ' + error.message, 'error');
   }
+}
+
+function closeUserModal() {
+  document.getElementById('userModal').classList.remove('show');
 }
 
 // Mobile menu toggle
