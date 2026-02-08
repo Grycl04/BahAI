@@ -4,5 +4,5 @@ firebase-admin==6.6.0
 google-cloud-firestore==2.22.0
 gunicorn==21.2.0
 requests==2.31.0
-numpy==2.0.0
+numpy==1.26.4
 scikit-learn==1.4.2
