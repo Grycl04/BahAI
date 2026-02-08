@@ -29,9 +29,6 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 # CONFIGURATION
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH =  os.path.join(PROJECT_ROOT, 'training', 'models', 'nlu_model.pkl')
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Update the training data path to point to training folder
 TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member1', 'training_data.json')
 
 # Global variables
@@ -153,6 +150,9 @@ def load_training_data():
     """Load training data for response templates"""
     global training_data
     
+    print(f"\n🔍 DEBUG: Loading training data from {TRAINING_DATA_PATH}")
+    print(f"📁 TRAINING_DATA_PATH exists: {os.path.exists(TRAINING_DATA_PATH)}")
+    
     try:
         if os.path.exists(TRAINING_DATA_PATH):
             with open(TRAINING_DATA_PATH, 'r', encoding='utf-8') as f:
@@ -164,6 +164,21 @@ def load_training_data():
                 logger.info(f"📊 Found {len(training_data['location_profiles'])} location profiles")
         else:
             logger.warning(f"⚠️ Training data file not found: {TRAINING_DATA_PATH}")
+            
+            # Check if data directory exists
+            data_dir = os.path.dirname(TRAINING_DATA_PATH)
+            print(f"📁 Checking data directory: {data_dir}")
+            print(f"📁 Data directory exists: {os.path.exists(data_dir)}")
+            
+            if os.path.exists(data_dir):
+                print("📁 Contents of data directory:")
+                for item in os.listdir(data_dir):
+                    item_path = os.path.join(data_dir, item)
+                    if os.path.isdir(item_path):
+                        print(f"  📁 {item}/")
+                    else:
+                        print(f"  📄 {item}")
+            
             training_data = {}
     except Exception as e:
         logger.error(f"❌ Error loading training data: {e}")
@@ -173,6 +188,38 @@ def load_training_data():
 def load_nlu_model():
     """Load the trained NLU model from train_nlu.py"""
     global vectorizer, classifier, model_classes
+    
+    print("\n" + "="*60)
+    print("🔍 DEBUG: LOADING NLU MODEL")
+    print("="*60)
+    
+    print(f"📁 Current directory: {os.getcwd()}")
+    print(f"📁 Script location: {os.path.dirname(os.path.abspath(__file__))}")
+    print(f"📁 PROJECT_ROOT: {PROJECT_ROOT}")
+    print(f"📁 MODEL_PATH: {MODEL_PATH}")
+    print(f"📁 MODEL_PATH exists: {os.path.exists(MODEL_PATH)}")
+    
+    if os.path.exists(MODEL_PATH):
+        size = os.path.getsize(MODEL_PATH)
+        print(f"📁 Model file size: {size} bytes")
+    else:
+        print("❌ Model file does not exist at the specified path!")
+        
+        # Check if training directory exists
+        training_dir = os.path.join(PROJECT_ROOT, 'training')
+        print(f"📁 Checking training directory: {training_dir}")
+        print(f"📁 Training directory exists: {os.path.exists(training_dir)}")
+        
+        if os.path.exists(training_dir):
+            print("📁 Contents of training directory:")
+            for item in os.listdir(training_dir):
+                item_path = os.path.join(training_dir, item)
+                if os.path.isdir(item_path):
+                    print(f"  📁 {item}/")
+                else:
+                    print(f"  📄 {item}")
+    
+    print("="*60)
     
     try:
         if os.path.exists(MODEL_PATH):
