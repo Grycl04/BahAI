@@ -7,7 +7,6 @@ const getBackendUrl = () => {
     
     console.log("🌐 Detected hostname:", hostname, "Port:", port);
     
-    // TEMPORARY FIX: Hardcode to your Render backend for testing
     // Check if we're on your frontend domain
     if (hostname.includes('render.com') || 
         hostname.includes('bahai-frontend') ||
@@ -16,8 +15,8 @@ const getBackendUrl = () => {
         return "https://bahai.onrender.com/api/chat";
     } else {
         // For local development
-        console.log("🚀 Using LOCAL backend (localhost:10000)");
-        return "http://localhost:10000/api/chat";
+        console.log("🚀 Using LOCAL backend (localhost:5000)");
+        return "http://localhost:5000/api/chat";
     }
 };
 
