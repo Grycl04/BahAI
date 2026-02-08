@@ -12,9 +12,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from collections import defaultdict
+import time
 
 # Flask imports
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 
 # Firebase imports
@@ -34,33 +35,51 @@ except ImportError:
 warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
 
 # ========== SETUP ==========
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG, 
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": "*",  # Allow all origins for now
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+
+
+# ========== SIMPLE CORS FIX ==========
+# ALLOWED_ORIGINS with your frontend origins
+ALLOWED_ORIGINS = [
+    'https://bahai-frontend.onrender.com',
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+
+# SIMPLE CORS configuration
+CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
+
 @app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+def add_security_headers(response):
+    """Add security headers only"""
+    response.headers.add('X-Content-Type-Options', 'nosniff')
+    response.headers.add('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.add('X-XSS-Protection', '1; mode=block')
     return response
+
 # ========== ROOT ROUTE ==========
 @app.route('/')
 def home():
     """Root endpoint to confirm service is running"""
-    return jsonify({
+    response_data = {
         "service": "Bah.AI Property Chatbot API",
         "status": "online",
-        "version": "3.7.0",  # Updated version
+        "version": "3.8.0",  # Updated version
         "timestamp": datetime.now().isoformat(),
+        "cors_enabled": True,
+        "allowed_origins": ALLOWED_ORIGINS,
         "endpoints": {
             "/": "Service status (GET)",
             "/api/chat": "Chatbot endpoint (POST)",
@@ -75,7 +94,12 @@ def home():
             "landmark_proximity": True,
             "description_checking": True
         }
-    })
+    }
+    
+    response = jsonify(response_data)
+    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
+    return response
+
 @app.route('/api/debug-files', methods=['GET'])
 def debug_files():
     """Debug endpoint to check file paths"""
@@ -111,7 +135,10 @@ def debug_files():
     else:
         debug_info['data_directory'] = 'Directory not found'
     
-    return jsonify(debug_info)
+    response = jsonify(debug_info)
+    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
+    return response
+
 # ========== CONFIGURATION ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_DIR = os.path.join(os.path.dirname(BASE_DIR), "training")
@@ -259,7 +286,6 @@ else:
 
 nlp = None
 
-
 # ========== LOAD TRAINING DATA ==========
 def load_training_data():
     """Load training data for response templates"""
@@ -282,6 +308,7 @@ def load_training_data():
     except Exception as e:
         logger.error(f"❌ Error loading training data: {e}")
         training_data = {}
+
 # ========== LOAD NLU MODEL ==========
 def load_nlu_model():
     """Load the trained NLU model from train_nlu.py"""
@@ -376,6 +403,51 @@ def classify_landmark_type(landmark: str) -> str:
             return 'church'
     
     return 'general'
+
+def fix_intent_for_location_queries(query, original_intent):
+    """
+    Fix intent classification for simple location info queries.
+    These are often misclassified as find_property.
+    """
+    query_lower = query.lower()
+    
+    # Pattern 1: "About [Location]" should be location_info
+    about_pattern = r'^about\s+(.+)$'
+    about_match = re.search(about_pattern, query_lower)
+    if about_match:
+        return 'location_info'
+    
+    # Pattern 2: "Tell me about [Location]" should be location_info
+    tell_me_pattern = r'^tell\s+me\s+about\s+(.+)$'
+    tell_me_match = re.search(tell_me_pattern, query_lower)
+    if tell_me_match:
+        return 'location_info'
+    
+    # Pattern 3: "[Location] information" should be location_info
+    info_pattern = r'^(.+)\s+information$'
+    info_match = re.search(info_pattern, query_lower)
+    if info_match:
+        return 'location_info'
+    
+    # Pattern 4: Simple "cityname" queries (without find/show me) 
+    # Check if it's just a location name without search keywords
+    location_keywords = ['find', 'search', 'look for', 'show me', 'need', 'want', 'looking']
+    has_search_keyword = any(keyword in query_lower for keyword in location_keywords)
+    
+    if not has_search_keyword:
+        # Check if it's a known Batangas location
+        batangas_locations = [
+            'batangas', 'lipa', 'nasugbu', 'tanauan', 'taal', 'calatagan',
+            'mabini', 'malvar', 'bauan', 'balayan', 'san juan', 'sto tomas',
+            'santo tomas', 'tuy', 'lian', 'taysan', 'rosario', 'laurel'
+        ]
+        
+        for location in batangas_locations:
+            if location in query_lower:
+                # If it's just a location name without "find", it's likely location_info
+                return 'location_info'
+    
+    return original_intent
 
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
@@ -1886,10 +1958,22 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             if not price_filter_applied:
                 logger.info("💡 Will apply price filtering client-side")
         
-        # Execute query
+        # Execute query with timeout handling
         limit_count = 50  # Get more for landmark filtering
         logger.info(f"🔍 Executing Firestore query (limit: {limit_count})...")
-        docs = query.limit(limit_count).get()
+        
+        try:
+            # Add timeout for Firestore query
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(lambda: list(query.limit(limit_count).get()))
+                docs = future.result(timeout=10)  # 10 second timeout
+        except concurrent.futures.TimeoutError:
+            logger.error("❌ Firestore query timed out after 10 seconds")
+            return get_mock_properties(entities)
+        except Exception as e:
+            logger.error(f"❌ Firestore query error: {e}")
+            docs = []
         
         property_data_list = []
         status_counts = {}
@@ -2944,7 +3028,7 @@ def determine_intent_fallback(query: str) -> str:
     """Simple rule-based intent detection as fallback"""
     query_lower = query.lower()
 
-        # Family/needs-based queries
+    # Family/needs-based queries
     needs_keywords = [
         'for family', 'for families', 'for couple', 'for couples',
         'for students', 'for professionals', 'for retirees',
@@ -2984,11 +3068,25 @@ def determine_intent_fallback(query: str) -> str:
     return 'unknown'
 
 # ========== API ENDPOINTS ==========
-@app.route('/api/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST', 'OPTIONS'])
 def chat():
     """Main chatbot endpoint"""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else '*'))
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Max-Age', '86400')
+        return response
+    
     try:
-        data = request.json
+        # Parse JSON data
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+        
+        data = request.get_json()
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
         
@@ -3005,7 +3103,7 @@ def chat():
         # Step 1: Predict intent
         intent = "unknown"
         confidence = 0.0
-        
+
         if vectorizer and classifier:
             try:
                 processed_query = preprocess_text(query)
@@ -3014,21 +3112,17 @@ def chat():
                 proba = classifier.predict_proba(X)[0]
                 confidence = float(max(proba))
                 logger.info(f"🎯 Intent: {intent} (confidence: {confidence:.2%})")
-                
-                if confidence < 0.7:
-                    top_indices = np.argsort(proba)[-3:][::-1]
-                    logger.info("   Low confidence alternatives:")
-                    for idx in top_indices:
-                        alt_intent = model_classes[idx] if idx < len(model_classes) else "unknown"
-                        alt_prob = proba[idx]
-                        logger.info(f"     • {alt_intent}: {alt_prob:.2%}")
-                        
             except Exception as e:
                 logger.error(f"❌ Model prediction failed: {e}")
                 intent = determine_intent_fallback(query)
         else:
             intent = determine_intent_fallback(query)
-            # query_lower is already defined above
+
+        # Apply intent correction for location queries
+        original_intent = intent
+        intent = fix_intent_for_location_queries(query, intent)
+        if original_intent != intent:
+            logger.info(f"🔄 Intent corrected: {original_intent} → {intent} for query: '{query}'")
         
         # Define patterns that should be find_property_for_need
         family_need_patterns = [
@@ -3107,7 +3201,9 @@ def chat():
             'google_maps_available': GOOGLE_MAPS_AVAILABLE
         }
         
-        return jsonify(result)
+        response = jsonify(result)
+        response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
+        return response
         
     except Exception as e:
         logger.error(f"❌ Error in chat endpoint: {e}")
@@ -3123,10 +3219,10 @@ def chat():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({
+    response_data = {
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.7.0',
+        'version': '3.8.0',
         'model_loaded': vectorizer is not None and classifier is not None,
         'training_data_loaded': bool(training_data),
         'firebase_connected': db is not None,
@@ -3139,8 +3235,14 @@ def health_check():
         'supports_financing_queries': True,
         'supports_document_queries': True,
         'supports_landmark_queries': True,
-        'timestamp': datetime.now().isoformat()
-    })
+        'timestamp': datetime.now().isoformat(),
+        'cors_enabled': True,
+        'allowed_origins': ALLOWED_ORIGINS
+    }
+    
+    response = jsonify(response_data)
+    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
+    return response
 
 @app.route('/api/test', methods=['GET'])
 def test_endpoint():
@@ -3199,7 +3301,7 @@ def test_endpoint():
                 'error': str(e)
             })
     
-    return jsonify({
+    response_data = {
         'test_results': results,
         'model_status': 'loaded' if vectorizer else 'not loaded',
         'training_data_status': 'loaded' if training_data else 'not loaded',
@@ -3208,14 +3310,50 @@ def test_endpoint():
         'supports_general_searches': True,
         'supports_financing_queries': True,
         'supports_document_queries': True,
-        'supports_landmark_queries': True
+        'supports_landmark_queries': True,
+        'cors_enabled': True
+    }
+    
+    response = jsonify(response_data)
+    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
+    return response
+
+# ========== ERROR HANDLERS ==========
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    response = jsonify({
+        'error': 'Not found',
+        'message': 'The requested endpoint was not found.'
     })
+    response.status_code = 404
+    return response
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    """Handle 405 errors"""
+    response = jsonify({
+        'error': 'Method not allowed',
+        'message': 'The HTTP method is not supported for this endpoint.'
+    })
+    response.status_code = 405
+    return response
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    """Handle 500 errors"""
+    response = jsonify({
+        'error': 'Internal server error',
+        'message': 'An unexpected error occurred on the server.'
+    })
+    response.status_code = 500
+    return response
 
 # ========== MAIN APPLICATION ==========
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.7.0")
-    print("   (With Google Maps integration for landmark proximity)")
+    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.8.0")
+    print("   (With enhanced CORS and timeout handling)")
     print("="*60)
     
     # Load the trained model
@@ -3228,6 +3366,7 @@ if __name__ == '__main__':
     print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
     print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
     print(f"🗺️ Google Maps: {'✅ Available' if GOOGLE_MAPS_AVAILABLE else '❌ Not installed (pip install googlemaps)'}")
+    print(f"🌐 CORS: ✅ Enabled for {len(ALLOWED_ORIGINS)} origins")
     
     if vectorizer:
         print(f"📊 Model intents: {len(model_classes)} intents")
@@ -3256,7 +3395,7 @@ if __name__ == '__main__':
     
     # Get port from environment variable for Render
     port = int(os.environ.get('PORT', 10000))
-    print(f"📡 Server would run on port: {port}")
+    print(f"📡 Server running on port: {port}")
     print("📡 Gunicorn will start the server in production")
     
     # Check for Google Maps API key
@@ -3267,4 +3406,10 @@ if __name__ == '__main__':
     elif GOOGLE_MAPS_AVAILABLE and google_maps_key:
         print("✅ Google Maps API key found")
     
-    app.run(host='0.0.0.0', port=port, debug=False)
+    # Run the Flask app
+    app.run(
+        host='0.0.0.0', 
+        port=port, 
+        debug=False,
+        threaded=True  # Enable threading for better concurrency
+    )
