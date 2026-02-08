@@ -192,6 +192,37 @@ def load_nlu_model():
     print("\n" + "="*60)
     print("🔍 DEBUG: LOADING NLU MODEL - FUNCTION ENTERED")
     print("="*60)
+
+        # ADD MORE DEBUGGING:
+    print("📁 SYSTEM DEBUG INFO:")
+    print(f"   Python version: {sys.version}")
+    print(f"   Current directory: {os.getcwd()}")
+    print(f"   __file__ path: {__file__}")
+    
+    # Check multiple possible model locations
+    print("\n🔍 CHECKING ALL POSSIBLE MODEL PATHS:")
+    
+    possible_paths = [
+        # Primary path from config
+        MODEL_PATH,
+        # Alternative paths
+        os.path.join(PROJECT_ROOT, 'training', 'models', 'nlu_model.pkl'),
+        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),
+        os.path.join(PROJECT_ROOT, 'backend', 'models', 'nlu_model.pkl'),
+        # Relative paths
+        'training/models/nlu_model.pkl',
+        'models/nlu_model.pkl',
+        'backend/models/nlu_model.pkl',
+        # Absolute paths from different starting points
+        os.path.join(os.getcwd(), 'training', 'models', 'nlu_model.pkl'),
+        os.path.join(os.path.dirname(__file__), '..', 'training', 'models', 'nlu_model.pkl'),
+    ]
+    
+    for i, path in enumerate(possible_paths):
+        exists = os.path.exists(path)
+        size = os.path.getsize(path) if exists else 0
+        print(f"   {i+1}. {path}")
+        print(f"      → Exists: {exists}, Size: {size} bytes")
     
     # Add this immediate check
     print(f"📁 Current working directory: {os.getcwd()}")
@@ -2042,67 +2073,50 @@ def test_endpoint():
         'supports_general_searches': True
     })
 
-# ==================== MAIN ====================
+# ==================== MODEL LOADING (RUNS ON IMPORT) ====================
+print("\n" + "="*60)
+print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6")
+print("   (Supports price & bedroom criteria filtering)")
+print("="*60)
+
+print("📝 Step 1: Loading NLU model...")
+load_nlu_model()
+
+print("📝 Step 2: Loading training data...")
+load_training_data()
+
+print("📝 Step 3: Printing status...")
+print(f"\n📂 NLU Model: {'✅ Loaded' if vectorizer else '❌ Not loaded'}")
+print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
+print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
+print(f"🔍 General Searches: {'✅ Supported'}")
+print(f"🔍 Criteria Searches: {'✅ Supported'}")
+
+if vectorizer:
+    print(f"📊 Model intents: {len(model_classes)} intents")
+    print(f"📊 Available intents: {', '.join(model_classes)}")
+else:
+    print("\n⚠️  WARNING: NLU model not loaded!")
+    print("💡 To fix this:")
+    print("   1. Run: python train_nlu.py")
+    print("   2. Make sure models/nlu_model.pkl exists")
+    print("   3. Check the model file path")
+
+print("\n🌐 API Endpoints:")
+print("   POST /api/chat   - Chatbot endpoint")
+print("   GET  /api/health - Health check")
+print("   GET  /api/test   - Test model predictions")
+
+print("\n🔍 Example queries to try:")
+print("   • 'show me houses under 15M with 3 bedrooms' (criteria search)")
+print("   • 'find condos below 10M with 2 bedrooms' (criteria search)")
+print("   • 'find apartments' (general search)")
+print("   • 'show me houses' (general search)")
+print("   • 'find apartments in batangas city' (location-specific)")
+
+print("="*60 + "\n")
+
+# ==================== MAIN BLOCK (for local development only) ====================
 if __name__ == '__main__':
-    print("\n" + "="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6")
-    print("   (Supports price & bedroom criteria filtering)")
-    print("="*60)
-    
-    print("📝 Step 1: Starting to load NLU model...")
-    
-    # Load the trained model
-    load_nlu_model()
-    
-    print("📝 Step 2: Loading training data...")
-    
-    # Load training data for response templates
-    load_training_data()
-    
-    print("📝 Step 3: Printing status...")
-    
-    print(f"\n📂 NLU Model: {'✅ Loaded' if vectorizer else '❌ Not loaded'}")
-    print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
-    print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
-    print(f"🔍 General Searches: {'✅ Supported'}")
-    print(f"🔍 Criteria Searches: {'✅ Supported'}")
-    
-    # Load the trained model
-    load_nlu_model()
-    
-    # Load training data for response templates
-    load_training_data()
-    
-    print(f"\n📂 NLU Model: {'✅ Loaded' if vectorizer else '❌ Not loaded'}")
-    print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
-    print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
-    print(f"📊 spaCy: {'✅ Loaded' if nlp else '❌ Not loaded'}")
-    print(f"🔍 General Searches: {'✅ Supported'}")
-    print(f"🔍 Criteria Searches: {'✅ Supported'}")
-    
-    if vectorizer:
-        print(f"📊 Model intents: {len(model_classes)} intents")
-        print(f"📊 Available intents: {', '.join(model_classes)}")
-    else:
-        print("\n⚠️  WARNING: NLU model not loaded!")
-        print("💡 To fix this:")
-        print("   1. Run: python train_nlu.py")
-        print("   2. Make sure models/nlu_model.pkl exists")
-        print("   3. Check the model file path")
-    
-    print("\n🌐 API Endpoints:")
-    print("   POST /api/chat   - Chatbot endpoint")
-    print("   GET  /api/health - Health check")
-    print("   GET  /api/test   - Test model predictions")
-    
-    print("\n🔍 Example queries to try:")
-    print("   • 'show me houses under 15M with 3 bedrooms' (criteria search)")
-    print("   • 'find condos below 10M with 2 bedrooms' (criteria search)")
-    print("   • 'find apartments' (general search)")
-    print("   • 'show me houses' (general search)")
-    print("   • 'find apartments in batangas city' (location-specific)")
-    
-    print("="*60 + "\n")
-    
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
