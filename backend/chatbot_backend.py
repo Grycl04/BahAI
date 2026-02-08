@@ -48,37 +48,33 @@ print("="*60)
 
 # Initialize Firebase
 try:
-    # Get absolute path to serviceAccountKey.json in root
-    current_dir = os.path.dirname(os.path.abspath(__file__))  # backend directory
-    root_dir = os.path.dirname(current_dir)                    # project root
-    cred_path = os.path.join(root_dir, 'serviceAccountKey.json')
+    # Try to get Firebase credentials from environment variable
+    firebase_json_str = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
     
-    print(f"🔑 Key path: {cred_path}")
-    print(f"📁 File exists: {os.path.exists(cred_path)}")
-    
-    if os.path.exists(cred_path):
-        # Read and check the key
+    if firebase_json_str:
+        print("🔑 Found Firebase credentials in environment variable")
+        
         try:
-            with open(cred_path, 'r') as f:
-                key_data = json.load(f)
+            # Parse the JSON string
+            firebase_credentials = json.loads(firebase_json_str)
             
             print(f"✅ Valid JSON format")
-            print(f"📋 Project ID: {key_data.get('project_id')}")
-            print(f"📧 Client Email: {key_data.get('client_email')}")
+            print(f"📋 Project ID: {firebase_credentials.get('project_id')}")
+            print(f"📧 Client Email: {firebase_credentials.get('client_email')}")
             
             # IMPORTANT: Check if Firebase Admin SDK is already initialized
             if firebase_admin._DEFAULT_APP_NAME in firebase_admin._apps:
                 print("⚠️  Firebase already initialized, using existing app")
                 db = firestore.client()
             else:
-                # Initialize with explicit configuration
-                cred = credentials.Certificate(cred_path)
+                # Initialize with credentials from environment variable
+                cred = credentials.Certificate(firebase_credentials)
                 
                 # Initialize with specific parameters
                 firebase_admin.initialize_app(cred, {
-                    'projectId': 'bahai-1b76d',
-                    'databaseURL': 'https://bahai-1b76d.firebaseio.com',  # Add this
-                    'storageBucket': 'bahai-1b76d.appspot.com',  # Add this
+                    'projectId': firebase_credentials.get('project_id', 'bahai-1b76d'),
+                    'databaseURL': 'https://bahai-1b76d.firebaseio.com',
+                    'storageBucket': 'bahai-1b76d.appspot.com',
                 })
                 
                 print("✅ Firebase Admin SDK initialized")
@@ -90,13 +86,13 @@ try:
             try:
                 print("🔍 Testing Firestore connection...")
                 properties_ref = db.collection('properties')
-                docs = list(properties_ref.get())  # REMOVED .limit(5) to get ALL
+                docs = list(properties_ref.limit(10).get())  # Limit to 10 for testing
                 print(f"📊 Found {len(docs)} properties in database")
                 
                 if docs:
                     print("✅ Firestore connection successful!")
                     
-                    # Show ALL property types and count by type
+                    # Show property types and count
                     property_types = {}
                     for doc in docs:
                         data = doc.to_dict()
@@ -105,13 +101,13 @@ try:
                             property_types[prop_type] = 0
                         property_types[prop_type] += 1
                         
-                    print(f"🔍 Property types found ({len(property_types)} types):")
+                    print(f"🔍 Property types found:")
                     for prop_type, count in property_types.items():
                         print(f"   • {prop_type}: {count} properties")
                     
                     # Show first few properties for debugging
-                    print("\n📋 Sample properties (first 8):")
-                    for i, doc in enumerate(docs[:8]):
+                    print("\n📋 Sample properties:")
+                    for i, doc in enumerate(docs[:5]):
                         data = doc.to_dict()
                         doc_id = doc.id
                         prop_type = data.get('propertyType', data.get('type', 'unknown'))
@@ -125,20 +121,24 @@ try:
             except Exception as e:
                 print(f"⚠️ Firestore query warning: {str(e)}")
                 print("💡 The connection is established but the query failed")
-                print("   This might be normal if the collection is empty")
+                print("   This might be normal if the collection structure is different")
                 
         except json.JSONDecodeError as e:
-            print(f"❌ Invalid JSON in service account key: {e}")
+            print(f"❌ Invalid JSON in environment variable: {e}")
+            print("💡 Make sure FIREBASE_SERVICE_ACCOUNT_JSON contains valid JSON")
             db = None
         except Exception as e:
-            print(f"❌ Error loading service account: {e}")
+            print(f"❌ Error loading Firebase credentials: {e}")
             import traceback
             traceback.print_exc()
             db = None
             
     else:
-        print(f"❌ ERROR: serviceAccountKey.json not found at {cred_path}")
-        print("💡 Make sure the file is in your project root directory")
+        print("❌ FIREBASE_SERVICE_ACCOUNT_JSON environment variable not found")
+        print("💡 Please add your Firebase service account JSON to the environment variable")
+        print("   In Render: Environment → Add Environment Variable")
+        print("   Name: FIREBASE_SERVICE_ACCOUNT_JSON")
+        print("   Value: Your entire service account JSON content")
         db = None
         
 except Exception as e:
@@ -1896,19 +1896,28 @@ def determine_intent_fallback(query: str) -> str:
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
+    # Check if Firebase environment variable exists
+    firebase_env_exists = 'FIREBASE_SERVICE_ACCOUNT_JSON' in os.environ
+    
     return jsonify({
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.6',  # Updated version
-        'model_loaded': vectorizer is not None and classifier is not None,
-        'training_data_loaded': bool(training_data),
+        'version': '3.6',
+        'deployed_url': 'https://bahai.onrender.com',
         'firebase_connected': db is not None,
-        'model_intents': model_classes,
-        'model_features': len(vectorizer.get_feature_names_out()) if vectorizer else 0,
-        'spacy_loaded': nlp is not None,
+        'firebase_env_exists': firebase_env_exists,
+        'model_loaded': vectorizer is not None and classifier is not None,
+        'model_intents': model_classes if vectorizer else [],
+        'training_data_loaded': bool(training_data),
         'supports_general_searches': True,
-        'supports_criteria_searches': True,  # NEW
-        'timestamp': datetime.now().isoformat()
+        'supports_criteria_searches': True,
+        'mock_data_mode': db is None,  # True if using mock data
+        'timestamp': datetime.now().isoformat(),
+        'endpoints': {
+            'chat': '/api/chat (POST)',
+            'health': '/api/health (GET)',
+            'test': '/api/test (GET)'
+        }
     })
 
 @app.route('/api/test', methods=['GET'])
