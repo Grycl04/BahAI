@@ -27,8 +27,12 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # CONFIGURATION
-MODEL_PATH = 'models/nlu_model.pkl'
-TRAINING_DATA_PATH = 'data/member1/training_data.json'
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH =  os.path.join(PROJECT_ROOT, 'training', 'models', 'nlu_model.pkl')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Update the training data path to point to training folder
+TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member1', 'training_data.json')
 
 # Global variables
 vectorizer = None
