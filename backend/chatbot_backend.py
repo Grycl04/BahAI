@@ -190,8 +190,27 @@ def load_nlu_model():
     global vectorizer, classifier, model_classes
     
     print("\n" + "="*60)
-    print("🔍 DEBUG: LOADING NLU MODEL")
+    print("🔍 DEBUG: LOADING NLU MODEL - FUNCTION ENTERED")
     print("="*60)
+    
+    # Add this immediate check
+    print(f"📁 Current working directory: {os.getcwd()}")
+    print(f"📁 __file__: {__file__}")
+    print(f"📁 PROJECT_ROOT calculated as: {PROJECT_ROOT}")
+    print(f"📁 MODEL_PATH calculated as: {MODEL_PATH}")
+    
+    # Try to list files
+    print(f"\n📁 Checking if MODEL_PATH exists: {os.path.exists(MODEL_PATH)}")
+    
+    # Check the training/models directory
+    training_models_dir = os.path.join(PROJECT_ROOT, 'training', 'models')
+    print(f"📁 Checking training/models directory: {training_models_dir}")
+    if os.path.exists(training_models_dir):
+        print("📁 Files in training/models:")
+        for f in os.listdir(training_models_dir):
+            print(f"   - {f}")
+    else:
+        print("❌ training/models directory does not exist!")
     
     print(f"📁 Current directory: {os.getcwd()}")
     print(f"📁 Script location: {os.path.dirname(os.path.abspath(__file__))}")
@@ -2029,6 +2048,24 @@ if __name__ == '__main__':
     print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6")
     print("   (Supports price & bedroom criteria filtering)")
     print("="*60)
+    
+    print("📝 Step 1: Starting to load NLU model...")
+    
+    # Load the trained model
+    load_nlu_model()
+    
+    print("📝 Step 2: Loading training data...")
+    
+    # Load training data for response templates
+    load_training_data()
+    
+    print("📝 Step 3: Printing status...")
+    
+    print(f"\n📂 NLU Model: {'✅ Loaded' if vectorizer else '❌ Not loaded'}")
+    print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
+    print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
+    print(f"🔍 General Searches: {'✅ Supported'}")
+    print(f"🔍 Criteria Searches: {'✅ Supported'}")
     
     # Load the trained model
     load_nlu_model()
