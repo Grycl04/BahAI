@@ -13,7 +13,6 @@ from datetime import datetime
 import logging
 from google.cloud.firestore_v1 import FieldFilter, ArrayRemove, ArrayUnion
 from typing import Dict, List, Any, Optional
-import spacy
 import numpy as np
 import random
 import sys
@@ -144,14 +143,6 @@ except Exception as e:
     traceback.print_exc()
     print("\n⚠️  Switching to mock data mode")
     db = None
-
-# Initialize spaCy for entity extraction
-try:
-    nlp = spacy.load("en_core_web_sm")
-    logger.info("✅ spaCy model loaded for entity extraction")
-except:
-    logger.warning("⚠️ spaCy model not found. Using basic entity extraction.")
-    nlp = None
 
 # Load training data for response templates
 def load_training_data():
