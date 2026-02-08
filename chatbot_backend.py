@@ -1,471 +1,162 @@
-import os
-import json
-import tempfile
-import re
+# backend/chatbot_backend.py - COMPLETE UPDATED VERSION
+from flask import Flask, request, jsonify
+from pathlib import Path
+from flask_cors import CORS
 import pickle
+import firebase_admin
+import warnings
+from firebase_admin import credentials, firestore
+import re
+import json
+import os
+from datetime import datetime
+import logging
+from google.cloud.firestore_v1 import FieldFilter, ArrayRemove, ArrayUnion
+from typing import Dict, List, Any, Optional
+import spacy
 import numpy as np
 import random
 import sys
-import logging
-import warnings
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from collections import defaultdict
-import time
 
-# Flask imports
-from flask import Flask, request, jsonify, make_response
-from flask_cors import CORS
-
-# Firebase imports
-import firebase_admin
-from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1 import FieldFilter
-
-# Google Maps API
-try:
-    import googlemaps
-    GOOGLE_MAPS_AVAILABLE = True
-except ImportError:
-    GOOGLE_MAPS_AVAILABLE = False
-    logging.warning("Google Maps library not installed. Install with: pip install googlemaps")
-
-# Suppress warnings
 warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
-
-# ========== SETUP ==========
-logging.basicConfig(
-    level=logging.DEBUG, 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Create Flask app
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-
-# ========== SIMPLE CORS FIX ==========
-# ALLOWED_ORIGINS with your frontend origins
-ALLOWED_ORIGINS = [
-    'https://bahai-frontend.onrender.com',
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-]
-
-# SIMPLE CORS configuration
-CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
-
-@app.after_request
-def add_security_headers(response):
-    """Add security headers only"""
-    response.headers.add('X-Content-Type-Options', 'nosniff')
-    response.headers.add('X-Frame-Options', 'SAMEORIGIN')
-    response.headers.add('X-XSS-Protection', '1; mode=block')
-    return response
-
-# ========== ROOT ROUTE ==========
-@app.route('/')
-def home():
-    """Root endpoint to confirm service is running"""
-    response_data = {
-        "service": "Bah.AI Property Chatbot API",
-        "status": "online",
-        "version": "3.8.0",  # Updated version
-        "timestamp": datetime.now().isoformat(),
-        "cors_enabled": True,
-        "allowed_origins": ALLOWED_ORIGINS,
-        "endpoints": {
-            "/": "Service status (GET)",
-            "/api/chat": "Chatbot endpoint (POST)",
-            "/api/health": "Health check (GET)",
-            "/api/test": "Test model (GET)"
-        },
-        "features": {
-            "general_searches": True,
-            "criteria_searches": True,
-            "financing_queries": True,
-            "document_queries": True,
-            "landmark_proximity": True,
-            "description_checking": True
-        }
-    }
-    
-    response = jsonify(response_data)
-    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
-    return response
-
-@app.route('/api/debug-files', methods=['GET'])
-def debug_files():
-    """Enhanced debug endpoint to check file paths"""
-    import os
-    import sys
-    
-    # Get the current working directory
-    cwd = os.getcwd()
-    
-    # Walk up to 3 levels up to understand structure
-    dir_structure = {}
-    for level in range(0, 4):
-        try:
-            dir_path = os.path.join(cwd, *['..'] * level) if level > 0 else cwd
-            dir_path = os.path.abspath(dir_path)
-            if os.path.exists(dir_path):
-                items = os.listdir(dir_path)
-                dir_structure[f'level_{level}'] = {
-                    'path': dir_path,
-                    'items': items[:20]  # First 20 items
-                }
-        except Exception as e:
-            dir_structure[f'level_{level}_error'] = str(e)
-    
-    # Check for model file in multiple locations
-    possible_model_paths = [
-        # Render deployment paths
-        '/opt/render/project/src/training/models/nlu_model.pkl',
-        '/opt/render/project/src/backend/models/nlu_model.pkl', 
-        '/opt/render/project/src/models/nlu_model.pkl',
-        '/opt/render/project/src/nlu_model.pkl',
-        # Local development paths from current directory
-        os.path.join(cwd, 'training', 'models', 'nlu_model.pkl'),
-        os.path.join(cwd, 'backend', 'models', 'nlu_model.pkl'),
-        os.path.join(cwd, 'models', 'nlu_model.pkl'),
-        os.path.join(cwd, 'nlu_model.pkl'),
-        # Paths relative to script location
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'nlu_model.pkl'),
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'training', 'models', 'nlu_model.pkl'),
-    ]
-    
-    model_search_results = []
-    for path in possible_model_paths:
-        exists = os.path.exists(path)
-        info = {
-            'path': path,
-            'exists': exists
-        }
-        if exists:
-            try:
-                info['size'] = os.path.getsize(path)
-                info['readable'] = os.access(path, os.R_OK)
-            except Exception as e:
-                info['error'] = str(e)
-        model_search_results.append(info)
-    
-    # Check for training data
-    possible_data_paths = [
-        os.path.join(cwd, 'data', 'member1', 'training_data.json'),
-        os.path.join(cwd, 'training', 'data', 'member1', 'training_data.json'),
-        '/opt/render/project/src/data/member1/training_data.json',
-        '/opt/render/project/src/training/data/member1/training_data.json',
-    ]
-    
-    data_search_results = []
-    for path in possible_data_paths:
-        exists = os.path.exists(path)
-        info = {
-            'path': path,
-            'exists': exists
-        }
-        if exists:
-            try:
-                info['size'] = os.path.getsize(path)
-                info['readable'] = os.access(path, os.R_OK)
-            except Exception as e:
-                info['error'] = str(e)
-        data_search_results.append(info)
-    
-    # Environment information
-    env_info = {
-        'RENDER': os.environ.get('RENDER', 'Not set'),
-        'PORT': os.environ.get('PORT', 'Not set'),
-        'PYTHONPATH': os.environ.get('PYTHONPATH', 'Not set'),
-        'FIREBASE_SERVICE_ACCOUNT_KEY': 'Set' if os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY') else 'Not set',
-        'GOOGLE_MAPS_API_KEY': 'Set' if os.environ.get('GOOGLE_MAPS_API_KEY') else 'Not set',
-    }
-    
-    # Python path
-    python_path = sys.path
-    
-    debug_info = {
-        'current_working_directory': cwd,
-        'script_location': os.path.abspath(__file__),
-        'base_dir': BASE_DIR,
-        'model_path': MODEL_PATH,
-        'training_data_path': TRAINING_DATA_PATH,
-        'model_exists': os.path.exists(MODEL_PATH) if MODEL_PATH else False,
-        'training_data_exists': os.path.exists(TRAINING_DATA_PATH) if TRAINING_DATA_PATH else False,
-        'directory_structure': dir_structure,
-        'model_search_results': model_search_results,
-        'data_search_results': data_search_results,
-        'environment': env_info,
-        'python_path': python_path[:10],  # First 10 entries
-        'model_loaded_status': {
-            'vectorizer': vectorizer is not None,
-            'classifier': classifier is not None,
-            'model_classes_count': len(model_classes) if model_classes else 0
-        }
-    }
-    
-    response = jsonify(debug_info)
-    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
-    return response
-
-@app.route('/api/diagnose-simple', methods=['GET'])
-def diagnose_simple():
-    """Simple diagnostic endpoint"""
-    import os
-    
-    info = {
-        'status': 'Diagnostic check',
-        'timestamp': datetime.now().isoformat(),
-        
-        # File system info
-        'cwd': os.getcwd(),
-        'script_dir': os.path.dirname(os.path.abspath(__file__)),
-        
-        # Model info
-        'model_path_defined': MODEL_PATH,
-        'model_exists': os.path.exists(MODEL_PATH) if MODEL_PATH else False,
-        'model_loaded': vectorizer is not None,
-        'model_intents': model_classes if model_classes else [],
-        
-        # Training data info
-        'training_data_path': TRAINING_DATA_PATH,
-        'training_data_exists': os.path.exists(TRAINING_DATA_PATH) if TRAINING_DATA_PATH else False,
-        'training_data_loaded': bool(training_data),
-        
-        # Environment
-        'is_render': os.environ.get('RENDER') == 'true',
-        'port': os.environ.get('PORT', 'Not set'),
-        
-        # Services
-        'firebase_connected': db is not None,
-        'google_maps_available': GOOGLE_MAPS_AVAILABLE,
-    }
-    
-    # If model exists but not loaded, try to diagnose why
-    if MODEL_PATH and os.path.exists(MODEL_PATH) and not vectorizer:
-        try:
-            file_size = os.path.getsize(MODEL_PATH)
-            info['model_file_size'] = file_size
-            info['model_file_readable'] = os.access(MODEL_PATH, os.R_OK)
-        except Exception as e:
-            info['model_file_error'] = str(e)
-    
-    response = jsonify(info)
-    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
-    return response
-
-# ========== CONFIGURATION ==========
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def find_best_model_path():
-    """Intelligently find the model file in multiple locations"""
-    possible_paths = [
-        # Render deployment paths (most likely)
-        '/opt/render/project/src/training/models/nlu_model.pkl',
-        '/opt/render/project/src/backend/models/nlu_model.pkl',
-        '/opt/render/project/src/models/nlu_model.pkl',
-        '/opt/render/project/src/nlu_model.pkl',
-        
-        # Local development paths
-        os.path.join(os.path.dirname(BASE_DIR), 'training', 'models', 'nlu_model.pkl'),
-        os.path.join(BASE_DIR, 'models', 'nlu_model.pkl'),
-        os.path.join(BASE_DIR, 'nlu_model.pkl'),
-        
-        # Relative paths
-        './training/models/nlu_model.pkl',
-        './backend/models/nlu_model.pkl',
-        './models/nlu_model.pkl',
-        'nlu_model.pkl',
-        
-        # Parent directories
-        '../training/models/nlu_model.pkl',
-        '../models/nlu_model.pkl',
-        '../../training/models/nlu_model.pkl',
-    ]
-    
-    for path in possible_paths:
-        if os.path.exists(path):
-            print(f"✅ Found model at: {path}")
-            return path
-    
-    print("❌ Model file not found in any standard location")
-    return None
-
-def find_best_training_data_path():
-    """Intelligently find training data in multiple locations"""
-    possible_paths = [
-        # Render deployment paths
-        '/opt/render/project/src/data/member1/training_data.json',
-        '/opt/render/project/src/training/data/member1/training_data.json',
-        
-        # Local development paths
-        os.path.join(os.path.dirname(BASE_DIR), 'data', 'member1', 'training_data.json'),
-        os.path.join(BASE_DIR, 'data', 'member1', 'training_data.json'),
-        os.path.join(os.path.dirname(BASE_DIR), 'training', 'data', 'member1', 'training_data.json'),
-        
-        # Relative paths
-        './data/member1/training_data.json',
-        './training/data/member1/training_data.json',
-        '../data/member1/training_data.json',
-        '../../data/member1/training_data.json',
-    ]
-    
-    for path in possible_paths:
-        if os.path.exists(path):
-            print(f"✅ Found training data at: {path}")
-            return path
-    
-    print("⚠️ Training data not found in standard locations")
-    return None
-
-# Use intelligent path finding
-MODEL_PATH = find_best_model_path()
-TRAINING_DATA_PATH = find_best_training_data_path()
-
-print(f"\n📁 BASE_DIR: {BASE_DIR}")
-print(f"📁 MODEL_PATH: {MODEL_PATH}")
-print(f"📁 TRAINING_DATA_PATH: {TRAINING_DATA_PATH}")
-
-if MODEL_PATH:
-    print(f"📁 Model exists: {os.path.exists(MODEL_PATH)}")
-else:
-    print(f"📁 Model exists: False (path not found)")
-
-if TRAINING_DATA_PATH:
-    print(f"📁 Training data exists: {os.path.exists(TRAINING_DATA_PATH)}")
-else:
-    print(f"📁 Training data exists: False (path not found)")
+# CONFIGURATION
+MODEL_PATH = 'models/nlu_model.pkl'
+TRAINING_DATA_PATH = 'data/member1/training_data.json'
 
 # Global variables
 vectorizer = None
 classifier = None
 db = None
 nlp = None
-model_classes = []
-training_data = {}
+model_classes = []  # Store model classes separately
+training_data = {}  # Store training data for response templates
 
-# ========== FIREBASE INITIALIZATION ==========
 print("\n" + "="*60)
 print("🔥 FIREBASE CONNECTION")
 print("="*60)
 
-def initialize_firebase():
-    """Initialize Firebase using environment variable or file"""
-    global db
+# Initialize Firebase
+try:
+    # Get absolute path to serviceAccountKey.json in root
+    current_dir = os.path.dirname(os.path.abspath(__file__))  # backend directory
+    root_dir = os.path.dirname(current_dir)                    # project root
+    cred_path = os.path.join(root_dir, 'serviceAccountKey.json')
     
-    # First try: Environment variable method (for Render)
-    firebase_key_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY')
+    print(f"🔑 Key path: {cred_path}")
+    print(f"📁 File exists: {os.path.exists(cred_path)}")
     
-    if firebase_key_json:
-        print("✅ Found Firebase key in environment variable")
+    if os.path.exists(cred_path):
+        # Read and check the key
         try:
-            # Parse JSON from environment variable
-            key_data = json.loads(firebase_key_json)
+            with open(cred_path, 'r') as f:
+                key_data = json.load(f)
             
-            # Create temporary file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-                json.dump(key_data, f)
-                temp_key_path = f.name
+            print(f"✅ Valid JSON format")
+            print(f"📋 Project ID: {key_data.get('project_id')}")
+            print(f"📧 Client Email: {key_data.get('client_email')}")
             
-            print(f"🔑 Using temporary key file from environment variable")
-            
-            # Check if Firebase is already initialized
+            # IMPORTANT: Check if Firebase Admin SDK is already initialized
             if firebase_admin._DEFAULT_APP_NAME in firebase_admin._apps:
                 print("⚠️  Firebase already initialized, using existing app")
                 db = firestore.client()
             else:
-                # Initialize with the temporary file
-                cred = credentials.Certificate(temp_key_path)
+                # Initialize with explicit configuration
+                cred = credentials.Certificate(cred_path)
+                
+                # Initialize with specific parameters
                 firebase_admin.initialize_app(cred, {
-                    'projectId': key_data.get('project_id', 'bahai-1b76d'),
-                    'databaseURL': 'https://bahai-1b76d.firebaseio.com',
-                    'storageBucket': 'bahai-1b76d.appspot.com',
+                    'projectId': 'bahai-1b76d',
+                    'databaseURL': 'https://bahai-1b76d.firebaseio.com',  # Add this
+                    'storageBucket': 'bahai-1b76d.appspot.com',  # Add this
                 })
+                
+                print("✅ Firebase Admin SDK initialized")
                 db = firestore.client()
+                
+            print("✅ Firebase connected successfully!")
             
-            print(f"📋 Project ID: {key_data.get('project_id')}")
-            print("✅ Firebase initialized successfully from environment variable")
-            return True
-            
+            # Test connection with error handling
+            try:
+                print("🔍 Testing Firestore connection...")
+                properties_ref = db.collection('properties')
+                docs = list(properties_ref.get())  # REMOVED .limit(5) to get ALL
+                print(f"📊 Found {len(docs)} properties in database")
+                
+                if docs:
+                    print("✅ Firestore connection successful!")
+                    
+                    # Show ALL property types and count by type
+                    property_types = {}
+                    for doc in docs:
+                        data = doc.to_dict()
+                        prop_type = data.get('propertyType', data.get('type', 'unknown'))
+                        if prop_type not in property_types:
+                            property_types[prop_type] = 0
+                        property_types[prop_type] += 1
+                        
+                    print(f"🔍 Property types found ({len(property_types)} types):")
+                    for prop_type, count in property_types.items():
+                        print(f"   • {prop_type}: {count} properties")
+                    
+                    # Show first few properties for debugging
+                    print("\n📋 Sample properties (first 8):")
+                    for i, doc in enumerate(docs[:8]):
+                        data = doc.to_dict()
+                        doc_id = doc.id
+                        prop_type = data.get('propertyType', data.get('type', 'unknown'))
+                        city = data.get('city', 'Unknown')
+                        status = data.get('status', 'No Status')
+                        print(f"   {i+1}. ID: {doc_id[:10]}..., Type: {prop_type}, City: {city}, Status: {status}")
+                        
+                else:
+                    print("⚠️ No properties found in database (empty collection)")
+                    
+            except Exception as e:
+                print(f"⚠️ Firestore query warning: {str(e)}")
+                print("💡 The connection is established but the query failed")
+                print("   This might be normal if the collection is empty")
+                
         except json.JSONDecodeError as e:
-            print(f"❌ Invalid JSON in environment variable: {e}")
+            print(f"❌ Invalid JSON in service account key: {e}")
+            db = None
         except Exception as e:
-            print(f"❌ Firebase initialization error: {e}")
+            print(f"❌ Error loading service account: {e}")
             import traceback
             traceback.print_exc()
-    
-    # Second try: Check for key file (for local development)
-    print("🔍 Checking for serviceAccountKey.json file...")
-    file_paths = [
-        'serviceAccountKey.json',
-        '/opt/render/project/src/serviceAccountKey.json',
-        '../serviceAccountKey.json',
-        './serviceAccountKey.json'
-    ]
-    
-    for file_path in file_paths:
-        if os.path.exists(file_path):
-            print(f"📁 Found key file at: {file_path}")
-            try:
-                # Check if Firebase is already initialized
-                if firebase_admin._DEFAULT_APP_NAME in firebase_admin._apps:
-                    print("⚠️  Firebase already initialized, using existing app")
-                    db = firestore.client()
-                else:
-                    # Initialize with the file
-                    cred = credentials.Certificate(file_path)
-                    firebase_admin.initialize_app(cred)
-                    db = firestore.client()
-                
-                print("✅ Firebase initialized successfully from file")
-                return True
-            except Exception as e:
-                print(f"❌ Error loading Firebase key from {file_path}: {e}")
-                import traceback
-                traceback.print_exc()
-    
-    print("⚠️  WARNING: Firebase not initialized")
-    print("💡 Make sure to set FIREBASE_SERVICE_ACCOUNT_KEY environment variable in Render")
-    db = None
-    return False
-
-# Initialize Firebase
-firebase_initialized = initialize_firebase()
-
-# TEST Firebase connection
-if firebase_initialized and db:
-    try:
-        print("🔍 Testing Firestore connection...")
-        properties_ref = db.collection('properties')
-        docs = list(properties_ref.limit(5).get())
-        print(f"📊 Found {len(docs)} properties in database")
+            db = None
+            
+    else:
+        print(f"❌ ERROR: serviceAccountKey.json not found at {cred_path}")
+        print("💡 Make sure the file is in your project root directory")
+        db = None
         
-        if docs:
-            print("✅ Firestore connection successful!")
-        else:
-            print("⚠️ No properties found in database (may be empty)")
-    except Exception as e:
-        print(f"⚠️ Firestore query warning: {e}")
-        print("💡 Connection established but query failed")
-else:
-    print("❌ Firebase not connected - using mock data mode")
+except Exception as e:
+    print(f"❌ Firebase connection failed: {e}")
+    import traceback
+    traceback.print_exc()
+    print("\n⚠️  Switching to mock data mode")
+    db = None
 
-nlp = None
+# Initialize spaCy for entity extraction
+try:
+    nlp = spacy.load("en_core_web_sm")
+    logger.info("✅ spaCy model loaded for entity extraction")
+except:
+    logger.warning("⚠️ spaCy model not found. Using basic entity extraction.")
+    nlp = None
 
-# ========== LOAD TRAINING DATA ==========
+# Load training data for response templates
 def load_training_data():
     """Load training data for response templates"""
     global training_data
-    
-    print(f"\n🔍 Attempting to load training data from: {TRAINING_DATA_PATH}")
-    print(f"🔍 File exists: {os.path.exists(TRAINING_DATA_PATH)}")
     
     try:
         if os.path.exists(TRAINING_DATA_PATH):
@@ -473,6 +164,7 @@ def load_training_data():
                 training_data = json.load(f)
             logger.info(f"✅ Training data loaded from {TRAINING_DATA_PATH}")
             
+            # Debug: Check if location profiles have descriptions and lifestyle
             if 'location_profiles' in training_data:
                 logger.info(f"📊 Found {len(training_data['location_profiles'])} location profiles")
         else:
@@ -481,116 +173,11 @@ def load_training_data():
     except Exception as e:
         logger.error(f"❌ Error loading training data: {e}")
         training_data = {}
-        
-def diagnose_file_system():
-    """Perform comprehensive file system diagnostics - prints to console"""
-    import os
-        # Also check if we can load the model
-    if MODEL_PATH and os.path.exists(MODEL_PATH):
-        print(f"\n🔍 Testing model file {MODEL_PATH}:")
-        try:
-            file_size = os.path.getsize(MODEL_PATH)
-            print(f"   📊 Size: {file_size:,} bytes")
-            
-            # Try to load it
-            with open(MODEL_PATH, 'rb') as f:
-                import pickle
-                model_data = pickle.load(f)
-                print(f"   ✅ Can load pickle file")
-                print(f"   📊 Model version: {model_data.get('version', 'unknown')}")
-                print(f"   📊 Training date: {model_data.get('training_date', 'unknown')}")
-                if 'classes' in model_data:
-                    print(f"   📊 Intents in file: {len(model_data['classes'])}")
-        except Exception as e:
-            print(f"   ❌ Error loading model: {e}")
-    else:
-        print(f"\n🔍 Model path not found or invalid: {MODEL_PATH}")
-    
-    print("\n" + "="*60)
-    print("🔍 FILE SYSTEM DIAGNOSTICS")
-    print("="*60)
-    
-    # Basic info
-    cwd = os.getcwd()
-    print(f"📁 Current directory: {cwd}")
-    print(f"📁 Script location: {os.path.abspath(__file__)}")
-    
-    # Check if we're on Render
-    is_render = os.environ.get('RENDER') == 'true'
-    print(f"🌍 Environment: {'Render' if is_render else 'Local'}")
-    
-    # List directory contents
-    print(f"\n📂 Contents of current directory:")
-    try:
-        items = os.listdir('.')
-        for item in items:
-            full_path = os.path.join('.', item)
-            is_dir = os.path.isdir(full_path)
-            print(f"   {'📁' if is_dir else '📄'} {item}" + 
-                  f" ({os.path.getsize(full_path):,} bytes)" if not is_dir else "")
-    except Exception as e:
-        print(f"   ❌ Error listing directory: {e}")
-    
-    # Check for specific important directories
-    important_dirs = ['backend', 'training', 'models', 'data']
-    print(f"\n📁 Checking important directories:")
-    for dir_name in important_dirs:
-        exists = os.path.exists(dir_name)
-        if exists:
-            print(f"   ✅ {dir_name}/")
-            try:
-                files = os.listdir(dir_name)[:5]
-                print(f"      Contains: {', '.join(files)}" + 
-                      ("..." if len(files) >= 5 else ""))
-            except:
-                print(f"      (Cannot list contents)")
-        else:
-            print(f"   ❌ {dir_name}/ (not found)")
-    
-    # Search for model file
-    print(f"\n🔍 Searching for nlu_model.pkl:")
-    found = False
-    
-    # Check predefined paths
-    check_paths = [
-        MODEL_PATH,
-        './training/models/nlu_model.pkl',
-        './backend/models/nlu_model.pkl',
-        './models/nlu_model.pkl',
-        '/opt/render/project/src/training/models/nlu_model.pkl',
-        '/opt/render/project/src/backend/models/nlu_model.pkl',
-    ]
-    
-    for path in check_paths:
-        if path and os.path.exists(path):
-            size = os.path.getsize(path)
-            print(f"   ✅ Found at: {path} ({size:,} bytes)")
-            found = True
-    
-    if not found:
-        print(f"   ❌ Not found in predefined locations")
-        # Try recursive search
-        try:
-            import glob
-            all_models = glob.glob('**/nlu_model.pkl', recursive=True)
-            if all_models:
-                for model in all_models[:3]:  # Show first 3
-                    size = os.path.getsize(model)
-                    print(f"   🔍 Found via search: {model} ({size:,} bytes)")
-            else:
-                print(f"   ❌ No model files found anywhere")
-        except:
-            print(f"   ⚠️ Could not perform recursive search")
-    
-    print("="*60)
 
-# ========== LOAD NLU MODEL ==========
+# Load NLU model
 def load_nlu_model():
     """Load the trained NLU model from train_nlu.py"""
     global vectorizer, classifier, model_classes
-    
-    print(f"\n🔍 Attempting to load model from: {MODEL_PATH}")
-    print(f"🔍 File exists: {os.path.exists(MODEL_PATH)}")
     
     try:
         if os.path.exists(MODEL_PATH):
@@ -618,257 +205,73 @@ def load_nlu_model():
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
 
-# ========== TEXT PREPROCESSING ==========
+# Preprocess text for prediction (same as training)
 def preprocess_text(text):
     """Preprocess text for prediction"""
     if not text:
         return ""
     
     text = str(text).lower()
+    
+    # Remove special characters but keep spaces and basic punctuation
     text = re.sub(r'[^\w\s\?\.]', ' ', text)
+    
+    # Remove extra spaces
     text = re.sub(r'\s+', ' ', text).strip()
     
     return text
 
-# ========== ENTITY EXTRACTION ==========
-def classify_landmark_type(landmark: str) -> str:
-    """Classify the type of landmark"""
-    landmark_lower = landmark.lower()
-    
-    # School-related keywords
-    school_keywords = ['school', 'university', 'college', 'campus', 'academy', 'institute', 'elementary', 
-                      'high school', 'highschool', 'primary school', 'secondary school', 'univ', 'col', 
-                      'education', 'student', 'academic']
-    for keyword in school_keywords:
-        if keyword in landmark_lower:
-            return 'school'
-    
-    # Hospital-related keywords
-    hospital_keywords = ['hospital', 'medical center', 'clinic', 'health center', 'healthcare', 'medical', 
-                        'infirmary', 'doctor', 'health']
-    for keyword in hospital_keywords:
-        if keyword in landmark_lower:
-            return 'hospital'
-    
-    # Mall/shopping keywords
-    mall_keywords = ['mall', 'shopping', 'shopping center', 'commercial center', 'market', 'sm ', 'robinsons', 
-                    'ayala mall', 'department store', 'supermarket']
-    for keyword in mall_keywords:
-        if keyword in landmark_lower:
-            return 'mall'
-    
-    # Transportation keywords
-    transport_keywords = ['port', 'pier', 'terminal', 'bus terminal', 'airport', 'train station', 'lrt', 
-                         'mrt', 'transportation', 'bus station']
-    for keyword in transport_keywords:
-        if keyword in landmark_lower:
-            return 'transportation'
-    
-    # Beach/nature keywords
-    nature_keywords = ['beach', 'volcano', 'lake', 'mountain', 'park', 'garden', 'resort', 'taal', 'nature', 
-                      'sea', 'ocean', 'river']
-    for keyword in nature_keywords:
-        if keyword in landmark_lower:
-            return 'nature'
-    
-    # Church/religious keywords
-    church_keywords = ['church', 'cathedral', 'basilica', 'chapel', 'temple', 'mosque', 'religious', 'worship']
-    for keyword in church_keywords:
-        if keyword in landmark_lower:
-            return 'church'
-    
-    return 'general'
-
-def fix_intent_for_location_queries(query, original_intent):
-    """
-    Fix intent classification for simple location info queries.
-    These are often misclassified as find_property.
-    """
-    query_lower = query.lower()
-    
-    # Pattern 1: "About [Location]" should be location_info
-    about_pattern = r'^about\s+(.+)$'
-    about_match = re.search(about_pattern, query_lower)
-    if about_match:
-        return 'location_info'
-    
-    # Pattern 2: "Tell me about [Location]" should be location_info
-    tell_me_pattern = r'^tell\s+me\s+about\s+(.+)$'
-    tell_me_match = re.search(tell_me_pattern, query_lower)
-    if tell_me_match:
-        return 'location_info'
-    
-    # Pattern 3: "[Location] information" should be location_info
-    info_pattern = r'^(.+)\s+information$'
-    info_match = re.search(info_pattern, query_lower)
-    if info_match:
-        return 'location_info'
-    
-    # Pattern 4: Simple "cityname" queries (without find/show me) 
-    # Check if it's just a location name without search keywords
-    location_keywords = ['find', 'search', 'look for', 'show me', 'need', 'want', 'looking']
-    has_search_keyword = any(keyword in query_lower for keyword in location_keywords)
-    
-    if not has_search_keyword:
-        # Check if it's a known Batangas location
-        batangas_locations = [
-            'batangas', 'lipa', 'nasugbu', 'tanauan', 'taal', 'calatagan',
-            'mabini', 'malvar', 'bauan', 'balayan', 'san juan', 'sto tomas',
-            'santo tomas', 'tuy', 'lian', 'taysan', 'rosario', 'laurel'
-        ]
-        
-        for location in batangas_locations:
-            if location in query_lower:
-                # If it's just a location name without "find", it's likely location_info
-                return 'location_info'
-    
-    return original_intent
-
+# Entity extraction - UPDATED FOR BETTER PRICE AND BEDROOM PARSING
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
         'property_type': None,
         'location': None,
         'landmark': None,
-        'landmark_type': None,
         'feature': None,  
         'price_range': None, 
         'bedrooms': None,
         'bathrooms': None,
         'financing_type': None,
-        'listing_type': None,
-        'sale_type': None,
-        'financing_options': None,
-        'has_general_search': False,
-        'max_price': None,
-        'min_price': None,
-        'min_bedrooms': None,
-        'exact_bedrooms': None,
-        'documents_only': False,
-        'documents_info': None,
-        'family_info': None,
-        'has_need_query': False,
-        'proximity': 'near',
-        'google_maps_check': False,
+        'listing_type': None,  # rent, sale, lease
+        'has_general_search': False,  # NEW: Flag for general search
+        'max_price': None,  # NEW: Numeric max price for filtering
+        'min_price': None,  # NEW: Numeric min price for filtering
+        'min_bedrooms': None,  # NEW: Numeric bedroom count for filtering
+        'exact_bedrooms': None  # NEW: Exact bedroom count
     }
     
     query_lower = query.lower()
-
-    # Detect family needs
-    family_patterns = [
-        (r'family\s+of\s+(\d+)', 'family_size'),
-        (r'family\s+with\s+(\d+)', 'family_size'),
-        (r'(\d+)\s+person\s+family', 'family_size'),
-        (r'(\d+)-member\s+family', 'family_size'),
-        (r'(\d+)\s+people\s+family', 'family_size'),
-        (r'small\s+family', 'small_family'),
-        (r'big\s+family', 'big_family'),
-        (r'large\s+family', 'big_family'),
-        (r'young\s+family', 'small_family'),
-        (r'growing\s+family', 'medium_family'),
-        (r'family\s+with\s+kids', 'family_with_kids'),
-        (r'family\s+with\s+children', 'family_with_kids'),
-        (r'\bcouple\b', 'couple'),
-        (r'\bcouples\b', 'couple'),
-        (r'\bfor\s+couple\b', 'couple'),
-        (r'\bfor\s+couples\b', 'couple'),
-        (r'\btwo\s+person\b', 'couple'),
-        (r'\bhusband\s+and\s+wife\b', 'couple'),
-    ]
     
-    for pattern, family_type in family_patterns:
-        match = re.search(pattern, query_lower)
-        if match:
-            if family_type == 'family_size':
-                family_size = int(match.group(1))
-                entities['family_info'] = {'type': 'size', 'value': family_size}
-                
-                # Set minimum bedroom requirements based on family size
-                if family_size <= 2:
-                    entities['min_bedrooms'] = 1  # Couple or 1 child
-                    entities['ideal_bedrooms'] = 2
-                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 1-2 bedrooms recommended")
-                elif 3 <= family_size <= 4:
-                    entities['min_bedrooms'] = 2  # Minimum for family of 3-4
-                    entities['ideal_bedrooms'] = 3
-                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 2-3 bedrooms recommended")
-                elif 5 <= family_size <= 6:
-                    entities['min_bedrooms'] = 3  # Minimum for family of 5-6
-                    entities['ideal_bedrooms'] = 4
-                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 3-4 bedrooms recommended")
-                else:  # 7+ people
-                    entities['min_bedrooms'] = 4  # Minimum for large family
-                    entities['ideal_bedrooms'] = 5
-                    logger.info(f"👨‍👩‍👧‍👦 Family of {family_size} → 4+ bedrooms recommended")
-            else:
-                entities['family_info'] = {'type': family_type}
-                
-                # For generic family types
-                if family_type in ['big_family', 'large_family']:
-                    entities['min_bedrooms'] = 4
-                    entities['ideal_bedrooms'] = 5
-                    logger.info(f"👨‍👩‍👧‍👦 Large family → 4+ bedrooms recommended")
-                elif family_type in ['small_family', 'young_family', 'couple']: 
-                    entities['min_bedrooms'] = 1
-                    entities['ideal_bedrooms'] = 2
-                    logger.info(f"👨‍👩‍👧‍👦 Small family/couple → 1-2 bedrooms recommended")
-                elif family_type == 'medium_family':
-                    entities['min_bedrooms'] = 3
-                    entities['ideal_bedrooms'] = 4
-                    logger.info(f"👨‍👩‍👧‍👦 Medium family → 3-4 bedrooms recommended")
-                elif family_type == 'family_with_kids':
-                    entities['min_bedrooms'] = 2
-                    entities['ideal_bedrooms'] = 3
-                    logger.info(f"👨‍👩‍👧‍👦 Family with kids → 2-3 bedrooms recommended")
-                    
-            logger.info(f"👨‍👩‍👧‍👦 Detected family need: {entities['family_info']}")
-            break
-    
-    # Detect needs-based queries
-    needs_keywords = ['for family', 'for students', 'for professionals', 'for couple', 
-                    'for couples', 'for retirees', 'for business', 'for investors', 'for single', 
-                    'for workers', 'for office', 'for commercial']
-    
-    has_needs_keyword = any(keyword in query_lower for keyword in needs_keywords)
-    
-    if has_needs_keyword:
-        entities['has_need_query'] = True
-        logger.info("🎯 Marked as needs-based query")
-    
-    # Detect document-only queries
-    doc_keywords = ['documents', 'requirements', 'needed', 'required', 'paperwork', 'papers', 'what do i need']
-    prop_keywords = ['properties', 'show me', 'find', 'looking for', 'search', 'houses', 'condos', 'apartments', 'property']
-    
-    has_doc_keywords = any(term in query_lower for term in doc_keywords)
-    has_prop_keywords = any(term in query_lower for term in prop_keywords)
-    
-    if has_doc_keywords and not has_prop_keywords:
-        entities['documents_only'] = True
-        entities['documents_info'] = True
-        logger.info("📋 Detected document-only query")
-    
-    if 'what documents' in query_lower or 'what are the requirements' in query_lower or 'what do i need' in query_lower:
-        entities['documents_only'] = True
-        entities['documents_info'] = True
-        logger.info("📋 Detected 'what' document query")
-    
-    # Parse numeric price values
+    # ========== NEW: Parse numeric price values for filtering ==========
     max_price = None
     min_price = None
     
+    # Patterns for price extraction (convert M to millions, k to thousands)
     price_patterns = [
+        # "under 15M" or "under 15 M"
         (r'under\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "below 15 million" or "below 15million"
         (r'below\s+(\d+(?:\.\d+)?)\s*million\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "under ₱15M" or "below ₱15M"
         (r'(?:under|below)\s*₱?\s*(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "under 15000000" or "below 15000000"
         (r'(?:under|below)\s+(\d{7,})\b', lambda m: float(m.group(1)), 'max'),
+        # "less than 15M"
         (r'less\s+than\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "maximum 15M"
         (r'maximum\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "up to 15M"
         (r'up\s+to\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'max'),
+        # "above 5M" or "over 5M"
         (r'(?:above|over)\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'min'),
+        # "minimum 5M"
         (r'minimum\s+(\d+(?:\.\d+)?)\s*([mM])\b', lambda m: float(m.group(1)) * 1000000, 'min'),
+        # "from 5M to 10M" or "between 5M and 10M"
         (r'(?:from|between)\s+(\d+(?:\.\d+)?)\s*([mM])?\s*(?:to|and)\s+(\d+(?:\.\d+)?)\s*([mM]?)', 
          lambda m: (float(m.group(1)) * (1000000 if m.group(2) else 1), 
                    float(m.group(3)) * (1000000 if m.group(4) else 1)), 'range'),
+        # Simple number with M (e.g., "15M house")
         (r'\b(\d+(?:\.\d+)?)\s*([mM])\b(?!\s*(?:bed|bedroom|bath))', 
          lambda m: float(m.group(1)) * 1000000, 'exact'),
     ]
@@ -901,15 +304,23 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.warning(f"⚠️ Could not parse price pattern '{pattern}': {e}")
                 continue
     
-    # Parse bedroom criteria
+    # ========== NEW: Parse bedroom criteria for filtering ==========
+    bedrooms = None
+    exact_bedrooms = None
+    
+    # Patterns for bedroom extraction
     bedroom_patterns = [
-        (r'with\s+(\d+)\s+beds?\b', lambda m: int(m.group(1))),  
+        # "with 3 bedrooms" or "with 3 bedroom"
         (r'with\s+(\d+)\s+bedroom(?:s)?\b', lambda m: int(m.group(1))),
-        (r'\b(\d+)\s+beds?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))), 
+        # "3 bedrooms" or "3 bedroom"
         (r'\b(\d+)\s+bedroom(?:s)?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))),
+        # "3-bedroom" or "3br"
         (r'(\d+)(?:-|\s*)bedroom|(\d+)br\b', lambda m: int(m.group(1)) if m.group(1) else int(m.group(2))),
+        # "3 bed"
         (r'(\d+)\s+bed\b', lambda m: int(m.group(1))),
+        # "studio" (0 bedrooms)
         (r'\bstudio\b', lambda m: 0),
+        # "1 bedroom apartment" pattern
         (r'(\d+)\s+bedroom\s+(?:apartment|condo|house|unit)', lambda m: int(m.group(1))),
     ]
     
@@ -926,21 +337,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.warning(f"⚠️ Could not parse bedroom pattern '{pattern}': {e}")
                 continue
     
-    # Parse bathroom criteria
-    bathroom_patterns = [
-        (r'(\d+)\s+baths?', 'bathrooms'),
-        (r'(\d+)\s+bathrooms?', 'bathrooms'),
-        (r'with\s+(\d+)\s+bath', 'bathrooms'),
-        (r'(\d+)\s+ba', 'bathrooms')
-    ]
-    
-    for pattern, entity_type in bathroom_patterns:
-        match = re.search(pattern, query_lower)  
-        if match:
-            entities[entity_type] = int(match.group(1))  
-            break
-    
-    # Detect location
+    # Detect if this is a general search (no location specified)
     has_location_terms = any(term in query_lower for term in ['in ', 'at ', 'within ', 'inside '])
     has_specific_location = False
     
@@ -952,50 +349,10 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     elif 'for lease' in query_lower:
         entities['listing_type'] = 'lease'
     
-    # Detect sale type
-    if 'installment' in query_lower or 'installment plan' in query_lower or 'installment payment' in query_lower:
-        entities['sale_type'] = 'installment'
-        entities['financing_type'] = 'installment'
-        logger.info(f"💰 Detected sale_type: installment")
-    elif 'outright' in query_lower or 'cash' in query_lower or 'straight cash' in query_lower:
-        entities['sale_type'] = 'outright'
-        entities['financing_type'] = 'cash'
-        logger.info(f"💰 Detected sale_type: outright")
-    elif 'bank financing' in query_lower or 'bank loan' in query_lower or 'mortgage' in query_lower:
-        entities['sale_type'] = 'bank_financing'
-        entities['financing_type'] = 'bank_financing'
-        logger.info(f"💰 Detected sale_type: bank_financing")
-    
-    # Detect specific financing options
-    if 'bdo' in query_lower:
-        entities['financing_options'] = 'BDO'
-        entities['financing_type'] = 'bank_financing'
-        logger.info(f"🏦 Detected financing_option: BDO")
-    elif 'metrobank' in query_lower:
-        entities['financing_options'] = 'Metrobank'
-        entities['financing_type'] = 'bank_financing'
-        logger.info(f"🏦 Detected financing_option: Metrobank")
-    elif 'unionbank' in query_lower or 'union bank' in query_lower:
-        entities['financing_options'] = 'UnionBank'
-        entities['financing_type'] = 'bank_financing'
-        logger.info(f"🏦 Detected financing_option: UnionBank")
-    elif 'rcbc' in query_lower:
-        entities['financing_options'] = 'RCBC'
-        entities['financing_type'] = 'bank_financing'
-        logger.info(f"🏦 Detected financing_option: RCBC")
-    elif 'pag-ibig' in query_lower or 'pagibig' in query_lower:
-        entities['financing_options'] = 'Pag-IBIG'
-        entities['financing_type'] = 'pag_ibig'
-        logger.info(f"🏦 Detected financing_option: Pag-IBIG")
-    elif 'housing loan' in query_lower:
-        entities['financing_options'] = 'Housing Loan'
-        entities['financing_type'] = 'housing_loan'
-        logger.info(f"🏦 Detected financing_option: Housing Loan")
-    
-    # Property type detection
+    # Property type detection - UPDATED FOR CASE INSENSITIVITY
     property_type_map = {
         'apartment': 'apartment',
-        'apartments': 'apartment',
+        'apartments': 'apartment',  # Add plural
         'condo': 'condo', 'condominium': 'condo', 'condos': 'condo',
         'house': 'house', 'houses': 'house', 'villa': 'house', 'bungalow': 'house',
         'townhouse': 'townhouse', 'townhouses': 'townhouse',
@@ -1013,8 +370,9 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             entities['property_type'] = value
             break
     
-    # Location detection
+    # Location detection - Batangas locations (from your database)
     batangas_locations = {
+        # Major cities
         'batangas city': 'Batangas City',
         'lipa': 'Lipa City', 'lipa city': 'Lipa City',
         'nasugbu': 'Nasugbu',
@@ -1028,6 +386,8 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'san juan': 'San Juan',
         'sto tomas': 'Sto. Tomas City', 'santo tomas': 'Sto. Tomas City',
         'sto. tomas': 'Sto. Tomas City',
+        
+        # Additional locations from training data
         'tuy': 'Tuy', 'tuy batangas': 'Tuy',
         'lian': 'Lian', 'lian batangas': 'Lian',
         'taysan': 'Taysan', 'taysan batangas': 'Taysan',
@@ -1050,10 +410,12 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     }
     
     for location_key, location_value in batangas_locations.items():
+        # Check for exact match first
         if location_key in query_lower:
             entities['location'] = location_value
             has_specific_location = True
             break
+        # Also check if location is a standalone word (with word boundaries)
         elif re.search(r'\b' + re.escape(location_key) + r'\b', query_lower):
             entities['location'] = location_value
             has_specific_location = True
@@ -1070,356 +432,41 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         entities['feature'] = 'furnished'
     
     # Landmark detection
-    landmark_patterns = [
-        (r'(?:near|close to|around|beside|next to|within walking distance of|walking distance to)\s+(?:the\s+)?(.+?)(?:\s+(?:in|at)\s+|$)', 'general'),
-        (r'properties\s+(?:near|close to|around)\s+(?:the\s+)?(.+?)(?:\s+|$)', 'general'),
-    ]
-    
-    for pattern, landmark_type in landmark_patterns:
-        match = re.search(pattern, query_lower)
+    if 'near' in query_lower or 'close to' in query_lower or 'around' in query_lower or 'beside' in query_lower:
+        # Extract word after landmark terms
+        match = re.search(r'(?:near|close to|around|beside|next to)\s+(\w+\s*\w*)', query_lower)
         if match:
-            landmark = match.group(1).strip()
-            entities['landmark'] = landmark
-            entities['landmark_type'] = classify_landmark_type(landmark)
-            entities['google_maps_check'] = True
+            entities['landmark'] = match.group(1).strip()
+    
+    # Bathroom detection
+    bath_match = re.search(r'(\d+)\s+bathroom', query_lower)
+    if bath_match:
+        entities['bathrooms'] = int(bath_match.group(1))
+    
+    # Financing type detection - check for your financing options
+    financing_keywords = {
+        'bank financing': 'bank_financing',
+        'bdo': 'BDO',
+        'metrobank': 'Metrobank',
+        'unionbank': 'UnionBank',
+        'rcbc': 'RCBC',
+        'pag-ibig': 'pag_ibig',
+        'housing loan': 'housing_loan'
+    }
+    
+    for keyword, financing_type in financing_keywords.items():
+        if keyword in query_lower:
+            entities['financing_type'] = financing_type
             break
     
-    # If no pattern match, try simple detection
-    if not entities['landmark'] and 'near' in query_lower:
-        parts = query_lower.split('near')
-        if len(parts) > 1:
-            landmark = parts[1].strip()
-            entities['landmark'] = landmark
-            entities['landmark_type'] = classify_landmark_type(landmark)
-            entities['google_maps_check'] = True
-    
-    # General search detection
+    # NEW: Determine if this is a general search (property type but no location)
     if entities.get('property_type') and not has_specific_location:
         entities['has_general_search'] = True
         logger.info(f"🔍 Detected general search for {entities['property_type']} (no location specified)")
     
-    logger.info(f"✅ Entities extracted: {entities}")
     return entities
 
-# ========== LANDMARK PROXIMITY CHECKING ==========
-def check_property_near_landmark(property_data: Dict[str, Any], landmark: str, landmark_type: str, api_key: str = None) -> Dict[str, Any]:
-    """
-    Check if a property is near a specific landmark using Google Maps API
-    Returns: {'is_near': bool, 'distance': str, 'duration': str, 'landmark_found': str, 'match_type': str}
-    """
-    result = {
-        'is_near': False,
-        'distance': 'Not checked',
-        'duration': 'Unknown',
-        'landmark_found': None,
-        'match_type': 'not_checked'
-    }
-    
-    # If no API key or coordinates, fallback to description check
-    if not api_key or 'latitude' not in property_data or 'longitude' not in property_data:
-        return check_property_description_for_landmark(property_data, landmark, landmark_type)
-    
-    try:
-        # Initialize Google Maps client
-        gmaps = googlemaps.Client(key=api_key)
-        
-        # Property coordinates
-        property_location = (property_data['latitude'], property_data['longitude'])
-        
-        # Search for the landmark near the property
-        places_result = gmaps.places_nearby(
-            location=property_location,
-            keyword=landmark,
-            radius=2000,  # 2km radius
-            type='school' if landmark_type == 'school' else None
-        )
-        
-        if places_result['results']:
-            # Get the closest landmark
-            closest = places_result['results'][0]
-            landmark_location = (
-                closest['geometry']['location']['lat'],
-                closest['geometry']['location']['lng']
-            )
-            
-            # Calculate walking distance
-            distance_matrix = gmaps.distance_matrix(
-                origins=[property_location],
-                destinations=[landmark_location],
-                mode='walking'
-            )
-            
-            if distance_matrix['rows'][0]['elements'][0]['status'] == 'OK':
-                element = distance_matrix['rows'][0]['elements'][0]
-                distance = element['distance']['text']
-                duration = element['duration']['text']
-                
-                # Consider "near" if within 2km walking distance
-                distance_value = element['distance']['value']  # in meters
-                result['is_near'] = distance_value <= 2000  # 2km
-                result['distance'] = distance
-                result['duration'] = duration
-                result['landmark_found'] = closest['name']
-                result['match_type'] = 'google_maps'
-        
-    except Exception as e:
-        logger.error(f"❌ Google Maps API error: {e}")
-        # Fallback to description check
-        return check_property_description_for_landmark(property_data, landmark, landmark_type)
-    
-    return result
-
-def check_property_description_for_landmark(property_data: Dict[str, Any], landmark: str, landmark_type: str) -> Dict[str, Any]:
-    """
-    Check property description and title for mentions of being near landmarks
-    """
-    result = {
-        'is_near': False,
-        'distance': 'Not mentioned',
-        'landmark_found': None,
-        'match_type': 'not_found'
-    }
-    
-    description = property_data.get('description', '').lower()
-    title = property_data.get('title', '').lower()
-    address = property_data.get('address', '').lower()
-    
-    all_text = f"{title} {description} {address}"
-    
-    # Define comprehensive keyword sets
-    if landmark_type == 'school':
-        # Exact matches for specific schools mentioned
-        if 'school' in landmark.lower():
-            school_name = landmark.lower()
-            if school_name in all_text:
-                result['is_near'] = True
-                result['distance'] = 'Exact match in description'
-                result['landmark_found'] = landmark
-                result['match_type'] = 'exact_match'
-                return result
-        
-        # School proximity keywords (with confidence scores)
-        proximity_keywords = [
-            # Direct proximity mentions (high confidence)
-            ('near school', 1.0),
-            ('close to school', 1.0),
-            ('walking distance to school', 1.0),
-            ('proximity to school', 1.0),
-            ('beside school', 1.0),
-            ('adjacent to school', 1.0),
-            ('next to school', 1.0),
-            ('school nearby', 1.0),
-            
-            # General school area mentions (medium-high confidence)
-            ('school district', 0.9),
-            ('school zone', 0.9),
-            ('school area', 0.8),
-            ('near campus', 0.9),
-            ('close to campus', 0.9),
-            ('university area', 0.8),
-            ('college town', 0.8),
-            ('educational hub', 0.8),
-            
-            # Education-related mentions (medium confidence)
-            ('educational institutions', 0.7),
-            ('academic institutions', 0.7),
-            ('learning centers', 0.6),
-            ('good for students', 0.7),
-            ('student-friendly', 0.7),
-            ('family-friendly near schools', 0.8),
-            ('education access', 0.6),
-            
-            # Specific school types (high confidence)
-            ('near elementary school', 1.0),
-            ('near high school', 1.0),
-            ('near university', 1.0),
-            ('near college', 1.0),
-            ('near international school', 1.0),
-            ('near private school', 1.0),
-            ('near public school', 1.0),
-            
-            # Transportation to schools (medium confidence)
-            ('short drive to school', 0.7),
-            ('minutes to school', 0.7),
-            ('accessible to schools', 0.7),
-            ('school bus route', 0.6),
-            ('school shuttle', 0.6),
-            
-            # Area benefits (medium confidence)
-            ('good schools area', 0.8),
-            ('school-friendly community', 0.7),
-            ('near educational facilities', 0.8),
-            ('academic environment', 0.6),
-        ]
-        
-        # School name patterns
-        school_patterns = [
-            r'near\s+(\w+\s+school)',
-            r'close\s+to\s+(\w+\s+school)',
-            r'walking\s+distance\s+to\s+(\w+\s+school)',
-            r'proximity\s+to\s+(\w+\s+school)',
-            r'(\w+\s+school)\s+proximity',
-            r'(\w+\s+university)\s+nearby',
-            r'(\w+\s+college)\s+area',
-            r'(\w+\s+academy)\s+near',
-            r'(\w+\s+institute)\s+accessible',
-        ]
-        
-        # Check for exact proximity mentions
-        for keyword, confidence in proximity_keywords:
-            if keyword in all_text:
-                result['is_near'] = True
-                result['distance'] = f'Mentioned: "{keyword}"'
-                result['landmark_found'] = landmark
-                result['match_type'] = 'proximity_keyword'
-                result['confidence'] = confidence
-                break
-        
-        # Check for school name patterns
-        if not result['is_near']:
-            for pattern in school_patterns:
-                match = re.search(pattern, all_text)
-                if match:
-                    school_name_found = match.group(1)
-                    result['is_near'] = True
-                    result['distance'] = f'Near {school_name_found.title()}'
-                    result['landmark_found'] = school_name_found.title()
-                    result['match_type'] = 'school_pattern'
-                    break
-        
-        # Check for general education mentions
-        if not result['is_near']:
-            education_keywords = [
-                'education', 'academic', 'campus', 'university', 'college', 
-                'student', 'tuition', 'faculty', 'scholar', 'learning',
-                'study', 'teacher', 'professor', 'academy', 'institute'
-            ]
-            
-            education_count = sum(1 for word in education_keywords if word in all_text)
-            if education_count >= 3:
-                result['is_near'] = True
-                result['distance'] = 'Education-focused area'
-                result['landmark_found'] = 'Educational institutions'
-                result['match_type'] = 'education_general'
-    
-    # Similar logic for other landmark types
-    elif landmark_type == 'hospital':
-        hospital_keywords = [
-            ('near hospital', 1.0),
-            ('close to hospital', 1.0),
-            ('medical center', 0.8),
-            ('healthcare facilities', 0.7),
-            ('accessible to hospital', 0.6),
-            ('emergency services', 0.5),
-            ('walking distance to hospital', 1.0),
-        ]
-        
-        for keyword, confidence in hospital_keywords:
-            if keyword in all_text:
-                result['is_near'] = True
-                result['distance'] = f'Mentioned: "{keyword}"'
-                result['landmark_found'] = landmark
-                result['match_type'] = 'proximity_keyword'
-                break
-    
-    elif landmark_type == 'mall':
-        mall_keywords = [
-            ('near mall', 1.0),
-            ('close to mall', 1.0),
-            ('shopping center', 0.8),
-            ('walking distance to mall', 1.0),
-            ('accessible to mall', 0.7),
-        ]
-        
-        for keyword, confidence in mall_keywords:
-            if keyword in all_text:
-                result['is_near'] = True
-                result['distance'] = f'Mentioned: "{keyword}"'
-                result['landmark_found'] = landmark
-                result['match_type'] = 'proximity_keyword'
-                break
-    
-    return result
-
-def calculate_proximity_score(proximity_info: Dict[str, Any]) -> float:
-    """Calculate a score based on how confidently we know the property is near the landmark"""
-    score = 0.0
-    
-    # Base score for being near
-    if proximity_info.get('is_near'):
-        score += 1.0
-    
-    # Match type scoring
-    match_type = proximity_info.get('match_type')
-    match_type_scores = {
-        'google_maps': 1.0,          # Direct Google Maps verification
-        'exact_match': 0.95,         # Exact school name match
-        'proximity_keyword': 0.9,    # Direct proximity mention
-        'school_pattern': 0.85,      # School name pattern match
-        'education_general': 0.7,    # General education mentions
-        'not_found': 0.0,
-        'not_checked': 0.0
-    }
-    
-    if match_type in match_type_scores:
-        score += match_type_scores[match_type]
-    
-    # Distance-based scoring (if available from API)
-    distance = proximity_info.get('distance', '')
-    if 'km' in distance:
-        try:
-            match = re.search(r'(\d+\.?\d*)\s*km', distance)
-            if match:
-                km = float(match.group(1))
-                if km <= 0.5:
-                    score += 1.0  # Very close (≤500m)
-                elif km <= 1.0:
-                    score += 0.8  # Close (≤1km)
-                elif km <= 2.0:
-                    score += 0.6  # Walking distance (≤2km)
-                elif km <= 5.0:
-                    score += 0.3  # Short drive
-        except:
-            pass
-    elif 'm' in distance and 'km' not in distance:
-        try:
-            match = re.search(r'(\d+)\s*m', distance)
-            if match:
-                meters = float(match.group(1))
-                if meters <= 500:
-                    score += 1.0  # Very close
-                elif meters <= 1000:
-                    score += 0.8  # Close
-                elif meters <= 2000:
-                    score += 0.6  # Walking distance
-        except:
-            pass
-    
-    # Confidence score from keyword matching
-    if 'confidence' in proximity_info:
-        score += proximity_info['confidence']
-    
-    return min(score, 3.0)  # Cap at 3.0
-
-def check_amenities_for_landmark(property_data: Dict[str, Any], landmark_type: str) -> bool:
-    """Check if amenities list mentions schools or educational facilities"""
-    amenities = property_data.get('amenities', [])
-    
-    if landmark_type == 'school':
-        school_amenities = [
-            'school', 'education', 'campus', 'university', 'college',
-            'academic', 'student', 'learning', 'study', 'educational'
-        ]
-        
-        for amenity in amenities:
-            amenity_lower = str(amenity).lower()
-            for keyword in school_amenities:
-                if keyword in amenity_lower:
-                    return True
-    
-    return False
-
-# ========== HELPER FUNCTIONS ==========
+# Add numeric price value to property data
 def add_price_numeric_value(property_data: Dict) -> Dict:
     """Add numeric price value to property data for easier filtering"""
     property_data = property_data.copy()
@@ -1433,8 +480,10 @@ def add_price_numeric_value(property_data: Dict) -> Dict:
     elif listing_type == 'lease' and 'annualRent' in property_data:
         property_data['price_numeric'] = property_data['annualRent']
     else:
+        # Try to extract from price string
         price_str = str(property_data.get('price', '0'))
         try:
+            # Extract numeric value from string like "₱10.0M" or "₱25,000"
             match = re.search(r'[\d\.\,]+', price_str)
             if match:
                 numeric_str = match.group().replace(',', '')
@@ -1451,352 +500,16 @@ def add_price_numeric_value(property_data: Dict) -> Dict:
     
     return property_data
 
-def get_bedroom_count_from_string(bedroom_str: str) -> int:
-    """Convert bedroom string to numeric count for filtering"""
-    if not bedroom_str:
-        return 0
-    
-    bedroom_str = str(bedroom_str).lower().strip()
-    
-    # Common patterns
-    if bedroom_str == 'studio' or bedroom_str == '0' or 'studio' in bedroom_str:
-        return 0
-    elif bedroom_str == '1' or '1 bedroom' in bedroom_str:
-        return 1
-    elif bedroom_str == '2' or '2 bedroom' in bedroom_str:
-        return 2
-    elif bedroom_str == '3' or '3 bedroom' in bedroom_str:
-        return 3
-    elif bedroom_str == '4' or '4 bedroom' in bedroom_str:
-        return 4
-    elif bedroom_str == '5' or '5 bedroom' in bedroom_str or '5+' in bedroom_str:
-        return 5
-    elif '6' in bedroom_str or '6+' in bedroom_str:
-        return 6
-    else:
-        # Try to extract any number
-        match = re.search(r'(\d+)', bedroom_str)
-        if match:
-            return int(match.group(1))
-        return 0
-
-def calculate_family_suitability_score(prop: Dict[str, Any], family_size: int) -> int:
-    """Calculate how suitable a property is for a family of given size"""
-    score = 0
-    
-    # 1. Score based on property type (higher score for family-friendly types)
-    prop_type = prop.get('propertyType', '').lower()
-    prop_category = prop.get('propertyCategory', '').lower()
-    
-    # Property type scoring
-    type_scores = {
-        'house': 10,
-        'townhouse': 9,
-        'bungalow': 8,
-        'duplex': 8,
-        'condo': 6,
-        'apartment': 5,
-        'village_lot': 7,  # For building custom home
-        'residential_lot': 7,
-        'penthouse': 8,  # Spacious condo option
-        'loft': 6,
-        'boarding_house': 4,
-        'room': 2,
-        'dormitory': 3,
-    }
-    
-    for type_key, type_score in type_scores.items():
-        if type_key in prop_type or type_key in str(prop.get('type', '')).lower():
-            score += type_score
-            break
-    
-    # 2. Score based on bedrooms
-    bedroom_str = prop.get('bedrooms', '')
-    bedroom_count = get_bedroom_count_from_string(bedroom_str)
-    
-    if bedroom_count > 0:
-        # Ideal bedroom count based on family size
-        if family_size <= 2:
-            ideal_bedrooms = 2
-        elif family_size <= 4:
-            ideal_bedrooms = 3
-        else:  # 5+ members
-            ideal_bedrooms = 4
-        
-        if bedroom_count >= ideal_bedrooms:
-            score += 15  # Meets or exceeds ideal
-        elif bedroom_count >= ideal_bedrooms - 1:
-            score += 10  # Close to ideal
-        else:
-            score += 5   # Less than ideal but might work
-    
-    # 3. Score based on bathrooms
-    bathroom_str = prop.get('bathrooms', '')
-    if bathroom_str:
-        try:
-            if bathroom_str == '4+':
-                bathroom_count = 4
-            else:
-                bathroom_count = int(bathroom_str)
-            
-            if bathroom_count >= 2:
-                score += 8  # Multiple bathrooms are great for families
-            elif bathroom_count >= 1:
-                score += 4
-        except:
-            pass
-    
-    # 4. Score based on space/size
-    floor_area = prop.get('floorArea', 0)
-    lot_area = prop.get('lotArea', 0)
-    
-    if floor_area > 0:
-        if floor_area >= 100:  # 100+ sqm is spacious for families
-            score += 10
-        elif floor_area >= 60:  # 60-99 sqm is decent
-            score += 6
-        elif floor_area >= 30:  # 30-59 sqm is basic
-            score += 3
-    
-    if lot_area and lot_area > 100:  # Large lot is great for families
-        score += 8
-    
-    # 5. Score based on amenities/features
-    amenities = prop.get('amenities', [])
-    features = prop.get('features', [])
-    all_features = amenities + features
-    
-    family_friendly_features = {
-        'garden': 5,
-        'yard': 5,
-        'parking': 4,
-        'parking space': 4,
-        'spacious': 3,
-        'children': 3,
-        'family': 3,
-        'playground': 6,
-        'pool': 4,
-        'swimming pool': 4,
-        'security': 3,
-        'fenced': 3,
-        'safe': 3,
-        'quiet': 2,
-        'community': 2,
-        'near school': 6,
-        'near park': 4,
-        'school proximity': 5,
-        'multiple bathrooms': 4,
-        'storage': 2,
-        'laundry': 2,
-    }
-    
-    for feature in all_features:
-        feature_lower = str(feature).lower()
-        for key, value in family_friendly_features.items():
-            if key in feature_lower:
-                score += value
-    
-    # 6. Score based on location/neighborhood
-    description = prop.get('description', '').lower()
-    title = prop.get('title', '').lower()
-    
-    location_keywords = ['family-friendly', 'safe neighborhood', 'quiet street', 
-                        'good for families', 'child-friendly', 'residential area',
-                        'subdivision', 'village']
-    
-    for keyword in location_keywords:
-        if keyword in description or keyword in title:
-            score += 4
-    
-    # 7. Score based on furnishing
-    furnishing = prop.get('furnishing', '').lower()
-    if 'furnished' in furnishing:
-        score += 3  # Helpful for families moving in
-    elif 'semi-furnished' in furnishing:
-        score += 2
-    
-    return score
-    
-def generate_family_needs_response(family_size: int, properties: List[Dict[str, Any]], entities: Dict[str, Any]) -> str:
-    """Generate response specifically for family needs"""
-    
-    if not properties:
-        return f"I couldn't find any properties for family of {family_size} members.\n\n"
-    
-    # Calculate ideal bedroom range based on family size
-    if family_size <= 2:
-        ideal_min, ideal_max = 1, 2  # 1-2 bedrooms ideal for couple/small family
-    elif 3 <= family_size <= 4:
-        ideal_min, ideal_max = 2, 3  # 2-3 bedrooms ideal for small family
-    elif 5 <= family_size <= 6:
-        ideal_min, ideal_max = 3, 4  # 3-4 bedrooms ideal for medium family
-    else:  # 7+ people
-        ideal_min, ideal_max = 4, 5  # 4+ bedrooms ideal for large family
-    
-    # Score and sort properties based on bedroom suitability
-    scored_properties = []
-    
-    for prop in properties:
-        # Skip obviously unsuitable property types
-        prop_type = str(prop.get('propertyType', '')).lower()
-        unsuitable_types = ['room', 'boarding_house', 'dormitory', 'office', 
-                           'retail', 'commercial', 'warehouse', 'industrial',
-                           'food_stall', 'shop', 'showroom', 'parking_area']
-        
-        if any(unsuitable in prop_type for unsuitable in unsuitable_types):
-            continue
-            
-        # Get bedroom count
-        bedroom_str = prop.get('bedrooms', '')
-        bedrooms = get_bedroom_count_from_string(bedroom_str)
-        
-        # Calculate bedroom suitability score
-        bedroom_score = 0
-        if ideal_min <= bedrooms <= ideal_max:
-            bedroom_score = 100  # Perfect match!
-        elif bedrooms == ideal_max + 1:
-            bedroom_score = 80   # Slightly larger than ideal
-        elif bedrooms == ideal_max + 2:
-            bedroom_score = 60   # Much larger than ideal
-        elif bedrooms == ideal_min - 1 and bedrooms > 0:
-            bedroom_score = 70   # Slightly smaller than ideal
-        elif bedrooms < ideal_min:
-            bedroom_score = 50   # Smaller than minimum
-        elif bedrooms > ideal_max + 2:
-            bedroom_score = 40   # Much larger than ideal
-            
-        # Calculate overall family suitability
-        overall_score = calculate_family_suitability_score(prop, family_size)
-        
-        # Combine scores (bedroom match is more important)
-        total_score = (bedroom_score * 0.6) + (overall_score * 0.4)
-        
-        prop['family_suitability_score'] = total_score
-        prop['bedroom_match_score'] = bedroom_score
-        scored_properties.append(prop)
-    
-    if not scored_properties:
-        return f"I couldn't find any suitable properties for family of {family_size} members.\n\n"
-    
-    # Sort by total suitability score (highest first)
-    scored_properties.sort(key=lambda x: x.get('family_suitability_score', 0), reverse=True)
-    
-    # Take top 5 most suitable properties
-    filtered_properties = scored_properties[:5]
-    
-    # Generate response
-    response = f"🏠 **Properties Suitable for Family of {family_size}**\n\n"
-    
-    if filtered_properties:
-        response += f"I found {len(filtered_properties)} properties that could work for your family:\n\n"
-        
-        for i, prop in enumerate(filtered_properties):
-            title = prop.get('title', f'Property {i+1}')
-            price = prop.get('price', 'Price not available')
-            location = prop.get('location', 'Location not specified')
-            bedrooms = prop.get('bedrooms', 'Not specified')
-            prop_type = prop.get('type', '').replace('_', ' ').title()
-            bedroom_score = prop.get('bedroom_match_score', 0)
-            
-            response += f"{i+1}. **{title}**\n"
-            response += f"   📍 {location}\n"
-            response += f"   🏠 Type: {prop_type}\n"
-            response += f"   💰 Price: {price}\n"
-            response += f"   🛏️ Bedrooms: {bedrooms}"
-            
-            # Add bedroom suitability note
-            if bedroom_score == 100:
-                response += f" ✅ **Perfect size for your family**\n"
-            elif bedroom_score >= 80:
-                response += f" 👍 **Good size for your family**\n"
-            elif bedroom_score >= 60:
-                response += f" 📏 **Adequate size for your family**\n"
-            else:
-                response += f" 📐 **May need adjustment for your family**\n"
-            
-            # Show key features
-            features = prop.get('features', [])
-            if features:
-                response += f"   ✅ Features: {', '.join(features[:3])}\n"
-            
-            response += "\n"
-        
-        # Family living tips based on size
-        response += "**💡 Family Living Tips:**\n"
-        
-        if family_size == 1:
-            response += "• **Studio or 1 bedroom** is perfect for singles\n"
-            response += "• Consider **condos or apartments** for low maintenance\n"
-            response += "• Look for **secure buildings** with amenities\n"
-            
-        elif family_size == 2:  # Couple or 1 child
-            response += "• **1-2 bedroom properties** provide space for home office or guest room\n"
-            response += "• Look for **secure buildings** or **gated communities**\n"
-            response += "• Consider **proximity to schools** even if no children yet\n"
-            
-        elif family_size == 3:  # Small family
-            response += "• **2-3 bedroom properties** are ideal for growing families\n"
-            response += "• Multiple **bathrooms** help with morning routines\n"
-            response += "• **Nearby parks and playgrounds** are great for children\n"
-            
-        elif family_size == 4:  # Standard family
-            response += "• **3-4 bedroom properties** provide comfortable living space\n"
-            response += "• **2+ bathrooms** are recommended for convenience\n"
-            response += "• **Yard or garden space** allows for outdoor activities\n"
-            
-        elif family_size >= 5:  # Large family
-            response += "• **4+ bedroom properties** or **houses with extension potential**\n"
-            response += "• **Multiple living areas** help with space management\n"
-            response += "• **Large lots** allow for expansion or outdoor space\n"
-        
-    else:
-        response = f"I couldn't find specifically family-optimized properties for {family_size} members.\n\n"
-        response += "💡 **Try these adjustments:**\n"
-        min_bedrooms = entities.get('min_bedrooms', 2)
-        response += f"• Search for properties with **{min_bedrooms}+ bedrooms**\n"
-        response += "• Look in family-friendly areas like subdivisions\n"
-        response += "• Consider properties with 'family-friendly' features\n\n"
-        
-        response += "**🔍 Try these specific searches:**\n"
-        response += f"• *'find houses with {min_bedrooms} bedrooms'*\n"
-        response += "• *'show me properties with garden for families'*\n"
-        response += "• *'properties in gated communities'*\n"
-    
-    return response
-
-def calculate_installment_payment(property_data: Dict) -> Optional[Dict]:
-    """Calculate installment payment details for a property"""
-    sale_price = property_data.get('salePrice')
-    if not sale_price or sale_price <= 0:
-        return None
-    
-    downpayment_percentage = 0.30
-    loan_term_years = 5
-    annual_interest_rate = 0.06
-    
-    downpayment = sale_price * downpayment_percentage
-    loan_amount = sale_price - downpayment
-    
-    total_interest = loan_amount * annual_interest_rate * loan_term_years
-    total_payment = loan_amount + total_interest
-    monthly_payment = total_payment / (loan_term_years * 12)
-    
-    return {
-        'downpayment': round(downpayment, 2),
-        'loan_amount': round(loan_amount, 2),
-        'monthly_payment': round(monthly_payment, 2),
-        'interest_rate': f"{annual_interest_rate * 100}%",
-        'term_years': loan_term_years,
-        'total_payment': round(total_payment, 2)
-    }
-
+# Standardize property data from Firestore
 def standardize_property_data(property_data: Dict) -> Dict:
     """Standardize property data from Firestore to chatbot format"""
+    # Extract basic info
     title = property_data.get('title', 'Untitled Property')
     property_type = property_data.get('propertyType', property_data.get('type', 'unknown'))
     city = property_data.get('city', 'Unknown')
     province = property_data.get('province', 'Batangas')
     
+    # Format price based on listing type
     listing_type = property_data.get('type', property_data.get('listingType', 'unknown'))
     price_str = "Price not available"
     
@@ -1813,16 +526,18 @@ def standardize_property_data(property_data: Dict) -> Dict:
         price = property_data['annualRent']
         price_str = f"₱{price:,.0f}/year"
     
+    # Extract features
     features = []
     if property_data.get('furnishing'):
         features.append(property_data['furnishing'])
     if property_data.get('amenities'):
-        features.extend(property_data['amenities'][:3])
+        features.extend(property_data['amenities'][:3])  # First 3 amenities
     if property_data.get('bedrooms'):
         features.append(f"{property_data['bedrooms']} bedroom{'s' if property_data['bedrooms'] != '1' else ''}")
     if property_data.get('bathrooms'):
         features.append(f"{property_data['bathrooms']} bathroom{'s' if property_data['bathrooms'] != '1' else ''}")
     
+    # Get description or create one
     description = property_data.get('description', '')
     if not description:
         description = f"A {property_type.replace('_', ' ')} located in {city}, {province}."
@@ -1848,27 +563,21 @@ def standardize_property_data(property_data: Dict) -> Dict:
         'floorArea': property_data.get('floorArea', None),
         'lotArea': property_data.get('lotArea', None),
         'financingOptions': property_data.get('financingOptions', []),
-        'saleType': property_data.get('saleType', 'Not specified'),
-        'salePrice': property_data.get('salePrice', 0),
-        'price_numeric': property_data.get('price_numeric', 0),
-        'latitude': property_data.get('latitude', None),
-        'longitude': property_data.get('longitude', None),
-        'amenities': property_data.get('amenities', [])
+        'price_numeric': property_data.get('price_numeric', 0)  # Add numeric price
     }
-    
-    if property_data.get('installment_details'):
-        standardized['installment_details'] = property_data['installment_details']
     
     return standardized
 
+# Get mock properties when Firebase is not connected
 def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Generate mock properties for testing when Firebase is not connected"""
     mock_properties = []
     
+    # Base mock data matching your Firestore structure
     base_properties = [
         {
             'id': 'mock_1',
-            'title': 'Modern House Near Schools in Nasugbu',
+            'title': 'Modern House in Nasugbu',
             'propertyType': 'house',
             'type': 'rent',
             'city': 'Nasugbu',
@@ -1878,19 +587,16 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '3',
             'bathrooms': '2',
             'floorArea': 120,
-            'description': 'Beautiful modern house near Nasugbu Elementary School. Walking distance to schools and perfect for families. Close to educational institutions.',
+            'description': 'Beautiful modern house near the beach',
             'imageUrls': [],
             'status': 'available',
-            'amenities': ['Swimming Pool', 'Garden', 'Parking', 'Near Schools'],
-            'latitude': 14.0735,
-            'longitude': 120.6354
+            'amenities': ['Swimming Pool', 'Garden', 'Parking']
         },
         {
             'id': 'mock_2',
-            'title': 'Beachfront Condo Unit with School Proximity',
+            'title': 'Beachfront Condo Unit',
             'propertyType': 'condo',
             'type': 'sale',
-            'saleType': 'installment',
             'city': 'Nasugbu',
             'province': 'Batangas',
             'address': '456 Coastal Avenue, Nasugbu',
@@ -1898,32 +604,27 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '2',
             'bathrooms': '2',
             'floorArea': 80,
-            'description': 'Luxury beachfront condo with ocean view. Near Nasugbu National High School. Educational facilities accessible within 5 minutes.',
+            'description': 'Luxury beachfront condo with ocean view',
             'imageUrls': [],
             'status': 'available',
-            'financingOptions': ['Bank Financing - BDO', 'Pag-IBIG Housing Loan'],
-            'amenities': ['Pool', 'Gym', '24/7 Security'],
-            'latitude': 14.0750,
-            'longitude': 120.6360
+            'financingOptions': ['Bank Financing - BDO', 'Pag-IBIG Housing Loan']
         },
         {
             'id': 'mock_3',
-            'title': 'Commercial Space in Lipa Near Universities',
+            'title': 'Commercial Space in Lipa',
             'propertyType': 'commercial_building',
             'type': 'lease',
             'city': 'Lipa City',
             'province': 'Batangas',
             'address': '789 Business District, Lipa',
             'annualRent': 1200000,
-            'description': 'Prime commercial space for business. Located near University of Batangas Lipa Campus. Student-friendly area with good foot traffic.',
+            'description': 'Prime commercial space for business',
             'imageUrls': [],
-            'status': 'available',
-            'latitude': 13.9410,
-            'longitude': 121.1630
+            'status': 'available'
         },
         {
             'id': 'mock_4',
-            'title': 'Apartment Near Batangas State University',
+            'title': 'Apartment in Batangas City',
             'propertyType': 'apartment',
             'type': 'rent',
             'city': 'Batangas City',
@@ -1933,19 +634,15 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '2',
             'bathrooms': '1',
             'floorArea': 50,
-            'description': 'Clean and affordable apartment. Walking distance to Batangas State University. Perfect for students and young professionals.',
+            'description': 'Clean and affordable apartment',
             'imageUrls': [],
-            'status': 'available',
-            'amenities': ['WiFi', 'Laundry Area', 'Study Area'],
-            'latitude': 13.7565,
-            'longitude': 121.0583
+            'status': 'available'
         },
         {
             'id': 'mock_5',
-            'title': 'Townhouse in School District Sto. Tomas',
+            'title': 'Townhouse in Sto. Tomas',
             'propertyType': 'townhouse',
             'type': 'sale',
-            'saleType': 'bank_financing',
             'city': 'Sto. Tomas City',
             'province': 'Batangas',
             'address': '202 Subdivision, Sto. Tomas',
@@ -1953,59 +650,17 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'bedrooms': '3',
             'bathrooms': '2',
             'floorArea': 90,
-            'description': 'Modern townhouse with garage. Located in established school district. Near Sto. Tomas Elementary School and High School.',
+            'description': 'Modern townhouse with garage',
             'imageUrls': [],
-            'status': 'available',
-            'financingOptions': ['Bank Financing - Metrobank', 'Outright Payment'],
-            'amenities': ['Garage', 'Garden', 'Security'],
-            'latitude': 14.0735,
-            'longitude': 121.1410
-        },
-        {
-            'id': 'mock_6',
-            'title': 'Family House with School Access in Lipa',
-            'propertyType': 'house',
-            'type': 'sale',
-            'saleType': 'installment',
-            'city': 'Lipa City',
-            'province': 'Batangas',
-            'address': '303 Family Subdivision, Lipa',
-            'salePrice': 4500000,
-            'bedrooms': '4',
-            'bathrooms': '3',
-            'floorArea': 150,
-            'description': 'Spacious family house with installment payment option. School bus route passes nearby. Educational hub with multiple schools in the area.',
-            'imageUrls': [],
-            'status': 'available',
-            'financingOptions': ['In-house Installment Plan', 'Bank Financing - UnionBank'],
-            'amenities': ['Large Yard', 'Parking for 2', 'Study Room'],
-            'latitude': 13.9440,
-            'longitude': 121.1620
-        },
-        {
-            'id': 'mock_7',
-            'title': 'Student Dormitory Near Campus',
-            'propertyType': 'dormitory',
-            'type': 'rent',
-            'city': 'Lipa City',
-            'province': 'Batangas',
-            'address': '404 Student Village, Lipa',
-            'monthlyRent': 8000,
-            'bedrooms': '1',
-            'bathrooms': '1',
-            'floorArea': 25,
-            'description': 'Student dormitory with all amenities. Right beside University of Batangas. Perfect for college students.',
-            'imageUrls': [],
-            'status': 'available',
-            'amenities': ['WiFi', 'Study Room', 'Laundry', 'Cafeteria'],
-            'latitude': 13.9430,
-            'longitude': 121.1610
+            'status': 'available'
         }
     ]
     
+    # Filter mock properties based on entities
     for prop in base_properties:
         matches = True
         
+        # Filter by location (only if specified)
         if entities.get('location'):
             location = entities['location'].lower()
             prop_city = prop.get('city', '').lower()
@@ -2018,6 +673,7 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             elif 'sto tomas' in location and 'sto. tomas city' not in prop_city:
                 matches = False
         
+        # Filter by property type
         if entities.get('property_type') and matches:
             requested_type = entities['property_type'].lower()
             prop_type = prop.get('propertyType', '').lower()
@@ -2025,7 +681,7 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             type_mapping = {
                 'house': ['house', 'bungalow', 'duplex'],
                 'condo': ['condo', 'condominium', 'penthouse', 'studio'],
-                'apartment': ['apartment', 'room', 'boarding_house', 'dormitory'],
+                'apartment': ['apartment', 'room', 'boarding_house'],
                 'commercial': ['commercial', 'office', 'retail', 'warehouse'],
                 'townhouse': ['townhouse']
             }
@@ -2034,16 +690,7 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
                 if prop_type not in type_mapping[requested_type]:
                     matches = False
         
-        if entities.get('sale_type') and matches:
-            prop_type = prop.get('type', '')
-            prop_sale_type = prop.get('saleType', '')
-            
-            if prop_type == 'sale':
-                if prop_sale_type != entities['sale_type']:
-                    matches = False
-            else:
-                matches = False
-        
+        # Filter by price if specified
         if entities.get('max_price') and matches:
             price_numeric = 0
             if prop.get('type') == 'rent' and 'monthlyRent' in prop:
@@ -2054,38 +701,60 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             if price_numeric > entities['max_price']:
                 matches = False
         
-        # Check for bedroom requirements
+        # Filter by bedrooms if specified
         if entities.get('exact_bedrooms') is not None and matches:
-            prop_bedrooms = prop.get('bedrooms', 'Not specified')
-            prop_bed_num = get_bedroom_count_from_string(prop_bedrooms)
-            
-            if prop_bed_num != entities['exact_bedrooms']:
-                matches = False
-                logger.debug(f"❌ Exact bedroom mismatch: {prop_bed_num} != {entities['exact_bedrooms']}")
-
-        # Check for minimum bedroom requirement (for family needs)
-        elif entities.get('min_bedrooms') is not None and matches:
-            prop_bedrooms = prop.get('bedrooms', 'Not specified')
-            prop_bed_num = get_bedroom_count_from_string(prop_bedrooms)
-            
-            if prop_bed_num < entities['min_bedrooms']:
-                matches = False
-                logger.debug(f"❌ Minimum bedroom requirement not met: {prop_bed_num} < {entities['min_bedrooms']}")
-            else:
-                logger.debug(f"✅ Meets minimum bedroom requirement: {prop_bed_num} >= {entities['min_bedrooms']}")
+            prop_bedrooms = prop.get('bedrooms', '0')
+            try:
+                if isinstance(prop_bedrooms, str):
+                    bed_match = re.search(r'(\d+)', prop_bedrooms)
+                    if bed_match:
+                        prop_bed_num = int(bed_match.group(1))
+                    else:
+                        prop_bed_num = 0
+                else:
+                    prop_bed_num = int(prop_bedrooms)
+                
+                if prop_bed_num != entities['exact_bedrooms']:
+                    matches = False
+            except:
+                pass
         
         if matches:
+            # Add numeric price value
             prop_with_price = add_price_numeric_value(prop)
-            
-            if entities.get('sale_type') == 'installment' and prop.get('type') == 'sale':
-                installment_details = calculate_installment_payment(prop_with_price)
-                if installment_details:
-                    prop_with_price['installment_details'] = installment_details
-            
             mock_properties.append(standardize_property_data(prop_with_price))
     
     return mock_properties
 
+# Debug function for property matching
+def debug_property_matching(properties, entities):
+    """Debug why properties are/aren't being matched"""
+    logger.info(f"🔍 DEBUG PROPERTY MATCHING:")
+    logger.info(f"   Query entities: {entities}")
+    
+    for i, prop in enumerate(properties):
+        logger.info(f"\n   Property {i+1}:")
+        logger.info(f"     ID: {prop.get('id')}")
+        logger.info(f"     Title: {prop.get('title')}")
+        logger.info(f"     Property Type: {prop.get('propertyType', prop.get('type'))}")
+        logger.info(f"     City: {prop.get('city')}")
+        logger.info(f"     Status: {prop.get('status')}")
+        
+        # Check if it matches location
+        if entities.get('location'):
+            prop_city = prop.get('city', '').lower()
+            query_city = entities.get('location', '').lower()
+            matches_location = query_city in prop_city or prop_city in query_city
+            logger.info(f"     Matches location '{query_city}': {matches_location}")
+        
+        # Check if it matches property type
+        if entities.get('property_type'):
+            prop_type = prop.get('propertyType', prop.get('type', '')).lower()
+            query_type = entities.get('property_type', '').lower()
+            matches_type = query_type in prop_type or prop_type in query_type
+            logger.info(f"     Matches type '{query_type}': {matches_type}")
+
+# Firestore queries - UPDATED WITH PROPER PRICE AND BEDROOM FILTERING
 def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search properties in Firestore based on entities"""
     properties = []
@@ -2095,59 +764,25 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         return get_mock_properties(entities)
     
     try:
+        from google.cloud.firestore_v1 import FieldFilter
+        
         properties_ref = db.collection('properties')
+        
+        # Build query based on available entities
         query = properties_ref
         
-        logger.info("🔍 Status filtering will be done client-side")
+        # FIX: Remove status filter from Firestore query - handle client-side instead
+        # Firestore doesn't support 'in' operator with FieldFilter
+        logger.info("🔍 Status filtering will be done client-side (Firestore doesn't support 'in' operator)")
         
-        # Filter by sale type
-        sale_type = entities.get('sale_type')
-        logger.info(f"🔍 Looking for sale_type: {sale_type}")
+        # NEW: Handle general searches (no location specified)
+        is_general_search = not entities.get('location') and entities.get('has_general_search')
         
-        if sale_type:
-            try:
-                query = query.where(filter=FieldFilter('type', '==', 'sale'))
-                logger.info("✅ Filtered by type: sale")
-                
-                query = query.where(filter=FieldFilter('saleType', '==', sale_type))
-                logger.info(f"✅ Filtered by saleType: {sale_type}")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not filter by saleType: {e}")
-        
-        # Filter by specific financing options
-        if entities.get('financing_options') and not sale_type:
-            financing_option = entities['financing_options']
-            logger.info(f"🔍 Looking for {financing_option} financing...")
-            
-            financing_map = {
-                'BDO': ['BDO', 'Bank Financing - BDO', 'BDO Bank'],
-                'Metrobank': ['Metrobank', 'Bank Financing - Metrobank', 'Metrobank Bank'],
-                'UnionBank': ['UnionBank', 'Bank Financing - UnionBank', 'Union Bank'],
-                'RCBC': ['RCBC', 'Bank Financing - RCBC', 'RCBC Bank'],
-                'Pag-IBIG': ['Pag-IBIG', 'Pag-IBIG Housing Loan', 'Pag-IBIG Loan', 'Pagibig'],
-                'Housing Loan': ['Housing Loan', 'Home Loan', 'Property Loan']
-            }
-            
-            if financing_option in financing_map:
-                search_terms = financing_map[financing_option]
-                logger.info(f"🔍 Search terms for {financing_option}: {search_terms}")
-                
-                for term in search_terms:
-                    try:
-                        temp_query = query.where(filter=FieldFilter('financingOptions', 'array_contains', term))
-                        test_docs = list(temp_query.limit(1).get())
-                        if test_docs:
-                            query = temp_query
-                            logger.info(f"✅ Found properties with financing term: {term}")
-                            break
-                    except Exception as e:
-                        logger.debug(f"⚠️ Could not search for {term}: {e}")
-                        continue
-        
-        # Filter by location
+        # Filter by location if specified
         if entities.get('location'):
             location = entities['location']
             
+            # Map chatbot locations to your Firestore city values
             location_map = {
                 'Batangas City': 'Batangas City',
                 'Lipa City': 'Lipa City',
@@ -2169,55 +804,115 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             if location in location_map:
                 query = query.where(filter=FieldFilter('city', '==', location_map[location]))
                 logger.info(f"🔍 Filtering by city: {location_map[location]}")
+            else:
+                # Try case-insensitive match
+                location_lower = location.lower()
+                for map_key, map_value in location_map.items():
+                    if map_key.lower() == location_lower:
+                        query = query.where(filter=FieldFilter('city', '==', map_value))
+                        logger.info(f"🔍 Filtering by city (case-insensitive): {map_value}")
+                        break
+        else:
+            if is_general_search:
+                logger.info(f"🔍 General search for {entities.get('property_type', 'properties')} (no location filter)")
+            else:
+                logger.info("🔍 No location specified - showing properties from all locations")
         
-        # Filter by property type
+        # Filter by property type if specified - UPDATED FOR BETTER MATCHING
         if entities.get('property_type'):
             property_type = entities['property_type']
             
+            # COMPREHENSIVE property type mapping with case normalization
             type_map = {
-                'apartment': 'apartment',
-                'apartments': 'apartment',
-                'condo': 'condo_unit',
-                'condos': 'condo_unit',
-                'condominium': 'condo_unit',
-                'condominiums': 'condo_unit',
-                'house': 'house',
-                'houses': 'house',
-                'townhouse': 'townhouse',
-                'townhouses': 'townhouse',
-                'commercial': 'commercial_building',
-                'commercial_space': 'commercial_building',
-                'office': 'office_unit',
-                'retail': 'retail_space',
-                'warehouse': 'warehouse',
-                'industrial': 'warehouse',
-                'land': 'residential_lot',
-                'lot': 'residential_lot',
-                'residential_lot': 'residential_lot',
-                'commercial_lot': 'commercial_lot',
-                'agricultural': 'agricultural_land',
-                'agricultural_land': 'agricultural_land',
-                'beachfront': 'beachfront',
-                'resort': 'resort_property',
-                'resort_property': 'resort_property',
+                # For apartments category (residential) - BOTH CASES
+                'apartment': ['apartment', 'Apartment', 'boarding_house', 'room', 'dormitory'],
+                'apartments': ['apartment', 'Apartment', 'boarding_house', 'room', 'dormitory'],
+                
+                # For condos category
+                'condo': ['condo_unit', 'condominium', 'penthouse', 'studio', 'loft', 'Condo'],
+                'condos': ['condo_unit', 'condominium', 'penthouse', 'studio', 'loft', 'Condo'],
+                'condominium': ['condo_unit', 'condominium', 'penthouse', 'studio', 'loft', 'Condo'],
+                'condominiums': ['condo_unit', 'condominium', 'penthouse', 'studio', 'loft', 'Condo'],
+                
+                # For houses category - HANDLE BOTH "house" and "House"
+                'house': ['house', 'House', 'bungalow', 'duplex', 'villa'],
+                'houses': ['house', 'House', 'bungalow', 'duplex', 'villa'],
+                
+                # For townhouses category
+                'townhouse': ['townhouse', 'Townhouse'],
+                'townhouses': ['townhouse', 'Townhouse'],
+                
+                # For commercial category
+                'commercial': ['commercial_building', 'office_unit', 'retail_space', 'shop', 
+                              'showroom', 'commercial_unit', 'food_stall'],
+                'commercial_space': ['commercial_building', 'office_unit', 'retail_space', 'shop', 
+                                    'showroom', 'commercial_unit', 'food_stall'],
+                'office': ['office_unit', 'office_space'],
+                'retail': ['retail_space', 'shop', 'showroom'],
+                
+                # For warehouses category
+                'warehouse': ['warehouse', 'storage_unit', 'factory', 'workshop'],
+                'industrial': ['warehouse', 'storage_unit', 'factory', 'workshop'],
+                
+                # For land category
+                'land': ['residential_lot', 'commercial_lot', 'agricultural_land', 
+                        'industrial_lot', 'vacant_lot', 'development_land'],
+                'lot': ['residential_lot', 'commercial_lot', 'agricultural_land', 
+                       'industrial_lot', 'vacant_lot', 'development_land'],
+                'residential_lot': ['residential_lot'],
+                'commercial_lot': ['commercial_lot'],
+                'agricultural': ['agricultural_land'],
+                'agricultural_land': ['agricultural_land'],
+                
+                # Special categories
+                'beachfront': ['beachfront'],
+                'resort': ['resort_property'],
+                'resort_property': ['resort_property'],
+                
+                # Default mapping for single values (backward compatibility)
                 'commercial_building': 'commercial_building',
                 'office_unit': 'office_unit',
-                'retail_space': 'retail_space'
+                'retail_space': 'retail_space',
+                'residential_lot': 'residential_lot',
+                'condo_unit': 'condo_unit',
+                'house': 'house'
             }
             
-            mapped_type = type_map.get(property_type, property_type)
-            try:
-                query = query.where(filter=FieldFilter('propertyType', '==', mapped_type))
-                logger.info(f"🔍 Filtering by property type: {mapped_type}")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not filter by property type {mapped_type}: {e}")
+            # Get possible property types for this category
+            possible_types = type_map.get(property_type)
+            
+            if possible_types:
+                if isinstance(possible_types, list):
+                    # For multiple possible types, we need to filter client-side
+                    # Firestore doesn't support OR queries directly
+                    logger.info(f"🔍 Will filter client-side for property types: {possible_types}")
+                    
+                    # Try to use the first type as a primary filter
+                    primary_type = possible_types[0]
+                    try:
+                        query = query.where(filter=FieldFilter('propertyType', '==', primary_type))
+                        logger.info(f"🔍 Primary filter by property type: {primary_type}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Could not filter by {primary_type}: {e}")
+                else:
+                    # Single type mapping
+                    query = query.where(filter=FieldFilter('propertyType', '==', possible_types))
+                    logger.info(f"🔍 Filtering by property type: {possible_types}")
+            else:
+                # Try direct match if not found in map
+                try:
+                    query = query.where(filter=FieldFilter('propertyType', '==', property_type))
+                    logger.info(f"🔍 Direct filtering by property type: {property_type}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not filter by property type {property_type}: {e}")
         
-        # Apply price filters
+        # ========== APPLY PRICE FILTERS IF SPECIFIED ==========
         if entities.get('max_price'):
             max_price = entities['max_price']
             logger.info(f"💰 Applying max price filter: ₱{max_price:,.0f}")
             
-            price_fields = ['salePrice', 'monthlyRent', 'annualRent']
+            # Try all possible price fields
+            price_fields = ['monthlyRent', 'salePrice', 'annualRent', 'price']
             price_filter_applied = False
             
             for field in price_fields:
@@ -2233,23 +928,55 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             if not price_filter_applied:
                 logger.info("💡 Will apply price filtering client-side")
         
-        # Execute query with timeout handling
-        limit_count = 50  # Get more for landmark filtering
+        # ========== APPLY BEDROOM FILTER IF SPECIFIED ==========
+        if entities.get('exact_bedrooms') is not None:
+            bedrooms = entities['exact_bedrooms']
+            bed_str = str(bedrooms) if bedrooms <= 5 else '5+'
+            
+            try:
+                query = query.where(filter=FieldFilter('bedrooms', '==', bed_str))
+                logger.info(f"🛏️ Filtering by exact bedroom count: {bed_str}")
+            except Exception as bed_error:
+                logger.warning(f"⚠️ Could not filter by bedrooms: {bed_error}")
+                # Will apply client-side filtering
+        
+        # Filter by financing if specified
+        if entities.get('financing_type'):
+            financing_type = entities['financing_type'].lower()
+            logger.info(f"🔍 Looking for financing: {financing_type}")
+            
+            # Try different financing options
+            financing_terms = []
+            if 'bank' in financing_type:
+                financing_terms.extend(['Bank Financing', 'Bank', 'BDO', 'Metrobank', 'UnionBank', 'RCBC'])
+            if 'pag' in financing_type or 'ibig' in financing_type:
+                financing_terms.extend(['Pag-IBIG', 'Pag-IBIG Housing Loan', 'pagibig', 'housing loan'])
+            if 'in-house' in financing_type:
+                financing_terms.extend(['In-House', 'developer financing', 'installment'])
+            if 'cash' in financing_type:
+                financing_terms.extend(['Cash', 'cash payment'])
+            
+            if financing_terms:
+                # Try to find properties with any of these financing options
+                for term in financing_terms[:3]:  # Try first 3 terms
+                    try:
+                        temp_query = query.where(filter=FieldFilter('financingOptions', 'array_contains', term))
+                        # Test if this query would return results
+                        test_docs = list(temp_query.limit(1).get())
+                        if test_docs:
+                            query = temp_query
+                            logger.info(f"🔍 Filtering by financing term: {term}")
+                            break
+                    except Exception as finance_error:
+                        logger.debug(f"⚠️ Could not filter by financing term {term}: {finance_error}")
+                        continue
+        
+        # Execute query with appropriate limit
+        limit_count = 20 if is_general_search else 15  # More results for general searches
         logger.info(f"🔍 Executing Firestore query (limit: {limit_count})...")
+        docs = query.limit(limit_count).get()
         
-        try:
-            # Add timeout for Firestore query
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(lambda: list(query.limit(limit_count).get()))
-                docs = future.result(timeout=10)  # 10 second timeout
-        except concurrent.futures.TimeoutError:
-            logger.error("❌ Firestore query timed out after 10 seconds")
-            return get_mock_properties(entities)
-        except Exception as e:
-            logger.error(f"❌ Firestore query error: {e}")
-            docs = []
-        
+        found_count = 0
         property_data_list = []
         status_counts = {}
         
@@ -2257,19 +984,32 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             property_data = doc.to_dict()
             property_data['id'] = doc.id
             property_data_list.append(property_data)
+            found_count += 1
             
+            # Track status for debugging
             status = property_data.get('status', 'NO STATUS')
             status_counts[status] = status_counts.get(status, 0) + 1
         
-        logger.info(f"🔍 Found {len(property_data_list)} properties from Firestore")
+        logger.info(f"🔍 Found {found_count} properties from Firestore")
         logger.info(f"🔍 Status breakdown: {status_counts}")
         
-        # Client-side filtering
+        # DEBUG: Show raw properties
+        logger.info(f"🔍 DEBUG: Raw properties from Firestore (before filtering):")
+        for doc in docs:
+            data = doc.to_dict()
+            doc_id = doc.id
+            prop_type = data.get('propertyType', data.get('type', 'NO TYPE'))
+            city = data.get('city', 'NO CITY')
+            status = data.get('status', 'NO STATUS')
+            logger.info(f"   • ID: {doc_id[:10]}..., Type: {prop_type}, City: {city}, Status: {status}")
+        
+        # ========== COMPREHENSIVE CLIENT-SIDE FILTERING ==========
         filtered_properties = []
         
         for property_data in property_data_list:
             matches = True
             
+            # ========== CLIENT-SIDE STATUS FILTERING ==========
             status = str(property_data.get('status', '')).lower()
             valid_statuses = ['available', 'active', 'for rent', 'for sale', 'for lease', 'listed']
             if status not in valid_statuses:
@@ -2277,184 +1017,156 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                 matches = False
                 continue
             
-            if sale_type and matches:
-                prop_type = property_data.get('type', property_data.get('listingType', ''))
-                prop_sale_type = property_data.get('saleType', '').lower()
+            # Apply property type filtering (for categories with multiple types)
+            if entities.get('property_type') and property_type in type_map:
+                prop_type = property_data.get('propertyType', '').lower()
+                possible_types = type_map[property_type]
                 
-                if prop_type != 'sale' or prop_sale_type != sale_type:
-                    logger.debug(f"❌ Sale type mismatch: {prop_type}/{prop_sale_type} != sale/{sale_type}")
-                    matches = False
+                if isinstance(possible_types, list):
+                    possible_types_lower = [pt.lower() for pt in possible_types]
+                    if prop_type not in possible_types_lower:
+                        matches = False
+                        logger.debug(f"❌ Property {property_data.get('id', 'unknown')} type '{prop_type}' not in {possible_types_lower}")
+                        continue
             
-            if entities.get('financing_options') and matches:
-                financing_options = property_data.get('financingOptions', [])
-                search_term = entities['financing_options'].lower()
-                
-                has_financing = False
-                for option in financing_options:
-                    if isinstance(option, str) and search_term in option.lower():
-                        has_financing = True
-                        break
-                
-                if not has_financing and sale_type != 'installment':
-                    matches = False
-                    logger.debug(f"❌ No {entities['financing_options']} financing found: {financing_options}")
-            
-            if not matches:
-                continue
-            
+            # Add numeric price value before further filtering
             property_data_with_price = add_price_numeric_value(property_data)
             
+            # Apply max price filter client-side
             if entities.get('max_price') and matches:
                 price_numeric = property_data_with_price.get('price_numeric', 0)
                 if price_numeric > entities['max_price']:
                     matches = False
-                    logger.debug(f"❌ Price too high: {price_numeric} > {entities['max_price']}")
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} price {price_numeric} > {entities['max_price']}")
             
+            # Apply min price filter client-side
             if entities.get('min_price') and matches:
                 price_numeric = property_data_with_price.get('price_numeric', 0)
                 if price_numeric < entities['min_price']:
                     matches = False
-                    logger.debug(f"❌ Price too low: {price_numeric} < {entities['min_price']}")
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} price {price_numeric} < {entities['min_price']}")
             
-            # Check bedroom requirements
-            if (entities.get('exact_bedrooms') is not None or 
-                entities.get('min_bedrooms') is not None) and matches:
-                
+            # Apply exact bedroom filter client-side
+            if entities.get('exact_bedrooms') is not None and matches:
                 prop_bedrooms = property_data.get('bedrooms', 'Not specified')
                 try:
-                    # Use the helper function to convert bedroom string to number
-                    prop_bed_num = get_bedroom_count_from_string(prop_bedrooms)
-                    
-                    if entities.get('exact_bedrooms') is not None:
-                        # Exact bedroom requirement
-                        if prop_bed_num != entities['exact_bedrooms']:
-                            matches = False
-                            logger.debug(f"❌ Exact bedroom mismatch: {prop_bed_num} != {entities['exact_bedrooms']}")
-                    
-                    elif entities.get('min_bedrooms') is not None:
-                        # Minimum bedroom requirement (for family needs)
-                        if prop_bed_num < entities['min_bedrooms']:
-                            matches = False
-                            logger.debug(f"❌ Minimum bedroom requirement not met: {prop_bed_num} < {entities['min_bedrooms']}")
+                    if isinstance(prop_bedrooms, str):
+                        # Handle 'studio', '1', '2', '3', '4', '5+'
+                        if prop_bedrooms.lower() == 'studio':
+                            prop_bed_num = 0
+                        elif prop_bedrooms.lower() == '5+':
+                            prop_bed_num = 5
                         else:
-                            logger.debug(f"✅ Meets minimum bedroom requirement: {prop_bed_num} >= {entities['min_bedrooms']}")
-                            
-                except Exception as e:
-                    logger.debug(f"⚠️ Could not parse bedrooms: {e}")
-                    # If we can't parse bedrooms but have a requirement, be conservative
-                    if entities.get('min_bedrooms') is not None:
+                            bed_match = re.search(r'(\d+)', prop_bedrooms)
+                            if bed_match:
+                                prop_bed_num = int(bed_match.group(1))
+                            else:
+                                prop_bed_num = 0
+                    else:
+                        prop_bed_num = int(prop_bedrooms)
+                    
+                    if prop_bed_num != entities['exact_bedrooms']:
                         matches = False
+                        logger.debug(f"❌ Property {property_data.get('id', 'unknown')} bedrooms {prop_bed_num} != {entities['exact_bedrooms']}")
+                except Exception as e:
+                    logger.debug(f"⚠️ Could not parse bedrooms for filtering: {e}")
+                    # Skip bedroom filtering if we can't parse
+                    pass
+            
+            # Apply bathroom filter client-side
+            if entities.get('bathrooms') and matches:
+                prop_bathrooms = property_data.get('bathrooms', 'Not specified')
+                try:
+                    if isinstance(prop_bathrooms, str):
+                        bath_match = re.search(r'(\d+)', prop_bathrooms)
+                        if bath_match:
+                            prop_bath_num = int(bath_match.group(1))
+                        else:
+                            prop_bath_num = 0
+                    else:
+                        prop_bath_num = int(prop_bathrooms)
+                    
+                    if prop_bath_num != entities['bathrooms']:
+                        matches = False
+                except:
+                    # Skip bathroom filtering if we can't parse
+                    pass
             
             if matches:
-                if sale_type == 'installment':
-                    installment_details = calculate_installment_payment(property_data_with_price)
-                    if installment_details:
-                        property_data_with_price['installment_details'] = installment_details
-                
+                # Standardize property data for chatbot response
                 standardized_property = standardize_property_data(property_data_with_price)
                 filtered_properties.append(standardized_property)
         
+        # Update properties with client-side filtered results
         properties = filtered_properties
         logger.info(f"🔍 After client-side filtering: {len(properties)} properties")
         
-        # NEW: Enhanced filtering for landmark queries
-        if entities.get('landmark') and entities.get('google_maps_check'):
-            filtered_by_proximity = []
-            google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
-            landmark = entities['landmark']
-            landmark_type = entities['landmark_type']
-            
-            logger.info(f"📍 Filtering properties near {landmark} (type: {landmark_type})")
-            
-            for prop in properties:
-                has_proximity = False
-                proximity_info = {}
-                
-                # Method 1: Google Maps API check (if coordinates available)
-                if ('latitude' in prop and 'longitude' in prop and 
-                    google_maps_api_key and GOOGLE_MAPS_AVAILABLE):
-                    api_result = check_property_near_landmark(
-                        prop, 
-                        landmark, 
-                        landmark_type,
-                        google_maps_api_key
-                    )
-                    
-                    if api_result['is_near']:
-                        has_proximity = True
-                        proximity_info = api_result
-                        logger.info(f"✅ Google Maps: Property '{prop.get('title')}' is near {landmark}")
-                
-                # Method 2: Enhanced description check (always performed as backup)
-                if not has_proximity:
-                    desc_result = check_property_description_for_landmark(prop, landmark, landmark_type)
-                    if desc_result['is_near']:
-                        has_proximity = True
-                        proximity_info = desc_result
-                        logger.info(f"✅ Description: Property '{prop.get('title')}' mentions {landmark_type}")
-                
-                # Method 3: Check amenities list for schools/landmarks
-                if not has_proximity and landmark_type == 'school':
-                    if check_amenities_for_landmark(prop, landmark_type):
-                        has_proximity = True
-                        proximity_info = {
-                            'is_near': True,
-                            'distance': 'Listed as amenity',
-                            'landmark_found': landmark,
-                            'match_type': 'amenity'
-                        }
-                        logger.info(f"✅ Amenity: Property '{prop.get('title')}' has school-related amenity")
-                
-                # If property is near the landmark, add it to results
-                if has_proximity:
-                    prop['proximity_info'] = proximity_info
-                    prop['proximity_score'] = calculate_proximity_score(proximity_info)
-                    filtered_by_proximity.append(prop)
-            
-            # Sort by proximity score (highest first)
-            filtered_by_proximity.sort(key=lambda x: x.get('proximity_score', 0), reverse=True)
-            properties = filtered_by_proximity
-            
-            logger.info(f"📍 After proximity filtering: {len(properties)} properties near {landmark}")
+        # Debug property matching
+        debug_property_matching(property_data_list, entities)
         
-        # Fallback for no results
-        if len(properties) == 0 and sale_type:
-            logger.info("🔄 No exact matches found, trying fallback search...")
+        # ========== SMART FALLBACK SEARCH ==========
+        if len(properties) == 0:
+            logger.info("🔄 No exact matches found, trying smart fallback...")
             
-            fallback_query = properties_ref.where(filter=FieldFilter('type', '==', 'sale'))
+            # Get original search criteria for fallback strategy
+            original_location = entities.get('location')
+            original_property_type = entities.get('property_type')
+            original_bedrooms = entities.get('exact_bedrooms')
             
-            if entities.get('location'):
-                location = entities['location']
-                location_map = {
-                    'Batangas City': 'Batangas City',
-                    'Lipa City': 'Lipa City',
-                    'Nasugbu': 'Nasugbu',
-                    'Sto. Tomas City': 'Sto. Tomas City',
-                }
-                if location in location_map:
-                    fallback_query = fallback_query.where(filter=FieldFilter('city', '==', location_map[location]))
-            
-            fallback_docs = fallback_query.limit(10).get()
-            
-            for doc in fallback_docs:
-                property_data = doc.to_dict()
-                property_data['id'] = doc.id
+            # Strategy 1: Try without property type filter (just location)
+            if original_location and original_property_type:
+                logger.info(f"🔄 Fallback 1: Removing property type filter for {original_location}")
+                # Don't filter by status in fallback queries
+                fallback_query = properties_ref.where(filter=FieldFilter('city', '==', location_map.get(original_location, original_location)))
                 
-                prop_sale_type = property_data.get('saleType', '').lower()
-                if prop_sale_type == sale_type:
+                fallback_docs = fallback_query.limit(10).get()
+                for doc in fallback_docs:
+                    property_data = doc.to_dict()
+                    property_data['id'] = doc.id
                     property_data_with_price = add_price_numeric_value(property_data)
-                    
-                    if sale_type == 'installment':
-                        installment_details = calculate_installment_payment(property_data_with_price)
-                        if installment_details:
-                            property_data_with_price['installment_details'] = installment_details
-                    
+                    standardized_property = standardize_property_data(property_data_with_price)
+                    properties.append(standardized_property)
+            
+            # Strategy 2: Try without location filter (just property type)
+            elif original_property_type and not original_location:
+                logger.info(f"🔄 Fallback 2: Removing location filter for {original_property_type}")
+                # Don't filter by status in fallback queries
+                fallback_query = properties_ref
+                
+                # Use primary type from mapping
+                possible_types = type_map.get(original_property_type)
+                if possible_types and isinstance(possible_types, list):
+                    primary_type = possible_types[0]
+                    try:
+                        fallback_query = fallback_query.where(filter=FieldFilter('propertyType', '==', primary_type))
+                    except:
+                        pass
+                
+                fallback_docs = fallback_query.limit(10).get()
+                for doc in fallback_docs:
+                    property_data = doc.to_dict()
+                    property_data['id'] = doc.id
+                    property_data_with_price = add_price_numeric_value(property_data)
+                    standardized_property = standardize_property_data(property_data_with_price)
+                    properties.append(standardized_property)
+            
+            # Strategy 3: Get random available properties
+            if len(properties) == 0:
+                logger.info("🔄 Fallback 3: Getting random properties")
+                random_query = properties_ref.limit(8)
+                random_docs = random_query.get()
+                
+                for doc in random_docs:
+                    property_data = doc.to_dict()
+                    property_data['id'] = doc.id
+                    property_data_with_price = add_price_numeric_value(property_data)
                     standardized_property = standardize_property_data(property_data_with_price)
                     properties.append(standardized_property)
             
             logger.info(f"🔄 Found {len(properties)} properties in fallback search")
         
-        # Deduplication
+        # ========== DEDUPLICATION ==========
+        # Remove duplicates by property ID
         unique_properties = []
         seen_ids = set()
         
@@ -2472,500 +1184,30 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         
+        # Fall back to mock data on error
         properties = get_mock_properties(entities)
     
     return properties
 
-# ========== RESPONSE GENERATION ==========
-def generate_near_landmark_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
-    """Generate response for properties near landmarks"""
-    
-    landmark = entities.get('landmark', 'that location')
-    landmark_type = entities.get('landmark_type', 'landmark')
-    
-    if properties:
-        response = f"📍 **Properties Near {landmark.title()}**\n\n"
-        
-        # Categorize properties by verification method
-        verified_by_maps = []
-        mentioned_in_desc = []
-        other_proximity = []
-        
-        for prop in properties:
-            proximity_info = prop.get('proximity_info', {})
-            match_type = proximity_info.get('match_type', '')
-            
-            if match_type == 'google_maps':
-                verified_by_maps.append(prop)
-            elif match_type in ['proximity_keyword', 'exact_match', 'school_pattern']:
-                mentioned_in_desc.append(prop)
-            else:
-                other_proximity.append(prop)
-        
-        total_count = len(verified_by_maps) + len(mentioned_in_desc) + len(other_proximity)
-        response += f"I found {total_count} properties near {landmark}:\n\n"
-        
-        # Show Google Maps verified properties first
-        if verified_by_maps:
-            response += "**📍 Verified by Distance:**\n"
-            for i, prop in enumerate(verified_by_maps[:3]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                proximity = prop.get('proximity_info', {})
-                distance = proximity.get('distance', 'Distance not available')
-                landmark_name = proximity.get('landmark_found', landmark)
-                
-                response += f"{i+1}. **{title}** in {location}\n"
-                response += f"   💰 {price}\n"
-                response += f"   📍 **Distance:** {distance} from {landmark_name}\n"
-                
-                if proximity.get('duration'):
-                    response += f"   🚶 **Walking time:** {proximity['duration']}\n"
-                
-                response += "\n"
-        
-        # Show properties mentioned in description
-        if mentioned_in_desc:
-            response += "**📝 Mentioned in Description:**\n"
-            for i, prop in enumerate(mentioned_in_desc[:3]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                proximity = prop.get('proximity_info', {})
-                distance = proximity.get('distance', 'Mentioned in description')
-                
-                response += f"{i+1}. **{title}** in {location} - {price}\n"
-                response += f"   ✅ {distance}\n\n"
-        
-        # Show other proximity properties
-        if other_proximity and not (verified_by_maps or mentioned_in_desc):
-            response += "**🏫 School-Area Properties:**\n"
-            for i, prop in enumerate(other_proximity[:3]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                response += f"{i+1}. **{title}** in {location} - {price}\n"
-                
-                # Show school-related features if available
-                amenities = prop.get('amenities', [])
-                school_amenities = [a for a in amenities if any(kw in str(a).lower() 
-                                                               for kw in ['school', 'education', 'campus'])]
-                if school_amenities:
-                    response += f"   ✅ Amenities: {', '.join(school_amenities[:2])}\n"
-                
-                response += "\n"
-        
-        # Add tips based on landmark type
-        if landmark_type == 'school':
-            response += "**🏫 School Proximity Benefits:**\n"
-            response += "• **Walking distance** (≤2km) saves transportation time and costs\n"
-            response += "• **Educational access** for children's development\n"
-            response += "• **Property value** tends to be more stable near good schools\n"
-            response += "• **Community** often family-friendly with similar-aged children\n\n"
-            
-            response += "**🔍 Search Tips:**\n"
-            response += "• Try specific school names: *'properties near Batangas State University'*\n"
-            response += "• Add property type: *'houses near schools in Lipa'*\n"
-            response += "• Specify budget: *'condos near schools under 3M'*\n"
-            
-        elif landmark_type == 'hospital':
-            response += "**🏥 Hospital Proximity Benefits:**\n"
-            response += "• **Emergency access** for medical needs\n"
-            response += "• **Convenience** for regular medical checkups\n"
-            response += "• **Medical professionals** often live nearby\n"
-            response += "• **24/7 access** to healthcare services\n"
-            
-        elif landmark_type == 'mall':
-            response += "**🛍️ Mall Proximity Benefits:**\n"
-            response += "• **Shopping convenience** within walking distance\n"
-            response += "• **Entertainment options** like cinemas and restaurants\n"
-            response += "• **Public transportation** hubs are often nearby\n"
-            response += "• **Urban lifestyle** with easy access to amenities\n"
-        
-    else:
-        response = f"I couldn't find any properties near {landmark}.\n\n"
-        response += "💡 **Suggestions:**\n"
-        response += f"• Try a different landmark (schools, hospitals, malls, etc.)\n"
-        response += "• Search in a specific location: *'properties near schools in Batangas City'*\n"
-        response += "• Broaden your search: *'properties in areas with good schools'*\n"
-        response += "• Check properties that mention schools in their descriptions\n"
-    
-    return response
-
-def generate_documents_only_response(entities: Dict[str, Any]) -> str:
-    """Generate response ONLY for document requirements (no properties)"""
-    
-    financing_type = entities.get('financing_type') or entities.get('sale_type')
-    financing_option = entities.get('financing_options')
-    
-    if financing_type == 'bank_financing' or 'bank' in str(financing_type).lower() or financing_option:
-        response = "🏦 **Bank Financing Requirements**\n\n"
-        response += "Here are the documents typically needed for bank financing:\n\n"
-        
-        response += "**📋 Applicant's Requirements:**\n"
-        response += "1. **Valid IDs** (any 2 government-issued):\n"
-        response += "   • Passport\n"
-        response += "   • Driver's License\n"
-        response += "   • SSS/GSIS ID\n"
-        response += "   • PRC ID\n"
-        response += "   • Voter's ID\n\n"
-        
-        response += "2. **Proof of Income:**\n"
-        response += "   • For Employed: 3-6 months payslips\n"
-        response += "   • Certificate of Employment with compensation\n"
-        response += "   • ITR (Income Tax Return) with BIR stamp\n"
-        response += "   • For OFW: Employment contract, payslips\n\n"
-        
-        response += "3. **Financial Documents:**\n"
-        response += "   • Bank Statements (6 months)\n"
-        response += "   • Proof of other income sources\n"
-        response += "   • List of assets and liabilities\n\n"
-        
-        response += "**🏦 Property Documents (from Seller):**\n"
-        response += "1. **Title Documents:**\n"
-        response += "   • Original Certificate of Title (OCT) or Transfer Certificate of Title (TCT)\n"
-        response += "   • Tax Declaration\n"
-        response += "   • Latest Real Property Tax Receipt\n\n"
-        
-        response += "2. **Property Documents:**\n"
-        response += "   • Location Plan/Vicinity Map\n"
-        response += "   • Copy of Deed of Sale\n"
-        response += "   • Seller's valid IDs\n\n"
-        
-        response += "**🏦 Bank-Specific Requirements:**\n"
-        if financing_option == 'BDO':
-            response += "• **BDO Home Loan Application Form**\n"
-            response += "• Credit Report Authorization\n"
-            response += "• Property Appraisal Report\n"
-            response += "• Contact: (02) 8631-8000 | www.bdo.com.ph\n"
-        elif financing_option == 'Metrobank':
-            response += "• **Metrobank Housing Loan Application**\n"
-            response += "• Disclosure Statement\n"
-            response += "• Property Inspection Report\n"
-            response += "• Contact: (02) 8888-7000 | www.metrobank.com.ph\n"
-        elif 'Pag-IBIG' in str(financing_option):
-            response += "**🏦 Pag-IBIG Housing Loan Requirements:**\n"
-            response += "• Pag-IBIG Membership ID\n"
-            response += "• 24 months contributions (minimum)\n"
-            response += "• Housing Loan Application Form\n"
-            response += "• Property Appraisal\n"
-            response += "• **Loan Amount:** Up to ₱6M\n"
-            response += "• **Interest Rate:** As low as 3% per annum\n"
-            response += "• **Term:** Up to 30 years\n"
-            response += "• **Hotline:** (02) 8724-4244\n"
-        else:
-            response += "• Completed loan application form\n"
-            response += "• Credit report authorization\n"
-            response += "• Property appraisal documents\n\n"
-        
-        response += "**⏱️ Processing Time:** 2-4 weeks after complete document submission\n"
-        
-    elif financing_type == 'installment':
-        response = "📋 **Documents Needed for Installment Purchase**\n\n"
-        response += "**For Reservation:**\n"
-        response += "1. Reservation Fee (varies by property)\n"
-        response += "2. Valid ID (passport, driver's license, etc.)\n\n"
-        
-        response += "**For Contract Signing:**\n"
-        response += "1. 2 Valid IDs (photocopy and original for verification)\n"
-        response += "2. Proof of Income (3 months payslips)\n"
-        response += "3. Certificate of Employment\n"
-        response += "4. Post-dated checks for monthly payments\n"
-        response += "5. 2x2 ID pictures (2 copies)\n\n"
-        
-        response += "**Additional for Self-Employed/Business Owners:**\n"
-        response += "• ITR (Income Tax Return) for the last 2 years\n"
-        response += "• Business registration (DTI/SEC)\n"
-        response += "• Bank statements (6 months)\n"
-        response += "• Financial statements\n\n"
-        
-        response += "**📊 Typical Installment Terms:**\n"
-        response += "• Downpayment: 20-30% of property price\n"
-        response += "• Payment Term: 3-5 years\n"
-        response += "• Interest Rate: 6-8% per annum\n"
-        response += "• Monthly amortization\n\n"
-        
-        response += "**⚖️ Legal Documents:**\n"
-        response += "• Contract to Sell\n"
-        response += "• Deed of Absolute Sale (upon full payment)\n"
-        response += "• Transfer of Title documents\n"
-        
-    elif financing_type == 'outright' or 'cash' in str(financing_type).lower():
-        response = "💰 **Documents for Outright/Cash Purchase**\n\n"
-        response += "**Buyer's Requirements:**\n"
-        response += "1. Valid IDs (2 government-issued)\n"
-        response += "2. Proof of Billing (for address verification)\n"
-        response += "3. Proof of Funds/Source of Cash\n"
-        response += "   • Bank certification\n"
-        response += "   • Bank statements (6 months)\n"
-        response += "   • For large amounts: Source of wealth documentation\n\n"
-        
-        response += "**Property Documents (from Seller):**\n"
-        response += "1. Clean Title (no liens/encumbrances)\n"
-        response += "2. Tax Declaration\n"
-        response += "3. Latest Real Property Tax Receipt\n"
-        response += "4. Certificate of No Improvement (if vacant lot)\n"
-        response += "5. Location Plan/Vicinity Map\n\n"
-        
-        response += "**Transaction Documents:**\n"
-        response += "• Deed of Absolute Sale\n"
-        response += "• Notarization documents\n"
-        response += "• Tax clearance (Capital Gains Tax, Documentary Stamp Tax)\n"
-        response += "• Transfer of Title at Registry of Deeds\n"
-        
-    else:
-        response = "📋 **General Property Purchase Documents**\n\n"
-        response += "**For All Property Transactions:**\n"
-        response += "1. **Valid Identification:**\n"
-        response += "   • 2 government-issued IDs (passport, driver's license, etc.)\n\n"
-        
-        response += "2. **Proof of Billing Address:**\n"
-        response += "   • Utility bill (electricity, water, telco)\n"
-        response += "   • Credit card statement\n\n"
-        
-        response += "3. **Financial Capacity Proof:**\n"
-        response += "   • Bank statements (3-6 months)\n"
-        response += "   • Proof of income\n"
-        response += "   • ITR (for self-employed)\n\n"
-        
-        response += "**Additional Based on Payment Method:**\n"
-        response += "• **Bank Financing:** Loan application, credit report, property appraisal\n"
-        response += "• **Installment:** Post-dated checks, installment agreement\n"
-        response += "• **Outright:** Proof of funds, bank certification\n\n"
-        
-        response += "**💡 Tip:** Requirements may vary by developer, bank, or property type.\n"
-        response += "It's best to confirm specific requirements with your chosen financing partner.\n"
-    
-    return response
-
-def generate_financing_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
-    """Generate response for financing-related queries"""
-    
-    if entities.get('documents_only'):
-        return generate_documents_only_response(entities)
-    
-    sale_type = entities.get('sale_type')
-    financing_option = entities.get('financing_options')
-    
-    if sale_type == 'installment':
-        if properties:
-            response = f"🏦 **Properties Available for Installment Purchase**\n\n"
-            response += f"I found {len(properties)} properties that can be purchased via installment:\n\n"
-            
-            for i, prop in enumerate(properties[:5]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                response += f"{i+1}. **{title}** in {location}\n"
-                response += f"   💰 Sale Price: {price}\n"
-                
-                installment_details = prop.get('installment_details')
-                if installment_details:
-                    response += f"   📊 **Installment Estimate:**\n"
-                    response += f"      • Downpayment: ₱{installment_details['downpayment']:,.0f} (30%)\n"
-                    response += f"      • Monthly: ₱{installment_details['monthly_payment']:,.0f} for 5 years\n"
-                    response += f"      • Interest Rate: {installment_details['interest_rate']}\n"
-                
-                financing_options = prop.get('financingOptions', [])
-                if financing_options:
-                    response += f"   🏦 **Financing Options:** {', '.join(financing_options[:3])}\n"
-                
-                response += "\n"
-            
-            response += "\n**📝 Installment Purchase Process:**\n"
-            response += "1. Submit reservation with downpayment (usually 20-30%)\n"
-            response += "2. Sign Contract to Sell\n"
-            response += "3. Submit required documents\n"
-            response += "4. Issue post-dated checks for monthly payments\n"
-            response += "5. Receive property title upon full payment\n\n"
-            
-            response += "**📋 Required Documents:**\n"
-            response += "• Valid ID (passport, driver's license)\n"
-            response += "• Proof of Income (3 months payslips)\n"
-            response += "• Certificate of Employment\n"
-            response += "• Post-dated checks\n"
-            response += "• 2x2 ID pictures\n"
-            
-        else:
-            response = "❌ **No installment properties found**\n\n"
-            response += "💡 **Try these alternatives:**\n"
-            response += "• Check properties with **bank financing**\n"
-            response += "• Look at **outright cash** properties\n"
-            response += "• Ask about **developer in-house financing**\n"
-            response += "• Consider **Pag-IBIG housing loans**\n\n"
-            response += "You can also try:\n"
-            response += "• *'show me properties with bank financing'*\n"
-            response += "• *'find houses for outright purchase'*\n"
-            response += "• *'properties with Pag-IBIG financing'*\n"
-        
-        return response
-    
-    elif sale_type == 'bank_financing':
-        if properties:
-            response = f"🏦 **Properties with Bank Financing**\n\n"
-            response += f"I found {len(properties)} properties that accept bank financing:\n\n"
-            
-            for i, prop in enumerate(properties[:5]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                response += f"{i+1}. **{title}** in {location}\n"
-                response += f"   💰 Sale Price: {price}\n"
-                
-                financing_options = prop.get('financingOptions', [])
-                if financing_options:
-                    response += f"   🏦 **Bank Options:** {', '.join(financing_options[:3])}\n"
-                
-                response += "\n"
-            
-            response += "\n**🏦 Popular Banks for Property Financing:**\n"
-            response += "• **BDO** - (02) 8631-8000 | www.bdo.com.ph\n"
-            response += "• **Metrobank** - (02) 8888-7000 | www.metrobank.com.ph\n"
-            response += "• **UnionBank** - (02) 8841-8600 | www.unionbankph.com\n"
-            response += "• **RCBC** - (02) 8557-9515 | www.rcbc.com\n\n"
-            
-            response += "**📋 Common Requirements for Bank Financing:**\n"
-            response += "1. Valid ID\n"
-            response += "2. Proof of Income (3-6 months)\n"
-            response += "3. Certificate of Employment\n"
-            response += "4. ITR (Income Tax Return)\n"
-            response += "5. Bank Statements\n"
-            response += "6. Property Documents\n"
-            
-        else:
-            response = "❌ **No properties found with bank financing**\n\n"
-            response += "💡 **Try searching for sale properties first:**\n"
-            response += "• *'find houses for sale in Batangas City'*\n"
-            response += "• *'show me condos for sale'*\n"
-            response += "• *'properties for sale with financing options'*\n"
-        
-        return response
-    
-    elif sale_type == 'outright':
-        if properties:
-            response = f"💰 **Properties for Outright Purchase (Cash)**\n\n"
-            response += f"I found {len(properties)} properties available for outright cash purchase:\n\n"
-            
-            for i, prop in enumerate(properties[:5]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                response += f"{i+1}. **{title}** in {location}\n"
-                response += f"   💰 Sale Price: {price}\n"
-                response += f"   📋 Payment: Cash/Outright\n\n"
-            
-            response += "\n**💰 Benefits of Outright Purchase:**\n"
-            response += "• No interest payments\n"
-            response += "• Faster transaction process\n"
-            response += "• Potential for price negotiation\n"
-            response += "• Immediate property transfer\n"
-            
-        else:
-            response = "❌ **No properties found for outright purchase**\n\n"
-            response += "💡 **Most properties accept multiple payment options. Try:**\n"
-            response += "• *'show me properties for sale'*\n"
-            response += "• *'find houses with different payment options'*\n"
-            response += "• *'what payment methods do you accept'*\n"
-        
-        return response
-    
-    elif financing_option:
-        if properties:
-            response = f"🏦 **Properties with {financing_option} Financing**\n\n"
-            response += f"I found {len(properties)} properties that accept {financing_option}:\n\n"
-            
-            for i, prop in enumerate(properties[:5]):
-                title = prop.get('title', f'Property {i+1}')
-                price = prop.get('price', 'Price not available')
-                location = prop.get('location', 'Location not specified')
-                
-                response += f"{i+1}. **{title}** in {location}\n"
-                response += f"   💰 Price: {price}\n"
-                
-                financing_options = prop.get('financingOptions', [])
-                if financing_options:
-                    response += f"   🏦 **Available Options:** {', '.join(financing_options[:3])}\n"
-                
-                response += "\n"
-            
-            if 'BDO' in financing_option:
-                response += "\n**🏦 BDO Home Loan Features:**\n"
-                response += "• Loan Amount: Up to 80% of property value\n"
-                response += "• Term: Up to 25 years\n"
-                response += "• Interest Rate: Competitive rates\n"
-                response += "• Contact: (02) 8631-8000\n"
-                
-            elif 'Pag-IBIG' in financing_option:
-                response += "\n**🏦 Pag-IBIG Housing Loan:**\n"
-                response += "• Membership: At least 24 months\n"
-                response += "• Maximum Loan: ₱6M\n"
-                response += "• Term: Up to 30 years\n"
-                response += "• Interest: As low as 3% per annum\n"
-                response += "• Hotline: (02) 8724-4244\n"
-            
-        else:
-            response = f"❌ **No properties found with {financing_option} financing**\n\n"
-            response += "💡 **Try these suggestions:**\n"
-            response += f"• Ask about other banks or financing options\n"
-            response += "• Check if properties accept multiple financing options\n"
-            response += "• Look for sale properties and inquire about financing\n"
-        
-        return response
-    
-    else:
-        response = "🏦 **Financing Options for Property Purchase**\n\n"
-        response += "We offer various financing options for property purchases:\n\n"
-        response += "**1. Installment Plans**\n"
-        response += "   • Developer in-house financing\n"
-        response += "   • Flexible payment terms\n"
-        response += "   • Usually 20-30% downpayment\n\n"
-        
-        response += "**2. Bank Financing**\n"
-        response += "   • **BDO** - (02) 8631-8000\n"
-        response += "   • **Metrobank** - (02) 8888-7000\n"
-        response += "   • **UnionBank** - (02) 8841-8600\n"
-        response += "   • **RCBC** - (02) 8557-9515\n\n"
-        
-        response += "**3. Pag-IBIG Housing Loan**\n"
-        response += "   • For members with 24+ months contributions\n"
-        response += "   • Up to ₱6M loan amount\n"
-        response += "   • As low as 3% interest\n"
-        response += "   • Hotline: (02) 8724-4244\n\n"
-        
-        response += "**4. Outright/Cash Purchase**\n"
-        response += "   • No interest payments\n"
-        response += "   • Faster transaction\n"
-        response += "   • Potential discounts\n\n"
-        
-        response += "💡 **To see properties with specific financing, try:**\n"
-        response += "• *'show me properties that accept installment'*\n"
-        response += "• *'find houses with bank financing'*\n"
-        response += "• *'properties with Pag-IBIG loan'*\n"
-        response += "• *'outright purchase properties'*\n"
-        
-        return response
-
+# Generate criteria search response
 def generate_criteria_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response for property searches with specific criteria"""
     
+    # Filter properties client-side as a fallback
     filtered_properties = []
     for prop in properties:
         matches = True
         
+        # Apply price filter
         if entities.get('max_price'):
             price_numeric = prop.get('price_numeric', 0)
             if price_numeric > entities['max_price']:
                 matches = False
         
+        # Apply bedroom filter
         if entities.get('exact_bedrooms') is not None:
             prop_bedrooms = prop.get('bedrooms', 'Not specified')
+            # Try to extract numeric bedrooms
             try:
                 if isinstance(prop_bedrooms, str):
                     bed_match = re.search(r'(\d+)', str(prop_bedrooms))
@@ -2979,13 +1221,16 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
                 if prop_bed_num != entities['exact_bedrooms']:
                     matches = False
             except:
+                # If can't parse bedrooms, don't filter
                 pass
         
         if matches:
             filtered_properties.append(prop)
     
+    # Use filtered properties
     properties = filtered_properties
     
+    # Build criteria description
     criteria_parts = []
     
     if entities.get('property_type'):
@@ -2994,10 +1239,6 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
     else:
         criteria_parts.append("properties")
     
-    if entities.get('exact_bedrooms') is not None:
-        bedrooms = entities['exact_bedrooms']
-        criteria_parts.append(f"with {bedrooms} bedroom{'s' if bedrooms != 1 else ''}")
-    
     if entities.get('max_price'):
         max_price = entities['max_price']
         if max_price >= 1000000:
@@ -3005,12 +1246,18 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
         else:
             criteria_parts.append(f"under ₱{max_price:,.0f}")
     
+    if entities.get('exact_bedrooms') is not None:
+        bedrooms = entities['exact_bedrooms']
+        criteria_parts.append(f"with {bedrooms} bedroom{'s' if bedrooms != 1 else ''}")
+    
     if entities.get('location'):
         criteria_parts.append(f"in {entities['location']}")
     
     criteria_desc = " ".join(criteria_parts)
     
+    # Generate response
     if properties:
+        # Group by location
         properties_by_location = {}
         for prop in properties:
             location = prop.get('city', 'Unknown')
@@ -3023,11 +1270,12 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
         for location, loc_props in properties_by_location.items():
             response += f"📍 **{location}** ({len(loc_props)} available)\n"
             
-            for prop in loc_props[:3]:
+            for prop in loc_props[:3]:  # Show max 3 per location
                 title = prop.get('title', 'Property')
                 price = prop.get('price', 'Price not available')
                 prop_type = prop.get('type', '').replace('_', ' ')
                 
+                # Extract bedrooms for display
                 prop_bedrooms = prop.get('bedrooms', '')
                 if prop_bedrooms:
                     bed_display = f" | 🛏️ {prop_bedrooms}"
@@ -3038,9 +1286,11 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
             
             response += "\n"
         
+        # Add summary
         if len(properties) > 10:
             response += f"*Showing {min(len(properties), 10)} of {len(properties)} properties.*\n\n"
         
+        # Add tips if few results
         if len(properties) < 3:
             response += "💡 **Tips for more results:**\n"
             response += "   • Expand your price range\n"
@@ -3049,119 +1299,30 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
                 response += "   • Try different bedroom counts\n"
         
     else:
-        response = f"I found 0 {criteria_desc}.\n\n"
+        response = f"❌ **No properties found matching: {criteria_desc}**\n\n"
         response += "💡 **Suggestions:**\n"
-        response += "• Try a different price range\n"
-        response += "• Consider nearby locations\n"
-        if entities.get('exact_bedrooms'):
-            response += "• Adjust your bedroom requirements\n"
-        response += "• Check back later for new listings\n"
+        response += "   • Try a different price range\n"
+        response += "   • Consider nearby locations\n"
+        response += "   • Adjust your bedroom requirements\n"
+        response += "   • Check back later for new listings\n"
     
     return response
 
-def generate_general_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
-    """Generate response for general property searches without location"""
-    
-    property_type = entities.get('property_type', 'properties')
-    property_type_display = property_type.replace('_', ' ').title()
-    exact_bedrooms = entities.get('exact_bedrooms')
-    
-    if properties:
-        properties_by_city = defaultdict(list)
-        for prop in properties:
-            city = prop.get('city', 'Unknown City')
-            properties_by_city[city].append(prop)
-        
-        sorted_cities = sorted(properties_by_city.items(), key=lambda x: len(x[1]), reverse=True)
-        
-        response = f"🔍 **{property_type_display} Available in Batangas**\n\n"
-        
-        criteria_parts = [property_type_display.lower()]
-        if exact_bedrooms is not None:
-            criteria_parts.append(f"with {exact_bedrooms} bedroom{'s' if exact_bedrooms != 1 else ''}")
-        
-        criteria_desc = " ".join(criteria_parts)
-        response += f"I found {len(properties)} {criteria_desc} across different locations:\n\n"
-        
-        displayed_count = 0
-        for city, city_props in sorted_cities[:5]:
-            if displayed_count >= 15:
-                break
-                
-            response += f"**📍 {city}** ({len(city_props)} available)\n"
-            
-            for i, prop in enumerate(city_props[:3]):
-                title = prop.get('title', f'{property_type_display} {i+1}')
-                price = prop.get('price', 'Price not available')
-                prop_type = prop.get('type', property_type).replace('_', ' ')
-                
-                response += f"   • **{title}** ({prop_type}) - {price}\n"
-                displayed_count += 1
-            
-            response += "\n"
-        
-        if len(properties) > displayed_count:
-            response += f"\n*Showing {displayed_count} of {len(properties)} {property_type_display.lower()}. "
-            response += f"Properties found in {len(properties_by_city)} different locations.*\n"
-        else:
-            response += f"\n*Properties found in {len(properties_by_city)} different locations.*\n"
-        
-        response += "\n💡 **Tips for better results:**\n"
-        response += "   • Add a location: *'find apartments in Batangas City'*\n"
-        response += "   • Specify budget: *'find houses under 3M'*\n"
-        response += "   • Add features: *'find condos with swimming pool'*\n"
-        response += "   • Specify needs: *'find properties for family'*\n"
-        
-        if property_type in ['house', 'condo', 'apartment']:
-            response += "\n📍 **Popular locations for " + property_type_display.lower() + ":**\n"
-            response += "   • Batangas City (urban living, near port)\n"
-            response += "   • Lipa City (cool climate, educational hub)\n"
-            response += "   • Nasugbu (beachfront, vacation homes)\n"
-            response += "   • Sto. Tomas City (near Metro Manila)\n"
-            response += "   • Tanauan City (Taal Lake views)\n"
-        
-    else:
-        response = f"I found 0 {property_type_display.lower()}"
-        
-        if exact_bedrooms is not None:
-            response += f" with {exact_bedrooms} bedroom{'s' if exact_bedrooms != 1 else ''}"
-        
-        response += ".\n\n"
-        
-        response += "💡 **Suggestions:**\n"
-        response += "• Try a different location\n"
-        response += "• Adjust your criteria\n"
-        response += "• Check back later for new listings\n"
-    
-    return response
-
+# Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
     
-    if intent == 'find_property_for_need':
-        # Special handling for family needs
-        if entities.get('family_info'):
-            family_type = entities['family_info']
-            if isinstance(family_type, dict):
-                family_size = family_type.get('value', 3)
-            else:
-                family_size = 3  # Default
-            
-            # Use specialized family response generator
-            return generate_family_needs_response(family_size, properties, entities)
-    
-    if intent == 'financing':
-        return generate_financing_response(entities, properties)
-    
-    if intent == 'find_near_landmark':
-        return generate_near_landmark_response(entities, properties)
-    
+    # ========== NEW: Handle criteria-based searches ==========
     if intent == 'find_property_with_criteria':
         return generate_criteria_search_response(entities, properties)
     
+    # ========== Handle general property searches (no location) ==========
     if intent == 'find_property' and entities.get('has_general_search'):
         return generate_general_search_response(entities, properties)
-       
+    
+    # ========== Existing code for other intents ==========
+    
+    # Default fallback responses
     default_responses = {
         'find_property': "I understand you're looking for properties. Could you specify the location or property type?",
         'find_near_landmark': "I can help you find properties near landmarks. What specific landmark are you interested in?",
@@ -3176,14 +1337,18 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         'unknown': "I understand you're looking for property information in Batangas. Could you provide more details about what you need?"
     }
     
+    # Try to find matching template from training data
     if training_data and 'training_samples' in training_data:
+        # Look for samples with matching intent
         matching_samples = [s for s in training_data['training_samples'] if s.get('intent') == intent]
         
         if matching_samples:
+            # Try to find the best matching sample based on entities
             best_sample = None
             for sample in matching_samples:
                 sample_entities = sample.get('entities', {})
                 
+                # Check if sample entities match query entities
                 match_score = 0
                 for key, value in sample_entities.items():
                     if entities.get(key) and value and str(value).lower() in str(entities.get(key)).lower():
@@ -3194,8 +1359,10 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                     best_sample = sample
             
             if best_sample and 'response_template' in best_sample:
+                # Fill the template with actual data
                 template = best_sample['response_template']
                 
+                # Replace placeholders with actual values
                 replacements = {
                     '{count}': str(len(properties)),
                     '{property_type}': entities.get('property_type', 'property'),
@@ -3207,6 +1374,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                     '{price_range}': entities.get('price_range', '')
                 }
                 
+                # Add property list if we have properties
                 if properties:
                     property_list = "\n"
                     for i, prop in enumerate(properties[:3]):
@@ -3218,6 +1386,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                 else:
                     replacements['{property_list}'] = "No specific properties found with those criteria."
                 
+                # Add sample-specific data from training data
                 for key, value in best_sample.items():
                     if key.startswith('location_description') or key.startswith('average_') or key in ['documents_list', 'requirements_list', 'key_features', 'average_prices', 'ideal_for', 'property_types']:
                         if value is not None:
@@ -3226,30 +1395,37 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                             else:
                                 replacements[f'{{{key}}}'] = str(value)
                 
+                # Perform replacements
                 response = template
                 for placeholder, replacement in replacements.items():
+                    # Convert None to empty string
                     if replacement is None:
                         replacement = ''
                     response = response.replace(placeholder, str(replacement))
                 
+                # Also replace generic placeholders like {description} and {lifestyle}
                 if intent == 'location_info' and entities.get('location'):
                     location_name = entities['location']
                     if training_data and 'location_profiles' in training_data:
                         location_profile = training_data['location_profiles'].get(location_name)
                         if location_profile:
+                            # Replace placeholders from location profile
                             for key, value in location_profile.items():
                                 if value is not None:
                                     response = response.replace(f'{{{key}}}', str(value))
                 
                 return response
     
+    # Fallback to default response
     response = default_responses.get(intent, default_responses['unknown'])
     
+    # Add location-specific information for location_info intent
     if intent == 'location_info' and entities.get('location'):
         location_name = entities['location']
         if training_data and 'location_profiles' in training_data:
             location_profile = training_data['location_profiles'].get(location_name)
             if location_profile:
+                # Get description and lifestyle, provide defaults if missing
                 description = location_profile.get('description', 'No description available.')
                 lifestyle = location_profile.get('lifestyle', 'No lifestyle information available.')
                 
@@ -3275,6 +1451,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                 if 'property_types' in location_profile and location_profile['property_types']:
                     response += f"**Property Types Available:** {', '.join(location_profile['property_types'])}\n"
                 
+                # Add property details if available
                 if properties and len(properties) > 0:
                     response += "\n**Available Properties:**\n"
                     for i, prop in enumerate(properties[:3]):
@@ -3285,10 +1462,12 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                 
                 return response
         else:
+            # No location profile found, provide generic response
             response = f"I can tell you about {location_name} in Batangas.\n\n"
             response += f"{location_name} is one of the key locations in Batangas province with various property options available.\n\n"
             response += "If you're interested in properties here, you might want to specify what type of property you're looking for (apartment, house, condo, etc.) or your budget range."
     
+    # For other intents, add property details if available
     elif properties and len(properties) > 0:
         response += "\n\n**Available Properties:**\n"
         for i, prop in enumerate(properties[:3]):
@@ -3297,71 +1476,106 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
             location = prop.get('location', 'Location not specified')
             response += f"{i+1}. **{title}** in {location} - {price}\n"
     
+    # Add financing information for financing intent
+    if intent == 'financing' and entities.get('financing_type'):
+        financing_type = entities['financing_type']
+        if training_data and 'financing_info' in training_data:
+            # Try to find matching financing info
+            financing_key = financing_type.lower().replace(' ', '_')
+            if financing_key in training_data['financing_info']:
+                financing_info = training_data['financing_info'][financing_key]
+                response += f"\n\n🏦 **{financing_type.title()} Information**\n"
+                
+                if 'documents' in financing_info:
+                    response += "\n**Required Documents:**\n"
+                    for i, doc in enumerate(financing_info['documents'], 1):
+                        response += f"{i}. {doc}\n"
+                
+                if 'requirements' in financing_info:
+                    response += "\n**Basic Requirements:**\n"
+                    for i, req in enumerate(financing_info['requirements'], 1):
+                        response += f"{i}. {req}\n"
+    
     return response
 
-def determine_intent_fallback(query: str) -> str:
-    """Simple rule-based intent detection as fallback"""
-    query_lower = query.lower()
+# NEW: Generate response for general searches (no location)
+def generate_general_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for general property searches without location"""
+    
+    property_type = entities.get('property_type', 'properties')
+    property_type_display = property_type.replace('_', ' ').title()
+    
+    if properties:
+        # Group properties by city for better organization
+        properties_by_city = defaultdict(list)
+        for prop in properties:
+            city = prop.get('city', 'Unknown City')
+            properties_by_city[city].append(prop)
+        
+        # Sort cities by number of properties
+        sorted_cities = sorted(properties_by_city.items(), key=lambda x: len(x[1]), reverse=True)
+        
+        response = f"🔍 **{property_type_display} Available in Batangas**\n\n"
+        response += f"I found {len(properties)} {property_type_display.lower()} across different locations:\n\n"
+        
+        # Show top locations with properties
+        displayed_count = 0
+        for city, city_props in sorted_cities[:5]:  # Top 5 cities
+            if displayed_count >= 15:  # Limit total properties shown
+                break
+                
+            response += f"**📍 {city}** ({len(city_props)} available)\n"
+            
+            # Show top 3 properties from this city
+            for i, prop in enumerate(city_props[:3]):
+                title = prop.get('title', f'{property_type_display} {i+1}')
+                price = prop.get('price', 'Price not available')
+                prop_type = prop.get('type', property_type).replace('_', ' ')
+                
+                response += f"   • **{title}** ({prop_type}) - {price}\n"
+                displayed_count += 1
+            
+            response += "\n"
+        
+        # Show summary
+        if len(properties) > displayed_count:
+            response += f"\n*Showing {displayed_count} of {len(properties)} {property_type_display.lower()}. "
+            response += f"Properties found in {len(properties_by_city)} different locations.*\n"
+        else:
+            response += f"\n*Properties found in {len(properties_by_city)} different locations.*\n"
+        
+        # Add helpful tips
+        response += "\n💡 **Tips for better results:**\n"
+        response += "   • Add a location: *'find apartments in Batangas City'*\n"
+        response += "   • Specify budget: *'find houses under 3M'*\n"
+        response += "   • Add features: *'find condos with swimming pool'*\n"
+        response += "   • Specify needs: *'find properties for family'*\n"
+        
+        # Suggest popular locations based on property type
+        if property_type in ['house', 'condo', 'apartment']:
+            response += "\n📍 **Popular locations for " + property_type_display.lower() + ":**\n"
+            response += "   • Batangas City (urban living, near port)\n"
+            response += "   • Lipa City (cool climate, educational hub)\n"
+            response += "   • Nasugbu (beachfront, vacation homes)\n"
+            response += "   • Sto. Tomas City (near Metro Manila)\n"
+            response += "   • Tanauan City (Taal Lake views)\n"
+        
+    else:
+        response = f"I couldn't find any {property_type_display.lower()} matching your criteria.\n\n"
+        response += "💡 **Try these suggestions:**\n"
+        response += "   • Check if the property type is spelled correctly\n"
+        response += "   • Try a broader search: *'find properties'*\n"
+        response += "   • Specify a location: *'find {property_type_display.lower()} in Lipa City'*\n"
+        response += "   • Check back later for new listings\n"
+    
+    return response
 
-    # Family/needs-based queries
-    needs_keywords = [
-        'for family', 'for families', 'for couple', 'for couples',
-        'for students', 'for professionals', 'for retirees',
-        'for business', 'for investors', 'for single', 'for workers'
-    ]
-    
-    for keyword in needs_keywords:
-        if keyword in query_lower:
-            return 'find_property_for_need'
-    
-    doc_keywords = ['documents', 'requirements', 'needed', 'required', 'paperwork']
-    prop_keywords = ['properties', 'show me', 'find', 'looking for', 'search']
-    
-    has_doc_keywords = any(term in query_lower for term in doc_keywords)
-    has_prop_keywords = any(term in query_lower for term in prop_keywords)
-    
-    if has_doc_keywords and not has_prop_keywords:
-        return 'financing'
-    
-    financing_keywords = [
-        'installment', 'bank financing', 'mortgage', 'loan',
-        'financing', 'payment plan', 'pag-ibig', 'bdo',
-        'metrobank', 'unionbank', 'rcbc', 'housing loan',
-        'accept bank', 'accept installment', 'outright', 'cash'
-    ]
-    
-    for keyword in financing_keywords:
-        if keyword in query_lower:
-            return 'financing'
-    
-    if any(term in query_lower for term in ['find', 'search', 'looking for', 'show me', 'need', 'want']):
-        return 'find_property'
-    
-    if any(term in query_lower for term in ['tell me about', 'information about', 'describe', 'about']):
-        return 'location_info'
-    
-    return 'unknown'
-
-# ========== API ENDPOINTS ==========
-@app.route('/api/chat', methods=['POST', 'OPTIONS'])
+# API ENDPOINTS
+@app.route('/api/chat', methods=['POST'])
 def chat():
     """Main chatbot endpoint"""
-    # Handle OPTIONS request for CORS preflight
-    if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else '*'))
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        response.headers.add('Access-Control-Max-Age', '86400')
-        return response
-    
     try:
-        # Parse JSON data
-        if not request.is_json:
-            return jsonify({'error': 'Content-Type must be application/json'}), 400
-        
-        data = request.get_json()
+        data = request.json
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
         
@@ -3372,13 +1586,10 @@ def chat():
         
         logger.info(f"💬 Query: '{query}'")
         
-        # Convert to lowercase once for use throughout
-        query_lower = query.lower()
-        
         # Step 1: Predict intent
         intent = "unknown"
         confidence = 0.0
-
+        
         if vectorizer and classifier:
             try:
                 processed_query = preprocess_text(query)
@@ -3387,50 +1598,54 @@ def chat():
                 proba = classifier.predict_proba(X)[0]
                 confidence = float(max(proba))
                 logger.info(f"🎯 Intent: {intent} (confidence: {confidence:.2%})")
+                
+                # ========== CRITICAL FIX: AGGRESSIVE INTENT OVERRIDE ==========
+                query_lower = query.lower()
+                
+                # Pattern 1: "find X in Y" should ALWAYS be find_property, not location_info
+                find_patterns = [
+                    r'^find\s+\w+\s+in\s+\w+',
+                    r'^search\s+\w+\s+in\s+\w+',
+                    r'^look\s+for\s+\w+\s+in\s+\w+',
+                    r'^show\s+me\s+\w+\s+in\s+\w+',
+                    r'^need\s+\w+\s+in\s+\w+',
+                    r'^want\s+\w+\s+in\s+\w+',
+                ]
+                
+                for pattern in find_patterns:
+                    if re.search(pattern, query_lower):
+                        if intent != 'find_property':
+                            logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to find_property")
+                            intent = 'find_property'
+                            confidence = 0.99  # Very high confidence
+                        break
+                
+                # If still not fixed and query has "find apartments" or similar
+                if intent == 'location_info' and any(term in query_lower for term in ['find ', 'search ', 'looking for']):
+                    logger.info(f"⚠️ OVERRIDE: Query has search terms but got {intent}, forcing to find_property")
+                    intent = 'find_property'
+                
+                # Also handle "apartments in batangas city" without "find"
+                if intent == 'location_info' and any(term in query_lower for term in ['apartments in', 'houses in', 'condos in']):
+                    logger.info(f"⚠️ OVERRIDE: Property type + location should be find_property, not {intent}")
+                    intent = 'find_property'
+                
+                # Log alternative intents for low confidence
+                if confidence < 0.7:
+                    top_indices = np.argsort(proba)[-3:][::-1]
+                    logger.info("   Low confidence alternatives:")
+                    for idx in top_indices:
+                        alt_intent = model_classes[idx] if idx < len(model_classes) else "unknown"
+                        alt_prob = proba[idx]
+                        logger.info(f"     • {alt_intent}: {alt_prob:.2%}")
+                        
             except Exception as e:
                 logger.error(f"❌ Model prediction failed: {e}")
                 intent = determine_intent_fallback(query)
         else:
+            # Model not loaded - use fallback
             intent = determine_intent_fallback(query)
-
-        # Apply intent correction for location queries
-        original_intent = intent
-        intent = fix_intent_for_location_queries(query, intent)
-        if original_intent != intent:
-            logger.info(f"🔄 Intent corrected: {original_intent} → {intent} for query: '{query}'")
         
-        # Define patterns that should be find_property_for_need
-        family_need_patterns = [
-            'properties for couple',
-            'properties for couples',
-            'for couple',
-            'for couples',
-            'for family',
-            'for families',
-            'family of',
-            'family with',
-            'for students',
-            'for professionals'
-        ]
-        
-        # Check if query matches family need patterns
-        is_family_need_query = any(pattern in query_lower for pattern in family_need_patterns)
-        
-        if is_family_need_query:
-            # Override intent to find_property_for_need
-            old_intent = intent
-            intent = 'find_property_for_need'
-            confidence = max(confidence, 0.9)  # Ensure high confidence
-            logger.info(f"🔄 Overriding intent from {old_intent} to {intent} for family/need query: '{query}'")
-        
-        # Special handling for "near schools" queries
-        if 'near school' in query_lower or 'near schools' in query_lower:
-            if intent != 'find_near_landmark':
-                old_intent = intent
-                intent = 'find_near_landmark'
-                confidence = max(confidence, 0.9)
-                logger.info(f"🔄 Overriding intent from {old_intent} to {intent} for school proximity query")
-                
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
         logger.info(f"🏷️ Entities: {entities}")
@@ -3439,22 +1654,11 @@ def chat():
         properties = []
         if intent in ["find_property", "find_near_landmark", "find_with_feature", 
                      "find_ready_property", "find_property_for_need", 
-                     "find_property_with_criteria", "match_needs", "financing"]:
+                     "find_property_with_criteria", "match_needs"]:
             properties = search_firestore_properties(entities)
-
-        if 'couple' in query_lower or 'couples' in query_lower:
-            if not entities.get('family_info'):
-                entities['family_info'] = {'type': 'couple'}
-                entities['has_need_query'] = True
-                entities['min_bedrooms'] = 1
-                entities['ideal_bedrooms'] = 2
-                logger.info(f"👨‍👩‍👧‍👦 Added missing family info for couple query")
         
-        # Step 4: Generate response
-        if entities.get('documents_only'):
-            response_text = generate_documents_only_response(entities)
-        else:
-            response_text = generate_response(intent, entities, properties)
+        # Step 4: Generate response using training data templates
+        response_text = generate_response(intent, entities, properties)
         
         # Step 5: Prepare result
         result = {
@@ -3465,20 +1669,13 @@ def chat():
             'entities': entities,
             'response': response_text,
             'properties_found': len(properties),
-            'properties': properties[:10] if not entities.get('documents_only') else [],
+            'properties': properties[:10],  # Increased limit for general searches
             'model_version': 'trained' if vectorizer else 'fallback',
             'is_general_search': entities.get('has_general_search', False),
-            'is_criteria_search': intent == 'find_property_with_criteria',
-            'is_financing_query': intent == 'financing',
-            'is_document_query': entities.get('documents_only', False),
-            'is_landmark_query': intent == 'find_near_landmark',
-            'landmark_type': entities.get('landmark_type'),
-            'google_maps_available': GOOGLE_MAPS_AVAILABLE
+            'is_criteria_search': intent == 'find_property_with_criteria'
         }
         
-        response = jsonify(result)
-        response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
-        return response
+        return jsonify(result)
         
     except Exception as e:
         logger.error(f"❌ Error in chat endpoint: {e}")
@@ -3491,58 +1688,252 @@ def chat():
             'response': "I encountered an error processing your request. Please try again with a different query."
         }), 500
 
+# Simple fallback if model isn't loaded - UPDATED
+def determine_intent_fallback(query: str) -> str:
+    """Simple rule-based intent detection as fallback"""
+    query_lower = query.lower()
+    
+    # ========== CRITICAL FIX: CHECK SPECIFIC PATTERNS FIRST ==========
+    
+    # PATTERN 1: "find X in Y" - This MUST be find_property
+    # Match: "find apartments in batangas city", "find house in lipa city"
+    find_in_patterns = [
+        r'^find\s+\w+\s+in\s+\w+',  # Starts with "find X in Y"
+        r'^search\s+\w+\s+in\s+\w+',  # Starts with "search X in Y"
+        r'^look\s+for\s+\w+\s+in\s+\w+',  # Starts with "look for X in Y"
+        r'^show\s+me\s+\w+\s+in\s+\w+',  # Starts with "show me X in Y"
+        r'^need\s+\w+\s+in\s+\w+',  # Starts with "need X in Y"
+        r'^want\s+\w+\s+in\s+\w+',  # Starts with "want X in Y"
+        r'^find\s+apartments?\s+in\s+',  # Specifically "find apartment(s) in"
+        r'^find\s+houses?\s+in\s+',  # Specifically "find house(s) in"
+        r'^find\s+condos?\s+in\s+',  # Specifically "find condo(s) in"
+    ]
+    
+    for pattern in find_in_patterns:
+        if re.search(pattern, query_lower):
+            return 'find_property'
+    
+    # PATTERN 2: "tell me about X" - This MUST be location_info
+    # Match: "tell me about batangas city", "information about lipa"
+    location_info_patterns = [
+        r'^tell\s+me\s+about\s+\w+',  # Starts with "tell me about"
+        r'^what\s+is\s+\w+\s+like$',  # "what is X like"
+        r'^describe\s+\w+$',  # "describe X"
+        r'^how\s+is\s+life\s+in\s+\w+',  # "how is life in X"
+        r'^information\s+about\s+\w+',  # "information about X"
+        r'^about\s+\w+\s+city$',  # "about X city"
+        r'^about\s+\w+\s+town$',  # "about X town"
+    ]
+    
+    for pattern in location_info_patterns:
+        if re.search(pattern, query_lower):
+            return 'location_info'
+    
+    # ========== CHECK FOR SPECIFIC PROPERTY SEARCH QUERIES ==========
+    
+    # Clear property search patterns (no location)
+    if any(query_lower.startswith(prefix) for prefix in [
+        'find apartments', 'find houses', 'find condos',
+        'search apartments', 'search houses', 'search condos',
+        'looking for apartments', 'looking for houses', 'looking for condos',
+        'show me apartments', 'show me houses', 'show me condos',
+    ]):
+        return 'find_property'
+    
+    # ========== CHECK FOR GENERAL SEARCH INTENTS ==========
+    
+    # Strong indicators of find_property intent
+    strong_property_indicators = [
+        'find apartment', 'find house', 'find condo',
+        'search apartment', 'search house', 'search condo',
+        'looking for apartment', 'looking for house', 'looking for condo',
+        'need apartment', 'need house', 'need condo',
+        'want apartment', 'want house', 'want condo',
+        'do you have apartments', 'do you have houses', 'do you have condos',
+        'any apartments', 'any houses', 'any condos',
+        'what apartments', 'what houses', 'what condos',
+    ]
+    
+    for indicator in strong_property_indicators:
+        if indicator in query_lower:
+            return 'find_property'
+    
+    # Check for property search terms
+    has_property_terms = any(word in query_lower for word in [
+        'find', 'search', 'looking for', 'need', 'want',
+        'locate', 'show me', 'available', 'properties',
+        'real estate', 'property listing', 'house for',
+        'apartment for', 'condo for'
+    ])
+    
+    # Check for specific property types
+    has_property_type = any(word in query_lower for word in [
+        'apartment', 'condo', 'condominium', 'house', 'home',
+        'townhouse', 'commercial', 'office', 'retail', 'warehouse',
+        'land', 'lot', 'beachfront', 'resort', 'villa', 'bungalow',
+        'studio', 'penthouse', 'loft', 'duplex'
+    ])
+    
+    # If it has both property terms and property type, it's find_property
+    if has_property_terms and has_property_type:
+        return 'find_property'
+    
+    # If it has strong property search verbs, it's find_property
+    if any(verb in query_lower for verb in ['find', 'search', 'look for', 'show me']):
+        # But not if it's asking "about" something
+        if not any(word in query_lower for word in ['about', 'information', 'describe', 'what is']):
+            return 'find_property'
+    
+    # ========== CHECK FOR OTHER INTENTS ==========
+    
+    # Financing intent
+    financing_keywords = [
+        'financing', 'loan', 'mortgage', 'pag-ibig',
+        'bank financing', 'housing loan', 'in-house financing',
+        'cash payment', 'installment', 'payment method',
+        'what documents', 'requirements for', 'how to get',
+        'accept bank', 'accept financing'
+    ]
+    
+    for keyword in financing_keywords:
+        if keyword in query_lower:
+            return 'financing'
+    
+    # Ready property intent
+    if any(phrase in query_lower for phrase in [
+        'ready to move', 'ready for occupancy', 'available now',
+        'immediate occupancy', 'move in ready', 'ready now',
+        'ready to occupy', 'immediate move in', 'available immediately'
+    ]):
+        return 'find_ready_property'
+    
+    # Process info intent
+    if any(phrase in query_lower for phrase in [
+        'steps for', 'how to', 'process of', 'procedure',
+        'timeline', 'requirements', 'documents', 'steps to',
+        'how do i', 'what are the steps', 'costs for',
+        'timeline for', 'process for'
+    ]):
+        return 'process_info'
+    
+    # With feature intent
+    if any(phrase in query_lower for phrase in [
+        'with swimming pool', 'with pool', 'with garden',
+        'with parking', 'with elevator', 'with security',
+        'with wifi', 'with furniture', 'with aircon',
+        'with feature', 'featuring', 'having'
+    ]):
+        return 'find_with_feature'
+    
+    # Near landmark intent
+    if any(phrase in query_lower for phrase in [
+        'near schools', 'near mall', 'near hospital',
+        'near port', 'near beach', 'near church',
+        'near landmark', 'close to', 'around',
+        'beside', 'next to', 'adjacent to'
+    ]):
+        return 'find_near_landmark'
+    
+    # Property for need intent
+    if any(phrase in query_lower for phrase in [
+        'for family', 'for students', 'for professionals',
+        'for couple', 'for retirees', 'for business',
+        'for investors', 'for single', 'for workers'
+    ]):
+        return 'find_property_for_need'
+    
+    # Match needs intent
+    if any(phrase in query_lower for phrase in [
+        'match my', 'suitable for', 'fitting my', 'appropriate for',
+        'compatible with', 'what matches', 'recommendations for'
+    ]):
+        return 'match_needs'
+    
+    # Property with criteria intent
+    if any(phrase in query_lower for phrase in [
+        'under', 'below', 'less than', 'maximum', 'up to',
+        'with bedroom', 'with bath', 'with bathrooms',
+        'with bedrooms', 'bedroom', 'bathroom', 'rooms',
+        'price range', 'budget', 'affordable', 'cheap'
+    ]):
+        return 'find_property_with_criteria'
+    
+    # Location info intent (catch-all for location queries)
+    location_indicators = [
+        'tell me about', 'what is', 'describe', 'about the',
+        'information about', 'living in', 'like to live',
+        'what\'s it like', 'is it good', 'lifestyle',
+        'about', 'information on', 'details about'
+    ]
+    
+    for indicator in location_indicators:
+        if indicator in query_lower:
+            return 'location_info'
+    
+    # ========== FINAL CHECKS ==========
+    
+    # Check if query contains a known Batangas location
+    batangas_locations = [
+        'batangas city', 'lipa city', 'nasugbu', 'tanauan',
+        'taal', 'calatagan', 'mabini', 'malvar', 'bauan',
+        'balayan', 'san juan', 'sto tomas', 'santo tomas'
+    ]
+    
+    # If query contains a location and property terms, it's find_property
+    has_location = any(loc in query_lower for loc in batangas_locations)
+    if has_location and (has_property_terms or has_property_type):
+        return 'find_property'
+    
+    # If query contains only a location, it's location_info
+    if has_location and not (has_property_terms or has_property_type):
+        return 'location_info'
+    
+    # Default to find_property for general property queries
+    if has_property_terms or has_property_type:
+        return 'find_property'
+    
+    # If query is about a location (ends with "city" or contains location words)
+    if any(word in query_lower for word in ['city', 'town', 'municipality', 'province']):
+        return 'location_info'
+    
+    return 'unknown'
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    response_data = {
+    return jsonify({
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.8.0',
+        'version': '3.6',  # Updated version
         'model_loaded': vectorizer is not None and classifier is not None,
         'training_data_loaded': bool(training_data),
         'firebase_connected': db is not None,
-        'google_maps_available': GOOGLE_MAPS_AVAILABLE,
         'model_intents': model_classes,
         'model_features': len(vectorizer.get_feature_names_out()) if vectorizer else 0,
-        'spacy_loaded': False, 
+        'spacy_loaded': nlp is not None,
         'supports_general_searches': True,
-        'supports_criteria_searches': True,
-        'supports_financing_queries': True,
-        'supports_document_queries': True,
-        'supports_landmark_queries': True,
-        'timestamp': datetime.now().isoformat(),
-        'cors_enabled': True,
-        'allowed_origins': ALLOWED_ORIGINS
-    }
-    
-    response = jsonify(response_data)
-    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
-    return response
+        'supports_criteria_searches': True,  # NEW
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/api/test', methods=['GET'])
 def test_endpoint():
     """Test endpoint to verify the model is working"""
     test_queries = [
-        "properties near schools",
-        "houses near batangas state university",
-        "apartments near colleges",
-        "properties close to schools",
-        "condos walking distance to campus",
-        "family homes near good schools",
-        "student housing near universities",
-        "requirements for bank financing",
-        "what documents are needed for installment",
-        "documents required for outright purchase",
-        "show me properties that accept installment",
-        "find properties with bank financing",
-        "properties that accept outright payment",
-        "houses with BDO financing",
-        "condos with Pag-IBIG loan",
+        # Criteria-based searches
         "show me houses under 15M with 3 bedrooms",
         "find condos below 10M with 2 bedrooms",
+        "properties under 5M with 1 bedroom",
+        
+        # General searches (no location)
         "find apartments",
         "show me houses",
+        "what condos do you have",
+        
+        # Location-specific searches
         "find apartments in batangas city",
+        "properties near schools",
+        "how to get a mortgage",
     ]
     
     results = []
@@ -3554,21 +1945,18 @@ def test_endpoint():
                 intent = classifier.predict(X)[0]
                 confidence = float(classifier.predict_proba(X).max())
                 
+                # Extract entities
                 entities = extract_entities_from_query(query)
                 
                 results.append({
                     'query': query,
                     'intent': intent,
                     'confidence': confidence,
-                    'landmark': entities.get('landmark'),
-                    'landmark_type': entities.get('landmark_type'),
-                    'documents_only': entities.get('documents_only'),
-                    'sale_type': entities.get('sale_type'),
-                    'financing_options': entities.get('financing_options'),
                     'has_location': entities.get('location') is not None,
                     'property_type': entities.get('property_type'),
                     'max_price': entities.get('max_price'),
                     'exact_bedrooms': entities.get('exact_bedrooms'),
+                    'is_criteria_search': intent == 'find_property_with_criteria'
                 })
         except Exception as e:
             results.append({
@@ -3576,92 +1964,56 @@ def test_endpoint():
                 'error': str(e)
             })
     
-    response_data = {
+    return jsonify({
         'test_results': results,
         'model_status': 'loaded' if vectorizer else 'not loaded',
         'training_data_status': 'loaded' if training_data else 'not loaded',
-        'google_maps_available': GOOGLE_MAPS_AVAILABLE,
         'supports_criteria_searches': True,
-        'supports_general_searches': True,
-        'supports_financing_queries': True,
-        'supports_document_queries': True,
-        'supports_landmark_queries': True,
-        'cors_enabled': True
-    }
-    
-    response = jsonify(response_data)
-    response.headers.add('Cache-Control', 'no-cache, no-store, must-revalidate')
-    return response
-
-# ========== ERROR HANDLERS ==========
-@app.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors"""
-    response = jsonify({
-        'error': 'Not found',
-        'message': 'The requested endpoint was not found.'
+        'supports_general_searches': True
     })
-    response.status_code = 404
-    return response
 
-@app.errorhandler(405)
-def method_not_allowed(error):
-    """Handle 405 errors"""
-    response = jsonify({
-        'error': 'Method not allowed',
-        'message': 'The HTTP method is not supported for this endpoint.'
-    })
-    response.status_code = 405
-    return response
-
-@app.errorhandler(500)
-def internal_server_error(error):
-    """Handle 500 errors"""
-    response = jsonify({
-        'error': 'Internal server error',
-        'message': 'An unexpected error occurred on the server.'
-    })
-    response.status_code = 500
-    return response
-
-# ========== MAIN APPLICATION ==========
+# ==================== MAIN ====================
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.8.0")
-    print("   (With enhanced CORS and timeout handling)")
+    print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.6")
+    print("   (Supports price & bedroom criteria filtering)")
     print("="*60)
     
-    diagnose_file_system()
-    firebase_initialized = initialize_firebase()
     # Load the trained model
     load_nlu_model()
     
-    print("\n🔍 Example queries to test:")
-    print("   1. 'properties near schools'")
-    print("   2. 'houses near batangas state university'")
-    print("   3. 'apartments walking distance to campus'")
-    print("   4. 'requirements for bank financing'")
-    print("   5. 'show me houses under 15M with 3 bedrooms'")
+    # Load training data for response templates
+    load_training_data()
+    
+    print(f"\n📂 NLU Model: {'✅ Loaded' if vectorizer else '❌ Not loaded'}")
+    print(f"📚 Training Data: {'✅ Loaded' if training_data else '❌ Not loaded'}")
+    print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
+    print(f"📊 spaCy: {'✅ Loaded' if nlp else '❌ Not loaded'}")
+    print(f"🔍 General Searches: {'✅ Supported'}")
+    print(f"🔍 Criteria Searches: {'✅ Supported'}")
+    
+    if vectorizer:
+        print(f"📊 Model intents: {len(model_classes)} intents")
+        print(f"📊 Available intents: {', '.join(model_classes)}")
+    else:
+        print("\n⚠️  WARNING: NLU model not loaded!")
+        print("💡 To fix this:")
+        print("   1. Run: python train_nlu.py")
+        print("   2. Make sure models/nlu_model.pkl exists")
+        print("   3. Check the model file path")
+    
+    print("\n🌐 API Endpoints:")
+    print("   POST /api/chat   - Chatbot endpoint")
+    print("   GET  /api/health - Health check")
+    print("   GET  /api/test   - Test model predictions")
+    
+    print("\n🔍 Example queries to try:")
+    print("   • 'show me houses under 15M with 3 bedrooms' (criteria search)")
+    print("   • 'find condos below 10M with 2 bedrooms' (criteria search)")
+    print("   • 'find apartments' (general search)")
+    print("   • 'show me houses' (general search)")
+    print("   • 'find apartments in batangas city' (location-specific)")
     
     print("="*60 + "\n")
     
-    # Get port from environment variable for Render
-    port = int(os.environ.get('PORT', 10000))
-    print(f"📡 Server running on port: {port}")
-    print("📡 Gunicorn will start the server in production")
-    
-    # Check for Google Maps API key
-    google_maps_key = os.environ.get('GOOGLE_MAPS_API_KEY')
-    if GOOGLE_MAPS_AVAILABLE and not google_maps_key:
-        print("⚠️  WARNING: GOOGLE_MAPS_API_KEY environment variable not set!")
-        print("💡 Set it to enable distance calculations for landmark queries")
-    elif GOOGLE_MAPS_AVAILABLE and google_maps_key:
-        print("✅ Google Maps API key found")
-    
-    # Run the Flask app
-    app.run(
-        host='0.0.0.0', 
-        port=port, 
-        debug=False,
-        threaded=True  # Enable threading for better concurrency
-    )
+    app.run(host='0.0.0.0', port=5000, debug=True)
