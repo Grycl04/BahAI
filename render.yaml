@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: bahai-backend
+    env: python
+    pythonVersion: "3.11.0"
+    plan: free
+    region: oregon
+    rootDirectory: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn chatbot_backend:app
