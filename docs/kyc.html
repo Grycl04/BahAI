@@ -146,6 +146,12 @@
       border: 1px solid #93c5fd;
     }
     
+    .status-verifying { 
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+    
     .status-approved { 
       background: #d1fae5;
       color: #065f46;
@@ -392,6 +398,57 @@
       border-radius: 4px;
     }
 
+    /* Verification Results */
+    .verification-results {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      display: none;
+    }
+
+    .verification-results.show {
+      display: block;
+    }
+
+    .verification-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .verification-item:last-child {
+      border-bottom: none;
+    }
+
+    .verification-label {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .verification-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    .verification-pass {
+      color: #065f46;
+    }
+
+    .verification-fail {
+      color: #991b1b;
+    }
+
+    .verification-score {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
     /* Buttons */
     .button-group {
       display: flex;
@@ -535,6 +592,12 @@
       .button-group {
         flex-direction: column;
       }
+      
+      .verification-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -596,7 +659,7 @@
         <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
         <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
       </ul>
-      <p><strong>Note:</strong> Your account will be verified by admin before you can post listings.</p>
+      <p><strong>Note:</strong> Your account will be verified automatically using Face++ face recognition.</p>
     </div>
 
     <div id="agentInfo" class="info-box hidden">
@@ -607,7 +670,7 @@
         <li><strong>Broker Accreditation (Optional)</strong> - Number or referral code from your broker</li>
         <li><strong>Broker Endorsement (Optional)</strong> - Document from your broker if available</li>
       </ul>
-      <p><strong>Note:</strong> Admin may verify broker endorsement before activating your account.</p>
+      <p><strong>Note:</strong> Automatic face verification will be performed using Face++.</p>
     </div>
 
     <div id="landlordInfo" class="info-box hidden">
@@ -617,7 +680,28 @@
         <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
         <li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
       </ul>
-      <p><strong>Note:</strong> Each property listing will require separate ownership verification.</p>
+      <p><strong>Note:</strong> Face verification will be automatically processed using Face++ API.</p>
+    </div>
+
+    <!-- Face Verification Results -->
+    <div id="verificationResults" class="verification-results">
+      <h3 style="margin-bottom: 15px;">Face Verification Results</h3>
+      <div class="verification-item">
+        <span class="verification-label">Face Comparison Score</span>
+        <span class="verification-value" id="faceScore">--</span>
+      </div>
+      <div class="verification-item">
+        <span class="verification-label">Verification Result</span>
+        <span class="verification-value" id="verificationResult">--</span>
+      </div>
+      <div class="verification-item">
+        <span class="verification-label">Threshold</span>
+        <span class="verification-value">≥ 70%</span>
+      </div>
+      <div class="verification-item">
+        <span class="verification-label">Processing Time</span>
+        <span class="verification-value" id="processingTime">--</span>
+      </div>
     </div>
 
     <!-- Upload Form -->
@@ -739,10 +823,13 @@ import { auth, db } from './firebase-common.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js";
+
+// Face++ API Configuration - ADD YOUR KEYS HERE
+const FACE_API_KEY = "nwMEZVM-SXeV7Q6_tG9yNfQaVserEDGP";
+const FACE_API_SECRET = "rq7cw-SGGi37Yda4z5U_Z6KaGccXZA0w"; 
+const FACE_API_URL = "https://api-us.faceplusplus.com/facepp/v3/compare";
 
 const storage = getStorage();
-const functions = getFunctions();
 
 const roleBadge = document.getElementById("roleBadge");
 const statusBadge = document.getElementById("statusBadge");
@@ -754,6 +841,10 @@ const confirmText = document.getElementById("confirmText");
 const progressContainer = document.getElementById("progressContainer");
 const progressFill = document.getElementById("progressFill");
 const progressText = document.getElementById("progressText");
+const verificationResults = document.getElementById("verificationResults");
+const faceScore = document.getElementById("faceScore");
+const verificationResult = document.getElementById("verificationResult");
+const processingTime = document.getElementById("processingTime");
 
 let currentUser = null;
 let userRole = null;
@@ -851,6 +942,121 @@ async function uploadToStorage(file, path, onProgress) {
         return downloadURL;
     } catch (error) {
         console.error(`Upload error for ${path}:`, error);
+        throw error;
+    }
+}
+
+// Face++ API Integration
+// Face++ API Integration
+async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
+    const startTime = Date.now();
+    
+    try {
+        updateProgress(85, "Verifying face match...");
+        
+        // Convert image URLs to base64 data
+        const [idImageBase64, selfieImageBase64] = await Promise.all([
+            urlToBase64(idImageUrl),
+            urlToBase64(selfieImageUrl)
+        ]);
+        
+        // Prepare form data for Face++ API
+        const formData = new FormData();
+        formData.append('api_key', FACE_API_KEY);
+        formData.append('api_secret', FACE_API_SECRET);
+        formData.append('image_base64_1', idImageBase64);
+        formData.append('image_base64_2', selfieImageBase64);
+        formData.append('return_landmark', '0');
+        formData.append('return_attributes', '0');
+        
+        // Call Face++ API
+        const response = await fetch(FACE_API_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Face++ API error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        const endTime = Date.now();
+        const processingTimeMs = endTime - startTime;
+        
+        console.log("Face++ API Response:", result);
+        
+        // Calculate confidence percentage
+        let confidence = 0;
+        if (result.confidence) {
+            confidence = parseFloat(result.confidence);
+        }
+        
+        // Determine verification result
+        const isVerified = confidence >= 70; // 70% threshold
+        
+        // Show verification results
+        verificationResults.classList.add("show");
+        faceScore.textContent = `${confidence.toFixed(2)}%`;
+        faceScore.className = confidence >= 70 ? "verification-value verification-pass" : "verification-value verification-fail";
+        
+        if (confidence >= 70) {
+            verificationResult.textContent = "✓ PASS";
+            verificationResult.className = "verification-value verification-pass";
+        } else {
+            verificationResult.textContent = "✗ FAIL";
+            verificationResult.className = "verification-value verification-fail";
+        }
+        
+        processingTime.textContent = `${processingTimeMs}ms`;
+        
+        return {
+            success: true,
+            verified: isVerified,
+            confidence: confidence,
+            rawResponse: result,
+            processingTime: processingTimeMs // This will always be defined
+        };
+        
+    } catch (error) {
+        console.error("Face++ verification error:", error);
+        const endTime = Date.now();
+        const processingTimeMs = endTime - startTime; // Calculate processing time even on error
+        
+        // Fallback to manual review if API fails
+        verificationResults.classList.add("show");
+        faceScore.textContent = "API Error";
+        verificationResult.textContent = "Manual Review";
+        verificationResult.className = "verification-value verification-pass";
+        processingTime.textContent = `${processingTimeMs}ms`;
+        
+        return {
+            success: false,
+            verified: false,
+            confidence: 0,
+            error: error.message,
+            requiresManualReview: true,
+            processingTime: processingTimeMs // Include processing time for error case
+        };
+    }
+}
+
+// Helper function to convert image URL to base64
+async function urlToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64data = reader.result.split(',')[1];
+                resolve(base64data);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error("Error converting URL to base64:", error);
         throw error;
     }
 }
@@ -1006,8 +1212,9 @@ function updateStatusDisplay(status) {
             uploadForm.classList.remove("hidden");
             break;
         case "pending":
-            statusBadge.textContent = "Pending";
-            showMessage("Your KYC documents are under review. You will be notified once approved.", "warning");
+        case "verifying":
+            statusBadge.textContent = "Verifying";
+            showMessage("Your KYC documents are being verified automatically...", "warning");
             break;
         case "approved":
             statusBadge.textContent = "Approved";
@@ -1051,9 +1258,10 @@ kycForm.addEventListener("submit", async (e) => {
         // Prepare upload tasks
         const uploads = [];
         const kycData = {
-            kycStatus: "pending",
+            kycStatus: "verifying",
             kycDocuments: {
-                submittedAt: serverTimestamp()
+                submittedAt: serverTimestamp(),
+                faceVerification: {}
             }
         };
 
@@ -1153,37 +1361,56 @@ kycForm.addEventListener("submit", async (e) => {
             }
         }
 
-        // Update Firestore
-        updateProgress(90, "Saving to database...");
+        // Update Firestore with verifying status
+        updateProgress(80, "Saving to database...");
         await updateDoc(doc(db, "users", currentUser.uid), kycData);
         console.log("Firestore updated successfully");
 
-        // Trigger Cloud Function for verification
-        updateProgress(95, "Verifying documents...");
-        try {
-            const { httpsCallable } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js");
-            const { getFunctions } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-functions.js");
+        // Perform Face++ verification
+        const faceVerificationResult = await verifyWithFacePlusPlus(govIdUrl, selfieUrl);
+        
+// Update Firestore with verification results
+const finalKycData = {
+    'kycStatus': faceVerificationResult.verified ? 'approved' : 'rejected',
+    'kycDocuments.faceVerification': {
+        confidence: faceVerificationResult.confidence || 0,
+        verified: faceVerificationResult.verified || false,
+        processedAt: serverTimestamp(),
+        processingTime: faceVerificationResult.processingTime || 0, // Ensure this is never undefined
+        rawResponse: faceVerificationResult.rawResponse || null,
+        success: faceVerificationResult.success || false,
+        requiresManualReview: faceVerificationResult.requiresManualReview || false
+    },
+    'kycDocuments.verifiedAt': serverTimestamp()
+};
+
+        updateProgress(95, "Finalizing verification...");
+        await updateDoc(doc(db, "users", currentUser.uid), finalKycData);
+
+        // Show appropriate message
+        if (faceVerificationResult.verified) {
+            showMessage("✅ Verification successful! Your account is now verified.", "success");
+            updateStatusDisplay("approved");
+        } else if (faceVerificationResult.requiresManualReview) {
+            showMessage("⚠️ Verification requires manual review. Admin will review your documents shortly.", "warning");
+            updateStatusDisplay("pending");
+        } else {
+            showMessage("❌ Face verification failed. Please ensure your selfie clearly shows your face and matches your ID.", "error");
+            updateStatusDisplay("rejected");
             
-            const functions = getFunctions();
-            const verifyKYC = httpsCallable(functions, 'verifyKYC');
-            
-            const result = await verifyKYC({
-                governmentIdUrl: govIdUrl,
-                selfieWithIdUrl: selfieUrl
-            });
-            
-            console.log("Verification result:", result.data);
-        } catch (error) {
-            console.log("Auto-verification will run in background:", error);
-            // Don't fail - auto-verification will trigger via Firestore
+            // Allow resubmission
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Submit for Verification";
+            progressContainer.classList.add("hidden");
+            return;
         }
 
         updateProgress(100, "Complete!");
-        showMessage("✅ KYC documents submitted successfully! Verification in progress...", "success");
-
+        
+        // Reload page after 3 seconds
         setTimeout(() => {
             window.location.reload();
-        }, 2000);
+        }, 3000);
 
     } catch (error) {
         console.error("Error submitting KYC:", error);

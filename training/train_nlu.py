@@ -16,6 +16,9 @@ from collections import Counter
 import logging
 import random
 from datetime import datetime
+import shutil
+import sys
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -762,13 +765,13 @@ class TeamNLUTrainer:
         
         return True
 
-    def save_model(self, model_path='models/nlu_model.pkl'):
-        """Save trained model with version info"""
+    def save_model(self):
+        """Save trained model to multiple locations"""
         model_data = {
             'vectorizer': self.pipeline.named_steps['tfidf'],
             'classifier': self.pipeline.named_steps['classifier'],
             'classes': self.pipeline.classes_.tolist(),
-            'version': '3.4',  # Updated version
+            'version': '3.4',
             'training_date': datetime.now().isoformat(),
             'feature_count': len(self.pipeline.named_steps['tfidf'].get_feature_names_out()),
             'intent_mapping': self.intent_mapping,
@@ -777,21 +780,48 @@ class TeamNLUTrainer:
             'batangas_data_loaded': bool(self.batangas_data)
         }
         
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        print("\n💾 Saving model to multiple locations...")
         
-        with open(model_path, 'wb') as f:
+        # Get current directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)  # Go up to BahAI_Firebase folder
+        
+        # Define paths
+        training_models_dir = os.path.join(current_dir, 'models')
+        backend_models_dir = os.path.join(project_root, 'backend', 'models')
+        
+        # Create directories
+        os.makedirs(training_models_dir, exist_ok=True)
+        os.makedirs(backend_models_dir, exist_ok=True)
+        
+        # Save to training/models
+        training_model_path = os.path.join(training_models_dir, 'nlu_model.pkl')
+        with open(training_model_path, 'wb') as f:
             pickle.dump(model_data, f)
+        print(f"✅ Saved to training folder: {training_model_path}")
         
-        print(f"\n💾 Model saved to {model_path}")
-        print(f"📊 Model info:")
+        # Save to backend/models
+        backend_model_path = os.path.join(backend_models_dir, 'nlu_model.pkl')
+        with open(backend_model_path, 'wb') as f:
+            pickle.dump(model_data, f)
+        print(f"✅ Saved to backend folder: {backend_model_path}")
+        
+        # Verify both files exist
+        for path, name in [(training_model_path, 'Training'), (backend_model_path, 'Backend')]:
+            if os.path.exists(path):
+                size = os.path.getsize(path)
+                print(f"   {name}: {size:,} bytes")
+            else:
+                print(f"   ❌ {name}: File not created!")
+        
+        print(f"\n📊 Model info:")
         print(f"   • Version: {model_data['version']}")
         print(f"   • Classes: {len(model_data['classes'])} intents")
         print(f"   • Date: {model_data['training_date']}")
         print(f"   • Features: {model_data['feature_count']}")
-        print(f"   • Batangas Data: {'✅ Loaded' if model_data['batangas_data_loaded'] else '❌ Not loaded'}")
         
-        return model_path
-
+        return backend_model_path  # Return backend path as primary
+    
 def test_predictions(trainer, test_queries):
     """Test model predictions with the specific problematic queries"""
     print("\n" + "="*60)
@@ -1073,7 +1103,7 @@ def main():
     
     if texts:
         if trainer.train(texts, intents):
-            trainer.save_model()
+            backend_model_path = trainer.save_model()
             
             # Test with the specific problematic queries
             test_predictions(trainer, [
