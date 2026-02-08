@@ -74,16 +74,3 @@ venv/
 *.pyc
 __pycache__/
 
-# Local Netlify folder
-.netlify
-
-# Netlify-specific ignores to prevent Python installation
-Pipfile
-Pipfile.lock
-pyproject.toml
-poetry.lock
-setup.py
-runtime.txt
-
-.tool-versions
-.mise.toml
