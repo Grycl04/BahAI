@@ -928,11 +928,11 @@
 
   <!-- Integrated Firebase Login Script -->
   <script type="module">
-    // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
+    // === FIREBASE INITIALIZATION ===
     let auth, db;
     
     try {
-      // Import with fallback
+      // Import Firebase
       const firebaseModule = await import('./firebase-common.js').catch(async (e) => {
         console.warn('Primary import failed, trying fallback...');
         return await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js')
@@ -991,8 +991,7 @@
       fetchSignInMethodsForEmail,
       signInWithPopup,
       signInWithRedirect,
-      getRedirectResult,
-      onAuthStateChanged
+      getRedirectResult
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     import {
@@ -1002,7 +1001,13 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+    // Create Google provider
     const googleProvider = new GoogleAuthProvider();
+    googleProvider.addScope('profile');
+    googleProvider.addScope('email');
+    googleProvider.setCustomParameters({
+      prompt: 'select_account'
+    });
 
     // DOM Elements
     const emailInput = document.getElementById('email');
@@ -1127,7 +1132,7 @@
         passwordError.classList.remove('show');
       }
      
-      // Remove shake animation after completion
+      // Remove shake animation
       setTimeout(() => {
         emailInput.classList.remove('shake');
         passwordInput.classList.remove('shake');
@@ -1276,7 +1281,7 @@
       }
     });
 
-    // Google Login - MOBILE COMPATIBLE
+    // ===== GOOGLE LOGIN - FIXED VERSION =====
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
         // Show loading state
@@ -1326,11 +1331,95 @@
         } else {
           // Use popup for desktop
           const result = await signInWithPopup(auth, googleProvider);
+          const user = result.user;
+          
+          // IMPORTANT: Check if this email already has password authentication
+          try {
+            const existingAuthMethods = await fetchSignInMethodsForEmail(auth, user.email);
+            
+            if (existingAuthMethods.includes("password") && !existingAuthMethods.includes("google.com")) {
+              // This email already has a password account but not Google auth
+              await auth.signOut();
+              
+              googleBtn.disabled = false;
+              googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+              
+              showNotification('warning', 
+                `<i class="fas fa-exclamation-triangle"></i>
+                <div>
+                  <strong>Account Conflict</strong><br>
+                  "${user.email}" is already registered with email/password.<br>
+                  Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login with email/password</a> instead.
+                </div>`, 
+                true
+              );
+              
+              // Pre-fill the email field
+              emailInput.value = user.email;
+              emailInput.classList.add('shake');
+              setTimeout(() => emailInput.classList.remove('shake'), 500);
+              
+              return;
+            }
+          } catch (error) {
+            console.log("Could not check auth methods for Google email:", error.message);
+          }
+          
+          const userRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userRef);
+
+          // Reset button
           googleBtn.disabled = false;
           googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-          await handleGoogleSignIn(result.user);
+          
+          if (!docSnap.exists()) {
+            // New user - show role selection modal
+            const role = await promptForRole();
+            if (!role) {
+              await auth.signOut();
+              return;
+            }
+            
+            const data = {
+              fullName: user.displayName,
+              email: user.email,
+              phone: "", // Google doesn't provide phone
+              role,
+              kycStatus: role === "buyer" ? "not_required" : "not_submitted",
+              createdAt: serverTimestamp(),
+              provider: "google"
+            };
+            
+            await setDoc(userRef, data);
+            
+            const message = role === "buyer" 
+              ? "✅ Account created! Start browsing properties."
+              : "✅ Account created! Please complete KYC verification.";
+            
+            showSuccess(message);
+            
+            setTimeout(() => {
+              const dashboardMap = {
+                buyer: 'buyer/buyer_dashboard.html',
+                broker: 'broker/broker_dashboard.html',
+                landlord: 'landlord/landlord_dashboard.html'
+              };
+              window.location.href = dashboardMap[role] || 'login.html';
+            }, 1500);
+            return;
+          } else {
+            // Existing user - redirect based on role
+            const data = docSnap.data();
+            const dashboardMap = {
+              buyer: 'buyer/buyer_dashboard.html',
+              broker: 'broker/broker_dashboard.html',
+              landlord: 'landlord/landlord_dashboard.html',
+              agent: 'broker/agent_dashboard.html'
+            };
+            window.location.href = dashboardMap[data.role] || 'login.html';
+          }
         }
-        
+
       } catch (error) {
         // Reset button
         const googleBtn = document.getElementById("googleLoginBtn");
@@ -1340,18 +1429,43 @@
         let userMessage = 'Google sign-in failed. ';
         
         if (error.code === 'auth/popup-blocked') {
-          userMessage += 'Popup was blocked. Please allow popups and try again.';
+          userMessage = 'Popup was blocked. Please allow popups and try again.';
         } else if (error.code === 'auth/popup-closed-by-user') {
-          userMessage += 'Popup was closed. Please try again.';
+          userMessage = 'Popup was closed. Please try again.';
         } else if (error.code === 'auth/account-exists-with-different-credential') {
+          // This is the critical error you're experiencing
           userMessage = 'This email is already registered with email/password. Please login with your email and password instead.';
+          
+          // Show a more helpful notification with a link to login
+          showNotification('error', 
+            `<i class="fas fa-exclamation-triangle"></i> 
+            <div>
+              <strong>Account Conflict</strong><br>
+              This email is already registered with email/password.<br>
+              Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.
+            </div>`, 
+            true
+          );
+          
+          // Also auto-fill the email field to help the user
+          const email = error.customData?.email;
+          if (email) {
+            emailInput.value = email;
+            emailInput.classList.add('shake');
+            setTimeout(() => emailInput.classList.remove('shake'), 500);
+          }
+          
+          return; // Don't show the generic error below
         } else if (error.code === 'auth/email-already-in-use') {
-          userMessage = 'This email is already in use with a different login method. Please use the login method you originally signed up with.';
+          userMessage = 'This email is already in use. Please login or use a different Google account.';
+        } else if (error.code === 'auth/user-cancelled') {
+          userMessage = 'Sign-in was cancelled.';
+          return; // Don't show error for user cancellation
         } else {
-          userMessage += error.message;
+          userMessage += error.message || 'Unknown error occurred.';
         }
         
-        showNotification('error', userMessage);
+        showNotification('error', `❌ ${userMessage}`);
       }
     });
 
@@ -1359,85 +1473,64 @@
     getRedirectResult(auth).then(async (result) => {
       if (result) {
         const user = result.user;
-        await handleGoogleSignIn(user);
-      }
-    }).catch((error) => {
-      console.error("Redirect result error:", error);
-      showNotification('error', "❌ Authentication error: " + error.message);
-    });
-
-    // Handle Google sign-in
-    async function handleGoogleSignIn(user) {
-      try {
         const userRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(userRef);
 
-        let data;
         if (!docSnap.exists()) {
-          // New user - show role selection modal
+          // New user from redirect - show role selection modal
           const role = await promptForRole();
           if (!role) {
             await auth.signOut();
             return;
           }
           
-          data = {
+          const data = {
             fullName: user.displayName,
             email: user.email,
+            phone: "",
             role,
             kycStatus: role === "buyer" ? "not_required" : "not_submitted",
             createdAt: serverTimestamp(),
             provider: "google"
           };
-          await setDoc(userRef, data);
           
-          // Check if this email might have a password account
-          try {
-            const methods = await fetchSignInMethodsForEmail(auth, user.email);
-            if (methods.includes("password")) {
-              showNotification('warning',
-                '⚠️ Note: A password account also exists for this email. ' +
-                'You now have two separate accounts.'
-              );
-            }
-          } catch (error) {
-            // Ignore error, continue
-          }
+          await setDoc(userRef, data);
           
           const message = role === "buyer" 
             ? "✅ Account created! Start browsing properties."
             : "✅ Account created! Please complete KYC verification.";
           
-          showNotification('success', message);
+          showSuccess(message);
+          
           setTimeout(() => {
-            window.location.href = getRedirectPage(role);
+            const dashboardMap = {
+              buyer: 'buyer/buyer_dashboard.html',
+              broker: 'broker/broker_dashboard.html',
+              landlord: 'landlord/landlord_dashboard.html'
+            };
+            window.location.href = dashboardMap[role] || 'login.html';
           }, 1500);
-          return;
         } else {
-          data = docSnap.data();
+          // Existing user from redirect
+          const data = docSnap.data();
+          const dashboardMap = {
+            buyer: 'buyer/buyer_dashboard.html',
+            broker: 'broker/broker_dashboard.html',
+            landlord: 'landlord/landlord_dashboard.html',
+            agent: 'broker/agent_dashboard.html'
+          };
+          window.location.href = dashboardMap[data.role] || 'login.html';
         }
-
-        // Check if user is admin - redirect to admin login
-        if (data.role === "admin") {
-          showNotification('info', 'Admins must use the admin login page.');
-          await auth.signOut();
-          setTimeout(() => {
-            window.location.href = 'admin_login.html';
-          }, 1500);
-          return;
-        }
-
-        // Existing users go straight to dashboard
-        showNotification('success', 'Login successful! Redirecting...');
-        setTimeout(() => {
-          window.location.href = getRedirectPage(data.role);
-        }, 1000);
-
-      } catch (error) {
-        console.error("Error handling Google sign-in:", error);
-        showNotification('error', '❌ Error: ' + error.message);
       }
-    }
+    }).catch((error) => {
+      console.error("Redirect result error:", error);
+      
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        showNotification('error', `❌ This email is already registered with email/password. Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.`);
+      } else {
+        showNotification('error', "❌ Authentication error: " + error.message);
+      }
+    });
 
     // Role selection modal - 4 ROLES INCLUDING AGENT
     function promptForRole() {
@@ -1503,7 +1596,7 @@
       return pages[role] || "login.html";
     }
 
-    function showNotification(type, message) {
+    function showNotification(type, message, isHTML = false) {
       const icon = {
         error: '<i class="fas fa-exclamation-circle"></i>',
         success: '<i class="fas fa-check-circle"></i>',
@@ -1513,10 +1606,18 @@
       
       const notification = document.createElement('div');
       notification.className = `notification ${type}`;
-      notification.innerHTML = `
-        ${icon[type]}
-        <div>${message}</div>
-      `;
+      
+      if (isHTML) {
+        notification.innerHTML = `
+          ${icon[type]}
+          <div>${message}</div>
+        `;
+      } else {
+        notification.innerHTML = `
+          ${icon[type]}
+          <div>${message}</div>
+        `;
+      }
       
       document.body.appendChild(notification);
       
@@ -1526,7 +1627,9 @@
         existingNotifications[0].remove();
       }
       
-      // Auto remove after 5 seconds
+      // Auto remove after 5 seconds (except warnings which stay longer)
+      const removeTime = type === 'warning' ? 8000 : 5000;
+      
       setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
         setTimeout(() => {
@@ -1534,7 +1637,43 @@
             notification.parentNode.removeChild(notification);
           }
         }, 300);
-      }, 5000);
+      }, removeTime);
+    }
+
+    // UI feedback functions
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'notification error';
+      
+      // Check if message contains HTML tags
+      if (message.includes('<')) {
+        errorDiv.innerHTML = message;
+      } else {
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+      }
+      
+      document.body.appendChild(errorDiv);
+      
+      setTimeout(() => {
+        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => {
+          if (errorDiv.parentNode) {
+            errorDiv.parentNode.removeChild(errorDiv);
+          }
+        }, 300);
+      }, 4000);
+    }
+
+    function showSuccess(message) {
+      const successDiv = document.createElement('div');
+      successDiv.className = 'notification success';
+      successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+      document.body.appendChild(successDiv);
+      
+      setTimeout(() => {
+        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => document.body.removeChild(successDiv), 300);
+      }, 4000);
     }
 
     // Initialize form
