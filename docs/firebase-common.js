@@ -2,7 +2,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebas
 import { 
   getAuth, 
   browserLocalPersistence,
-  setPersistence
+  setPersistence,
+  GoogleAuthProvider  // ADD THIS IMPORT
 } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
@@ -24,7 +25,17 @@ const app = initializeApp(firebaseConfig);
 // Initialize Auth
 const auth = getAuth(app);
 
-// Set persistence (wrapped in async function)
+// Initialize Google Provider with proper configuration
+const googleProvider = new GoogleAuthProvider();
+// Add these important scopes
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
+// Force account selection
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+// Set persistence
 (async () => {
   try {
     await setPersistence(auth, browserLocalPersistence);
@@ -37,4 +48,5 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export { auth, db, storage };
+// Export all three
+export { auth, db, storage, googleProvider };
