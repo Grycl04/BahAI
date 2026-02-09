@@ -932,7 +932,14 @@
 
   <script type="module">
 import { auth, db } from './firebase-common.js';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  signInWithRedirect,
+  onAuthStateChanged,
+  getRedirectResult
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const el = id => document.getElementById(id);
@@ -1192,7 +1199,7 @@ function showRoleModal() {
   });
 }
 
-// ✅ Google Signup - Updated for 3 roles
+// ✅ Google Signup - MOBILE COMPATIBLE VERSION
 el('googleSignupBtn').addEventListener('click', async () => {
   try {
     // Show loading state
@@ -1200,28 +1207,103 @@ el('googleSignupBtn').addEventListener('click', async () => {
     googleBtn.disabled = true;
     googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
     
-    const result = await signInWithPopup(auth, googleProvider);
+    // Check if we're on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Use redirect for mobile devices
+      await signInWithRedirect(auth, googleProvider);
+      // User will be redirected back after auth
+      return;
+    } else {
+      // Use popup for desktop
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+
+      // Reset button
+      googleBtn.disabled = false;
+      googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+      
+      let data;
+      if (!docSnap.exists()) {
+        // New user - show role selection modal
+        const role = await showRoleModal();
+        if (!role) {
+          await auth.signOut();
+          return;
+        }
+        
+        data = {
+          fullName: user.displayName,
+          email: user.email,
+          phone: "", // Google doesn't provide phone
+          role,
+          kycStatus: role === "buyer" ? "not_required" : "not_submitted",
+          createdAt: serverTimestamp(),
+          provider: "google"
+        };
+        
+        await setDoc(userRef, data);
+        
+        const message = role === "buyer" 
+          ? "✅ Account created! Start browsing properties."
+          : "✅ Account created! Please complete KYC verification.";
+        
+        showSuccess(message);
+        
+        setTimeout(() => {
+          const dashboardMap = {
+            buyer: 'buyer/buyer_dashboard.html',
+            broker: 'broker/broker_dashboard.html',
+            landlord: 'landlord/landlord_dashboard.html'
+          };
+          window.location.href = dashboardMap[role] || 'login.html';
+        }, 1500);
+        return;
+      } else {
+        // Existing user - redirect based on role
+        data = docSnap.data();
+        const dashboardMap = {
+          buyer: 'buyer/buyer_dashboard.html',
+          broker: 'broker/broker_dashboard.html',
+          landlord: 'landlord/landlord_dashboard.html',
+          agent: 'broker/agent_dashboard.html' // For agents created by brokers
+        };
+        window.location.href = dashboardMap[data.role] || 'login.html';
+      }
+    }
+
+  } catch (error) {
+    // Reset button
+    const googleBtn = el('googleSignupBtn');
+    googleBtn.disabled = false;
+    googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+    
+    showError("❌ Google sign-in failed: " + error.message);
+  }
+});
+
+// Handle redirect result for mobile
+getRedirectResult(auth).then(async (result) => {
+  if (result) {
     const user = result.user;
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
-    // Reset button
-    googleBtn.disabled = false;
-    googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-    
-    let data;
     if (!docSnap.exists()) {
-      // New user - show role selection modal
+      // New user from redirect - show role selection modal
       const role = await showRoleModal();
       if (!role) {
         await auth.signOut();
         return;
       }
       
-      data = {
+      const data = {
         fullName: user.displayName,
         email: user.email,
-        phone: "", // Google doesn't provide phone
+        phone: "",
         role,
         kycStatus: role === "buyer" ? "not_required" : "not_submitted",
         createdAt: serverTimestamp(),
@@ -1244,27 +1326,21 @@ el('googleSignupBtn').addEventListener('click', async () => {
         };
         window.location.href = dashboardMap[role] || 'login.html';
       }, 1500);
-      return;
     } else {
-      // Existing user - redirect based on role
-      data = docSnap.data();
+      // Existing user from redirect
+      const data = docSnap.data();
       const dashboardMap = {
         buyer: 'buyer/buyer_dashboard.html',
         broker: 'broker/broker_dashboard.html',
         landlord: 'landlord/landlord_dashboard.html',
-        agent: 'broker/agent_dashboard.html' // For agents created by brokers
+        agent: 'broker/agent_dashboard.html'
       };
       window.location.href = dashboardMap[data.role] || 'login.html';
     }
-
-  } catch (error) {
-    // Reset button
-    const googleBtn = el('googleSignupBtn');
-    googleBtn.disabled = false;
-    googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-    
-    showError("❌ Google sign-in failed: " + error.message);
   }
+}).catch((error) => {
+  console.error("Redirect result error:", error);
+  showError("❌ Authentication error: " + error.message);
 });
 
 // Allow form submission with Enter key

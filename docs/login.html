@@ -989,7 +989,10 @@
       signInWithEmailAndPassword,
       GoogleAuthProvider,
       fetchSignInMethodsForEmail,
-      signInWithPopup
+      signInWithPopup,
+      signInWithRedirect,
+      getRedirectResult,
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     import {
@@ -1273,17 +1276,21 @@
       }
     });
 
-    // Google Login
+    // Google Login - MOBILE COMPATIBLE
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
+        // Show loading state
+        const googleBtn = document.getElementById("googleLoginBtn");
+        googleBtn.disabled = true;
+        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+        
         // Get the email from the form if available
         const emailFromForm = emailInput.value.trim();
-       
-        // Check if this email already has password authentication
+        
         if (emailFromForm) {
           try {
             const methods = await fetchSignInMethodsForEmail(auth, emailFromForm);
-           
+            
             if (methods.includes("password")) {
               // Warn user about separate accounts
               const choice = confirm(
@@ -1292,9 +1299,11 @@
                 `Click Cancel to create a SEPARATE Google account.\n\n` +
                 `Note: These will be two different accounts!`
               );
-             
+              
               if (choice) {
                 // User wants email/password login
+                googleBtn.disabled = false;
+                googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
                 showNotification('info', 'Please enter your password to continue');
                 passwordInput.focus();
                 return;
@@ -1305,12 +1314,29 @@
             console.log("Could not check email methods, continuing with Google:", error.message);
           }
         }
-       
-        // Use popup for all devices
-        const result = await signInWithPopup(auth, googleProvider);
-        await handleGoogleSignIn(result.user);
+        
+        // Check if we're on mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Use redirect for mobile devices
+          await signInWithRedirect(auth, googleProvider);
+          // User will be redirected back after auth
+          return;
+        } else {
+          // Use popup for desktop
+          const result = await signInWithPopup(auth, googleProvider);
+          googleBtn.disabled = false;
+          googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+          await handleGoogleSignIn(result.user);
+        }
         
       } catch (error) {
+        // Reset button
+        const googleBtn = document.getElementById("googleLoginBtn");
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+        
         let userMessage = 'Google sign-in failed. ';
         
         if (error.code === 'auth/popup-blocked') {
@@ -1327,6 +1353,17 @@
         
         showNotification('error', userMessage);
       }
+    });
+
+    // Handle redirect result for mobile
+    getRedirectResult(auth).then(async (result) => {
+      if (result) {
+        const user = result.user;
+        await handleGoogleSignIn(user);
+      }
+    }).catch((error) => {
+      console.error("Redirect result error:", error);
+      showNotification('error', "❌ Authentication error: " + error.message);
     });
 
     // Handle Google sign-in
