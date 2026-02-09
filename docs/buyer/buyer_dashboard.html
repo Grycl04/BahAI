@@ -737,7 +737,7 @@
 </head>
 
 <body>
-<script src="./ai_chatbot.js" type="module"></script>
+<script src="../ai_chatbot.js" type="module"></script>
 
 <!-- Mobile Menu Toggle -->
 <button class="mobile-menu-toggle" id="mobileMenuToggle">
@@ -2967,12 +2967,12 @@ async function loadRecommendationsFromPython() {
     }
 }
 
-// Show properties to guest users
+// Show properties to guest users (or fallback when AI recommendations unavailable)
 async function showGuestRecommendations() {
     try {
-        console.log('Showing properties to guest user');
+        const isLoggedIn = !!auth.currentUser;
+        console.log(isLoggedIn ? 'Showing featured properties (logged in)' : 'Showing properties to guest user');
         
-        // Update section title for guests
         const sectionTitle = document.querySelector('#recommendedSection .section-title');
         const sectionSubtitle = document.querySelector('#recommendationsSubtitle');
         
@@ -2980,8 +2980,13 @@ async function showGuestRecommendations() {
             sectionTitle.innerHTML = '<i class="fas fa-eye"></i> Featured Properties';
         }
         if (sectionSubtitle) {
-            sectionSubtitle.textContent = 'Browse these featured properties. Sign in to get personalized AI recommendations!';
+            sectionSubtitle.textContent = isLoggedIn 
+                ? 'Browse these featured properties. More personalized recommendations as you interact.' 
+                : 'Browse these featured properties. Sign in to get personalized AI recommendations!';
         }
+        
+        const existingPrompt = document.querySelector('#recommendedSection .guest-prompt');
+        if (existingPrompt) existingPrompt.remove();
         
         // Get recent active properties
         const activeListings = allListings.filter(listing => 
@@ -3001,15 +3006,13 @@ async function showGuestRecommendations() {
             .slice(0, 5);
         
         if (recentListings.length > 0) {
-            displayRecommendedListingsPython(recentListings, 'guest');
+            displayRecommendedListingsPython(recentListings, isLoggedIn ? 'featured' : 'guest');
             
-            // Add a prompt message below the section
-            setTimeout(() => {
-                const section = document.getElementById('recommendedSection');
-                if (section) {
-                    let promptDiv = section.querySelector('.guest-prompt');
-                    if (!promptDiv) {
-                        promptDiv = document.createElement('div');
+            if (!isLoggedIn) {
+                setTimeout(() => {
+                    const section = document.getElementById('recommendedSection');
+                    if (section && !section.querySelector('.guest-prompt')) {
+                        const promptDiv = document.createElement('div');
                         promptDiv.className = 'guest-prompt';
                         promptDiv.style.cssText = `
                             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
@@ -3032,10 +3035,9 @@ async function showGuestRecommendations() {
                         `;
                         section.appendChild(promptDiv);
                     }
-                }
-            }, 100);
+                }, 100);
+            }
         } else {
-            // If no recent listings, show a message
             const recoContainer = document.getElementById('recommendedListingsContainer');
             if (recoContainer) {
                 recoContainer.innerHTML = `
@@ -3045,9 +3047,9 @@ async function showGuestRecommendations() {
                         <p style="color: var(--text-light); max-width: 500px; margin: 0 auto 20px;">
                             New listings are on the way. AI confidence improves with more interactions.
                         </p>
-                        <a href="../login.html" class="search-button" style="margin-top: 15px; display: inline-block;">
+                        ${!isLoggedIn ? `<a href="../login.html" class="search-button" style="margin-top: 15px; display: inline-block;">
                             <i class="fas fa-sign-in-alt"></i> Sign In for Better Experience
-                        </a>
+                        </a>` : ''}
                     </div>
                 `;
             }
@@ -3088,6 +3090,11 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             sectionTitle.innerHTML = '<i class="fas fa-eye"></i> Featured Properties';
             if (sectionSubtitle) {
                 sectionSubtitle.textContent = 'Browse these featured properties. Sign in to get personalized AI recommendations!';
+            }
+        } else if (type === 'featured') {
+            sectionTitle.innerHTML = '<i class="fas fa-eye"></i> Featured Properties';
+            if (sectionSubtitle) {
+                sectionSubtitle.textContent = 'Browse these featured properties. More personalized recommendations as you interact.';
             }
         } else {
             sectionTitle.innerHTML = '<i class="fas fa-clock"></i> Recent Properties';
@@ -3141,7 +3148,7 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             let recommendationBadge = "";
             if (type === 'personalized') {
                 recommendationBadge = '<div class="listing-ai-badge">Recommended by BahAI</div>';
-            } else if (type === 'guest') {
+            } else if (type === 'guest' || type === 'featured') {
                 recommendationBadge = '<div class="listing-match-badge">FEATURED</div>';
             }
             
