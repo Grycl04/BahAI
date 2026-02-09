@@ -70,7 +70,6 @@ temp/
 *.backup
 *.bak
 
-# Exclude large datasets if needed (optional)
-# Uncomment if you want to exclude:
-# data/
-# models/
+.env.local
+*.env.local
+

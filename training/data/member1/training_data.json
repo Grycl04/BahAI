@@ -178,6 +178,24 @@
       "average_rent": "₱8,000-₱18,000/month for condos"
     },
     {
+      "query": "find condos in tanauan city",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "condo",
+        "location": "Tanauan City"
+      },
+      "variations": [
+        "find condo units in tanauan",
+        "look for condominiums in tanauan city",
+        "search for condo units in tanauan",
+        "show me condominium units in tanauan",
+        "find condo in tanauan",
+        "condominium for rent in tanauan city",
+        "condo for sale in tanauan",
+        "condo units available in tanauan"
+      ]
+    },
+    {
       "query": "find condos in lipa city",
       "intent": "find_property",
       "entities": {
