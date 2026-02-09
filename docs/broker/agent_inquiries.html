@@ -8,32 +8,33 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="../buyer/style.css">
 <style>
-    /* Same design tokens as buyer dashboard - navy + gold */
+    /* Matches broker dashboard - navy + gold */
     :root {
-        --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
-        --primary-light: #1e3a5f;
-        --primary-dark: #071e38;
-        --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-        --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-        --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-        --border-radius: 16px;
-        --border-radius-sm: 12px;
-        --border-radius-lg: 24px;
-        --text-dark: #1a202c;
-        --text-light: #718096;
-        --primary: #0b2e52;
-        --bg-light: #f8fafc;
-        --bg-white: #ffffff;
-        --border: #e2e8f0;
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --unread-bg: #e8f4ff;
-        --unread-border: #b3d9ff;
-        --message-sent: #e3f2fd;
-        --message-received: #f5f5f5;
-        --success: #10b981;
-        --error: #ef4444;
+      --primary: #0b2e52;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --primary-light: #1e3a5f;
+      --primary-dark: #071e38;
+      --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-lg: 24px;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --unread-bg: rgba(212, 175, 55, 0.08);
+      --unread-border: rgba(212, 175, 55, 0.3);
+      --message-sent: #e3f2fd;
+      --message-received: #f5f5f5;
+      --success: #10b981;
+      --error: #ef4444;
+      --accent: #d4af37;
     }
     
     * {
@@ -44,7 +45,7 @@
 
     body {
       font-family: 'Inter', Arial, sans-serif;
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
@@ -71,44 +72,18 @@
     .container {
       flex: 1;
       margin-left: 280px;
-      padding: 0;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
       display: flex;
       flex-direction: column;
       min-height: 0;
       overflow: hidden;
-      transition: margin-left 0.3s ease;
-    }
-
-    .refresh-btn {
-      background: var(--primary-gradient);
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: var(--shadow);
-    }
-
-    .refresh-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .refresh-btn.refreshing {
-      background: var(--text-light);
-      cursor: not-allowed;
     }
 
     .inquiries-container {
       display: grid;
       grid-template-columns: 350px 1fr;
-      gap: 0;
+      gap: 25px;
       flex: 1;
       min-height: 0;
       overflow: hidden;
@@ -128,18 +103,6 @@
     .conversations-header {
       padding: 20px;
       border-bottom: 1px solid var(--border);
-    }
-
-    .conversations-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    .conversations-header-row h2 {
-      margin-bottom: 0;
     }
 
     .conversations-header h2 {
@@ -203,30 +166,32 @@
     }
 
     .filter-btn {
-      padding: 8px 16px;
-      border: 1px solid var(--border);
-      background: var(--bg-light);
+      padding: 10px 16px;
+      border: 2px solid #e5e7eb;
+      background: white;
       color: var(--text-dark);
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
+      border-radius: var(--border-radius-sm);
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .filter-btn:hover {
-      background: var(--border);
+      background: #f9fafb;
+      border-color: #d4af37;
+      transform: translateY(-2px);
     }
 
     .filter-btn.active {
-      background: var(--secondary-gradient);
+      background: var(--primary-gradient);
       color: white;
-      border-color: #d4af37;
+      border: none;
     }
 
     .conversations-search {
@@ -235,10 +200,10 @@
 
     .conversations-search input {
       width: 100%;
-      padding: 12px 16px 12px 40px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 14px 16px 14px 40px;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--border-radius-sm);
+      font-size: 0.95rem;
       font-family: 'Inter', sans-serif;
       transition: all 0.3s ease;
     }
@@ -289,6 +254,7 @@
     .conversation-avatar {
       width: 50px;
       height: 50px;
+      min-width: 50px;
       border-radius: 50%;
       background: var(--primary-gradient);
       display: flex;
@@ -298,6 +264,28 @@
       font-weight: 600;
       font-size: 16px;
       flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .conversation-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .schedule-indicator {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: #f59e0b;
+      color: white;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .conversation-info {
@@ -335,13 +323,19 @@
       margin-bottom: 6px;
     }
 
+    .conversation-property-link {
+        cursor: pointer;
+    }
+    .conversation-property-link:hover {
+        text-decoration: underline;
+    }
     .conversation-property {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
       color: #d4af37;
-      background: rgba(212, 175, 55, 0.1);
+      background: rgba(212, 175, 55, 0.08);
       padding: 4px 8px;
       border-radius: 6px;
       width: fit-content;
@@ -435,6 +429,7 @@
     .chat-user-avatar {
       width: 45px;
       height: 45px;
+      min-width: 45px;
       border-radius: 50%;
       background: var(--primary-gradient);
       display: flex;
@@ -444,6 +439,12 @@
       font-weight: 600;
       font-size: 16px;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+    .chat-user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .chat-user-details {
@@ -485,7 +486,7 @@
 
     .chat-property-info:hover {
       background: var(--bg-white);
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-shadow);
     }
 
     .chat-property-info h4 {
@@ -593,6 +594,44 @@
     .message-bubble.received .message-time {
       text-align: left;
     }
+
+    /* Schedule Message Styles */
+    .message-schedule {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 10px 0;
+      max-width: 85%;
+    }
+    .message-schedule.sent-schedule { align-self: flex-end; margin-left: auto; margin-right: 10px; }
+    .message-schedule.received-schedule { align-self: flex-start; margin-right: auto; margin-left: 10px; }
+    .message-schedule.confirmed { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: #10b981; }
+    .message-schedule.declined { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: #ef4444; }
+    .message-schedule.pending { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #f59e0b; }
+    .message-schedule.alternative { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-color: #0ea5e9; }
+    .message-schedule.cancelled { background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border-color: #6b7280; }
+    .schedule-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 600; color: var(--text-dark); }
+    .schedule-header i { font-size: 18px; }
+    .schedule-details { margin-bottom: 10px; padding: 10px; background: rgba(255, 255, 255, 0.7); border-radius: 8px; }
+    .schedule-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+    .schedule-info-label { color: var(--text-light); font-weight: 500; }
+    .schedule-info-value { color: var(--text-dark); font-weight: 600; }
+    .schedule-notes { margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; border-left: 3px solid var(--primary); }
+    .schedule-notes-label { font-size: 12px; color: var(--text-light); margin-bottom: 5px; }
+    .schedule-notes-content { font-size: 13px; color: var(--text-dark); }
+    .schedule-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .schedule-action-btn { flex: 1; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s ease; min-width: 120px; }
+    .schedule-action-btn.primary { background: var(--primary-gradient); color: white; }
+    .schedule-action-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); }
+    .schedule-action-btn.secondary { background: white; color: var(--text-dark); border: 2px solid #e5e7eb; }
+    .schedule-action-btn.secondary:hover { background: #f9fafb; border-color: #d4af37; transform: translateY(-2px); }
+    .schedule-status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .schedule-status-badge.status-pending { background: #fef3c7; color: #b45309; }
+    .schedule-status-badge.status-confirmed { background: #d1fae5; color: #047857; }
+    .schedule-status-badge.status-declined { background: #fee2e2; color: #b91c1c; }
+    .schedule-status-badge.status-alternative { background: #e0f2fe; color: #0369a1; }
+    .schedule-status-badge.status-cancelled { background: #f3f4f6; color: #6b7280; }
 
     .typing-indicator {
       align-self: flex-start;
@@ -1123,16 +1162,13 @@
     <!-- Conversations Sidebar -->
     <div class="conversations-sidebar">
     <div class="conversations-header">
-      <div class="conversations-header-row">
-        <h2><i class="fas fa-comments"></i> My Conversations</h2>
-        <button class="refresh-btn" id="refreshBtn">
-          <i class="fas fa-sync-alt"></i> Refresh
-        </button>
-      </div>
-      
-      <div class="index-notice" id="indexNotice">
+        <div style="margin-bottom: 12px;">
+          <h2 style="margin: 0;"><i class="fas fa-comments"></i> Conversations</h2>
+        </div>
+        
+        <div class="index-notice" id="indexNotice">
           <i class="fas fa-info-circle"></i> 
-          <span id="noticeText">No conversations found. Messages from buyers will appear here.</span>
+          <span id="noticeText">No conversations found. Start a conversation by inquiring about a property.</span>
         </div>
         
         <div class="stats-row" id="conversationStats">
@@ -1146,7 +1182,7 @@
           </div>
           <div class="stat-item">
             <div class="stat-value">0</div>
-            <div class="stat-label">Leads</div>
+            <div class="stat-label">Today</div>
           </div>
         </div>
         
@@ -1157,8 +1193,8 @@
           <button class="filter-btn" id="filterUnread">
             <i class="fas fa-envelope"></i> Unread
           </button>
-          <button class="filter-btn" id="filterLeads">
-            <i class="fas fa-star"></i> Hot Leads
+          <button class="filter-btn" id="filterToday">
+            <i class="fas fa-calendar-day"></i> Today
           </button>
         </div>
         
@@ -1185,11 +1221,6 @@
             <p id="chatUserStatus"><i class="fas fa-circle" style="color: #ccc; font-size: 8px;"></i> Choose a buyer to start messaging</p>
           </div>
         </div>
-        <div class="chat-property-info" id="chatPropertyInfo" style="display: none;">
-          <h4 id="propertyTitle">Property Title</h4>
-          <p><i class="fas fa-map-marker-alt"></i> <span id="propertyLocation">Location</span></p>
-          <div class="property-quick-price" id="propertyPrice">₱0</div>
-        </div>
       </div>
 
       <div class="messages-container" id="messagesContainer">
@@ -1209,20 +1240,11 @@
         </div>
         
         <div class="quick-actions" id="quickActions" style="display: none;">
-          <button class="action-btn" id="sendEmailBtn">
-            <i class="fas fa-envelope"></i> Send Email
-          </button>
-          <button class="action-btn" id="makeCallBtn">
-            <i class="fas fa-phone"></i> Make Call
-          </button>
           <button class="action-btn primary" id="scheduleViewingBtn">
             <i class="fas fa-calendar-check"></i> Schedule Viewing
           </button>
-          <button class="action-btn" id="contactBrokerBtn">
-            <i class="fas fa-user-tie"></i> Contact Broker
-          </button>
           <button class="action-btn" id="deleteConversationBtn" style="background: #fee; color: var(--error); border-color: var(--error);">
-            <i class="fas fa-trash-alt"></i> Delete
+            <i class="fas fa-trash-alt"></i> Delete Conversation
           </button>
         </div>
       </div>
@@ -1278,6 +1300,7 @@ fetch('agent_sidebar.html')
   .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
       if (link.getAttribute('href') === 'agent_inquiries.html') {
@@ -1300,7 +1323,7 @@ function setupLogoutButton() {
     e.stopPropagation();
     if (confirm("Are you sure you want to log out?")) {
       if (typeof window.performLogout === 'function') window.performLogout();
-      else window.location.href = "../auth/login.html";
+      else window.location.href = "../login.html";
     }
   });
 }
@@ -1320,7 +1343,8 @@ window.addEventListener('resize', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { 
   getAuth, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -1353,6 +1377,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Make signOut available globally for the logout button
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    window.location.href = "../login.html";
+  } catch (error) {
+    console.error("Logout error:", error);
+    alert("Error logging out. Please try again.");
+  }
+};
+
 // Global variables
 let currentUser = null;
 let currentConversationId = null;
@@ -1361,6 +1396,7 @@ let currentPropertyId = null;
 let currentBrokerId = null;
 let messageListener = null;
 let conversationsListener = null;
+let schedulesListener = null;
 let userMap = new Map();
 let propertyMap = new Map();
 let brokerMap = new Map();
@@ -1381,50 +1417,49 @@ function debugLog(...args) {
 // Load agent profile for sidebar (agents collection first, then users)
 async function loadAgentProfile(user) {
   try {
+    let sidebarData = null;
     const agentDoc = await getDoc(doc(db, "agents", user.uid));
     if (agentDoc.exists()) {
       const d = agentDoc.data();
-      const sidebarData = {
+      sidebarData = {
         fullName: d.fullName || d.name || d.displayName,
         displayName: d.fullName || d.name || d.displayName,
         email: user.email || d.email,
-        role: d.userType || d.role || 'agent'
+        role: d.userType || d.role || 'agent',
+        photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
       };
-      if (typeof window.updateSidebarUserProfile === 'function') {
-        window.updateSidebarUserProfile(sidebarData);
+    } else {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const d = userDoc.data();
+        sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: user.email || d.email,
+          role: d.userType || d.role || 'agent',
+          photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+        };
       }
-      return;
     }
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const d = userDoc.data();
-      const sidebarData = {
-        fullName: d.fullName || d.name || d.displayName,
-        displayName: d.fullName || d.name || d.displayName,
-        email: user.email || d.email,
-        role: d.userType || d.role || 'agent'
-      };
-      if (typeof window.updateSidebarUserProfile === 'function') {
-        window.updateSidebarUserProfile(sidebarData);
-      }
-      return;
-    }
-    if (typeof window.updateSidebarUserProfile === 'function') {
-      window.updateSidebarUserProfile({
+    if (!sidebarData) {
+      sidebarData = {
         fullName: user.displayName,
         displayName: user.displayName,
         email: user.email,
-        role: 'agent'
-      });
+        role: 'agent',
+        photoURL: user.photoURL
+      };
+    }
+    try { localStorage.setItem('userData', JSON.stringify(sidebarData)); } catch (e) {}
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile(sidebarData);
     }
   } catch (e) {
     console.warn('Could not load agent profile:', e);
     if (user && typeof window.updateSidebarUserProfile === 'function') {
-      window.updateSidebarUserProfile({
-        fullName: user.displayName,
-        email: user.email,
-        role: 'agent'
-      });
+      const fallback = { fullName: user.displayName, email: user.email, role: 'agent', photoURL: user.photoURL };
+      try { localStorage.setItem('userData', JSON.stringify(fallback)); } catch (e) {}
+      window.updateSidebarUserProfile(fallback);
     }
   }
 }
@@ -1461,6 +1496,9 @@ async function initPage() {
   
   // Load conversations
   await loadConversations();
+  
+  // Setup schedule listener
+  setupScheduleListener();
 }
 
 // Load current user data
@@ -1486,13 +1524,10 @@ async function loadCurrentUserData() {
 
 // Setup event listeners
 function setupEventListeners() {
-  // Refresh button
-  document.getElementById('refreshBtn').addEventListener('click', refreshConversations);
-  
   // Filter buttons
   document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
   document.getElementById('filterUnread').addEventListener('click', () => setFilter('unread'));
-  document.getElementById('filterLeads').addEventListener('click', () => setFilter('leads'));
+  document.getElementById('filterToday').addEventListener('click', () => setFilter('today'));
   
   // Search input
   document.getElementById('searchConversations').addEventListener('input', function(e) {
@@ -1518,18 +1553,8 @@ function setupEventListeners() {
   });
   
   // Quick actions
-  document.getElementById('sendEmailBtn').addEventListener('click', sendEmailToBuyer);
-  document.getElementById('makeCallBtn').addEventListener('click', makeCallToBuyer);
   document.getElementById('scheduleViewingBtn').addEventListener('click', scheduleViewing);
-  document.getElementById('contactBrokerBtn').addEventListener('click', contactBroker);
   document.getElementById('deleteConversationBtn').addEventListener('click', openDeleteModal);
-  
-  // Property info click
-  document.getElementById('chatPropertyInfo').addEventListener('click', function() {
-    if (currentPropertyId) {
-      viewPropertyDetails(currentPropertyId);
-    }
-  });
   
   // Delete modal buttons
   document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
@@ -1539,6 +1564,17 @@ function setupEventListeners() {
   document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) {
       closeDeleteModal();
+    }
+  });
+  
+  // Listen for schedule updates from popup window
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'schedule_updated') {
+      debugLog('📅 Schedule updated from popup:', event.data);
+      refreshConversations();
+      if (currentConversationId) {
+        loadMessages(currentConversationId, currentBuyerId);
+      }
     }
   });
 }
@@ -1587,6 +1623,12 @@ async function loadConversations() {
       // Load all user data for conversations
       await loadAllUsersForConversations();
       
+      // Load all property data for conversations (so property links work in list)
+      await loadAllPropertiesForConversations();
+      
+      // Check for pending schedules in each conversation
+      await checkPendingSchedulesForConversations();
+      
       // Display conversations
       displayConversations(allConversations);
       
@@ -1632,6 +1674,29 @@ async function loadAllUsersForConversations() {
   await Promise.all(brokerPromises);
 }
 
+// Load all property data for conversations (so property links work in list and chat)
+async function loadAllPropertiesForConversations() {
+  const propertyIds = new Set();
+  allConversations.forEach(conv => {
+    if (conv.propertyId) propertyIds.add(conv.propertyId);
+  });
+  if (propertyIds.size === 0) return;
+  debugLog(`🏠 Loading ${propertyIds.size} properties for conversations...`);
+  const propertyPromises = Array.from(propertyIds).map(pid => loadPropertyData(pid));
+  await Promise.all(propertyPromises);
+}
+
+// Check for pending schedules in conversations
+async function checkPendingSchedulesForConversations() {
+  const schedulePromises = allConversations.map(async (conversation) => {
+    const hasPending = await checkPendingSchedule(conversation.id);
+    conversation.hasPendingSchedule = hasPending;
+    return hasPending;
+  });
+  
+  await Promise.all(schedulePromises);
+}
+
 // Load broker data
 async function loadBrokerData(brokerId) {
   // Skip if already loaded
@@ -1647,7 +1712,11 @@ async function loadBrokerData(brokerId) {
   try {
     debugLog(`📋 Loading broker: ${brokerId}`);
     
-    const brokerDoc = await getDoc(doc(db, "users", brokerId));
+    // Try brokers collection first
+    let brokerDoc = await getDoc(doc(db, "brokers", brokerId));
+    if (!brokerDoc.exists()) {
+      brokerDoc = await getDoc(doc(db, "users", brokerId));
+    }
     
     if (brokerDoc.exists()) {
       const brokerData = brokerDoc.data();
@@ -1657,13 +1726,15 @@ async function loadBrokerData(brokerId) {
       const email = brokerData.email || 'No email';
       const phone = brokerData.phone || brokerData.phoneNumber || 'No phone';
       const role = brokerData.role || 'broker';
+      const photoURL = brokerData.photoURL || brokerData.profilePhotoURL || brokerData.profilePhoto || brokerData.profileImage || brokerData.imageURL || null;
       
       brokerMap.set(brokerId, {
         id: brokerId,
         displayName: displayName,
         email: email,
         phone: phone,
-        role: role
+        role: role,
+        photoURL: photoURL
       });
       
       debugLog(`✅ Broker ${brokerId}: ${displayName} (${email})`);
@@ -1675,7 +1746,8 @@ async function loadBrokerData(brokerId) {
         displayName: `Broker ${brokerId.substring(0, 8)}`,
         email: 'No email',
         phone: 'No phone',
-        role: 'broker'
+        role: 'broker',
+        photoURL: null
       });
     }
   } catch (error) {
@@ -1685,7 +1757,8 @@ async function loadBrokerData(brokerId) {
       displayName: `Broker ${brokerId.substring(0, 8)}`,
       email: 'No email',
       phone: 'No phone',
-      role: 'broker'
+      role: 'broker',
+      photoURL: null
     });
   }
 }
@@ -1720,7 +1793,7 @@ async function loadConversationsFromDB() {
   }
 }
 
-// Process a conversation document
+// Process a conversation document (same logic as broker - agent is the listing rep)
 function processConversation(id, data) {
   try {
     const lastMessageTime = data.lastMessageTime?.toDate ? 
@@ -1730,9 +1803,7 @@ function processConversation(id, data) {
     const conversation = {
       id: id,
       ...data,
-      lastMessageTime: lastMessageTime,
-      // Mark as hot lead if multiple messages or recent activity
-      isHotLead: (data.messageCount > 5) || (data.lastMessageTime && (new Date() - lastMessageTime) < 24 * 60 * 60 * 1000)
+      lastMessageTime: lastMessageTime
     };
     
     // Ensure participants array exists
@@ -1745,19 +1816,13 @@ function processConversation(id, data) {
       }
     }
     
-    // Find other participants
-    const otherParticipants = conversation.participants.filter(id => id !== currentUser.uid);
-    
-    // Identify roles
-    otherParticipants.forEach(participantId => {
-      // Check if this is a broker (we'll load data later)
-      if (participantId === conversation.brokerId) {
-        currentBrokerId = participantId;
-      } else {
-        // Assume it's a buyer
-        conversation.buyerId = participantId;
-      }
-    });
+    // Find buyer ID (the other participant who is not current user) - same as broker
+    const otherParticipant = conversation.participants.find(pid => pid !== currentUser.uid);
+    if (otherParticipant) {
+      conversation.buyerId = otherParticipant;
+      conversation.agentId = currentUser.uid;
+      conversation.brokerId = data.brokerId || null;
+    }
     
     // Check if conversation already exists (avoid duplicates)
     const exists = allConversations.some(c => c.id === id);
@@ -1806,8 +1871,7 @@ function setupConversationsListener() {
               ...conversationData,
               lastMessageTime: conversationData.lastMessageTime?.toDate ? 
                 conversationData.lastMessageTime.toDate() : 
-                new Date(conversationData.lastMessageTime || Date.now()),
-              isHotLead: (conversationData.messageCount > 5) || (conversationData.lastMessageTime && (new Date() - new Date(conversationData.lastMessageTime)) < 24 * 60 * 60 * 1000)
+                new Date(conversationData.lastMessageTime || Date.now())
             };
             needsRefresh = true;
           }
@@ -1825,6 +1889,10 @@ function setupConversationsListener() {
       if (needsRefresh) {
         // Reload user data for new conversations
         await loadAllUsersForConversations();
+        // Reload property data for conversations
+        await loadAllPropertiesForConversations();
+        // Check for pending schedules
+        await checkPendingSchedulesForConversations();
         filterConversations();
       }
     });
@@ -1842,7 +1910,6 @@ function showNoConversations() {
       <div class="empty-state-icon">💬</div>
       <h3>No conversations yet</h3>
       <p>When buyers message you through your property listings, conversations will appear here.</p>
-      <p style="margin-top: 10px; font-size: 14px;">Make sure your assigned broker has connected you to potential buyers.</p>
     </div>
   `;
   updateStats();
@@ -1850,23 +1917,19 @@ function showNoConversations() {
 
 // Update conversation statistics
 function updateStats() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   const total = allConversations.length;
   const unread = allConversations.filter(conv => conv.unreadCount?.[currentUser.uid] > 0).length;
-  const leads = allConversations.filter(conv => conv.isHotLead).length;
+  const todayCount = allConversations.filter(conv => {
+    const lastTime = conv.lastMessageTime;
+    return lastTime >= today;
+  }).length;
   
-  // Update sidebar stats
   document.querySelectorAll('.stat-value')[0].textContent = total;
   document.querySelectorAll('.stat-value')[1].textContent = unread;
-  document.querySelectorAll('.stat-value')[2].textContent = leads;
-  
-  // Update hero stats
-  const totalEl = document.getElementById('totalConversations');
-  const unreadEl = document.getElementById('unreadConversations');
-  const leadsEl = document.getElementById('hotLeads');
-  
-  if (totalEl) totalEl.textContent = total;
-  if (unreadEl) unreadEl.textContent = unread;
-  if (leadsEl) leadsEl.textContent = leads;
+  document.querySelectorAll('.stat-value')[2].textContent = todayCount;
 }
 
 // Filter and display conversations
@@ -1895,8 +1958,13 @@ function filterConversations() {
     case 'unread':
       filteredConversations = filteredConversations.filter(conv => conv.unreadCount?.[currentUser.uid] > 0);
       break;
-    case 'leads':
-      filteredConversations = filteredConversations.filter(conv => conv.isHotLead);
+    case 'today':
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filteredConversations = filteredConversations.filter(conv => {
+        const lastTime = conv.lastMessageTime;
+        return lastTime >= today;
+      });
       break;
     // 'all' filter doesn't need additional filtering
   }
@@ -1919,7 +1987,8 @@ async function loadUserData(userId) {
       displayName: currentUser.displayName || 'Me',
       email: currentUser.email || 'No email',
       phone: currentUser.phone || 'No phone',
-      role: currentUser.role || 'agent'
+      role: currentUser.role || 'agent',
+      photoURL: currentUser.photoURL || null
     });
     return;
   }
@@ -1937,13 +2006,15 @@ async function loadUserData(userId) {
       const email = userData.email || 'No email';
       const phone = userData.phone || userData.phoneNumber || userData.mobile || 'No phone';
       const role = userData.role || 'user';
+      const photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL || null;
       
       userMap.set(userId, {
         id: userId,
         displayName: displayName,
         email: email,
         phone: phone,
-        role: role
+        role: role,
+        photoURL: photoURL
       });
       
       debugLog(`✅ User ${userId}: ${displayName} (${email})`);
@@ -1955,7 +2026,8 @@ async function loadUserData(userId) {
         displayName: `User ${userId.substring(0, 8)}`,
         email: 'No email',
         phone: 'No phone',
-        role: 'unknown'
+        role: 'unknown',
+        photoURL: null
       });
     }
   } catch (error) {
@@ -1965,7 +2037,8 @@ async function loadUserData(userId) {
       displayName: `User ${userId.substring(0, 8)}`,
       email: 'No email',
       phone: 'No phone',
-      role: 'error'
+      role: 'error',
+      photoURL: null
     });
   }
 }
@@ -2006,8 +2079,8 @@ function displayConversations(conversations) {
       message = 'No conversations match your search';
     } else if (activeFilter === 'unread') {
       message = 'No unread conversations';
-    } else if (activeFilter === 'leads') {
-      message = 'No hot leads found';
+    } else if (activeFilter === 'today') {
+      message = 'No conversations today';
     }
     
     conversationsList.innerHTML = `
@@ -2036,11 +2109,13 @@ function displayConversations(conversations) {
       initials: getInitials(`User ${buyerId ? buyerId.substring(0, 8) : 'Unknown'}`),
       email: 'No email',
       phone: 'No phone',
-      role: 'buyer'
+      role: 'buyer',
+      photoURL: null
     };
     
     const propertyInfo = conversation.propertyId ? propertyMap.get(conversation.propertyId) : null;
     const unreadCount = conversation.unreadCount?.[currentUser.uid] || 0;
+    const hasPendingSchedule = conversation.hasPendingSchedule || false;
     
     const conversationElement = document.createElement('div');
     conversationElement.className = `conversation-item ${unreadCount > 0 ? 'unread' : ''} ${conversation.id === currentConversationId ? 'active' : ''}`;
@@ -2054,30 +2129,37 @@ function displayConversations(conversations) {
     
     // Get initials from display name
     const initials = getInitials(displayInfo.displayName);
+    const avatarHtml = (displayInfo.photoURL)
+      ? `<img src="${(displayInfo.photoURL || '').replace(/"/g, '&quot;')}" alt="${(displayInfo.displayName || '').replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='${initials}'">`
+      : initials;
     
     // Truncate last message
     const lastMessage = conversation.lastMessage || 'No messages yet';
     const preview = lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage;
     
-    // Add hot lead indicator
-    const hotLeadIndicator = conversation.isHotLead ? '<span class="agent-badge" style="margin-left: 8px; background: var(--secondary-gradient);">HOT</span>' : '';
-    
     conversationElement.innerHTML = `
-      <div class="conversation-avatar" style="background: ${getAvatarColor(displayInfo.displayName)}">${initials}</div>
+      <div class="conversation-avatar" style="background: ${displayInfo.photoURL ? 'transparent' : getAvatarColor(displayInfo.displayName)}">
+        ${avatarHtml}
+        ${hasPendingSchedule ? '<span class="schedule-indicator">📅</span>' : ''}
+      </div>
       <div class="conversation-info">
         <div class="conversation-header">
-          <div class="conversation-name" title="${displayInfo.displayName}">
-            ${displayInfo.displayName}
-            ${hotLeadIndicator}
-            ${brokerInfo ? '<span class="broker-badge">BROKER</span>' : ''}
-          </div>
+          <div class="conversation-name" title="${displayInfo.displayName}">${displayInfo.displayName}</div>
           <div class="conversation-time">${timeString}</div>
         </div>
-        <div class="conversation-preview">${preview}</div>
+        <div class="conversation-preview">
+          ${preview}
+          ${hasPendingSchedule ? ' <span style="color: #f59e0b; font-size: 12px;">📅</span>' : ''}
+        </div>
         ${propertyInfo ? `
-          <div class="conversation-property" title="${propertyInfo.title}">
+          <div class="conversation-property conversation-property-link" data-property-id="${conversation.propertyId}" title="${(propertyInfo.title || '').replace(/"/g, '&quot;')} - Click to view property">
             <i class="fas fa-home"></i>
-            ${propertyInfo.title.substring(0, 30)}${propertyInfo.title.length > 30 ? '...' : ''}
+            ${(propertyInfo.title || 'Property').substring(0, 30)}${(propertyInfo.title || '').length > 30 ? '...' : ''}
+          </div>
+        ` : conversation.propertyId ? `
+          <div class="conversation-property conversation-property-link" data-property-id="${conversation.propertyId}" title="Click to view property">
+            <i class="fas fa-home"></i>
+            View property
           </div>
         ` : ''}
       </div>
@@ -2090,9 +2172,16 @@ function displayConversations(conversations) {
     // Click handler for selecting conversation
     conversationElement.addEventListener('click', (e) => {
       // Don't trigger if delete button was clicked
-      if (!e.target.closest('.delete-conversation-btn')) {
-        selectConversation(conversation.id, buyerId, conversation.propertyId, brokerId);
+      if (e.target.closest('.delete-conversation-btn')) return;
+      // If property link clicked, navigate to property instead of selecting
+      const propertyLink = e.target.closest('.conversation-property-link');
+      if (propertyLink && propertyLink.dataset.propertyId) {
+        e.preventDefault();
+        e.stopPropagation();
+        viewPropertyDetails(propertyLink.dataset.propertyId);
+        return;
       }
+      selectConversation(conversation.id, buyerId, conversation.propertyId, brokerId);
     });
     
     // Delete button handler
@@ -2148,13 +2237,22 @@ async function selectConversation(conversationId, buyerId, propertyId = null, br
     displayName: `Buyer ${buyerId.substring(0, 8)}`,
     email: 'No email',
     phone: 'No phone',
-    role: 'buyer'
+    role: 'buyer',
+    photoURL: null
   };
   
   // Update chat header
   const initials = getInitials(finalBuyerInfo.displayName);
-  document.getElementById('chatUserAvatar').textContent = initials;
-  document.getElementById('chatUserAvatar').style.background = getAvatarColor(finalBuyerInfo.displayName);
+  const chatAvatarEl = document.getElementById('chatUserAvatar');
+  if (finalBuyerInfo.photoURL) {
+    chatAvatarEl.setAttribute('data-fallback', initials);
+    chatAvatarEl.innerHTML = `<img src="${(finalBuyerInfo.photoURL || '').replace(/"/g, '&quot;')}" alt="${(finalBuyerInfo.displayName || '').replace(/"/g, '&quot;')}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="var p=this.parentElement;p.innerHTML=p.getAttribute('data-fallback')||'U';p.style.background='linear-gradient(135deg,#0b2e52 0%,#1e3a5f 100%)';">`;
+    chatAvatarEl.style.background = 'transparent';
+  } else {
+    chatAvatarEl.removeAttribute('data-fallback');
+    chatAvatarEl.innerHTML = initials;
+    chatAvatarEl.style.background = getAvatarColor(finalBuyerInfo.displayName);
+  }
   document.getElementById('chatUserName').textContent = finalBuyerInfo.displayName;
   document.getElementById('chatUserStatus').innerHTML = `<i class="fas fa-circle" style="color: #d4af37; font-size: 8px;"></i> Online`;
   
@@ -2163,43 +2261,9 @@ async function selectConversation(conversationId, buyerId, propertyId = null, br
     await loadPropertyData(propertyId);
   }
   
-  const propertyInfo = propertyId ? propertyMap.get(propertyId) : null;
-  const propertyInfoElement = document.getElementById('chatPropertyInfo');
-  
-  if (propertyInfo) {
-    propertyInfoElement.style.display = 'block';
-    document.getElementById('propertyTitle').textContent = propertyInfo.title;
-    document.getElementById('propertyLocation').textContent = propertyInfo.location;
-    
-    // Format price
-    const price = propertyInfo.price || 0;
-    const isRental = propertyInfo.type === 'rent' || (price < 1000000);
-    const priceDisplay = isRental ? `₱${price.toLocaleString()}/month` : `₱${price.toLocaleString()}`;
-    document.getElementById('propertyPrice').textContent = priceDisplay;
-  } else {
-    propertyInfoElement.style.display = 'none';
-  }
-  
   // Show chat input and quick actions
   document.getElementById('chatInputContainer').style.display = 'block';
   document.getElementById('quickActions').style.display = 'flex';
-  
-  // Update quick action buttons
-  if (finalBuyerInfo.email && finalBuyerInfo.email !== 'No email') {
-    document.getElementById('sendEmailBtn').disabled = false;
-    document.getElementById('sendEmailBtn').title = `Send email to ${finalBuyerInfo.email}`;
-  } else {
-    document.getElementById('sendEmailBtn').disabled = true;
-    document.getElementById('sendEmailBtn').title = 'No email available';
-  }
-  
-  if (finalBuyerInfo.phone && finalBuyerInfo.phone !== 'No phone') {
-    document.getElementById('makeCallBtn').disabled = false;
-    document.getElementById('makeCallBtn').title = `Call ${finalBuyerInfo.phone}`;
-  } else {
-    document.getElementById('makeCallBtn').disabled = true;
-    document.getElementById('makeCallBtn').title = 'No phone number available';
-  }
   
   // Load messages for this conversation
   await loadMessages(conversationId, buyerId);
@@ -2214,11 +2278,27 @@ async function loadPropertyData(propertyId) {
     const propertyDoc = await getDoc(doc(db, "properties", propertyId));
     if (propertyDoc.exists()) {
       const propertyData = propertyDoc.data();
+      // Extract price from various possible fields
+      let price = 0;
+      let priceLabel = '';
+      if (propertyData.monthlyRent && propertyData.monthlyRent > 0) {
+        price = propertyData.monthlyRent;
+        priceLabel = '/month';
+      } else if (propertyData.annualRent && propertyData.annualRent > 0) {
+        price = propertyData.annualRent;
+        priceLabel = '/year';
+      } else {
+        const salePrice = propertyData.salePrice || propertyData.pricing || propertyData.price || 0;
+        if (salePrice > 0) {
+          price = salePrice;
+        }
+      }
       propertyMap.set(propertyId, {
         id: propertyId,
         title: propertyData.title || 'Untitled Property',
         location: propertyData.location || propertyData.address || 'Location not specified',
-        price: propertyData.pricing || propertyData.monthlyRent || propertyData.price || 0,
+        price: price,
+        priceLabel: priceLabel,
         type: propertyData.propertyType || propertyData.type || 'Property',
         photos: propertyData.photos || propertyData.imageUrls || [],
         userId: propertyData.userId || null,
@@ -2323,13 +2403,16 @@ function showEmptyMessagesState() {
     const property = propertyMap.get(currentPropertyId);
     const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
     
+    const priceDisplay = (property.price && property.price > 0) 
+      ? `₱${Number(property.price).toLocaleString()}${property.priceLabel || ''}` 
+      : 'Price on request';
     messagesContainer.innerHTML = `
       <div class="property-quick-view" onclick="viewPropertyDetails('${currentPropertyId}')">
         <img src="${photo}" alt="${property.title}">
         <div class="property-quick-info">
           <h4>${property.title}</h4>
           <p><i class="fas fa-map-marker-alt"></i> ${property.location}</p>
-          <div class="property-quick-price">₱${property.price.toLocaleString()}</div>
+          <div class="property-quick-price">${priceDisplay}</div>
         </div>
       </div>
       <div class="message-date">
@@ -2367,12 +2450,15 @@ function displayMessages(snapshot) {
     const propertyView = document.createElement('div');
     propertyView.className = 'property-quick-view';
     propertyView.onclick = () => viewPropertyDetails(currentPropertyId);
+    const priceDisplay = (property.price && property.price > 0) 
+      ? `₱${Number(property.price).toLocaleString()}${property.priceLabel || ''}` 
+      : 'Price on request';
     propertyView.innerHTML = `
       <img src="${photo}" alt="${property.title}">
       <div class="property-quick-info">
         <h4>${property.title}</h4>
         <p><i class="fas fa-map-marker-alt"></i> ${property.location}</p>
-        <div class="property-quick-price">₱${property.price.toLocaleString()}</div>
+        <div class="property-quick-price">${priceDisplay}</div>
       </div>
     `;
     
@@ -2417,6 +2503,14 @@ function displayMessages(snapshot) {
     messagesByDate[date].forEach(message => {
       const isSent = message.senderId === currentUser.uid;
       const messageTime = formatMessageTime(message.timestamp);
+      
+      // Check if it's a schedule message
+      if (message.type === 'schedule' || message.scheduleAction) {
+        const scheduleElement = renderScheduleMessage(message);
+        messagesContainer.appendChild(scheduleElement);
+        return;
+      }
+      
       const statusIcon = isSent ? (message.read ? '<i class="fas fa-check-double" style="font-size: 9px; opacity: 0.7;"></i>' : '<i class="fas fa-check" style="font-size: 9px; opacity: 0.7;"></i>') : '';
       
       const messageElement = document.createElement('div');
@@ -2749,13 +2843,12 @@ function resetChatUI() {
   }
   
   // Reset chat header
-  document.getElementById('chatUserAvatar').textContent = 'BU';
-  document.getElementById('chatUserAvatar').style.background = '';
+  const chatAvatarEl = document.getElementById('chatUserAvatar');
+  chatAvatarEl.removeAttribute('data-fallback');
+  chatAvatarEl.innerHTML = 'BU';
+  chatAvatarEl.style.background = 'var(--primary-gradient)';
   document.getElementById('chatUserName').textContent = 'Select a conversation';
   document.getElementById('chatUserStatus').innerHTML = `<i class="fas fa-circle" style="color: #ccc; font-size: 8px;"></i> Choose a buyer to start messaging`;
-  
-  // Hide property info
-  document.getElementById('chatPropertyInfo').style.display = 'none';
   
   // Show empty state
   const messagesContainer = document.getElementById('messagesContainer');
@@ -2925,22 +3018,9 @@ function setFilter(filterName) {
   filterConversations();
 }
 
-// Refresh conversations
+// Refresh conversations (called programmatically, e.g. from schedule message listener)
 function refreshConversations() {
-  const refreshBtn = document.getElementById('refreshBtn');
-  const originalHTML = refreshBtn.innerHTML;
-  
-  refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing';
-  refreshBtn.classList.add('refreshing');
-  
-  // Clear and reload conversations
   loadConversations();
-  
-  // Reset button after 2 seconds
-  setTimeout(() => {
-    refreshBtn.innerHTML = originalHTML;
-    refreshBtn.classList.remove('refreshing');
-  }, 2000);
 }
 
 // Send email to buyer
@@ -2971,7 +3051,7 @@ function makeCallToBuyer() {
   window.open(`tel:${buyerInfo.phone}`);
 }
 
-// Schedule viewing
+// Schedule viewing (same as broker - agent uses brokerId param for schedule_viewing)
 function scheduleViewing() {
   if (!currentBuyerId || !currentPropertyId) {
     showError('Please select a conversation with a property');
@@ -2986,18 +3066,700 @@ function scheduleViewing() {
     return;
   }
   
-  const scheduleUrl = `schedule_viewing.html?buyerId=${currentBuyerId}&propertyId=${currentPropertyId}&buyerName=${encodeURIComponent(buyerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}&agentId=${currentUser.uid}`;
-  window.open(scheduleUrl, '_blank', 'width=600,height=700');
+  // Check if there's already a pending schedule
+  checkForExistingSchedule(currentPropertyId, currentBuyerId).then(hasExisting => {
+    if (hasExisting) {
+      if (confirm('There is already a viewing request for this property. Would you like to view it or schedule a new one?')) {
+        // Show existing schedule details
+        viewExistingSchedule(currentPropertyId, currentBuyerId);
+      } else {
+        // Schedule new viewing
+        openSchedulePage();
+      }
+    } else {
+      openSchedulePage();
+    }
+  });
+  
+  function openSchedulePage() {
+    const scheduleUrl = `../buyer/schedule_viewing.html?brokerId=${currentUser.uid}&buyerId=${currentBuyerId}&propertyId=${currentPropertyId}&buyerName=${encodeURIComponent(buyerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+    window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
+  }
 }
 
-// View property details
+// Check for existing schedule
+async function checkForExistingSchedule(propertyId, buyerId) {
+  try {
+    const schedulesRef = collection(db, 'schedules');
+    const q = query(
+      schedulesRef,
+      where('propertyId', '==', propertyId),
+      where('buyerId', '==', buyerId),
+      where('brokerId', '==', currentUser.uid),
+      where('status', 'in', ['pending', 'confirmed', 'alternative'])
+    );
+    
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    console.error('Error checking existing schedule:', error);
+    return false;
+  }
+}
+
+// Check for pending schedule in conversation
+async function checkPendingSchedule(conversationId) {
+  try {
+    const schedulesRef = collection(db, 'schedules');
+    const q = query(
+      schedulesRef,
+      where('conversationId', '==', conversationId),
+      where('status', 'in', ['pending', 'alternative'])
+    );
+    
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    console.error('Error checking pending schedules:', error);
+    return false;
+  }
+}
+
+// View existing schedule
+async function viewExistingSchedule(propertyId, buyerId) {
+  try {
+    const schedulesRef = collection(db, 'schedules');
+    const q = query(
+      schedulesRef,
+      where('propertyId', '==', propertyId),
+      where('buyerId', '==', buyerId),
+      where('brokerId', '==', currentUser.uid),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const latestSchedule = snapshot.docs[0].data();
+      const scheduleId = snapshot.docs[0].id;
+      
+      // Show schedule details in a modal
+      showScheduleDetailsModal(latestSchedule, scheduleId);
+    }
+  } catch (error) {
+    console.error('Error viewing existing schedule:', error);
+    showError('Unable to load schedule details');
+  }
+}
+
+// Show schedule details modal
+function showScheduleDetailsModal(schedule, scheduleId) {
+  // Format date
+  const scheduleDate = schedule.proposedDate?.toDate ? 
+    schedule.proposedDate.toDate() : 
+    new Date(schedule.proposedDate || schedule.createdAt || Date.now());
+  
+  const formattedDate = scheduleDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  const modalContent = `
+    <div class="modal-header">
+      <div class="modal-icon" style="background: rgba(11, 46, 82, 0.1); color: var(--primary);">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div class="modal-content">
+        <h3>Viewing Schedule Details</h3>
+        <div class="schedule-details" style="margin: 20px 0;">
+          <div class="schedule-info-row">
+            <span class="schedule-info-label">Status:</span>
+            <span class="schedule-status-badge status-${schedule.status}">${schedule.status}</span>
+          </div>
+          <div class="schedule-info-row">
+            <span class="schedule-info-label">Date:</span>
+            <span class="schedule-info-value">${formattedDate}</span>
+          </div>
+          <div class="schedule-info-row">
+            <span class="schedule-info-label">Time:</span>
+            <span class="schedule-info-value">${schedule.proposedTime || 'Not specified'}</span>
+          </div>
+          ${schedule.alternativeDate ? `
+            <div class="schedule-info-row">
+              <span class="schedule-info-label">Alternative Date:</span>
+              <span class="schedule-info-value">${schedule.alternativeDate}</span>
+            </div>
+          ` : ''}
+          ${schedule.alternativeTime ? `
+            <div class="schedule-info-row">
+              <span class="schedule-info-label">Alternative Time:</span>
+              <span class="schedule-info-value">${schedule.alternativeTime}</span>
+            </div>
+          ` : ''}
+          ${schedule.notes ? `
+            <div class="schedule-notes">
+              <div class="schedule-notes-label">Buyer Notes:</div>
+              <div class="schedule-notes-content">${schedule.notes}</div>
+            </div>
+          ` : ''}
+          ${schedule.brokerNotes ? `
+            <div class="schedule-notes">
+              <div class="schedule-notes-label">Your Notes:</div>
+              <div class="schedule-notes-content">${schedule.brokerNotes}</div>
+            </div>
+          ` : ''}
+          ${schedule.declineReason ? `
+            <div class="schedule-notes">
+              <div class="schedule-notes-label">Decline Reason:</div>
+              <div class="schedule-notes-content">${schedule.declineReason}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeScheduleModal()">Close</button>
+      ${schedule.status === 'pending' ? `
+        <button class="modal-btn" style="background: var(--success); color: white;" onclick="confirmScheduleFromModal('${scheduleId}')">Confirm</button>
+        <button class="modal-btn delete" onclick="declineScheduleFromModal('${scheduleId}')">Decline</button>
+        <button class="modal-btn" style="background: var(--accent); color: white;" onclick="suggestAlternativeFromModal('${scheduleId}')">Suggest Alternative</button>
+      ` : schedule.status === 'alternative' ? `
+        <button class="modal-btn" style="background: var(--success); color: white;" onclick="confirmAlternativeFromModal('${scheduleId}')">Confirm Alternative</button>
+      ` : ''}
+    </div>
+  `;
+  
+  // Create a modal to show schedule details
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay active';
+  modal.innerHTML = `
+    <div class="modal" style="max-width: 500px;">
+      ${modalContent}
+    </div>
+  `;
+  
+  modal.addEventListener('click', function(e) {
+    if (e.target === this) {
+      modal.remove();
+    }
+  });
+  
+  document.body.appendChild(modal);
+  
+  // Add closeModal function to window
+  window.closeScheduleModal = function() {
+    modal.remove();
+  };
+  
+  // Add modal action functions
+  window.confirmScheduleFromModal = async function(scheduleId) {
+    try {
+      const notes = prompt('Add optional notes for the buyer:');
+      
+      const scheduleRef = doc(db, 'schedules', scheduleId);
+      const scheduleDoc = await getDoc(scheduleRef);
+      
+      if (scheduleDoc.exists()) {
+        const schedule = scheduleDoc.data();
+        
+        await updateDoc(scheduleRef, {
+          status: 'confirmed',
+          brokerNotes: notes || null,
+          confirmedAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        
+        // Send confirmation message
+        let messageText = `✅ Viewing confirmed for ${schedule.proposedDate} at ${schedule.proposedTime}`;
+        if (notes) messageText += `\nBroker Notes: ${notes}`;
+        
+        await addDoc(collection(db, 'messages'), {
+          conversationId: schedule.conversationId,
+          senderId: currentUser.uid,
+          receiverId: schedule.buyerId,
+          text: messageText,
+          timestamp: serverTimestamp(),
+          read: false,
+          type: 'schedule',
+          scheduleAction: 'schedule_confirmed',
+          scheduleId: scheduleId,
+          propertyId: schedule.propertyId
+        });
+        
+        showToast('Viewing confirmed!');
+        modal.remove();
+        
+        refreshConversations();
+        if (currentConversationId === schedule.conversationId) {
+          await loadMessages(schedule.conversationId, schedule.buyerId);
+        }
+      }
+    } catch (error) {
+      console.error('Error confirming schedule:', error);
+      showError('Failed to confirm: ' + error.message);
+    }
+  };
+  
+  window.declineScheduleFromModal = async function(scheduleId) {
+    try {
+      const reason = prompt('Please provide a reason for declining:');
+      if (!reason) return;
+      
+      const scheduleRef = doc(db, 'schedules', scheduleId);
+      const scheduleDoc = await getDoc(scheduleRef);
+      
+      if (scheduleDoc.exists()) {
+        const schedule = scheduleDoc.data();
+        
+        await updateDoc(scheduleRef, {
+          status: 'declined',
+          declineReason: reason,
+          declinedAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        
+        // Send decline message
+        const messageText = `❌ Viewing declined\nReason: ${reason}`;
+        
+        await addDoc(collection(db, 'messages'), {
+          conversationId: schedule.conversationId,
+          senderId: currentUser.uid,
+          receiverId: schedule.buyerId,
+          text: messageText,
+          timestamp: serverTimestamp(),
+          read: false,
+          type: 'schedule',
+          scheduleAction: 'schedule_declined',
+          scheduleId: scheduleId,
+          propertyId: schedule.propertyId
+        });
+        
+        showToast('Viewing declined');
+        modal.remove();
+        
+        refreshConversations();
+        if (currentConversationId === schedule.conversationId) {
+          await loadMessages(schedule.conversationId, schedule.buyerId);
+        }
+      }
+    } catch (error) {
+      console.error('Error declining schedule:', error);
+      showError('Failed to decline: ' + error.message);
+    }
+  };
+  
+  window.suggestAlternativeFromModal = async function(scheduleId) {
+    try {
+      const alternativeDate = prompt('Enter alternative date (YYYY-MM-DD):');
+      if (!alternativeDate) return;
+      
+      const alternativeTime = prompt('Enter alternative time (e.g., 02:00 PM):');
+      if (!alternativeTime) return;
+      
+      const reason = prompt('Optional: Provide reason for suggesting alternative time:');
+      
+      const scheduleRef = doc(db, 'schedules', scheduleId);
+      const scheduleDoc = await getDoc(scheduleRef);
+      
+      if (scheduleDoc.exists()) {
+        const schedule = scheduleDoc.data();
+        
+        await updateDoc(scheduleRef, {
+          status: 'alternative',
+          alternativeDate: alternativeDate,
+          alternativeTime: alternativeTime,
+          declineReason: reason || null,
+          updatedAt: serverTimestamp()
+        });
+        
+        // Send alternative message
+        let messageText = `🔄 Alternative time suggested: ${alternativeDate} at ${alternativeTime}`;
+        if (reason) messageText += `\nReason: ${reason}`;
+        
+        await addDoc(collection(db, 'messages'), {
+          conversationId: schedule.conversationId,
+          senderId: currentUser.uid,
+          receiverId: schedule.buyerId,
+          text: messageText,
+          timestamp: serverTimestamp(),
+          read: false,
+          type: 'schedule',
+          scheduleAction: 'schedule_alternative',
+          scheduleId: scheduleId,
+          propertyId: schedule.propertyId
+        });
+        
+        showToast('Alternative time suggested');
+        modal.remove();
+        
+        refreshConversations();
+        if (currentConversationId === schedule.conversationId) {
+          await loadMessages(schedule.conversationId, schedule.buyerId);
+        }
+      }
+    } catch (error) {
+      console.error('Error suggesting alternative:', error);
+      showError('Failed to suggest alternative: ' + error.message);
+    }
+  };
+  
+  window.confirmAlternativeFromModal = async function(scheduleId) {
+    try {
+      const scheduleRef = doc(db, 'schedules', scheduleId);
+      const scheduleDoc = await getDoc(scheduleRef);
+      
+      if (scheduleDoc.exists()) {
+        const schedule = scheduleDoc.data();
+        
+        await updateDoc(scheduleRef, {
+          status: 'confirmed',
+          proposedDate: schedule.alternativeDate,
+          proposedTime: schedule.alternativeTime,
+          confirmedAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        
+        // Send confirmation message
+        const messageText = `✅ Alternative time confirmed: ${schedule.alternativeDate} at ${schedule.alternativeTime}`;
+        
+        await addDoc(collection(db, 'messages'), {
+          conversationId: schedule.conversationId,
+          senderId: currentUser.uid,
+          receiverId: schedule.buyerId,
+          text: messageText,
+          timestamp: serverTimestamp(),
+          read: false,
+          type: 'schedule',
+          scheduleAction: 'schedule_confirmed',
+          scheduleId: scheduleId,
+          propertyId: schedule.propertyId
+        });
+        
+        showToast('Alternative viewing confirmed!');
+        modal.remove();
+        
+        refreshConversations();
+        if (currentConversationId === schedule.conversationId) {
+          await loadMessages(schedule.conversationId, schedule.buyerId);
+        }
+      }
+    } catch (error) {
+      console.error('Error confirming alternative:', error);
+      showError('Failed to confirm: ' + error.message);
+    }
+  };
+}
+
+// Render schedule message for agent (same as broker)
+function renderScheduleMessage(message) {
+  const scheduleAction = message.scheduleAction || '';
+  const text = message.text || '';
+  const timestamp = message.timestamp || new Date();
+  const scheduleId = message.scheduleId || '';
+  const isSent = message.senderId === currentUser.uid;
+  
+  let scheduleStatus = 'pending';
+  let icon = '📅';
+  let title = 'Viewing Request';
+  
+  if (scheduleAction.includes('confirmed') || text.includes('✅')) {
+    scheduleStatus = 'confirmed';
+    icon = '✅';
+    title = 'Viewing Confirmed';
+  } else if (scheduleAction.includes('declined') || text.includes('❌')) {
+    scheduleStatus = 'declined';
+    icon = '❌';
+    title = 'Viewing Declined';
+  } else if (scheduleAction.includes('alternative') || text.includes('🔄')) {
+    scheduleStatus = 'alternative';
+    icon = '🔄';
+    title = 'Alternative Time Suggested';
+  } else if (scheduleAction.includes('cancelled') || text.includes('🚫')) {
+    scheduleStatus = 'cancelled';
+    icon = '🚫';
+    title = 'Viewing Cancelled';
+  }
+  
+  const lines = text.split('\n');
+  const notes = lines.slice(1).join('\n').replace(/^(Notes|Reason|Broker Notes):\s*/i, '');
+  
+  let dateStr = '';
+  let timeStr = '';
+  const datePattern1 = /(\d{4}-\d{2}-\d{2})/;
+  const datePattern2 = /(\w+ \d{1,2},? \d{4})/;
+  const timePattern = /(\d{1,2}:\d{2}\s*(?:AM|PM))/i;
+  const dateMatch1 = text.match(datePattern1);
+  const dateMatch2 = text.match(datePattern2);
+  const timeMatch = text.match(timePattern);
+  if (dateMatch1) dateStr = dateMatch1[1];
+  else if (dateMatch2) dateStr = dateMatch2[1];
+  if (timeMatch) timeStr = timeMatch[1];
+  if (dateStr && dateStr.includes('-')) {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+  }
+  
+  const element = document.createElement('div');
+  element.className = `message-schedule ${scheduleStatus} ${isSent ? 'sent-schedule' : 'received-schedule'}`;
+  if (isSent) element.style.alignSelf = 'flex-end';
+  else element.style.alignSelf = 'flex-start';
+  
+  element.innerHTML = `
+    <div class="schedule-header">
+      <i class="fas fa-${scheduleStatus === 'confirmed' ? 'check-circle' : 
+                        scheduleStatus === 'declined' ? 'times-circle' : 
+                        scheduleStatus === 'alternative' ? 'exchange-alt' : 
+                        scheduleStatus === 'cancelled' ? 'ban' : 
+                        'calendar-check'}"></i>
+      <span>${title}</span>
+      <span class="schedule-status-badge status-${scheduleStatus}">${scheduleStatus}</span>
+    </div>
+    ${dateStr ? `
+      <div class="schedule-details">
+        ${dateStr ? `<div class="schedule-info-row"><span class="schedule-info-label">Date:</span><span class="schedule-info-value">${dateStr}</span></div>` : ''}
+        ${timeStr ? `<div class="schedule-info-row"><span class="schedule-info-label">Time:</span><span class="schedule-info-value">${timeStr}</span></div>` : ''}
+      </div>
+    ` : ''}
+    ${notes ? `
+      <div class="schedule-notes">
+        <div class="schedule-notes-label">${scheduleStatus === 'confirmed' && !isSent ? 'Buyer Notes' : 
+          scheduleStatus === 'confirmed' && isSent ? 'Your Notes' :
+          scheduleStatus === 'declined' ? 'Reason' : 
+          scheduleStatus === 'alternative' ? 'Details' : 'Notes'}:</div>
+        <div class="schedule-notes-content">${notes}</div>
+      </div>
+    ` : ''}
+    ${scheduleStatus === 'pending' && !isSent ? `
+      <div class="schedule-actions">
+        <button class="schedule-action-btn primary" onclick="confirmScheduleFromMessage('${scheduleId}', '${message.conversationId}')"><i class="fas fa-check"></i> Confirm</button>
+        <button class="schedule-action-btn secondary" onclick="declineScheduleFromMessage('${scheduleId}', '${message.conversationId}')"><i class="fas fa-times"></i> Decline</button>
+        <button class="schedule-action-btn secondary" onclick="suggestAlternativeFromMessage('${scheduleId}', '${message.conversationId}')"><i class="fas fa-clock"></i> Suggest Alternative</button>
+      </div>
+    ` : scheduleStatus === 'alternative' && !isSent ? `
+      <div class="schedule-actions">
+        <button class="schedule-action-btn primary" onclick="acceptAlternativeFromMessage('${scheduleId}', '${message.conversationId}')"><i class="fas fa-check"></i> Accept Alternative</button>
+        <button class="schedule-action-btn secondary" onclick="suggestNewTimeFromMessage('${message.conversationId}')"><i class="fas fa-clock"></i> Suggest Another Time</button>
+      </div>
+    ` : scheduleStatus === 'declined' && !isSent ? `
+      <div class="schedule-actions">
+        <button class="schedule-action-btn primary" onclick="suggestNewTimeFromMessage('${message.conversationId}')"><i class="fas fa-clock"></i> Suggest Another Time</button>
+      </div>
+    ` : ''}
+    <div class="message-time" style="text-align: center; margin-top: 10px;">${formatMessageTime(timestamp)}</div>
+  `;
+  
+  return element;
+}
+
+window.confirmScheduleFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  const notes = prompt('Add optional notes for the buyer:');
+  try {
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      await updateDoc(scheduleRef, {
+        status: 'confirmed',
+        brokerNotes: notes || null,
+        confirmedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      let messageText = `✅ Viewing confirmed for ${schedule.proposedDate} at ${schedule.proposedTime}`;
+      if (notes) messageText += `\nBroker Notes: ${notes}`;
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.buyerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_confirmed',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      showToast('Viewing confirmed!');
+      refreshConversations();
+      if (currentConversationId === conversationId) await loadMessages(conversationId, schedule.buyerId);
+    }
+  } catch (error) {
+    console.error('Error confirming schedule:', error);
+    showError('Failed to confirm: ' + error.message);
+  }
+};
+
+window.declineScheduleFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  const reason = prompt('Please provide a reason for declining:');
+  if (!reason) return;
+  try {
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      await updateDoc(scheduleRef, {
+        status: 'declined',
+        declineReason: reason,
+        declinedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      const messageText = `❌ Viewing declined\nReason: ${reason}`;
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.buyerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_declined',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      showToast('Viewing declined');
+      refreshConversations();
+      if (currentConversationId === conversationId) await loadMessages(conversationId, schedule.buyerId);
+    }
+  } catch (error) {
+    console.error('Error declining schedule:', error);
+    showError('Failed to decline: ' + error.message);
+  }
+};
+
+window.suggestAlternativeFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  const alternativeDate = prompt('Enter alternative date (YYYY-MM-DD):');
+  if (!alternativeDate) return;
+  const alternativeTime = prompt('Enter alternative time (e.g., 02:00 PM):');
+  if (!alternativeTime) return;
+  const reason = prompt('Optional: Provide reason for suggesting alternative time:');
+  try {
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      await updateDoc(scheduleRef, {
+        status: 'alternative',
+        alternativeDate: alternativeDate,
+        alternativeTime: alternativeTime,
+        declineReason: reason || null,
+        updatedAt: serverTimestamp()
+      });
+      let messageText = `🔄 Alternative time suggested: ${alternativeDate} at ${alternativeTime}`;
+      if (reason) messageText += `\nReason: ${reason}`;
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.buyerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_alternative',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      showToast('Alternative time suggested');
+      refreshConversations();
+      if (currentConversationId === conversationId) await loadMessages(conversationId, schedule.buyerId);
+    }
+  } catch (error) {
+    console.error('Error suggesting alternative:', error);
+    showError('Failed to suggest alternative: ' + error.message);
+  }
+};
+
+window.acceptAlternativeFromMessage = async function(scheduleId, conversationId) {
+  if (!scheduleId) return;
+  try {
+    const scheduleRef = doc(db, 'schedules', scheduleId);
+    const scheduleDoc = await getDoc(scheduleRef);
+    if (scheduleDoc.exists()) {
+      const schedule = scheduleDoc.data();
+      await updateDoc(scheduleRef, {
+        status: 'confirmed',
+        proposedDate: schedule.alternativeDate || schedule.proposedDate,
+        proposedTime: schedule.alternativeTime || schedule.proposedTime,
+        confirmedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      const messageText = `✅ Alternative time accepted: ${schedule.alternativeDate} at ${schedule.alternativeTime}`;
+      await addDoc(collection(db, 'messages'), {
+        conversationId: conversationId,
+        senderId: currentUser.uid,
+        receiverId: schedule.brokerId,
+        text: messageText,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'schedule',
+        scheduleAction: 'schedule_confirmed',
+        scheduleId: scheduleId,
+        propertyId: schedule.propertyId
+      });
+      showToast('Alternative time accepted!');
+      refreshConversations();
+      if (currentConversationId === conversationId) await loadMessages(conversationId, schedule.buyerId);
+    }
+  } catch (error) {
+    console.error('Error accepting alternative:', error);
+    showError('Failed to accept alternative: ' + error.message);
+  }
+};
+
+window.suggestNewTimeFromMessage = function(conversationId) {
+  if (!currentPropertyId || !currentBuyerId) {
+    showError('Please select a conversation with a property');
+    return;
+  }
+  const buyerInfo = userMap.get(currentBuyerId);
+  const propertyInfo = propertyMap.get(currentPropertyId);
+  if (!buyerInfo || !propertyInfo) {
+    showError('Unable to schedule viewing');
+    return;
+  }
+  const scheduleUrl = `../buyer/schedule_viewing.html?brokerId=${currentUser.uid}&buyerId=${currentBuyerId}&propertyId=${currentPropertyId}&buyerName=${encodeURIComponent(buyerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+  window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
+};
+
+// Setup schedule listener for real-time updates
+function setupScheduleListener() {
+  if (!currentUser) return;
+  try {
+    const schedulesRef = collection(db, 'schedules');
+    const q = query(
+      schedulesRef,
+      where('brokerId', '==', currentUser.uid),
+      where('status', 'in', ['pending', 'alternative'])
+    );
+    schedulesListener = onSnapshot(q, (snapshot) => {
+      debugLog('📅 Schedule update detected');
+      allConversations.forEach(async (conversation) => {
+        const hasPending = await checkPendingSchedule(conversation.id);
+        conversation.hasPendingSchedule = hasPending;
+      });
+      filterConversations();
+      if (currentConversationId) {
+        loadMessages(currentConversationId, currentBuyerId);
+      }
+    });
+  } catch (error) {
+    console.error('Error setting up schedule listener:', error);
+  }
+}
+
+// View property details - navigate to new_property_details
 window.viewPropertyDetails = function(propertyId) {
   if (!propertyId) return;
-  
-  const propertyInfo = propertyMap.get(propertyId);
-  if (propertyInfo) {
-    alert(`Property Details:\n\nTitle: ${propertyInfo.title}\nLocation: ${propertyInfo.location}\nPrice: ₱${propertyInfo.price.toLocaleString()}\n\nThis would open full property details page.`);
-  }
+  window.location.href = `../buyer/new_property_details.html?id=${propertyId}`;
 };
 
 // Helper function to get initials from name
@@ -3111,4 +3873,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 </body>
+</html>
 </html>

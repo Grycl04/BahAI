@@ -879,17 +879,17 @@
   <!-- List View -->
   <div class="schedules-list-container" id="listView" style="display: none;">
     <div class="schedules-header">
-      <h3 class="section-title" style="margin-bottom: 0;"><i class="fas fa-list"></i> All Schedules</h3>
+      <h3 class="section-title" style="margin-bottom: 0;"><i class="fas fa-calendar-check"></i> Schedule Viewings</h3>
       
       <div class="filter-buttons">
-        <button class="filter-btn active" data-filter="all">
+        <button class="filter-btn" data-filter="all">
           <i class="fas fa-list"></i> All
         </button>
         <button class="filter-btn" data-filter="pending">
           <i class="fas fa-clock"></i> Pending
         </button>
-        <button class="filter-btn" data-filter="confirmed">
-          <i class="fas fa-check-circle"></i> Confirmed
+        <button class="filter-btn active" data-filter="confirmed">
+          <i class="fas fa-check-circle"></i> Approved
         </button>
         <button class="filter-btn" data-filter="today">
           <i class="fas fa-calendar-day"></i> Today
@@ -950,21 +950,23 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Load sidebar
-fetch('sidebar.html')
-  .then(response => response.text())
-  .then(html => {
-    document.getElementById('sidebar-container').innerHTML = html;
-    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
-    const links = document.querySelectorAll('.sidebar-link');
-    links.forEach(link => {
-      if (link.getAttribute('href') === 'schedule_management.html') {
-        link.classList.add('active');
-      }
-    });
-    setupLogoutButton();
-  })
-  .catch(error => console.error('Error loading sidebar:', error));
+// Load agent sidebar (agent-only page)
+window.loadSidebarForSchedulePage = function() {
+  fetch('agent_sidebar.html')
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('sidebar-container').innerHTML = html;
+      if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
+      const links = document.querySelectorAll('.sidebar-link');
+      links.forEach(link => {
+        if (link.getAttribute('href') === 'agent_schedule_management.html') {
+          link.classList.add('active');
+        }
+      });
+      setupLogoutButton();
+    })
+    .catch(error => console.error('Error loading sidebar:', error));
+};
 
 function setupLogoutButton() {
   const logoutBtn = document.getElementById("logoutBtn");
@@ -1028,6 +1030,11 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Expose for agent_sidebar (user profile fetch)
+window.firebaseApp = app;
+window.firebaseAuth = auth;
+window.firebaseDB = db;
+
 // Global variables
 let currentUser = null;
 let calendar = null;
@@ -1035,7 +1042,7 @@ let allSchedules = [];
 let userMap = new Map();
 let propertyMap = new Map();
 let scheduleListener = null;
-let activeFilter = 'all';
+let activeFilter = 'confirmed';
 let activeView = 'calendar';
 
 // Debug mode
@@ -1054,7 +1061,42 @@ onAuthStateChanged(auth, async (user) => {
   }
   
   currentUser = user;
-  debugLog('👤 Broker logged in:', user.uid, 'Email:', user.email);
+  debugLog('👤 User logged in:', user.uid, 'Email:', user.email);
+  
+  // Load sidebar based on user role (agent vs broker)
+  let isAgent = false;
+  try {
+    const agentDoc = await getDoc(doc(db, "agents", user.uid));
+    isAgent = agentDoc.exists();
+    if (!isAgent) {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && (userDoc.data().userType === 'agent' || userDoc.data().userRole === 'agent')) {
+        isAgent = true;
+      }
+    }
+  } catch (e) {
+    debugLog('Could not check user role:', e);
+  }
+  
+  if (!isAgent) {
+    // Not an agent - redirect
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userType = userDoc.data().userType || userDoc.data().userRole;
+        if (userType === 'broker') {
+          window.location.href = 'schedule_management.html';
+          return;
+        }
+      }
+    } catch (e) {}
+    window.location.href = 'agent_dashboard.html';
+    return;
+  }
+  
+  if (typeof window.loadSidebarForSchedulePage === 'function') {
+    window.loadSidebarForSchedulePage();
+  }
   
   // Initialize the page
   initPage();
@@ -1337,7 +1379,7 @@ async function loadSchedulesFromDB() {
     
     const schedulesRef = collection(db, 'schedules');
     
-    // Try multiple queries to find schedules
+    // Try multiple queries to find schedules (brokerId and agentId work for brokers/agents)
     const queries = [
       // Query 1: Direct brokerId match
       query(
@@ -1345,7 +1387,13 @@ async function loadSchedulesFromDB() {
         where('brokerId', '==', currentUser.uid),
         orderBy('createdAt', 'desc')
       ),
-      // Query 2: Check if brokerId might be in a different field
+      // Query 2: agentId match (for agents)
+      query(
+        schedulesRef,
+        where('agentId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      ),
+      // Query 3: userId match
       query(
         schedulesRef,
         where('userId', '==', currentUser.uid),
@@ -1371,8 +1419,9 @@ async function loadSchedulesFromDB() {
             schedule.brokerId = schedule.userId;
           }
           
-          // Only add if brokerId matches current user
-          if (schedule.brokerId === currentUser.uid) {
+          // Add if brokerId or agentId matches current user
+          if (schedule.brokerId === currentUser.uid || schedule.agentId === currentUser.uid) {
+            if (!schedule.brokerId && schedule.agentId) schedule.brokerId = schedule.agentId;
             processSchedule(doc.id, schedule);
             foundSchedules = true;
           }
@@ -1396,8 +1445,9 @@ async function loadSchedulesFromDB() {
           ...doc.data()
         };
         
-        // Check if current user is the broker
+        // Check if current user is the broker or agent
         if (schedule.brokerId === currentUser.uid || 
+            schedule.agentId === currentUser.uid ||
             schedule.userId === currentUser.uid ||
             (schedule.conversationId && schedule.conversationId.includes(currentUser.uid))) {
           

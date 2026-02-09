@@ -24,12 +24,41 @@
         --text-light: #718096;
     }
 
+    /* Layout - push main content right of fixed sidebar */
+    .container {
+        margin-left: 280px;
+        padding-top: 15px;
+    }
+    .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 1001;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+    .mobile-menu-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
     /* Hero Section - same as broker dashboard */
     .hero-section {
         background: var(--primary-gradient);
         color: white;
         border-radius: var(--border-radius-lg);
-        padding: 50px 40px;
+        padding: 28px 40px;
         margin-bottom: 40px;
         position: relative;
         overflow: hidden;
@@ -207,8 +236,9 @@
     .listing-status {
         display: none; /* Status now shown as badge on image */
     }
-    .status-active, .listing-status.status-active,
-    .listing-status-badge.status-active {
+    .status-active, .status-available, .listing-status.status-active,
+    .listing-status.status-available, .listing-status-badge.status-active,
+    .listing-status-badge.status-available {
         background: #10b981 !important;
         color: white !important;
     }
@@ -308,14 +338,21 @@
     }
 
     @media (max-width: 1024px) {
-        .container { margin-left: 0; padding: 25px; }
+        .container { margin-left: 240px; padding: 25px; padding-top: 15px; }
+        .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
         .hero-stats { gap: 20px; }
+        .hero-section { padding: 24px 30px; }
     }
     @media (max-width: 768px) {
-        .container { padding: 20px; }
+        .container { margin-left: 0; padding: 20px; padding-top: 60px; }
+        .mobile-menu-toggle { display: flex !important; }
         .listings-grid { grid-template-columns: 1fr; gap: 15px; }
         .hero-section h1 { font-size: 1.8rem; }
-        .hero-section { padding: 30px 24px; }
+        .hero-section { padding: 22px 24px; }
+    }
+    @media (max-width: 480px) {
+        .container { padding: 15px; padding-top: 58px; }
+        .hero-section { padding: 20px 18px; }
     }
 </style>
 </head>
@@ -339,7 +376,7 @@
         <div class="hero-stat-icon"><i class="fas fa-check-circle"></i></div>
         <div>
           <div class="hero-stat-value" id="activeListings">0</div>
-          <div class="hero-stat-label">Active</div>
+          <div class="hero-stat-label">Available</div>
         </div>
       </div>
       <div class="hero-stat-item">
@@ -605,10 +642,14 @@ function updatePropertiesCount(count) {
 
 function updateStats(listings) {
   const total = listings.length;
-  const active = listings.filter(l => (l.status || '').toLowerCase() === 'active').length;
+  const available = listings.filter(l => {
+    const s = (l.status || '').toLowerCase();
+    return s === 'active' || s === 'available' || s === 'published' ||
+      !l.status || l.status === true || l.status === 'true';
+  }).length;
   const sold = listings.filter(l => (l.status || '').toLowerCase() === 'sold').length;
 
-  document.getElementById('activeListings').textContent = active;
+  document.getElementById('activeListings').textContent = available;
   document.getElementById('soldListings').textContent = sold;
   updatePropertiesCount(total);
 }

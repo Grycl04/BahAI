@@ -64,6 +64,14 @@
           </a>
         </li>
         <li>
+          <a href="agent_schedule_management.html" class="sidebar-link">
+            <div class="nav-icon">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <span class="nav-text">Schedule Viewing</span>
+          </a>
+        </li>
+        <li>
           <a href="profile_agent.html" class="sidebar-link">
             <div class="nav-icon">
               <i class="fas fa-user"></i>
@@ -74,42 +82,8 @@
       </ul>
     </nav>
 
-    <!-- Quick Stats - clickable navigation -->
-    <div class="sidebar-stats">
-      <div class="stats-title">Quick Stats</div>
-      <div class="stats-grid">
-        <a href="agent_listings.html" class="stat-item stat-link" title="My Listings">
-          <div class="stat-icon">
-            <i class="fas fa-building"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value" id="totalListingsStat">0</div>
-            <div class="stat-label">Listings</div>
-          </div>
-        </a>
-        <a href="agent_inquiries.html" class="stat-item stat-link" title="Inquiries">
-          <div class="stat-icon">
-            <i class="fas fa-envelope"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value" id="totalInquiriesStat">0</div>
-            <div class="stat-label">Inquiries</div>
-          </div>
-        </a>
-      </div>
-    </div>
-
     <!-- Bottom Section -->
     <div class="sidebar-footer">
-      <div class="ai-status">
-        <div class="ai-status-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="ai-status-text">
-          <div class="ai-status-title">AI Assistant</div>
-          <div class="ai-status-subtitle">Active</div>
-        </div>
-      </div>
       <button id="logoutBtn" class="logout-btn">
         <div class="logout-icon">
           <i class="fas fa-sign-out-alt"></i>
@@ -250,6 +224,7 @@
 .user-avatar {
   width: 45px;
   height: 45px;
+  min-width: 45px;
   background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
   border-radius: 50%;
   display: flex;
@@ -258,6 +233,12 @@
   font-size: 18px;
   font-weight: 600;
   color: #0b2e52;
+  overflow: hidden;
+}
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-info {
@@ -392,132 +373,11 @@
   display: block;
 }
 
-/* Stats Section */
-.sidebar-stats {
-  padding: 20px 25px;
-  margin: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid var(--sidebar-border);
-}
-
-.stats-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--sidebar-text-muted);
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stat-link {
-  text-decoration: none;
-  color: inherit;
-  padding: 8px;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.stat-link:hover {
-  background: var(--sidebar-hover);
-  transform: translateY(-2px);
-}
-
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(212, 175, 55, 0.15);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #d4af37;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--sidebar-text-light);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--sidebar-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
 /* Sidebar Footer */
 .sidebar-footer {
   padding: 25px;
   border-top: 1px solid var(--sidebar-border);
   margin-top: auto;
-}
-
-.ai-status {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background: rgba(212, 175, 55, 0.1);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  transition: all 0.3s ease;
-}
-
-.ai-status:hover {
-  background: rgba(212, 175, 55, 0.15);
-  transform: translateY(-2px);
-}
-
-.ai-status-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: #0b2e52;
-}
-
-.ai-status-text {
-  flex: 1;
-}
-
-.ai-status-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--sidebar-text-light);
-  margin-bottom: 2px;
-}
-
-.ai-status-subtitle {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
 }
 
 /* Logout Button */
@@ -610,7 +470,6 @@
 
 .logo-section,
 .sidebar-nav,
-.sidebar-stats,
 .sidebar-footer {
   animation: fadeIn 0.5s ease;
 }
@@ -620,6 +479,8 @@
 .sidebar-nav li:nth-child(3) { animation-delay: 0.3s; }
 .sidebar-nav li:nth-child(4) { animation-delay: 0.4s; }
 .sidebar-nav li:nth-child(5) { animation-delay: 0.5s; }
+.sidebar-nav li:nth-child(6) { animation-delay: 0.6s; }
+.sidebar-nav li:nth-child(7) { animation-delay: 0.7s; }
 
 /* Pulse Animation */
 @keyframes pulse {
@@ -637,9 +498,6 @@
   }
 }
 
-.ai-status:hover .ai-status-icon {
-  animation: pulse 1.5s infinite;
-}
 </style>
 
 <script>
@@ -684,19 +542,26 @@ async function initializeSidebar() {
         let userName = currentUser.displayName || currentUser.email || 'User';
         let userRole = 'Agent';
         
-        // Try agents collection first (agent profile), then users
+        let photoURL = null;
         try {
-          const agentDoc = await getDoc(doc(db, "agents", currentUser.uid));
-          if (agentDoc.exists()) {
+          let agentDoc = await getDoc(doc(db, "agents", currentUser.uid));
+          if (!agentDoc.exists()) {
+            const agentsQuery = query(collection(db, "agents"), where("authUid", "==", currentUser.uid));
+            const agentSnap = await getDocs(agentsQuery);
+            if (!agentSnap.empty) agentDoc = agentSnap.docs[0];
+          }
+          if (agentDoc && agentDoc.exists()) {
             const agentData = agentDoc.data();
             userName = agentData.fullName || agentData.name || agentData.displayName || agentData.email || userName;
             userRole = agentData.userType || agentData.role || userRole;
+            photoURL = agentData.photoURL || agentData.profilePhotoURL || agentData.profilePhoto || agentData.profileImage || agentData.imageURL || null;
           } else {
             const userDoc = await getDoc(doc(db, "users", currentUser.uid));
             if (userDoc.exists()) {
               const userData = userDoc.data();
               userName = userData.fullName || userData.name || userData.displayName || userData.email || userName;
               userRole = userData.userType || userData.role || userRole;
+              photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL || null;
             }
           }
         } catch (error) {
@@ -708,20 +573,18 @@ async function initializeSidebar() {
         }
         
         if (userRoleEl) {
-          const roleMap = {
-            'landlord': 'Property Owner',
-            'broker': 'Licensed Broker',
-            'seller': 'Property Seller',
-            'admin': 'Administrator',
-            'agent': 'Property Agent',
-            'user': 'Buyer'
-          };
-          userRoleEl.textContent = roleMap[userRole] || 'Property Agent';
+          userRoleEl.textContent = 'Property Agent';
         }
         
         if (userAvatarEl) {
-          const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
-          userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
+          const initials = userName.split(' ').map(n => n ? n[0] : '').join('').toUpperCase().substring(0, 2) || 'U';
+          if (photoURL) {
+            userAvatarEl.setAttribute('data-fallback', initials);
+            userAvatarEl.innerHTML = `<img src="${(photoURL || '').replace(/"/g, '&quot;')}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="var p=this.parentElement;p.innerHTML='<span style=&quot;font-weight:600&quot;>'+(p.getAttribute('data-fallback')||'U')+'</span>'">`;
+          } else {
+            userAvatarEl.removeAttribute('data-fallback');
+            userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
+          }
         }
         
       } catch (error) {
@@ -846,22 +709,20 @@ function loadUserInfoFallback() {
       }
       
       if (userRoleEl) {
-        const roleMap = {
-          'landlord': 'Property Owner',
-          'broker': 'Licensed Broker',
-          'seller': 'Property Seller',
-          'admin': 'Administrator',
-          'agent': 'Property Agent',
-          'user': 'Buyer'
-        };
-        const role = userData.userType || userData.role;
-        userRoleEl.textContent = roleMap[role] || 'Property Agent';
+        userRoleEl.textContent = 'Property Agent';
       }
       
       const nameForInitials = userData.fullName || userData.name || userData.displayName || userData.email || 'U';
+      const photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL;
       if (userAvatarEl && nameForInitials) {
         const initials = nameForInitials.split(' ').map(n => n ? n[0] : '').join('').toUpperCase().substring(0, 2) || 'U';
-        userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
+        if (photoURL) {
+          userAvatarEl.setAttribute('data-fallback', initials);
+          userAvatarEl.innerHTML = '<img src="' + (photoURL || '').replace(/"/g, '&quot;') + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="var p=this.parentElement;p.innerHTML=\'<span style=&quot;font-weight:600&quot;>\'+(p.getAttribute(\'data-fallback\')||\'U\')+\'</span>\'">';
+        } else {
+          userAvatarEl.removeAttribute('data-fallback');
+          userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>';
+        }
       }
     }
   } catch (error) {
@@ -888,8 +749,8 @@ function loadStatsFallback() {
   }
 }
 
-// Initialize sidebar when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+// Run init when DOM is ready (works for both normal load and injection)
+function runSidebarInit() {
   // Start initialization
   initializeSidebar();
   
@@ -961,76 +822,81 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
   
-  // Make user profile updater available globally
-  window.updateSidebarUserProfile = async function() {
-    if (typeof window.firebase !== 'undefined') {
+  // Make user profile updater available globally (accepts optional userData from page)
+  window.updateSidebarUserProfile = async function(userData) {
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    const userAvatarEl = document.getElementById('userAvatar');
+    if (!userNameEl && !userRoleEl && !userAvatarEl) return;
+
+    const applyProfile = function(name, role, photoURL) {
+      if (userNameEl) userNameEl.textContent = name || 'User';
+      if (userRoleEl) userRoleEl.textContent = 'Property Agent';
+      if (userAvatarEl) {
+        const initials = (name || 'U').split(' ').map(function(n) { return n ? n[0] : ''; }).join('').toUpperCase().substring(0, 2) || 'U';
+        if (photoURL) {
+          userAvatarEl.setAttribute('data-fallback', initials);
+          userAvatarEl.innerHTML = '<img src="' + (photoURL || '').replace(/"/g, '&quot;') + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="var p=this.parentElement;p.innerHTML=\'<span style=&quot;font-weight:600&quot;>\'+(p.getAttribute(\'data-fallback\')||\'U\')+\'</span>\'">';
+        } else {
+          userAvatarEl.removeAttribute('data-fallback');
+          userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>';
+        }
+      }
+    };
+
+    if (userData && (userData.fullName || userData.displayName || userData.email)) {
+      const name = userData.fullName || userData.displayName || userData.email || 'User';
+      const photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL;
+      applyProfile(name, 'Property Agent', photoURL);
+      return;
+    }
+    if (typeof window.firebase !== 'undefined' && window.firebaseApp) {
       try {
         const { getAuth } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
-        const { getFirestore, getDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
-        
+        const { getFirestore, getDoc, doc, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
         const app = window.firebaseApp;
-        if (app) {
-          const auth = getAuth(app);
-          const db = getFirestore(app);
-          const currentUser = auth.currentUser;
-          
-          if (currentUser) {
-            const userNameEl = document.getElementById('userName');
-            const userRoleEl = document.getElementById('userRole');
-            const userAvatarEl = document.getElementById('userAvatar');
-            
-            let userName = currentUser.displayName || currentUser.email || 'User';
-            let userRole = 'Agent';
-            
-            try {
-              const agentDoc = await getDoc(doc(db, "agents", currentUser.uid));
-              if (agentDoc.exists()) {
-                const agentData = agentDoc.data();
-                userName = agentData.fullName || agentData.name || agentData.displayName || agentData.email || userName;
-                userRole = agentData.userType || agentData.role || userRole;
-              } else {
-                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                if (userDoc.exists()) {
-                  const userData = userDoc.data();
-                  userName = userData.fullName || userData.name || userData.displayName || userData.email || userName;
-                  userRole = userData.userType || userData.role || userRole;
-                }
-              }
-            } catch (error) {
-              console.log('Could not load user from Firestore:', error);
-            }
-            
-            if (userNameEl) {
-              userNameEl.textContent = userName;
-            }
-            
-            if (userRoleEl) {
-              const roleMap = {
-                'landlord': 'Property Owner',
-                'broker': 'Licensed Broker',
-                'seller': 'Property Seller',
-                'admin': 'Administrator',
-                'agent': 'Property Agent',
-                'user': 'Buyer'
-              };
-              userRoleEl.textContent = roleMap[userRole] || 'Property Agent';
-            }
-            
-            if (userAvatarEl) {
-              const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
-              userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const currentUser = auth.currentUser;
+        if (!currentUser) { loadUserInfoFallback(); return; }
+        let userName = currentUser.displayName || currentUser.email || 'User';
+        let photoURL = null;
+        try {
+          let agentDoc = await getDoc(doc(db, "agents", currentUser.uid));
+          if (!agentDoc.exists()) {
+            const agentsQuery = query(collection(db, "agents"), where("authUid", "==", currentUser.uid));
+            const agentSnap = await getDocs(agentsQuery);
+            if (!agentSnap.empty) agentDoc = agentSnap.docs[0];
+          }
+          if (agentDoc && agentDoc.exists()) {
+            const d = agentDoc.data();
+            userName = d.fullName || d.name || d.displayName || d.email || userName;
+            photoURL = d.photoURL || d.profilePhotoURL || d.profilePhoto || d.profileImage || d.imageURL || null;
+          } else {
+            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if (userDoc.exists()) {
+              const d = userDoc.data();
+              userName = d.fullName || d.name || d.displayName || d.email || userName;
+              photoURL = d.photoURL || d.profilePhotoURL || d.profilePhoto || d.profileImage || d.imageURL || null;
             }
           }
-        }
+        } catch (e) { console.log('Could not load user from Firestore:', e); }
+        applyProfile(userName, 'Property Agent', photoURL);
       } catch (error) {
-        console.log('Could not update user profile:', error);
         loadUserInfoFallback();
       }
     } else {
       loadUserInfoFallback();
     }
   };
-});
+}
+
+// Run when DOM is ready (handles both normal page load and injection via innerHTML)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', runSidebarInit);
+} else {
+  runSidebarInit();
+}
 
 // Export initialization function for main pages to call
 window.initializeSidebar = initializeSidebar;
@@ -1039,27 +905,27 @@ window.initializeSidebar = initializeSidebar;
 function setupLogoutButton() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', async function() {
+    logoutBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!confirm('Are you sure you want to log out?')) return;
       try {
-        // Import Firebase auth
-        const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
+        if (typeof window.performLogout === 'function') {
+          await window.performLogout();
+          return;
+        }
         const app = window.firebaseApp;
         if (app) {
+          const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
           const auth = getAuth(app);
           await signOut(auth);
-          // Clear local storage
-          localStorage.clear();
-          sessionStorage.clear();
-          // Redirect to login
-          window.location.href = '../auth/login.html';
         }
       } catch (error) {
         console.error('Error signing out:', error);
-        // Fallback: redirect anyway
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = '../auth/login.html';
       }
+      localStorage.removeItem('userData');
+      sessionStorage.removeItem('userData');
+      window.location.href = '../login.html';
     });
   }
 }

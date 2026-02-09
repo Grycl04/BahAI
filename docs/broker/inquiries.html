@@ -968,8 +968,11 @@
       margin-bottom: 20px;
     }
 
-    /* Property Quick View */
+    /* Property Quick View - static at top when scrolling */
     .property-quick-view {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       background: var(--bg-light);
       border-radius: 12px;
       padding: 15px;
@@ -980,6 +983,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       animation: slideIn 0.3s ease;
+      flex-shrink: 0;
     }
 
     @keyframes slideIn {
@@ -1454,12 +1458,6 @@
         </div>
         
         <div class="quick-actions" id="quickActions" style="display: none;">
-          <button class="action-btn" id="sendEmailBtn">
-            <i class="fas fa-envelope"></i> Send Email
-          </button>
-          <button class="action-btn" id="makeCallBtn">
-            <i class="fas fa-phone"></i> Make Call
-          </button>
           <button class="action-btn primary" id="scheduleViewingBtn">
             <i class="fas fa-calendar-check"></i> Schedule Viewing
           </button>
@@ -1715,8 +1713,6 @@ function setupEventListeners() {
   });
   
   // Quick actions
-  document.getElementById('sendEmailBtn').addEventListener('click', sendEmailToBuyer);
-  document.getElementById('makeCallBtn').addEventListener('click', makeCallToBuyer);
   document.getElementById('scheduleViewingBtn').addEventListener('click', scheduleViewing);
   document.getElementById('deleteConversationBtn').addEventListener('click', openDeleteModal);
   
@@ -2343,23 +2339,6 @@ async function selectConversation(conversationId, buyerId, propertyId = null) {
   // Show chat input and quick actions
   document.getElementById('chatInputContainer').style.display = 'block';
   document.getElementById('quickActions').style.display = 'flex';
-  
-  // Update quick action buttons
-  if (finalBuyerInfo.email && finalBuyerInfo.email !== 'No email') {
-    document.getElementById('sendEmailBtn').disabled = false;
-    document.getElementById('sendEmailBtn').title = `Send email to ${finalBuyerInfo.email}`;
-  } else {
-    document.getElementById('sendEmailBtn').disabled = true;
-    document.getElementById('sendEmailBtn').title = 'No email available';
-  }
-  
-  if (finalBuyerInfo.phone && finalBuyerInfo.phone !== 'No phone') {
-    document.getElementById('makeCallBtn').disabled = false;
-    document.getElementById('makeCallBtn').title = `Call ${finalBuyerInfo.phone}`;
-  } else {
-    document.getElementById('makeCallBtn').disabled = true;
-    document.getElementById('makeCallBtn').title = 'No phone number available';
-  }
   
   // Load messages for this conversation
   await loadMessages(conversationId, buyerId);
@@ -2990,7 +2969,7 @@ function showScheduleDetailsModal(schedule, scheduleId) {
         showToast('Viewing confirmed!');
         modal.remove();
         
-        // Refresh messages if on same conversation
+        refreshConversations();
         if (currentConversationId === schedule.conversationId) {
           await loadMessages(schedule.conversationId, schedule.buyerId);
         }
@@ -3038,7 +3017,7 @@ function showScheduleDetailsModal(schedule, scheduleId) {
         showToast('Viewing declined');
         modal.remove();
         
-        // Refresh messages if on same conversation
+        refreshConversations();
         if (currentConversationId === schedule.conversationId) {
           await loadMessages(schedule.conversationId, schedule.buyerId);
         }
@@ -3093,7 +3072,7 @@ function showScheduleDetailsModal(schedule, scheduleId) {
         showToast('Alternative time suggested');
         modal.remove();
         
-        // Refresh messages if on same conversation
+        refreshConversations();
         if (currentConversationId === schedule.conversationId) {
           await loadMessages(schedule.conversationId, schedule.buyerId);
         }
@@ -3139,7 +3118,7 @@ function showScheduleDetailsModal(schedule, scheduleId) {
         showToast('Alternative time confirmed!');
         modal.remove();
         
-        // Refresh messages if on same conversation
+        refreshConversations();
         if (currentConversationId === schedule.conversationId) {
           await loadMessages(schedule.conversationId, schedule.buyerId);
         }

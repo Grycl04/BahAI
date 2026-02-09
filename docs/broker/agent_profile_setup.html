@@ -491,20 +491,49 @@
                 loginBtn.innerHTML = '<span class="spinner"></span> Creating Account...';
                 showLoading(true);
 
-                // FIRST: Create the Firebase Auth account
-                console.log('🔐 Creating Firebase Auth account...');
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                currentUser = userCredential.user;
-                console.log('✅ Firebase account created:', currentUser.uid);
+                let userCredential;
+                let linkedExistingAccount = false;
+                try {
+                    // Try to create new Firebase Auth account
+                    console.log('🔐 Creating Firebase Auth account...');
+                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    currentUser = userCredential.user;
+                    console.log('✅ Firebase account created:', currentUser.uid);
 
-                // Update user profile with name
-                await updateProfile(currentUser, {
-                    displayName: `${agentData.firstName} ${agentData.lastName}`
-                });
+                    // Update user profile with name
+                    await updateProfile(currentUser, {
+                        displayName: `${agentData.firstName} ${agentData.lastName}`
+                    });
 
-                // Send email verification
-                await sendEmailVerification(currentUser);
-                console.log('✅ Email verification sent');
+                    // Send email verification for new accounts
+                    await sendEmailVerification(currentUser);
+                    console.log('✅ Email verification sent');
+                } catch (authError) {
+                    if (authError.code === 'auth/email-already-in-use') {
+                        // Email exists - sign in and link agent profile to existing account
+                        console.log('🔐 Email already exists, signing in...');
+                        try {
+                            userCredential = await signInWithEmailAndPassword(auth, email, password);
+                            currentUser = userCredential.user;
+                            linkedExistingAccount = true;
+                            console.log('✅ Signed in with existing account:', currentUser.uid);
+
+                            // Update display name if not set
+                            if (!currentUser.displayName) {
+                                await updateProfile(currentUser, {
+                                    displayName: `${agentData.firstName} ${agentData.lastName}`
+                                });
+                            }
+                        } catch (signInError) {
+                            if (signInError.code === 'auth/invalid-credential' || signInError.code === 'auth/wrong-password') {
+                                throw new Error('EMAIL_EXISTS_WRONG_PASSWORD');
+                            }
+                            throw signInError;
+                        }
+                    } else {
+                        throw authError;
+                    }
+                }
 
                 // SECOND: Update Firestore with auth UID
                 console.log('📝 Updating Firestore with auth UID...');
@@ -539,7 +568,9 @@
                 console.log('✅ User document created');
 
                 // Show success message
-                showSuccess('✅ Account created successfully! Please check your email for verification.');
+                showSuccess(linkedExistingAccount
+                    ? '✅ Account linked successfully! Your agent profile is now connected.'
+                    : '✅ Account created successfully! Please check your email for verification.');
                 
                 // Wait a moment, then show profile setup form
                 setTimeout(() => {
@@ -568,9 +599,12 @@
                 
                 let errorMessage = 'Account creation failed: ';
                 
-                switch (error.code) {
+                switch (error.code || error.message) {
                     case 'auth/email-already-in-use':
-                        errorMessage = 'This email is already registered. Please try logging in instead.';
+                        errorMessage = 'This email is already registered. Please use your existing password or reset it.';
+                        break;
+                    case 'EMAIL_EXISTS_WRONG_PASSWORD':
+                        errorMessage = 'This email is already registered with a different password. Please use your existing password or use "Forgot password" to reset.';
                         break;
                     case 'auth/invalid-email':
                         errorMessage = 'Invalid email address.';

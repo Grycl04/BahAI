@@ -1148,6 +1148,7 @@
 </div>
 
 <!-- Sidebar Loader Script -->
+<script src="../sidebar-user.js"></script>
 <script>
 // Mobile menu functionality
 document.getElementById('mobileMenuToggle').addEventListener('click', function() {
@@ -1242,8 +1243,12 @@ import {
   getFirestore, 
   doc, 
   getDoc,
+  getDocs,
   setDoc,
-  updateDoc
+  updateDoc,
+  collection,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { 
   getStorage,
@@ -1268,10 +1273,72 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// Expose for agent_sidebar (user profile fetch)
+window.firebaseApp = app;
+window.firebaseAuth = auth;
+window.firebaseDB = db;
+
 // Global variables
 let currentUser = null;
 let currentProfileData = null;
 let profilePhotoFile = null;
+
+// Load agent profile for sidebar (agents by authUid or doc ID, then users)
+async function loadAgentProfileForSidebar(user) {
+  if (!user || typeof window.updateSidebarUserProfile !== 'function') return;
+  try {
+    let sidebarData = null;
+    let agentDoc = await getDoc(doc(db, "agents", user.uid));
+    if (!agentDoc.exists()) {
+      const agentsQuery = query(
+        collection(db, "agents"),
+        where("authUid", "==", user.uid)
+      );
+      const agentSnapshot = await getDocs(agentsQuery);
+      if (!agentSnapshot.empty) {
+        agentDoc = agentSnapshot.docs[0];
+      }
+    }
+    if (agentDoc && agentDoc.exists()) {
+      const d = agentDoc.data();
+      sidebarData = {
+        fullName: d.fullName || d.name || d.displayName,
+        displayName: d.fullName || d.name || d.displayName,
+        email: user.email || d.email,
+        role: d.userType || d.role || 'agent',
+        photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+      };
+    } else {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const d = userDoc.data();
+        sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: user.email || d.email,
+          role: d.userType || d.role || 'agent',
+          photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+        };
+      }
+    }
+    if (!sidebarData) {
+      sidebarData = {
+        fullName: user.displayName,
+        displayName: user.displayName,
+        email: user.email,
+        role: 'agent',
+        photoURL: user.photoURL
+      };
+    }
+    try { localStorage.setItem('userData', JSON.stringify(sidebarData)); } catch (e) {}
+    window.updateSidebarUserProfile(sidebarData);
+  } catch (e) {
+    console.warn('Could not load agent profile for sidebar:', e);
+    const fallback = { fullName: user.displayName, email: user.email, role: 'agent', photoURL: user.photoURL };
+    try { localStorage.setItem('userData', JSON.stringify(fallback)); } catch (e) {}
+    window.updateSidebarUserProfile(fallback);
+  }
+}
 
 // ==================== PAGE INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function() {
@@ -1291,6 +1358,10 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Load existing profile data
       await loadProfileData(user.uid);
+      
+      // Fetch agent profile and update sidebar (sidebar loads on DOMContentLoaded; retry if not ready yet)
+      await loadAgentProfileForSidebar(user);
+      setTimeout(() => loadAgentProfileForSidebar(user), 800);
       
       // Setup form submission
       setupFormSubmission();

@@ -409,6 +409,7 @@
     .broker-avatar {
       width: 32px;
       height: 32px;
+      min-width: 32px;
       border-radius: 50%;
       background: var(--primary-gradient);
       display: flex;
@@ -418,6 +419,12 @@
       font-weight: 600;
       font-size: 14px;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+    .broker-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .broker-info {
@@ -648,11 +655,6 @@
         </div>
       </div>
     </div>
-    <div class="hero-actions">
-      <a href="agent_add_property.html" class="add-button">
-        <i class="fas fa-plus"></i> Add New Property
-      </a>
-    </div>
   </div>
 
   <!-- Search / Filter Section - same design as broker dashboard -->
@@ -735,11 +737,14 @@ document.getElementById('mobileMenuToggle').addEventListener('click', function()
   }
 });
 
-// Load sidebar (profile updated by loadAgentProfile in Firebase module - don't use localStorage here)
+// Load sidebar (profile updated by loadAgentProfile in Firebase module + localStorage fallback)
 fetch('agent_sidebar.html')
   .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile();
+    }
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
       if (link.getAttribute('href') === 'agent_dashboard.html') link.classList.add('active');
@@ -747,6 +752,21 @@ fetch('agent_sidebar.html')
     setupLogoutButton();
   })
   .catch(error => console.error('Error loading sidebar:', error));
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) { setTimeout(setupLogoutButton, 100); return; }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') window.performLogout();
+      else window.location.href = "../login.html";
+    }
+  });
+}
 </script>
 
 <!-- Load Google Maps API -->
@@ -755,7 +775,7 @@ fetch('agent_sidebar.html')
 <!-- Firebase Script -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { 
   getFirestore, 
   collection, 
@@ -901,7 +921,7 @@ async function loadAllListings() {
         
         // Collect user IDs for lookup
         // Check all possible user ID fields
-        const possibleUserFields = ['userId', 'ownerId', 'brokerId', 'owner', 'landlordId', 'createdBy', 'authorId'];
+        const possibleUserFields = ['agentId', 'userId', 'ownerId', 'brokerId', 'owner', 'landlordId', 'createdBy', 'authorId'];
         possibleUserFields.forEach(field => {
           if (data[field] && typeof data[field] === 'string') {
             userIds.add(data[field]);
@@ -956,14 +976,50 @@ async function loadUserData(userIds) {
       
       console.log(`Fetching user document for ID: ${userId}`);
       
-      // Try to get user document
+      // Try agents collection first (agent listings)
+      let agentDoc = await getDoc(doc(db, "agents", userId));
+      if (!agentDoc.exists()) {
+        const agentsQuery = query(collection(db, "agents"), where("authUid", "==", userId));
+        const agentSnap = await getDocs(agentsQuery);
+        if (!agentSnap.empty) agentDoc = agentSnap.docs[0];
+      }
+      if (agentDoc && agentDoc.exists()) {
+        const d = agentDoc.data();
+        const displayName = d.fullName || d.name || d.displayName || d.email || `User ${userId.substring(0, 8)}`;
+        const photoURL = d.photoURL || d.profilePhotoURL || d.profilePhoto || d.profileImage || d.imageURL || null;
+        userMap.set(userId, {
+          displayName,
+          email: d.email || 'Email not available',
+          phone: d.phone || d.phoneNumber || d.contactNumber || 'Phone not available',
+          role: d.userType || d.role || 'agent',
+          photoURL
+        });
+        return;
+      }
+      
+      // Try brokers collection
+      const brokerDoc = await getDoc(doc(db, "brokers", userId));
+      if (brokerDoc.exists()) {
+        const d = brokerDoc.data();
+        const displayName = d.fullName || d.name || d.displayName || d.email || `User ${userId.substring(0, 8)}`;
+        const photoURL = d.photoURL || d.profilePhotoURL || d.profilePhoto || d.profileImage || d.imageURL || null;
+        userMap.set(userId, {
+          displayName,
+          email: d.email || 'Email not available',
+          phone: d.phone || d.phoneNumber || 'Phone not available',
+          role: d.userType || d.role || 'broker',
+          photoURL
+        });
+        return;
+      }
+      
+      // Try users collection
       const userDoc = await getDoc(doc(db, "users", userId));
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
         console.log(`✅ User document found for ${userId}:`, userData);
         
-        // Extract user information
         const displayName = userData.fullName || 
                            userData.displayName || 
                            userData.name || 
@@ -973,12 +1029,14 @@ async function loadUserData(userIds) {
         const email = userData.email || 'Email not available';
         const phone = userData.phone || userData.phoneNumber || userData.mobile || 'Phone not available';
         const role = userData.role || userData.userType || 'user';
+        const photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL || null;
         
         userMap.set(userId, {
           displayName: displayName,
           email: email,
           phone: phone,
-          role: role
+          role: role,
+          photoURL: photoURL
         });
         
         console.log(`✅ Set user info for ${userId}: ${displayName}, ${email}`);
@@ -1004,11 +1062,13 @@ async function loadUserData(userIds) {
                                  userData.email || 
                                  `User`;
               
+              const photoURL = userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || userData.imageURL || null;
               userMap.set(userId, {
                 displayName: displayName,
                 email: userData.email || 'Email not available',
                 phone: userData.phone || userData.phoneNumber || userData.mobile || 'Phone not available',
-                role: userData.role || userData.userType || 'user'
+                role: userData.role || userData.userType || 'user',
+                photoURL
               });
               return;
             }
@@ -1022,7 +1082,8 @@ async function loadUserData(userIds) {
           displayName: `User ${userId.substring(0, 8)}`,
           email: 'Email not available',
           phone: 'Phone not available',
-          role: 'user'
+          role: 'user',
+          photoURL: null
         });
       }
     } catch (error) {
@@ -1034,7 +1095,8 @@ async function loadUserData(userIds) {
         displayName: `User ${userId.substring(0, 8)}`,
         email: 'Email not available',
         phone: 'Phone not available',
-        role: 'user'
+        role: 'user',
+        photoURL: null
       });
     }
   });
@@ -1055,7 +1117,7 @@ function displayListings(listings) {
   
   container.innerHTML = listings.map(listing => {
     // Get user information - check multiple possible fields
-    const possibleUserFields = ['userId', 'ownerId', 'brokerId', 'owner', 'landlordId', 'createdBy', 'authorId'];
+    const possibleUserFields = ['agentId', 'userId', 'ownerId', 'brokerId', 'owner', 'landlordId', 'createdBy', 'authorId'];
     let userId = 'unknown';
     
     // Find the first valid user ID
@@ -1072,7 +1134,8 @@ function displayListings(listings) {
       displayName: `User ${userId.substring(0, 8)}`,
       email: 'Email not available',
       phone: 'Phone not available',
-      role: 'user'
+      role: 'user',
+      photoURL: null
     };
     
     console.log(`User info for listing ${listing.id}:`, userInfo);
@@ -1093,10 +1156,14 @@ function displayListings(listings) {
       imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${listing.latitude},${listing.longitude}&zoom=15&size=400x200&markers=color:red%7C${listing.latitude},${listing.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
     }
     
-    // Get user initials for avatar
+    // Get user initials and photo for avatar
     const initials = userInfo.displayName && userInfo.displayName !== 'Email not available' 
-      ? userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) 
+      ? userInfo.displayName.split(' ').map(n => n ? n[0] : '').join('').toUpperCase().substring(0, 2) || 'UU'
       : 'UU';
+    const safeInitials = (initials || 'UU').replace(/["'<>]/g, '');
+    const avatarHtml = userInfo.photoURL
+      ? `<img src="${(userInfo.photoURL || '').replace(/"/g, '&quot;')}" alt="${(userInfo.displayName || '').replace(/"/g, '&quot;')}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="var p=this.parentElement;p.innerHTML='<span style=&quot;display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:white;&quot;>'+(p.getAttribute('data-fallback')||'${safeInitials}')+'</span>'">`
+      : initials;
     
     // Get normalized status
     const statusDisplay = getStatusDisplay(listing.status);
@@ -1144,7 +1211,7 @@ function displayListings(listings) {
         </div>
         
         <div class="listing-broker">
-          <div class="broker-avatar">${initials}</div>
+          <div class="broker-avatar" ${userInfo.photoURL ? `data-fallback="${safeInitials}"` : ''}>${avatarHtml}</div>
           <div class="broker-info">
             <div class="broker-name">${userInfo.displayName}</div>
             <div class="broker-contact">
@@ -1253,54 +1320,65 @@ document.getElementById('resetFilters').addEventListener('click', function() {
 // Load agent profile for sidebar (agents collection first, then users)
 async function loadAgentProfile(user) {
   try {
+    let sidebarData = null;
     const agentDoc = await getDoc(doc(db, "agents", user.uid));
     if (agentDoc.exists()) {
       const d = agentDoc.data();
-      const sidebarData = {
+      sidebarData = {
         fullName: d.fullName || d.name || d.displayName,
         displayName: d.fullName || d.name || d.displayName,
         email: user.email || d.email,
-        role: d.userType || d.role || 'agent'
+        role: d.userType || d.role || 'agent',
+        photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
       };
-      if (typeof window.updateSidebarUserProfile === 'function') {
-        window.updateSidebarUserProfile(sidebarData);
+    } else {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const d = userDoc.data();
+        sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: user.email || d.email,
+          role: d.userType || d.role || 'agent',
+          photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+        };
       }
-      return;
     }
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const d = userDoc.data();
-      const sidebarData = {
-        fullName: d.fullName || d.name || d.displayName,
-        displayName: d.fullName || d.name || d.displayName,
-        email: user.email || d.email,
-        role: d.userType || d.role || 'agent'
-      };
-      if (typeof window.updateSidebarUserProfile === 'function') {
-        window.updateSidebarUserProfile(sidebarData);
-      }
-      return;
-    }
-    // Fallback to auth data
-    if (typeof window.updateSidebarUserProfile === 'function') {
-      window.updateSidebarUserProfile({
+    if (!sidebarData) {
+      sidebarData = {
         fullName: user.displayName,
         displayName: user.displayName,
         email: user.email,
-        role: 'agent'
-      });
+        role: 'agent',
+        photoURL: user.photoURL
+      };
+    }
+    try { localStorage.setItem('userData', JSON.stringify(sidebarData)); } catch (e) {}
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile(sidebarData);
     }
   } catch (e) {
     console.warn('Could not load agent profile:', e);
     if (user && typeof window.updateSidebarUserProfile === 'function') {
-      window.updateSidebarUserProfile({
-        fullName: user.displayName,
-        email: user.email,
-        role: 'agent'
-      });
+      const fallback = { fullName: user.displayName, email: user.email, role: 'agent', photoURL: user.photoURL };
+      try { localStorage.setItem('userData', JSON.stringify(fallback)); } catch (e) {}
+      window.updateSidebarUserProfile(fallback);
     }
   }
 }
+
+// Make performLogout available globally for sidebar logout button
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userData');
+    window.location.href = "../login.html";
+  } catch (e) {
+    console.error('Logout error:', e);
+    window.location.href = "../login.html";
+  }
+};
 
 // Initialize on page load
 onAuthStateChanged(auth, (user) => {

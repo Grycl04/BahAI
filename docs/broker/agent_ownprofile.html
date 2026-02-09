@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Agent Profile - BahAI Real Estate</title>
+<title>My Profile - BahAI Real Estate Agent</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="../buyer/style.css">
@@ -974,8 +974,8 @@
   <div class="page-header" style="margin-bottom: 25px;">
     <h1 id="pageTitle">Agent Profile</h1>
     <p id="pageSubtitle">Manage your agent profile and listings</p>
-    <a href="#" id="backButton" class="action-btn btn-secondary" style="margin-top: 15px; display: inline-flex;">
-      <i class="fas fa-arrow-left"></i> Back
+    <a href="agent_dashboard.html" id="backButton" class="action-btn btn-secondary" style="margin-top: 15px; display: inline-flex;">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
     </a>
   </div>
 
@@ -985,7 +985,7 @@
       <i class="fas fa-exclamation-circle"></i>
       <p>Your profile is incomplete. Complete your profile to attract more brokers and clients.</p>
     </div>
-    <a href="agent_edit_profile.html" id="completeProfileLink" class="action-btn btn-primary">
+    <a href="agent_profile_setup.html" id="completeProfileLink" class="action-btn btn-primary">
       <i class="fas fa-edit"></i> Complete Profile
     </a>
   </div>
@@ -1255,9 +1255,7 @@ document.getElementById('mobileMenuToggle').addEventListener('click', function()
     }
 });
 
-// Sidebar loaded by loadSidebarBasedOnViewer after auth (Firebase module)
-// Do NOT load sidebar.html here - it would show broker nav (profile.html) before auth,
-// causing spam-click to broker profile when agent expects profile_agent.html
+// Sidebar loaded by loadAgentOwnProfileSidebar after auth (in Firebase module)
 
 // Simple logout function (will be overridden by the main script)
 function setupLogoutButton() {
@@ -1342,114 +1340,129 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Expose for agent sidebar (user profile fetch)
+window.firebaseApp = app;
+window.firebaseAuth = auth;
+window.firebaseDB = db;
+
 // Global variables
 let currentUser = null;
-let isOwnProfile = false;
+let isOwnProfile = true; // Always true for agent_ownprofile (own profile)
 let currentProperties = [];
 let currentProfileId = null;
 let userType = 'agent';
 
 // ==================== PAGE INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("Agent Profile page loaded");
+  console.log("Agent Own Profile page loaded");
   
-  // First check for profile ID in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const profileIdFromUrl = urlParams.get('id');
-  
-  // Check authentication status
+  // Check authentication status - agent_ownprofile always requires auth
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
       console.log("User authenticated:", user.uid);
       
-      // Determine profile ID
-      let profileId = profileIdFromUrl || user.uid;
-      currentProfileId = profileId;
+      // Always load own profile for agent_ownprofile
+      currentProfileId = user.uid;
+      isOwnProfile = true;
       
-      // Check if viewing own profile
-      isOwnProfile = (profileId === user.uid);
-      console.log("Is own profile:", isOwnProfile);
-      
-      // Load appropriate sidebar based on who's viewing
-      await loadSidebarBasedOnViewer(user, isOwnProfile);
+      // Load agent sidebar (always - like broker's profile.html)
+      await loadAgentOwnProfileSidebar(user);
       
       // Update page title
-      updatePageTitle(isOwnProfile);
+      updatePageTitle(true);
       
       // Load agent profile
-      await loadAgentProfile(profileId);
+      await loadAgentProfile(user.uid);
       
     } else {
-      console.log("No user authenticated");
-      
-      // If no profile ID in URL, redirect to login
-      if (!profileIdFromUrl) {
-        window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
-        return;
-      }
-      
-      // Load public profile
-      currentProfileId = profileIdFromUrl;
-      updatePageTitle(false);
-      
-      // For public view, use default sidebar
-      await loadSidebarBasedOnViewer(null, false);
-      
-      // Load agent profile
-      await loadAgentProfile(profileIdFromUrl);
+      console.log("No user authenticated - redirecting to login");
+      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
     }
   });
 });
 
-// Load agent profile for sidebar (agents collection first, then users)
+// Load agent sidebar for own profile (same pattern as broker's profile.html)
+async function loadAgentOwnProfileSidebar(user) {
+  try {
+    const response = await fetch('agent_sidebar.html');
+    if (!response.ok) throw new Error('Failed to load sidebar');
+    const html = await response.text();
+    document.getElementById('sidebar-container').innerHTML = html;
+    
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile();
+    }
+    if (user && typeof window.updateSidebarUserProfile === 'function') {
+      await loadAgentProfileForSidebar(user);
+    }
+    
+    highlightActiveSidebarLink();
+    setupLogoutButton();
+  } catch (error) {
+    console.error('Error loading sidebar:', error);
+    document.getElementById('sidebar-container').innerHTML = 
+      '<div class="sidebar" style="padding: 20px; background: var(--bg-light); color: #ef4444;"><p>Unable to load navigation.</p></div>';
+  }
+}
+
+// Load agent profile for sidebar (agents by authUid or doc ID, then users)
 async function loadAgentProfileForSidebar(user) {
   if (!user || typeof window.updateSidebarUserProfile !== 'function') return;
   try {
+    let sidebarData = null;
+    // Try agents by doc ID first
     let agentDoc = await getDoc(doc(db, "agents", user.uid));
     if (!agentDoc.exists()) {
-      const agentsQuery = query(collection(db, "agents"), where("authUid", "==", user.uid));
-      const agentSnap = await getDocs(agentsQuery);
-      if (!agentSnap.empty) agentDoc = agentSnap.docs[0];
+      // Try agents by authUid (for invited agents where doc ID differs from auth UID)
+      const agentsQuery = query(
+        collection(db, "agents"),
+        where("authUid", "==", user.uid)
+      );
+      const agentSnapshot = await getDocs(agentsQuery);
+      if (!agentSnapshot.empty) {
+        agentDoc = agentSnapshot.docs[0];
+      }
     }
     if (agentDoc && agentDoc.exists()) {
       const d = agentDoc.data();
-      window.updateSidebarUserProfile({
+      sidebarData = {
         fullName: d.fullName || d.name || d.displayName,
         displayName: d.fullName || d.name || d.displayName,
         email: user.email || d.email,
         role: d.userType || d.role || 'agent',
-        photoURL: d.photoURL || d.profilePhotoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
-      });
-      return;
+        photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+      };
+    } else {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const d = userDoc.data();
+        sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: user.email || d.email,
+          role: d.userType || d.role || 'agent',
+          photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+        };
+      }
     }
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const d = userDoc.data();
-      window.updateSidebarUserProfile({
-        fullName: d.fullName || d.name || d.displayName,
-        displayName: d.fullName || d.name || d.displayName,
-        email: user.email || d.email,
-        role: d.userType || d.role || 'agent',
-        photoURL: d.photoURL || d.profilePhotoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
-      });
-      return;
+    if (!sidebarData) {
+      sidebarData = {
+        fullName: user.displayName,
+        displayName: user.displayName,
+        email: user.email,
+        role: 'agent',
+        photoURL: user.photoURL
+      };
     }
-    window.updateSidebarUserProfile({
-      fullName: user.displayName,
-      displayName: user.displayName,
-      email: user.email,
-      role: 'agent',
-      photoURL: user.photoURL
-    });
+    try { localStorage.setItem('userData', JSON.stringify(sidebarData)); } catch (e) {}
+    window.updateSidebarUserProfile(sidebarData);
   } catch (e) {
     console.warn('Could not load agent profile:', e);
-    window.updateSidebarUserProfile({
-      fullName: user.displayName,
-      email: user.email,
-      role: 'agent',
-      photoURL: user.photoURL
-    });
+    const fallback = { fullName: user.displayName, email: user.email, role: 'agent', photoURL: user.photoURL };
+    try { localStorage.setItem('userData', JSON.stringify(fallback)); } catch (e) {}
+    window.updateSidebarUserProfile(fallback);
   }
 }
 
@@ -1477,7 +1490,9 @@ async function loadSidebarBasedOnViewer(user, isOwnProfile) {
     const html = await response.text();
     document.getElementById('sidebar-container').innerHTML = html;
     
-    // Update sidebar with agent profile when agent views own profile
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile();
+    }
     if (user && isOwnProfile) {
       await loadAgentProfileForSidebar(user);
     }
@@ -1501,6 +1516,9 @@ async function loadDefaultSidebar() {
     const response = await fetch('sidebar.html');
     const html = await response.text();
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile();
+    }
     highlightActiveSidebarLink();
     setupLogoutButton();
   } catch (fallbackError) {
@@ -1516,14 +1534,9 @@ async function loadDefaultSidebar() {
 function highlightActiveSidebarLink() {
   const links = document.querySelectorAll('.sidebar-link');
   links.forEach(link => {
-    // Remove active class from all links
     link.classList.remove('active');
-    
-    // Check if this link points to a profile page
     const href = link.getAttribute('href') || '';
-    if (href.includes('profile.html') || 
-        href.includes('agent_profile') || 
-        href.includes('profile_agent')) {
+    if (href === 'agent_ownprofile.html' || href.includes('agent_ownprofile')) {
       link.classList.add('active');
     }
   });
@@ -1542,21 +1555,18 @@ function updatePageTitle(isOwnProfile) {
   }
 }
 
-// Setup back button to go to previous page (only once)
-let backButtonSetup = false;
-function setupBackButton() {
+// Update back button
+function updateBackButton() {
   const backButton = document.getElementById('backButton');
-  if (!backButton || backButtonSetup) return;
-  backButtonSetup = true;
-  backButton.addEventListener('click', function(e) {
-    e.preventDefault();
-    const referrer = document.referrer;
-    if (referrer && referrer.includes(window.location.hostname) && !referrer.includes('profile_agent')) {
-      window.history.back();
-    } else {
-      window.location.href = isOwnProfile ? 'agent_dashboard.html' : 'list_agent.html';
-    }
-  });
+  if (!backButton) return;
+  
+  if (isOwnProfile) {
+    backButton.href = 'agent_dashboard.html';
+    console.log("Back button set to agent dashboard");
+  } else {
+    backButton.href = 'index.html';
+    console.log("Back button set to home (viewing other profile)");
+  }
 }
 
 // ==================== AGENT PROFILE FUNCTIONS ====================
@@ -1584,7 +1594,7 @@ async function loadAgentProfile(agentId) {
       }
 
       hideLoading();
-      setupBackButton();
+      updateBackButton();
       return profileData;
 
     } else {
@@ -1616,41 +1626,79 @@ async function loadAgentProfile(agentId) {
 
 async function loadAgentProfileFromFirestore(agentId) {
   let profileData = null;
+  const isAuthUid = currentUser && agentId === currentUser.uid;
   
-  // Try agents collection first (where edit profile saves data)
+  // Try agents collection first
+  // 1a) Direct doc lookup (doc ID = agentId)
   try {
     const agentDoc = await getDoc(doc(db, "agents", agentId));
     if (agentDoc.exists()) {
       const data = agentDoc.data();
-      console.log("Loaded from agents collection:", data);
+      console.log("Loaded from agents collection (by doc ID):", data);
       profileData = { ...data, id: agentId, userType: 'agent' };
-      
-      // Update localStorage
       localStorage.setItem(`agent_${agentId}`, JSON.stringify(profileData));
     }
   } catch (error) {
-    console.log("Error loading from agents:", error.message);
+    console.log("Error loading from agents by doc ID:", error.message);
   }
   
-  // If still no data, try users collection
-  if (!profileData || Object.keys(profileData).length === 0) {
+  // 1b) For own profile: query agents where authUid === currentUser.uid (agent doc ID differs from auth UID)
+  if (!profileData && isAuthUid) {
     try {
-      const userDoc = await getDoc(doc(db, "users", agentId));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        console.log("Loaded from users collection:", data);
-        
-        // Check if this looks like an agent profile
-        if (data.userType === 'agent' || data.userRole === 'agent') {
-          profileData = { ...data, id: agentId, userType: 'agent' };
-          
-          // Update localStorage
-          localStorage.setItem(`agent_${agentId}`, JSON.stringify(profileData));
-        }
+      const agentsQuery = query(
+        collection(db, "agents"),
+        where("authUid", "==", agentId)
+      );
+      const agentSnapshot = await getDocs(agentsQuery);
+      if (!agentSnapshot.empty) {
+        const agentDoc = agentSnapshot.docs[0];
+        const data = agentDoc.data();
+        console.log("Loaded from agents collection (by authUid):", data);
+        profileData = { ...data, id: agentDoc.id, agentId: agentDoc.id, userType: 'agent' };
+        localStorage.setItem(`agent_${agentId}`, JSON.stringify(profileData));
       }
     } catch (error) {
-      console.log("Error loading from users:", error.message);
+      console.log("Error querying agents by authUid:", error.message);
     }
+  }
+  
+  // 2) Try users collection (doc ID = auth UID for agents who completed setup)
+  try {
+    const userDoc = await getDoc(doc(db, "users", agentId));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      console.log("Loaded from users collection:", data);
+      
+      if (data.userType === 'agent' || data.userRole === 'agent' || data.role === 'agent') {
+        // If users has agentId, fetch full profile from agents collection
+        const linkedAgentId = data.agentId;
+        if (linkedAgentId) {
+          try {
+            const agentDoc = await getDoc(doc(db, "agents", linkedAgentId));
+            if (agentDoc.exists()) {
+              const agentData = agentDoc.data();
+              profileData = { ...agentData, ...data, id: agentId, agentId: linkedAgentId, userType: 'agent' };
+              // Preserve photo from agents - users merge can overwrite with empty
+              const agentPhoto = agentData.photoURL || agentData.profilePhoto || agentData.profileImage || agentData.imageURL;
+              if (agentPhoto) {
+                profileData.photoURL = profileData.photoURL || agentPhoto;
+                profileData.profilePhoto = profileData.profilePhoto || agentPhoto;
+                profileData.profileImage = profileData.profileImage || agentPhoto;
+              }
+            } else {
+              profileData = { ...data, id: agentId, userType: 'agent' };
+            }
+          } catch (e) {
+            profileData = { ...data, id: agentId, userType: 'agent' };
+          }
+        } else {
+          profileData = { ...data, id: agentId, userType: 'agent' };
+        }
+        localStorage.setItem(`agent_${agentId}`, JSON.stringify(profileData));
+      }
+    }
+  } catch (error) {
+    console.log("Error loading from users:", error.message);
   }
   
   // Merge Firebase Auth user data as fallback when viewing own profile
@@ -1693,8 +1741,8 @@ function displayAgentProfile(profile) {
   const workingHours = profile.workingHours || profile.preferredHours || 'Flexible';
   const website = profile.website || (profile.socialMedia && profile.socialMedia.website) || '';
   
-  // Photos - check multiple field names
-  const photoURL = profile.photoURL || profile.profilePhoto || profile.profileImage || profile.imageURL || '';
+  // Photos - check multiple field names (agents: photoURL, profilePhoto, profileImage, imageURL; users: photoURL, profilePhotoURL)
+  const photoURL = profile.photoURL || profile.profilePhoto || profile.profileImage || profile.imageURL || profile.profilePhotoURL || '';
   
   console.log('Agent Photo URL:', photoURL);
   

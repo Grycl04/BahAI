@@ -27,12 +27,41 @@
             --border: #e2e8f0;
         }
 
+        /* Layout - push main content right of fixed sidebar */
+        .container {
+            margin-left: 280px;
+            padding-top: 15px;
+        }
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1001;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        .mobile-menu-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
         /* Hero Section - same as broker dashboard */
         .hero-section {
             background: var(--primary-gradient);
             color: white;
             border-radius: var(--border-radius-lg);
-            padding: 50px 40px;
+            padding: 28px 40px;
             margin-bottom: 40px;
             position: relative;
             overflow: hidden;
@@ -437,21 +466,28 @@
         }
 
         @media (max-width: 1024px) {
-            .container { margin-left: 0; padding: 25px; }
+            .container { margin-left: 240px; padding: 25px; padding-top: 15px; }
+            .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
             .hero-stats { gap: 20px; }
             .table-header { flex-direction: column; gap: 15px; align-items: flex-start; }
             .search-box { width: 100%; }
             .table-controls { width: 100%; }
+            .hero-section { padding: 24px 30px; }
         }
         @media (max-width: 768px) {
-            .container { padding: 20px; }
+            .container { margin-left: 0; padding: 20px; padding-top: 60px; }
+            .mobile-menu-toggle { display: flex !important; }
             .hero-section h1 { font-size: 1.8rem; }
-            .hero-section { padding: 30px 24px; }
+            .hero-section { padding: 22px 24px; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
             .pagination { flex-direction: column; gap: 15px; align-items: flex-start; }
             .confirmation-content { padding: 20px; width: 95%; }
             .confirmation-actions { flex-direction: column; }
             .confirmation-btn { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 15px; padding-top: 58px; }
+            .hero-section { padding: 20px 18px; }
         }
     </style>
 </head>
@@ -1100,6 +1136,7 @@
                 This action will:
                 <ul style="text-align: left; margin: 10px 0 10px 20px; color: var(--danger);">
                     <li>Permanently delete the agent account</li>
+                    <li>Delete ALL properties listed by this agent</li>
                     <li>Remove all agent data from the database</li>
                     <li>Cannot be undone</li>
                 </ul>
@@ -1134,17 +1171,47 @@
                 confirmDeleteBtn.innerHTML = '<span>⏳</span> Deleting...';
                 confirmDeleteBtn.disabled = true;
 
-                // Delete from agents collection
+                const authUid = agent.authUid || null;
+
+                // 1. Delete all properties listed by this agent (userId or agentId matches authUid or agentId)
+                const uidsToMatch = [agentId];
+                if (authUid) uidsToMatch.push(authUid);
+                const propertyIdsToDelete = new Set();
+                for (const uid of uidsToMatch) {
+                    const queries = [
+                        query(collection(db, "properties"), where("userId", "==", uid)),
+                        query(collection(db, "properties"), where("agentId", "==", uid)),
+                        query(collection(db, "properties"), where("listedBy", "==", uid))
+                    ];
+                    for (const q of queries) {
+                        try {
+                            const snap = await getDocs(q);
+                            snap.docs.forEach(d => propertyIdsToDelete.add(d.id));
+                        } catch (e) {
+                            console.warn('Property query failed:', e);
+                        }
+                    }
+                }
+                for (const propId of propertyIdsToDelete) {
+                    await deleteDoc(doc(db, "properties", propId));
+                }
+                if (propertyIdsToDelete.size > 0) {
+                    console.log(`✅ Deleted ${propertyIdsToDelete.size} properties for agent`);
+                }
+
+                // 2. Delete from users collection (doc ID = authUid for agents who completed setup)
+                if (authUid) {
+                    try {
+                        await deleteDoc(doc(db, "users", authUid));
+                        console.log(`✅ Deleted agent from users collection`);
+                    } catch (error) {
+                        // It's okay if it doesn't exist
+                    }
+                }
+
+                // 3. Delete from agents collection
                 await deleteDoc(doc(db, "agents", agentId));
                 console.log(`✅ Deleted agent ${agentId} from agents collection`);
-                
-                // Also delete from users collection if exists
-                try {
-                    await deleteDoc(doc(db, "users", agentId));
-                    console.log(`✅ Also deleted from users collection`);
-                } catch (error) {
-                    // It's okay if it doesn't exist in users
-                }
 
                 // Remove from local arrays
                 allAgents = allAgents.filter(a => a.id !== agentId);
@@ -1155,7 +1222,8 @@
                 renderAgents();
 
                 // Show success message
-                alert(`✅ Agent ${agent.fullName || agent.firstName || ''} has been permanently deleted.`);
+                const propMsg = propertyIdsToDelete.size > 0 ? ` (${propertyIdsToDelete.size} properties removed)` : '';
+                alert(`✅ Agent ${agent.fullName || agent.firstName || ''} has been permanently deleted${propMsg}.`);
 
             } catch (error) {
                 console.error("Error deleting agent:", error);

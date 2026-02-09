@@ -422,6 +422,123 @@
       border-color: var(--error);
     }
 
+    /* Role Modal Styles */
+    .role-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .role-modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease;
+    }
+
+    .role-option {
+      padding: 20px;
+      border: 2px solid var(--neutral-medium);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+    }
+
+    .role-option:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .role-option.active {
+      border-color: var(--accent);
+      background: var(--beige);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .role-option .icon {
+      font-size: 40px;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .role-option .title {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+
+    .role-option .description {
+      font-size: 13px;
+      color: var(--text-light);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Modal buttons */
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 15px;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+      border: none;
+      font-size: 15px;
+    }
+
+    .modal-btn-cancel {
+      background: var(--neutral-light);
+      border: 2px solid var(--neutral-medium);
+      color: var(--text-dark);
+    }
+
+    .modal-btn-cancel:hover {
+      background: var(--neutral-medium);
+    }
+
+    .modal-btn-confirm {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      font-weight: 600;
+    }
+
+    .modal-btn-confirm:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-btn-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* Responsive Design */
     @media (max-width: 1024px) {
       .signup-wrapper {
@@ -520,6 +637,19 @@
         padding: 16px;
         font-size: 15px;
       }
+
+      .role-modal-content {
+        padding: 30px 20px;
+      }
+
+      .role-option {
+        min-height: 120px;
+        padding: 15px;
+      }
+
+      .role-option .icon {
+        font-size: 32px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -561,6 +691,27 @@
       .login-link {
         font-size: 14px;
       }
+
+      .modal-buttons {
+        flex-direction: column;
+      }
+
+      .role-option {
+        min-height: 100px;
+        padding: 12px;
+      }
+
+      .role-option .icon {
+        font-size: 28px;
+      }
+
+      .role-option .title {
+        font-size: 14px;
+      }
+
+      .role-option .description {
+        font-size: 12px;
+      }
     }
 
     @media (max-width: 360px) {
@@ -575,6 +726,10 @@
       
       .signup-title {
         font-size: 22px;
+      }
+
+      .role-modal-content {
+        padding: 20px 15px;
       }
     }
 
@@ -624,6 +779,12 @@
         transform: translateY(0);
       }
     }
+
+    /* Custom animation for modal */
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -632,7 +793,7 @@
     <div class="visual-side">
       <div class="visual-content">
         <h1 class="visual-title">Join Our Premium Real Estate Network</h1>
-        <p class="visual-subtitle">Create your account to access exclusive tools for agents, brokers, landlords, and sellers to grow your real estate business.</p>
+        <p class="visual-subtitle">Create your account to access exclusive tools for brokers, landlords, and property buyers.</p>
         
         <ul class="visual-features">
           <li><i class="fas fa-home"></i> List and manage properties with advanced tools</li>
@@ -735,7 +896,7 @@
             </div>
             <div id="phoneError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
-  <span>Please enter a valid Philippine phone number (09XXXXXXXXX, +639XXXXXXXXX, or 639XXXXXXXXX)</span>
+              <span>Please enter a valid Philippine phone number (09XXXXXXXXX, +639XXXXXXXXX, or 639XXXXXXXXX)</span>
             </div>
           </div>
         </div>
@@ -745,14 +906,13 @@
           <div class="input-container">
             <select id="role" class="form-select" required aria-label="Account Type">
               <option value="">Select account type</option>
-              <option value="broker">Broker (Licensed Real Estate Broker)</option>
-              <option value="agent">Agent (Property Agent under Broker)</option>
-              <option value="seller">Seller (Property Owner)</option>
+              <option value="broker">Broker (Licensed Real Estate Professional)</option>
               <option value="landlord">Landlord (Property Lessor)</option>
+              <option value="buyer">Buyer (Property Seeker)</option>
             </select>
           </div>
           <p class="form-note">
-            <i class="fas fa-info-circle"></i> You'll need to complete KYC verification after signup to post properties.
+            <i class="fas fa-info-circle"></i> Note: Agent accounts are created by Brokers. If you're an agent, please ask your broker to create your account.
           </p>
           <div id="roleError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
@@ -789,7 +949,6 @@
   <script type="module">
 import { auth, db } from './firebase-common.js';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-// FIX: Add getDoc to imports
 import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const el = id => document.getElementById(id);
@@ -940,13 +1099,13 @@ el('signupForm').addEventListener('submit', async (e) => {
   }
   
   // Validate phone - basic validation
-const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
-const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
-if (!phone || !phPhoneRegex.test(cleanedPhone)) {
-  phoneInput.classList.add('error');
-  phoneError.classList.add('show');
-  isValid = false;
-}
+  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+  const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
+  if (!phone || !phPhoneRegex.test(cleanedPhone)) {
+    phoneInput.classList.add('error');
+    phoneError.classList.add('show');
+    isValid = false;
+  }
   
   // Validate role
   if (!role) {
@@ -969,16 +1128,15 @@ if (!phone || !phPhoneRegex.test(cleanedPhone)) {
 
     await setDoc(doc(db, 'users', uid), {
       fullName, email, phone, role,
-      kycStatus: "not_submitted",
+      kycStatus: role === 'buyer' ? "not_required" : "not_submitted",
       createdAt: serverTimestamp()
     });
 
-    // Updated redirect paths to match the login page
+    // Redirect paths based on role
     const dashboardMap = {
       broker: 'broker/broker_dashboard.html',
-      agent: 'broker/agent_dashboard.html',
-      seller: 'seller/seller_dashboard.html',
-      landlord: 'landlord/landlord_dashboard.html'
+      landlord: 'landlord/landlord_dashboard.html',
+      buyer: 'buyer/buyer_dashboard.html'
     };
     
     const redirectUrl = dashboardMap[role] || 'login.html';
@@ -996,57 +1154,202 @@ if (!phone || !phPhoneRegex.test(cleanedPhone)) {
   }
 });
 
-// ✅ Google Signup
+// Function to show role selection modal
+function showRoleSelectionModal() {
+  return new Promise((resolve) => {
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'role-modal-overlay';
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'role-modal-content';
+    
+    modalContent.innerHTML = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 24px; color: var(--primary); font-weight: 600; margin-bottom: 10px;">
+          Select Your Account Type
+        </div>
+        <div style="color: var(--text-light); font-size: 15px;">
+          Choose how you'll use BahAI Real Estate
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+        <div class="role-option" data-role="broker">
+          <div class="icon">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="title">Broker</div>
+          <div class="description">Licensed Real Estate Professional</div>
+        </div>
+        
+        <div class="role-option" data-role="landlord">
+          <div class="icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="title">Landlord</div>
+          <div class="description">Property Owner/Lessor</div>
+        </div>
+        
+        <div class="role-option" data-role="buyer">
+          <div class="icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="title">Buyer</div>
+          <div class="description">Property Seeker/Investor</div>
+        </div>
+      </div>
+      
+      <div style="font-size: 14px; color: var(--text-light); background: var(--neutral-light); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+        <i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i>
+        Note: Agent accounts are created by Brokers. If you're an agent, please ask your broker to create your account.
+      </div>
+      
+      <div class="modal-buttons">
+        <button id="cancelRoleSelect" class="modal-btn modal-btn-cancel">
+          Cancel
+        </button>
+        <button id="confirmRoleSelect" class="modal-btn modal-btn-confirm" disabled>
+          Continue with Google
+        </button>
+      </div>
+    `;
+    
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    
+    let selectedRole = null;
+    
+    // Add click handlers for role options
+    const roleOptions = modalContent.querySelectorAll('.role-option');
+    roleOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        // Remove active class from all options
+        roleOptions.forEach(opt => {
+          opt.classList.remove('active');
+        });
+        
+        // Add active class to selected option
+        selectedRole = option.dataset.role;
+        option.classList.add('active');
+        
+        // Enable confirm button
+        const confirmBtn = modalContent.querySelector('#confirmRoleSelect');
+        confirmBtn.disabled = false;
+      });
+    });
+    
+    // Confirm button handler
+    modalContent.querySelector('#confirmRoleSelect').addEventListener('click', () => {
+      if (selectedRole) {
+        modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => {
+          document.body.removeChild(modalOverlay);
+          document.body.style.overflow = 'auto';
+        }, 300);
+        resolve(selectedRole);
+      }
+    });
+    
+    // Cancel button handler
+    modalContent.querySelector('#cancelRoleSelect').addEventListener('click', () => {
+      modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+      setTimeout(() => {
+        document.body.removeChild(modalOverlay);
+        document.body.style.overflow = 'auto';
+      }, 300);
+      resolve(null);
+    });
+    
+    // Close on ESC key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => {
+          document.body.removeChild(modalOverlay);
+          document.body.style.overflow = 'auto';
+          document.removeEventListener('keydown', handleEscape);
+        }, 300);
+        resolve(null);
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+  });
+}
+
+// ✅ Google Signup with Role Selection Modal
 el('googleSignupBtn').addEventListener('click', async () => {
   try {
+    // Show role selection modal before Google auth
+    const selectedRole = await showRoleSelectionModal();
+    
+    if (!selectedRole) {
+      // User cancelled the modal
+      return;
+    }
+    
+    // Disable the Google button during signup
+    const googleBtn = el('googleSignupBtn');
+    const originalText = googleBtn.innerHTML;
+    googleBtn.disabled = true;
+    googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+    
+    // Proceed with Google authentication
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
-    let data;
     if (!docSnap.exists()) {
-      const role = prompt("Enter your role (broker/agent/seller/landlord):").toLowerCase();
-      // Validate role input
-      const validRoles = ['broker', 'agent', 'seller', 'landlord'];
-      if (!validRoles.includes(role)) {
-        showError("❌ Invalid role. Please enter: broker, agent, seller, or landlord");
-        return;
-      }
-      data = {
+      // New user - create their profile
+      const userData = {
         fullName: user.displayName,
         email: user.email,
-        role,
-        kycStatus: "not_submitted",
-        createdAt: serverTimestamp()
+        phone: user.phoneNumber || "",
+        role: selectedRole,
+        kycStatus: selectedRole === 'buyer' ? "not_required" : "not_submitted",
+        createdAt: serverTimestamp(),
+        profilePhoto: user.photoURL || "",
+        emailVerified: user.emailVerified
       };
-      await setDoc(userRef, data);
-      showSuccess("✅ Account created! Please complete KYC verification to post properties.");
+      
+      await setDoc(userRef, userData);
+      showSuccess("✅ Account created successfully! Redirecting...");
+      
+      // Redirect based on selected role
       setTimeout(() => {
         const dashboardMap = {
           broker: 'broker/broker_dashboard.html',
-          agent: 'broker/agent_dashboard.html',
-          seller: 'seller/seller_dashboard.html',
-          landlord: 'landlord/landlord_dashboard.html'
+          landlord: 'landlord/landlord_dashboard.html',
+          buyer: 'buyer/buyer_dashboard.html'
         };
-        window.location.href = dashboardMap[role] || 'login.html';
+        window.location.href = dashboardMap[selectedRole] || 'login.html';
       }, 1500);
-      return;
     } else {
-      data = docSnap.data();
+      // Existing user - redirect to their dashboard
+      const userData = docSnap.data();
+      showSuccess("✅ Welcome back! Redirecting...");
+      
+      setTimeout(() => {
+        const dashboardMap = {
+          broker: 'broker/broker_dashboard.html',
+          landlord: 'landlord/landlord_dashboard.html',
+          buyer: 'buyer/buyer_dashboard.html'
+        };
+        window.location.href = dashboardMap[userData.role] || 'login.html';
+      }, 1500);
     }
-
-    // Redirect based on role
-    const dashboardMap = {
-      broker: 'broker/broker_dashboard.html',
-      agent: 'broker/agent_dashboard.html',
-      seller: 'seller/seller_dashboard.html',
-      landlord: 'landlord/landlord_dashboard.html'
-    };
-    window.location.href = dashboardMap[data.role] || 'login.html';
 
   } catch (error) {
     showError("❌ Google sign-in failed: " + error.message);
+    
+    // Re-enable the Google button
+    const googleBtn = el('googleSignupBtn');
+    googleBtn.disabled = false;
+    googleBtn.innerHTML = originalText || '<i class="fab fa-google"></i> Continue with Google';
   }
 });
 

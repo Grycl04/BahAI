@@ -433,6 +433,9 @@ fetch('agent_sidebar.html')
   })
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile();
+    }
     console.log('✅ Agent sidebar loaded successfully');
     
     // Set active state for current page
@@ -860,50 +863,49 @@ function showNoAgentError() {
 // Load agent profile for sidebar (agents collection first, then users)
 async function loadAgentProfile(user) {
   try {
+    let sidebarData = null;
     const agentDoc = await getDoc(doc(db, "agents", user.uid));
     if (agentDoc.exists()) {
       const d = agentDoc.data();
-      const sidebarData = {
+      sidebarData = {
         fullName: d.fullName || d.name || d.displayName,
         displayName: d.fullName || d.name || d.displayName,
         email: user.email || d.email,
-        role: d.userType || d.role || 'agent'
+        role: d.userType || d.role || 'agent',
+        photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
       };
-      if (typeof window.updateSidebarUserProfile === 'function') {
-        window.updateSidebarUserProfile(sidebarData);
+    } else {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const d = userDoc.data();
+        sidebarData = {
+          fullName: d.fullName || d.name || d.displayName,
+          displayName: d.fullName || d.name || d.displayName,
+          email: user.email || d.email,
+          role: d.userType || d.role || 'agent',
+          photoURL: d.photoURL || d.profilePhoto || d.profileImage || d.imageURL || user.photoURL
+        };
       }
-      return;
     }
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const d = userDoc.data();
-      const sidebarData = {
-        fullName: d.fullName || d.name || d.displayName,
-        displayName: d.fullName || d.name || d.displayName,
-        email: user.email || d.email,
-        role: d.userType || d.role || 'agent'
-      };
-      if (typeof window.updateSidebarUserProfile === 'function') {
-        window.updateSidebarUserProfile(sidebarData);
-      }
-      return;
-    }
-    if (typeof window.updateSidebarUserProfile === 'function') {
-      window.updateSidebarUserProfile({
+    if (!sidebarData) {
+      sidebarData = {
         fullName: user.displayName,
         displayName: user.displayName,
         email: user.email,
-        role: 'agent'
-      });
+        role: 'agent',
+        photoURL: user.photoURL
+      };
+    }
+    try { localStorage.setItem('userData', JSON.stringify(sidebarData)); } catch (e) {}
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile(sidebarData);
     }
   } catch (e) {
     console.warn('Could not load agent profile:', e);
     if (user && typeof window.updateSidebarUserProfile === 'function') {
-      window.updateSidebarUserProfile({
-        fullName: user.displayName,
-        email: user.email,
-        role: 'agent'
-      });
+      const fallback = { fullName: user.displayName, email: user.email, role: 'agent', photoURL: user.photoURL };
+      try { localStorage.setItem('userData', JSON.stringify(fallback)); } catch (e) {}
+      window.updateSidebarUserProfile(fallback);
     }
   }
 }

@@ -781,18 +781,8 @@
               <input type="file" id="profilePhotoInput" accept="image/*" onchange="previewImage(event, 'profilePhotoPreview')">
               <button class="upload-btn" onclick="document.getElementById('profilePhotoInput').click()">Upload Photo</button>
             </div>
-            <div class="photo-upload-item">
-              <div class="photo-preview" id="coverPhotoPreview" onclick="document.getElementById('coverPhotoInput').click()">
-                <div class="photo-placeholder">
-                  <i class="fas fa-image"></i>
-                  <span>Cover Photo</span>
-                </div>
-              </div>
-              <input type="file" id="coverPhotoInput" accept="image/*" onchange="previewImage(event, 'coverPhotoPreview')">
-              <button class="upload-btn" onclick="document.getElementById('coverPhotoInput').click()">Upload Cover</button>
-            </div>
           </div>
-          <div class="form-help">Profile photo is required. Recommended: Profile photo (400x400px), Cover photo (1200x400px). Max file size: 5MB</div>
+          <div class="form-help">Profile photo is required. Recommended: 400x400px. Max file size: 5MB</div>
         </div>
 
         <div class="form-grid">
@@ -1149,7 +1139,6 @@ let propertyTags = [];
 let serviceAreaTags = [];
 let servicesOffered = [];
 let profilePhotoFile = null;
-let coverPhotoFile = null;
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function() {
@@ -1302,8 +1291,6 @@ window.previewImage = function(event, previewId) {
       // Store the file for later upload
       if (previewId === 'profilePhotoPreview') {
         profilePhotoFile = file;
-      } else if (previewId === 'coverPhotoPreview') {
-        coverPhotoFile = file;
       }
     };
     
@@ -1320,11 +1307,10 @@ window.previewImage = function(event, previewId) {
 
 function resetPhotoPreview(previewId) {
   const preview = document.getElementById(previewId);
-  const type = previewId.includes('profile') ? 'Profile' : 'Cover';
   preview.innerHTML = `
     <div class="photo-placeholder">
-      <i class="fas fa-${previewId.includes('profile') ? 'user' : 'image'}"></i>
-      <span>${type} Photo</span>
+      <i class="fas fa-user"></i>
+      <span>Profile Photo</span>
     </div>
   `;
 }
@@ -1436,9 +1422,6 @@ function populateFormFields(data) {
   // Photos
   if (data.photoURL) {
     document.getElementById('profilePhotoPreview').innerHTML = `<img src="${data.photoURL}" alt="Profile">`;
-  }
-  if (data.coverPhotoURL) {
-    document.getElementById('coverPhotoPreview').innerHTML = `<img src="${data.coverPhotoURL}" alt="Cover">`;
   }
 }
 
@@ -1646,22 +1629,12 @@ async function submitProfile() {
       saveStepData(i);
     }
     
-    // Upload photos
-    let profilePhotoURL = '';
-    let coverPhotoURL = '';
-    
     // Upload profile photo
+    let profilePhotoURL = '';
     if (profilePhotoFile) {
       showLoading('Uploading profile photo...');
       profilePhotoURL = await uploadPhoto(profilePhotoFile, 'profile');
       console.log('Profile photo URL:', profilePhotoURL);
-    }
-    
-    // Upload cover photo (optional)
-    if (coverPhotoFile) {
-      showLoading('Uploading cover photo...');
-      coverPhotoURL = await uploadPhoto(coverPhotoFile, 'cover');
-      console.log('Cover photo URL:', coverPhotoURL);
     }
     
     // Prepare complete profile data
@@ -1706,10 +1679,6 @@ async function submitProfile() {
     if (profilePhotoURL) {
       userData.photoURL = profilePhotoURL;
       userData.profilePhoto = profilePhotoURL;
-    }
-    if (coverPhotoURL) {
-      userData.coverPhotoURL = coverPhotoURL;
-      userData.coverPhoto = coverPhotoURL;
     }
     
     // Add creation date if new profile

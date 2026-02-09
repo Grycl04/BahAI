@@ -137,91 +137,6 @@
     .page-title p { color: var(--text-light); font-size: 16px; line-height: 1.4; }
     .header-actions { display: flex; gap: 15px; align-items: center; }
 
-    /* ===== KYC BLUR OVERLAY ===== */
-    .kyc-blur-overlay {
-      position: relative;
-      min-height: 500px;
-    }
-
-    .kyc-blur-overlay::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      z-index: 10;
-      pointer-events: none;
-      border-radius: var(--border-radius);
-    }
-
-    .kyc-blur-overlay .form-content {
-      filter: blur(3px);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .kyc-warning-blur {
-      position: relative;
-      z-index: 100;
-      margin-bottom: 25px;
-    }
-
-    .kyc-blur-container {
-      position: relative;
-      max-width: 1200px;
-      margin: 0 auto 25px;
-      transition: all 0.3s ease;
-    }
-
-    .kyc-overlay-message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 100;
-      text-align: center;
-      background: rgba(11, 46, 82, 0.95);
-      color: white;
-      padding: 40px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .kyc-overlay-message h3 {
-      color: white;
-      margin-bottom: 15px;
-      font-size: 20px;
-    }
-
-    .kyc-overlay-message p {
-      margin-bottom: 20px;
-      opacity: 0.9;
-    }
-
-    .kyc-overlay-message a {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--accent-gradient);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .kyc-overlay-message a:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-
     /* ===== KYC BADGE ===== */
     .kyc-badge {
       padding: 8px 16px;
@@ -676,48 +591,115 @@
       border: 1px solid #fbd38d;
     }
 
-    /* ===== KYC WARNING ===== */
-    .kyc-warning {
-      background: linear-gradient(135deg, #feebc8, #fbd38d);
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 25px;
-      text-align: center;
-      border: none;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
+    /* ===== FORM DISABLED STATE ===== */
+    .form-disabled {
+      position: relative;
     }
 
-    .kyc-warning h2 {
-      color: #744210;
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 18px;
-      font-weight: 600;
+    .form-disabled::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      backdrop-filter: blur(2px);
+      background: rgba(255, 255, 255, 0.3);
+      z-index: 100;
+      border-radius: 16px;
+      pointer-events: auto;
+    }
+
+    .form-disabled .form-content {
+      opacity: 0.85;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .form-disabled input,
+    .form-disabled select,
+    .form-disabled textarea,
+    .form-disabled .image-upload-area,
+    .form-disabled .amenity-item input[type="checkbox"],
+    .form-disabled .btn,
+    .form-disabled .type-card {
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    /* ===== FULL PAGE BLUR OVERLAY ===== */
+    .full-page-blur-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      backdrop-filter: blur(2px);
+      background: rgba(255, 255, 255, 0.4);
+      z-index: 101;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .full-page-blur-overlay h2 {
+      color: #d63031;
+      font-size: 24px;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
+      gap: 15px;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
     }
 
-    .kyc-warning a {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      color: white;
-      padding: 10px 20px;
+    .full-page-blur-overlay .status {
+      font-size: 18px;
+      font-weight: bold;
+      color: #d63031;
+      margin-bottom: 20px;
+      padding: 10px 25px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 10px;
+      border: 2px solid #ff7675;
+      backdrop-filter: none;
+    }
+
+    .full-page-blur-overlay .message {
+      font-size: 16px;
+      color: var(--text-dark);
+      margin-bottom: 30px;
+      max-width: 600px;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 15px;
       border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      margin-top: 15px;
-      transition: all 0.3s ease;
     }
 
-    .kyc-warning a:hover {
+    .full-page-blur-overlay .kyc-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #e74c3c, #ff6b6b);
+      color: white;
+      padding: 16px 35px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .full-page-blur-overlay .kyc-button:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow);
+      box-shadow: 0 12px 25px rgba(231, 76, 60, 0.5);
     }
 
     /* ===== MAP STYLES ===== */
@@ -988,35 +970,26 @@
   
   <!-- Main Content - same layout as broker dashboard -->
   <div class="main-content" id="mainContent">
-    <!-- Hero Section - broker add property -->
-    <div class="hero-section">
-      <h1>Add Property to Your Brokerage</h1>
-      <p>List properties for sale or lease under your brokerage</p>
-      <div class="hero-actions" id="heroActionsContainer">
-        <div class="header-actions">
-          <div id="kycBadge" class="kyc-badge" style="display: none;">
-            <i class="bi bi-shield-check"></i>
-            <span id="kycBadgeText">KYC Status</span>
-          </div>
+  <!-- Hero Section - broker add property -->
+  <div class="hero-section">
+    <h1>Add Property to Your Brokerage</h1>
+    <p>List properties for sale or lease under your brokerage</p>
+    <div class="hero-actions" id="heroActionsContainer">
+      <div class="header-actions">
+        <div id="kycBadge" class="kyc-badge" style="display: none;">
+          <i class="bi bi-shield-check"></i>
+          <span id="kycBadgeText">KYC Status</span>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- KYC Warning -->
-    <div id="kycWarning" class="kyc-warning" style="display: none;">
-      <h2><i class="bi bi-exclamation-triangle"></i> KYC Verification Required</h2>
-      <p id="kycStatusText"></p>
-      <p id="kycMessage"></p>
-      <a href="../kyc.html">
-        <i class="bi bi-shield-lock"></i> Complete KYC Verification
-      </a>
-    </div>
+  <!-- Success/Error Messages -->
+  <div id="messageBox" class="message" style="display: none;"></div>
 
-    <!-- Success/Error Messages -->
-    <div id="messageBox" class="message" style="display: none;"></div>
-
-    <!-- Type Selection -->
-    <div class="card">
+  <!-- Type Selection -->
+  <div class="card" id="typeSelectionCard" style="position: relative;">
+    <div class="form-content">
       <div class="type-selection">
         <h2>Choose Listing Type</h2>
         <div class="type-grid">
@@ -1037,617 +1010,644 @@
         </div>
       </div>
     </div>
-
-    <!-- SALE Form -->
-    <div id="saleFormContainer" class="kyc-blur-container">
-      <div id="saleForm" class="card property-details active">
-        <h2 style="color: var(--text-dark); margin-top: 0; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
-          <i class="bi bi-cash-coin"></i> Post Property For Sale
-        </h2>
-        <form id="saleFormData" class="form-content">
-          <!-- Basic Information -->
-          <h3 class="section-title"><i class="bi bi-info-circle"></i> Basic Information</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="saleTitle" class="required">Property Title</label>
-              <input type="text" id="saleTitle" placeholder="e.g., Modern 3-Bedroom House in Alabang" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="salePropertyCategory" class="required">Property Category</label>
-              <select id="salePropertyCategory" required onchange="updateSalePropertyTypes()">
-                <option value="">-- Select Category --</option>
-                <option value="residential">Residential Property</option>
-                <option value="commercial">Commercial Property</option>
-                <option value="land">Land / Lot</option>
-                <option value="condo">Condominium</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="salePropertyType" class="required">Property Type</label>
-              <select id="salePropertyType" required>
-                <option value="">-- Select Type --</option>
-                <!-- Options populated by JavaScript -->
-              </select>
-            </div>
-          </div>
-
-          <!-- Property Specifications -->
-          <h3 class="section-title"><i class="bi bi-rulers"></i> Property Specifications</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="saleBedrooms" class="required">Bedrooms</label>
-              <select id="saleBedrooms" required>
-                <option value="">-- Select --</option>
-                <option value="studio">Studio</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5+</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleBathrooms" class="required">Bathrooms</label>
-              <select id="saleBathrooms" required>
-                <option value="">-- Select --</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4+</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleFloorArea" class="required">Floor Area (sqm)</label>
-              <div class="input-with-icon">
-                <i class="bi bi-rulers"></i>
-                <input type="number" id="saleFloorArea" placeholder="e.g., 120" min="1" required>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleLotArea">Lot Area (sqm)</label>
-              <div class="input-with-icon">
-                <i class="bi bi-map"></i>
-                <input type="number" id="saleLotArea" placeholder="e.g., 300" min="1">
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleFurnishing">Furnishing</label>
-              <select id="saleFurnishing">
-                <option value="">-- Select --</option>
-                <option value="furnished">Fully Furnished</option>
-                <option value="semi-furnished">Semi-Furnished</option>
-                <option value="unfurnished">Unfurnished</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleYearBuilt">Year Built</label>
-              <div class="input-with-icon">
-                <i class="bi bi-calendar"></i>
-                <input type="number" id="saleYearBuilt" placeholder="e.g., 2015" min="1900" max="2024">
-              </div>
-            </div>
-          </div>
-
-          <!-- Sale Information -->
-          <h3 class="section-title"><i class="bi bi-currency-exchange"></i> Sale Information</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="salePrice" class="required">Asking Price (₱)</label>
-              <div class="input-with-icon">
-                <i class="bi bi-cash-stack"></i>
-                <input type="number" id="salePrice" placeholder="e.g., 5,000,000" min="100000" step="10000" required>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="priceNegotiable">Price Negotiable?</label>
-              <select id="priceNegotiable">
-                <option value="yes">Yes</option>
-                <option value="no" selected>No</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleType" class="required">Sale Type</label>
-              <div class="sale-type-grid">
-                <div class="sale-option" onclick="selectSaleType('outright')">
-                  <h4>Outright Sale</h4>
-                  <p style="font-size: 13px; color: var(--text-light);">Full payment upon closing</p>
-                </div>
-                <div class="sale-option" onclick="selectSaleType('installment')">
-                  <h4>Installment</h4>
-                  <p style="font-size: 13px; color: var(--text-light);">Payment in installments</p>
-                </div>
-                <div class="sale-option" onclick="selectSaleType('bank_financing')">
-                  <h4>Bank Financing</h4>
-                  <p style="font-size: 13px; color: var(--text-light);">With bank loan option</p>
-                </div>
-              </div>
-              <input type="hidden" id="saleTypeInput" name="saleType" required>
-            </div>
-          </div>
-
-          <!-- Location -->
-          <h3 class="section-title"><i class="bi bi-geo-alt"></i> Location Details</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="saleAddress" class="required">Full Address</label>
-              <input type="text" id="saleAddress" placeholder="Complete address" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleCity" class="required">City/Municipality</label>
-              <input type="text" id="saleCity" placeholder="e.g., Muntinlupa City" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="saleProvince" class="required">Province</label>
-              <input type="text" id="saleProvince" placeholder="e.g., Metro Manila" required>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>📍 Pin Location on Map</label>
-            <input type="text" id="saleLocationSearch" placeholder="Search address or click on map..." style="margin-bottom: 10px;">
-            <div id="saleMapPicker"></div>
-            <div class="coordinates-display">
-              <div class="coord-box">
-                <label>Latitude</label>
-                <span id="saleLatDisplay">Not set</span>
-              </div>
-              <div class="coord-box">
-                <label>Longitude</label>
-                <span id="saleLngDisplay">Not set</span>
-              </div>
-            </div>
-            <input type="hidden" id="saleLatitude" name="saleLatitude">
-            <input type="hidden" id="saleLongitude" name="saleLongitude">
-          </div>
-
-          <!-- Property Features -->
-          <h3 class="section-title"><i class="bi bi-house-door"></i> Property Features</h3>
-          <div class="amenities-grid">
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_wifi" name="saleAmenities" value="WiFi">
-              <label for="sale_wifi"><i class="bi bi-wifi"></i> WiFi</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_ac" name="saleAmenities" value="Air Conditioning">
-              <label for="sale_ac"><i class="bi bi-snow"></i> Air Conditioning</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_parking" name="saleAmenities" value="Parking">
-              <label for="sale_parking"><i class="bi bi-car-front"></i> Parking</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_garden" name="saleAmenities" value="Garden">
-              <label for="sale_garden"><i class="bi bi-flower1"></i> Garden</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_swimming_pool" name="saleAmenities" value="Swimming Pool">
-              <label for="sale_swimming_pool"><i class="bi bi-water"></i> Swimming Pool</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_gym" name="saleAmenities" value="Gym">
-              <label for="sale_gym"><i class="bi bi-activity"></i> Gym</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_security" name="saleAmenities" value="24/7 Security">
-              <label for="sale_security"><i class="bi bi-shield-check"></i> 24/7 Security</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_elevator" name="saleAmenities" value="Elevator">
-              <label for="sale_elevator"><i class="bi bi-arrow-up-circle"></i> Elevator</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_balcony" name="saleAmenities" value="Balcony">
-              <label for="sale_balcony"><i class="bi bi-building"></i> Balcony</label>
-            </div>
-            <div class="amenity-item">
-              <input type="checkbox" id="sale_fireplace" name="saleAmenities" value="Fireplace">
-              <label for="sale_fireplace"><i class="bi bi-fire"></i> Fireplace</label>
-            </div>
-          </div>
-          <div class="form-group" style="margin-top: 15px;">
-            <label for="saleOtherAmenities">Other Features (comma-separated)</label>
-            <input type="text" id="saleOtherAmenities" placeholder="e.g., Smart Home, Solar Panels, CCTV">
-          </div>
-
-          <!-- Property Description -->
-          <div class="form-group">
-            <label for="saleDescription" class="required">Property Description</label>
-            <textarea id="saleDescription" placeholder="Describe your property in detail, include unique selling points, neighborhood features, etc..." rows="6" required></textarea>
-          </div>
-
-          <!-- Images -->
-          <h3 class="section-title"><i class="bi bi-images"></i> Property Images & Videos</h3>
-          <div class="image-upload-area" onclick="document.getElementById('saleMediaFiles').click()">
-            <i class="bi bi-cloud-arrow-up"></i>
-            <p>Upload Property Images & Videos</p>
-            <p class="upload-info">Drag & drop or click to browse</p>
-            <p class="upload-info">Max 10 files • Images: 5MB, Videos: 100MB • JPG, PNG, MP4, AVI, MOV</p>
-            <div id="saleMediaCount" class="selected-count" style="display: none;">0 files</div>
-          </div>
-          <input type="file" id="saleMediaFiles" accept="image/*,video/*" multiple style="display: none;" onchange="handleSaleMediaSelection(event)">
-          <div class="preview-container" id="salePreviewContainer"></div>
-
-          <!-- Form Actions -->
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" onclick="resetSaleForm()">
-              <i class="bi bi-arrow-clockwise"></i> Reset Form
-            </button>
-            <button type="submit" class="btn btn-primary" id="submitSaleBtn">
-              <i class="bi bi-check-circle"></i> Post Property for Sale
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- LEASE Form (initially hidden) -->
-      <div id="leaseFormContainer" class="kyc-blur-container" style="display: none;">
-        <div id="leaseForm" class="card property-details">
-          <h2 style="color: var(--text-dark); margin-top: 0; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
-            <i class="bi bi-file-text"></i> Post Property For Lease
-          </h2>
-          <form id="leasePropertyForm" class="form-content">
-
-            <!-- Property Category Selection -->
-            <h3 class="section-title"><i class="bi bi-buildings"></i> Property Category</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="leasePropertyCategory" class="required">Select Category</label>
-                <select id="leasePropertyCategory" required onchange="updateLeasePropertyTypes()">
-                  <option value="">-- Select Category --</option>
-                  <option value="commercial">Commercial Property</option>
-                  <option value="land">Land / Lot</option>
-                  <option value="special">Special Purpose Property</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label for="leasePropertyType" class="required">Property Type</label>
-                <select id="leasePropertyType" required>
-                  <option value="">-- Select Type --</option>
-                  <!-- Options populated by JavaScript -->
-                </select>
-              </div>
-            </div>
-
-            <!-- Basic Information -->
-            <h3 class="section-title"><i class="bi bi-info-circle"></i> Basic Information</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="leaseTitle" class="required">Property Title</label>
-                <input type="text" id="leaseTitle" placeholder="e.g., Commercial Office Floor in Makati CBD" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="totalArea" class="required">Total Area (sqm)</label>
-                <div class="input-with-icon">
-                  <i class="bi bi-rulers"></i>
-                  <input type="number" id="totalArea" placeholder="e.g., 500" min="1" required step="0.01">
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="usableArea">Usable Area (sqm)</label>
-                <div class="input-with-icon">
-                  <i class="bi bi-square"></i>
-                  <input type="number" id="usableArea" placeholder="Optional" min="1" step="0.01">
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="zoning">Zoning Classification</label>
-                <select id="zoning">
-                  <option value="">-- Select Zoning --</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="industrial">Industrial</option>
-                  <option value="residential">Residential</option>
-                  <option value="agricultural">Agricultural</option>
-                  <option value="mixed_use">Mixed Use</option>
-                  <option value="tourism">Tourism</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Lease Terms -->
-            <h3 class="section-title"><i class="bi bi-calendar-check"></i> Lease Terms</h3>
-            <div class="form-group">
-              <label for="leaseType" class="required">Lease Type</label>
-              <div class="lease-term-grid">
-                <div class="lease-option" onclick="selectLeaseType('gross')">
-                  <h4>Gross Lease</h4>
-                  <p style="font-size: 13px; color: var(--text-light);">Rent includes all operating expenses</p>
-                </div>
-                <div class="lease-option" onclick="selectLeaseType('net')">
-                  <h4>Net Lease</h4>
-                  <p style="font-size: 13px; color: var(--text-light);">Tenant pays rent + some expenses</p>
-                </div>
-                <div class="lease-option" onclick="selectLeaseType('triple-net')">
-                  <h4>Triple Net (NNN)</h4>
-                  <p style="font-size: 13px; color: var(--text-light);">Tenant pays all expenses</p>
-                </div>
-              </div>
-              <input type="hidden" id="leaseTypeInput" name="leaseType" required>
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="leaseDuration" class="required">Lease Duration</label>
-                <select id="leaseDuration" required>
-                  <option value="">-- Select Duration --</option>
-                  <option value="1">1 Year</option>
-                  <option value="2">2 Years</option>
-                  <option value="3">3 Years</option>
-                  <option value="5">5 Years</option>
-                  <option value="10">10 Years</option>
-                  <option value="15">15+ Years</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="renewalOption">Renewal Option</label>
-                <select id="renewalOption">
-                  <option value="">-- Select Option --</option>
-                  <option value="automatic">Automatic Renewal</option>
-                  <option value="negotiable">Negotiable</option>
-                  <option value="none">No Renewal Option</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Pricing -->
-            <h3 class="section-title"><i class="bi bi-cash-stack"></i> Pricing Information</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="annualRent" class="required">Annual Rent (₱)</label>
-                <div class="input-with-icon">
-                  <i class="bi bi-currency-exchange"></i>
-                  <input type="number" id="annualRent" placeholder="e.g., 1,200,000" min="10000" step="1000" required>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="paymentTerms">Payment Terms</label>
-                <select id="paymentTerms">
-                  <option value="">-- Select Terms --</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="semi-annual">Semi-Annual</option>
-                  <option value="annual">Annual</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label for="securityBond">Security Bond (₱)</label>
-                <div class="input-with-icon">
-                  <i class="bi bi-bank"></i>
-                  <input type="number" id="securityBond" placeholder="e.g., 300,000" min="0" step="1000">
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="advancePayment">Advance Payment (months)</label>
-                <div class="input-with-icon">
-                  <i class="bi bi-calendar-month"></i>
-                  <input type="number" id="advancePayment" placeholder="e.g., 3" min="1" value="1">
-                </div>
-              </div>
-            </div>
-
-            <!-- Location Details -->
-            <h3 class="section-title"><i class="bi bi-geo-alt"></i> Location Details</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="leaseAddress" class="required">Full Address</label>
-                <input type="text" id="leaseAddress" placeholder="Complete address including street, barangay, city" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="leaseCity" class="required">City/Municipality</label>
-                <input type="text" id="leaseCity" placeholder="e.g., Makati City" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="leaseProvince" class="required">Province</label>
-                <input type="text" id="leaseProvince" placeholder="e.g., Metro Manila" required>
-              </div>
-            </div>
-            
-            <!-- Map -->
-            <div class="form-group">
-              <label>📍 Pin Location on Map</label>
-              <input type="text" id="leaseLocationSearch" placeholder="Search address or click on map..." style="margin-bottom: 10px;">
-              <div id="leaseMapPicker"></div>
-              <div class="coordinates-display">
-                <div class="coord-box">
-                  <label>Latitude</label>
-                  <span id="leaseLatDisplay">Not set</span>
-                </div>
-                <div class="coord-box">
-                  <label>Longitude</label>
-                  <span id="leaseLngDisplay">Not set</span>
-                </div>
-              </div>
-              <input type="hidden" id="leaseLatitude" name="leaseLatitude">
-              <input type="hidden" id="leaseLongitude" name="leaseLongitude">
-            </div>
-
-            <!-- Property Features -->
-            <h3 class="section-title"><i class="bi bi-tools"></i> Property Features</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="accessRoad">Access Road Type</label>
-                <select id="accessRoad">
-                  <option value="">-- Select --</option>
-                  <option value="concrete">Concrete</option>
-                  <option value="asphalt">Asphalt</option>
-                  <option value="gravel">Gravel</option>
-                  <option value="dirt">Dirt Road</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label for="frontage">Frontage (meters)</label>
-                <div class="input-with-icon">
-                  <i class="bi bi-arrows-expand"></i>
-                  <input type="number" id="frontage" placeholder="e.g., 20" min="1" step="0.1">
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="topography">Topography</label>
-                <select id="topography">
-                  <option value="">-- Select --</option>
-                  <option value="flat">Flat</option>
-                  <option value="sloping">Sloping</option>
-                  <option value="hilly">Hilly</option>
-                  <option value="mountainous">Mountainous</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label for="utilities">Available Utilities</label>
-                <input type="text" id="utilities" placeholder="e.g., Electricity, Water, Internet">
-              </div>
-            </div>
-
-            <!-- Amenities & Infrastructure -->
-            <h3 class="section-title"><i class="bi bi-lightning-charge"></i> Amenities & Infrastructure</h3>
-            <div class="amenities-grid">
-              <div class="amenity-item">
-                <input type="checkbox" id="parking_lease" name="leaseAmenities" value="Parking Area">
-                <label for="parking_lease"><i class="bi bi-p-square"></i> Parking Area</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="loading_dock" name="leaseAmenities" value="Loading Dock">
-                <label for="loading_dock"><i class="bi bi-truck"></i> Loading Dock</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="security_system" name="leaseAmenities" value="Security System">
-                <label for="security_system"><i class="bi bi-shield-lock"></i> Security System</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="fire_safety" name="leaseAmenities" value="Fire Safety System">
-                <label for="fire_safety"><i class="bi bi-fire"></i> Fire Safety System</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="backup_power" name="leaseAmenities" value="Backup Power">
-                <label for="backup_power"><i class="bi bi-lightning"></i> Backup Power</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="cctv" name="leaseAmenities" value="CCTV">
-                <label for="cctv"><i class="bi bi-camera-video"></i> CCTV Surveillance</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="warehouse" name="leaseAmenities" value="Warehouse Space">
-                <label for="warehouse"><i class="bi bi-box-seam"></i> Warehouse Space</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="office_space" name="leaseAmenities" value="Office Space">
-                <label for="office_space"><i class="bi bi-building"></i> Office Space</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="landscaping" name="leaseAmenities" value="Landscaping">
-                <label for="landscaping"><i class="bi bi-tree"></i> Landscaping</label>
-              </div>
-              <div class="amenity-item">
-                <input type="checkbox" id="drainage" name="leaseAmenities" value="Drainage System">
-                <label for="drainage"><i class="bi bi-droplet"></i> Drainage System</label>
-              </div>
-            </div>
-            
-            <div class="form-group" style="margin-top: 15px;">
-              <label for="otherFeatures">Other Features (comma-separated)</label>
-              <input type="text" id="otherFeatures" placeholder="e.g., High ceilings, Sprinkler system, Truck access">
-            </div>
-
-            <!-- Restrictions & Conditions -->
-            <h3 class="section-title"><i class="bi bi-file-earmark-lock"></i> Restrictions & Conditions</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="restrictions">Use Restrictions</label>
-                <textarea id="restrictions" placeholder="Describe any use restrictions, zoning limitations, or special conditions..." rows="4"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="maintenance">Maintenance Responsibility</label>
-                <select id="maintenance">
-                  <option value="">-- Select Responsibility --</option>
-                  <option value="landlord">Landlord</option>
-                  <option value="tenant">Tenant</option>
-                  <option value="shared">Shared</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Property Description -->
-            <div class="form-group">
-              <label for="leaseDescription" class="required">Property Description</label>
-              <textarea id="leaseDescription" placeholder="Describe the property in detail, including development potential, nearby landmarks, transportation access, etc." rows="6" required></textarea>
-            </div>
-
-            <!-- Images -->
-            <h3 class="section-title"><i class="bi bi-images"></i> Property Images & Videos</h3>
-            <div class="image-upload-area" onclick="document.getElementById('leaseMediaFiles').click()">
-              <i class="bi bi-cloud-arrow-up"></i>
-              <p>Upload Property Images & Videos</p>
-              <p class="upload-info">Drag & drop or click to browse</p>
-              <p class="upload-info">Max 10 files • Images: 5MB, Videos: 100MB • JPG, PNG, MP4, AVI, MOV</p>
-              <div id="leaseMediaCount" class="selected-count" style="display: none;">0 files</div>
-            </div>
-            <input type="file" id="leaseMediaFiles" accept="image/*,video/*" multiple style="display: none;" onchange="handleLeaseMediaSelection(event)">
-            <div class="preview-container" id="leasePreviewContainer"></div>
-
-            <!-- Form Actions -->
-            <div class="form-actions">
-              <button type="button" class="btn btn-secondary" onclick="resetLeaseForm()">
-                <i class="bi bi-arrow-clockwise"></i> Reset Form
-              </button>
-              <button type="submit" class="btn btn-primary" id="submitLeaseBtn">
-                <i class="bi bi-check-circle"></i> Post Property for Lease
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Upload Progress for Sale -->
-      <div id="saleUploadProgress" class="upload-progress" style="display: none;">
-        <h3 style="margin-top: 0; color: var(--text-dark); display: flex; align-items: center; gap: 10px;">
-          <i class="bi bi-cloud-arrow-up"></i> Uploading Sale Property...
-        </h3>
-        <p id="saleProgressText">Preparing upload...</p>
-        <div class="progress-bar">
-          <div id="saleProgressFill" class="progress-fill" style="width: 0%;"></div>
-        </div>
-      </div>
-
-      <!-- Upload Progress for Lease -->
-      <div id="leaseUploadProgress" class="upload-progress" style="display: none;">
-        <h3 style="margin-top: 0; color: var(--text-dark); display: flex; align-items: center; gap: 10px;">
-          <i class="bi bi-cloud-arrow-up"></i> Uploading Lease Property...
-        </h3>
-        <p id="leaseProgressText">Preparing upload...</p>
-        <div class="progress-bar">
-          <div id="leaseProgressFill" class="progress-fill" style="width: 0%;"></div>
-        </div>
-      </div>
+    <div id="typeSelectionBlurOverlay" class="full-page-blur-overlay" style="display: none;">
+      <h2><i class="bi bi-exclamation-triangle"></i> KYC Verification Required</h2>
+      <div class="status" id="kycTypeStatus">Status: KYC Not Submitted</div>
+      <p class="message" id="kycTypeMessage">You must complete KYC verification before you can choose a listing type or post properties.</p>
+      <a href="../kyc.html" class="kyc-button">
+        <i class="bi bi-shield-lock"></i> Complete KYC Verification
+      </a>
     </div>
   </div>
 
+  <!-- SALE Form -->
+  <div id="saleForm" class="card property-details active" style="position: relative;">
+    <div class="form-content">
+      <h2 style="color: var(--text-dark); margin-top: 0; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
+        <i class="bi bi-cash-coin"></i> Post Property For Sale
+      </h2>
+      
+      <form id="saleFormData">
+      <!-- Basic Information -->
+      <h3 class="section-title"><i class="bi bi-info-circle"></i> Basic Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="saleTitle" class="required">Property Title</label>
+          <input type="text" id="saleTitle" placeholder="e.g., Modern 3-Bedroom House in Alabang" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="salePropertyCategory" class="required">Property Category</label>
+          <select id="salePropertyCategory" required onchange="updateSalePropertyTypes()">
+            <option value="">-- Select Category --</option>
+            <option value="residential">Residential Property</option>
+            <option value="commercial">Commercial Property</option>
+            <option value="land">Land / Lot</option>
+            <option value="condo">Condominium</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="salePropertyType" class="required">Property Type</label>
+          <select id="salePropertyType" required>
+            <option value="">-- Select Type --</option>
+            <!-- Options populated by JavaScript -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Property Specifications -->
+      <h3 class="section-title"><i class="bi bi-rulers"></i> Property Specifications</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="saleBedrooms" class="required">Bedrooms</label>
+          <select id="saleBedrooms" required>
+            <option value="">-- Select --</option>
+            <option value="studio">Studio</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleBathrooms" class="required">Bathrooms</label>
+          <select id="saleBathrooms" required>
+            <option value="">-- Select --</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4+</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleFloorArea" class="required">Floor Area (sqm)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-rulers"></i>
+            <input type="number" id="saleFloorArea" placeholder="e.g., 120" min="1" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleLotArea">Lot Area (sqm)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-map"></i>
+            <input type="number" id="saleLotArea" placeholder="e.g., 300" min="1">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleFurnishing">Furnishing</label>
+          <select id="saleFurnishing">
+            <option value="">-- Select --</option>
+            <option value="furnished">Fully Furnished</option>
+            <option value="semi-furnished">Semi-Furnished</option>
+            <option value="unfurnished">Unfurnished</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleYearBuilt">Year Built</label>
+          <div class="input-with-icon">
+            <i class="bi bi-calendar"></i>
+            <input type="number" id="saleYearBuilt" placeholder="e.g., 2015" min="1900" max="2024">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sale Information -->
+      <h3 class="section-title"><i class="bi bi-currency-exchange"></i> Sale Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="salePrice" class="required">Asking Price (₱)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-cash-stack"></i>
+            <input type="number" id="salePrice" placeholder="e.g., 5,000,000" min="100000" step="10000" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="priceNegotiable">Price Negotiable?</label>
+          <select id="priceNegotiable">
+            <option value="yes">Yes</option>
+            <option value="no" selected>No</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleType" class="required">Sale Type</label>
+          <div class="sale-type-grid">
+            <div class="sale-option" onclick="selectSaleType('outright')">
+              <h4>Outright Sale</h4>
+              <p style="font-size: 13px; color: var(--text-light);">Full payment upon closing</p>
+            </div>
+            <div class="sale-option" onclick="selectSaleType('installment')">
+              <h4>Installment</h4>
+              <p style="font-size: 13px; color: var(--text-light);">Payment in installments</p>
+            </div>
+            <div class="sale-option" onclick="selectSaleType('bank_financing')">
+              <h4>Bank Financing</h4>
+              <p style="font-size: 13px; color: var(--text-light);">With bank loan option</p>
+            </div>
+          </div>
+          <input type="hidden" id="saleTypeInput" name="saleType" required>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <h3 class="section-title"><i class="bi bi-geo-alt"></i> Location Details</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="saleAddress" class="required">Full Address</label>
+          <input type="text" id="saleAddress" placeholder="Complete address" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleCity" class="required">City/Municipality</label>
+          <input type="text" id="saleCity" placeholder="e.g., Muntinlupa City" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="saleProvince" class="required">Province</label>
+          <input type="text" id="saleProvince" placeholder="e.g., Metro Manila" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>📍 Pin Location on Map</label>
+        <input type="text" id="saleLocationSearch" placeholder="Search address in Batangas or click on map..." style="margin-bottom: 10px;">
+        <div id="saleMapPicker"></div>
+        <div class="coordinates-display">
+          <div class="coord-box">
+            <label>Latitude</label>
+            <span id="saleLatDisplay">Not set</span>
+          </div>
+          <div class="coord-box">
+            <label>Longitude</label>
+            <span id="saleLngDisplay">Not set</span>
+          </div>
+        </div>
+        <input type="hidden" id="saleLatitude" name="saleLatitude">
+        <input type="hidden" id="saleLongitude" name="saleLongitude">
+      </div>
+
+      <!-- Property Features -->
+      <h3 class="section-title"><i class="bi bi-house-door"></i> Property Features</h3>
+      <div class="amenities-grid">
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_wifi" name="saleAmenities" value="WiFi">
+          <label for="sale_wifi"><i class="bi bi-wifi"></i> WiFi</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_ac" name="saleAmenities" value="Air Conditioning">
+          <label for="sale_ac"><i class="bi bi-snow"></i> Air Conditioning</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_parking" name="saleAmenities" value="Parking">
+          <label for="sale_parking"><i class="bi bi-car-front"></i> Parking</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_garden" name="saleAmenities" value="Garden">
+          <label for="sale_garden"><i class="bi bi-flower1"></i> Garden</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_swimming_pool" name="saleAmenities" value="Swimming Pool">
+          <label for="sale_swimming_pool"><i class="bi bi-water"></i> Swimming Pool</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_gym" name="saleAmenities" value="Gym">
+          <label for="sale_gym"><i class="bi bi-activity"></i> Gym</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_security" name="saleAmenities" value="24/7 Security">
+          <label for="sale_security"><i class="bi bi-shield-check"></i> 24/7 Security</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_elevator" name="saleAmenities" value="Elevator">
+          <label for="sale_elevator"><i class="bi bi-arrow-up-circle"></i> Elevator</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_balcony" name="saleAmenities" value="Balcony">
+          <label for="sale_balcony"><i class="bi bi-building"></i> Balcony</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="sale_fireplace" name="saleAmenities" value="Fireplace">
+          <label for="sale_fireplace"><i class="bi bi-fire"></i> Fireplace</label>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="saleOtherAmenities">Other Features (comma-separated)</label>
+        <input type="text" id="saleOtherAmenities" placeholder="e.g., Smart Home, Solar Panels, CCTV">
+      </div>
+
+      <!-- Property Description -->
+      <div class="form-group">
+        <label for="saleDescription" class="required">Property Description</label>
+        <textarea id="saleDescription" placeholder="Describe your property in detail, include unique selling points, neighborhood features, etc..." rows="6" required></textarea>
+      </div>
+
+      <!-- Images & Videos -->
+      <h3 class="section-title"><i class="bi bi-images"></i> Property Images & Videos</h3>
+      <div class="image-upload-area" onclick="document.getElementById('saleImages').click()">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <p>Upload Property Images & Videos</p>
+        <p class="upload-info">Drag & drop or click to browse</p>
+        <p class="upload-info">Max 10 files • Images: 5MB, Videos: 100MB • JPG, PNG, MP4, AVI, MOV</p>
+        <div id="saleImageCount" class="selected-count" style="display: none;">0 files</div>
+      </div>
+      <input type="file" id="saleImages" accept="image/*,video/*" multiple style="display: none;" onchange="handleSaleImageSelection(event)">
+      <div class="preview-container" id="salePreviewContainer"></div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="resetSaleForm()">
+          <i class="bi bi-arrow-clockwise"></i> Reset Form
+        </button>
+        <button type="submit" class="btn btn-primary" id="submitSaleBtn">
+          <i class="bi bi-check-circle"></i> Post Property for Sale
+        </button>
+      </div>
+    </form>
+    </div>
+    <div id="saleFormBlurOverlay" class="full-page-blur-overlay" style="display: none;">
+      <h2><i class="bi bi-exclamation-triangle"></i> KYC Verification Required</h2>
+      <div class="status" id="kycSaleStatus">Status: KYC Not Submitted</div>
+      <p class="message" id="kycSaleMessage">You must complete KYC verification before posting properties for sale.</p>
+      <a href="../kyc.html" class="kyc-button">
+        <i class="bi bi-shield-lock"></i> Complete KYC Verification
+      </a>
+    </div>
+  </div>
+
+  <!-- LEASE Form (initially hidden) -->
+  <div id="leaseForm" class="card property-details" style="display: none; position: relative;">
+    <div class="form-content">
+      <h2 style="color: var(--text-dark); margin-top: 0; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
+        <i class="bi bi-file-text"></i> Post Property For Lease
+      </h2>
+      
+      <form id="leasePropertyForm">
+      <!-- Property Category Selection -->
+      <h3 class="section-title"><i class="bi bi-buildings"></i> Property Category</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="leasePropertyCategory" class="required">Select Category</label>
+          <select id="leasePropertyCategory" required onchange="updateLeasePropertyTypes()">
+            <option value="">-- Select Category --</option>
+            <option value="commercial">Commercial Property</option>
+            <option value="land">Land / Lot</option>
+            <option value="special">Special Purpose Property</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="leasePropertyType" class="required">Property Type</label>
+          <select id="leasePropertyType" required>
+            <option value="">-- Select Type --</option>
+            <!-- Options populated by JavaScript -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Basic Information -->
+      <h3 class="section-title"><i class="bi bi-info-circle"></i> Basic Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="leaseTitle" class="required">Property Title</label>
+          <input type="text" id="leaseTitle" placeholder="e.g., Commercial Office Floor in Makati CBD" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="totalArea" class="required">Total Area (sqm)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-rulers"></i>
+            <input type="number" id="totalArea" placeholder="e.g., 500" min="1" required step="0.01">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="usableArea">Usable Area (sqm)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-square"></i>
+            <input type="number" id="usableArea" placeholder="Optional" min="1" step="0.01">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="zoning">Zoning Classification</label>
+          <select id="zoning">
+            <option value="">-- Select Zoning --</option>
+            <option value="commercial">Commercial</option>
+            <option value="industrial">Industrial</option>
+            <option value="residential">Residential</option>
+            <option value="agricultural">Agricultural</option>
+            <option value="mixed_use">Mixed Use</option>
+            <option value="tourism">Tourism</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lease Terms -->
+      <h3 class="section-title"><i class="bi bi-calendar-check"></i> Lease Terms</h3>
+      <div class="form-group">
+        <label for="leaseType" class="required">Lease Type</label>
+        <div class="lease-term-grid">
+          <div class="lease-option" onclick="selectLeaseType('gross')">
+            <h4>Gross Lease</h4>
+            <p style="font-size: 13px; color: var(--text-light);">Rent includes all operating expenses</p>
+          </div>
+          <div class="lease-option" onclick="selectLeaseType('net')">
+            <h4>Net Lease</h4>
+            <p style="font-size: 13px; color: var(--text-light);">Tenant pays rent + some expenses</p>
+          </div>
+          <div class="lease-option" onclick="selectLeaseType('triple-net')">
+            <h4>Triple Net (NNN)</h4>
+            <p style="font-size: 13px; color: var(--text-light);">Tenant pays all expenses</p>
+          </div>
+        </div>
+        <input type="hidden" id="leaseTypeInput" name="leaseType" required>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="leaseDuration" class="required">Lease Duration</label>
+          <select id="leaseDuration" required>
+            <option value="">-- Select Duration --</option>
+            <option value="1">1 Year</option>
+            <option value="2">2 Years</option>
+            <option value="3">3 Years</option>
+            <option value="5">5 Years</option>
+            <option value="10">10 Years</option>
+            <option value="15">15+ Years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="renewalOption">Renewal Option</label>
+          <select id="renewalOption">
+            <option value="">-- Select Option --</option>
+            <option value="automatic">Automatic Renewal</option>
+            <option value="negotiable">Negotiable</option>
+            <option value="none">No Renewal Option</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <h3 class="section-title"><i class="bi bi-cash-stack"></i> Pricing Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="annualRent" class="required">Annual Rent (₱)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-currency-exchange"></i>
+            <input type="number" id="annualRent" placeholder="e.g., 1,200,000" min="10000" step="1000" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="paymentTerms">Payment Terms</label>
+          <select id="paymentTerms">
+            <option value="">-- Select Terms --</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="semi-annual">Semi-Annual</option>
+            <option value="annual">Annual</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="securityBond">Security Bond (₱)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-bank"></i>
+            <input type="number" id="securityBond" placeholder="e.g., 300,000" min="0" step="1000">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="advancePayment">Advance Payment (months)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-calendar-month"></i>
+            <input type="number" id="advancePayment" placeholder="e.g., 3" min="1" value="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Details -->
+      <h3 class="section-title"><i class="bi bi-geo-alt"></i> Location Details</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="leaseAddress" class="required">Full Address</label>
+          <input type="text" id="leaseAddress" placeholder="Complete address including street, barangay, city" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="leaseCity" class="required">City/Municipality</label>
+          <input type="text" id="leaseCity" placeholder="e.g., Makati City" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="leaseProvince" class="required">Province</label>
+          <input type="text" id="leaseProvince" placeholder="e.g., Metro Manila" required>
+        </div>
+      </div>
+      
+      <!-- Map -->
+      <div class="form-group">
+        <label>📍 Pin Location on Map</label>
+        <input type="text" id="leaseLocationSearch" placeholder="Search address in Batangas or click on map..." style="margin-bottom: 10px;">
+        <div id="leaseMapPicker"></div>
+        <div class="coordinates-display">
+          <div class="coord-box">
+            <label>Latitude</label>
+            <span id="leaseLatDisplay">Not set</span>
+          </div>
+          <div class="coord-box">
+            <label>Longitude</label>
+            <span id="leaseLngDisplay">Not set</span>
+          </div>
+        </div>
+        <input type="hidden" id="leaseLatitude" name="leaseLatitude">
+        <input type="hidden" id="leaseLongitude" name="leaseLongitude">
+      </div>
+
+      <!-- Property Features -->
+      <h3 class="section-title"><i class="bi bi-tools"></i> Property Features</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="accessRoad">Access Road Type</label>
+          <select id="accessRoad">
+            <option value="">-- Select --</option>
+            <option value="concrete">Concrete</option>
+            <option value="asphalt">Asphalt</option>
+            <option value="gravel">Gravel</option>
+            <option value="dirt">Dirt Road</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="frontage">Frontage (meters)</label>
+          <div class="input-with-icon">
+            <i class="bi bi-arrows-expand"></i>
+            <input type="number" id="frontage" placeholder="e.g., 20" min="1" step="0.1">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="topography">Topography</label>
+          <select id="topography">
+            <option value="">-- Select --</option>
+            <option value="flat">Flat</option>
+            <option value="sloping">Sloping</option>
+            <option value="hilly">Hilly</option>
+            <option value="mountainous">Mountainous</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="utilities">Available Utilities</label>
+          <input type="text" id="utilities" placeholder="e.g., Electricity, Water, Internet">
+        </div>
+      </div>
+
+      <!-- Amenities & Infrastructure -->
+      <h3 class="section-title"><i class="bi bi-lightning-charge"></i> Amenities & Infrastructure</h3>
+      <div class="amenities-grid">
+        <div class="amenity-item">
+          <input type="checkbox" id="parking_lease" name="leaseAmenities" value="Parking Area">
+          <label for="parking_lease"><i class="bi bi-p-square"></i> Parking Area</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="loading_dock" name="leaseAmenities" value="Loading Dock">
+          <label for="loading_dock"><i class="bi bi-truck"></i> Loading Dock</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="security_system" name="leaseAmenities" value="Security System">
+          <label for="security_system"><i class="bi bi-shield-lock"></i> Security System</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="fire_safety" name="leaseAmenities" value="Fire Safety System">
+          <label for="fire_safety"><i class="bi bi-fire"></i> Fire Safety System</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="backup_power" name="leaseAmenities" value="Backup Power">
+          <label for="backup_power"><i class="bi bi-lightning"></i> Backup Power</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="cctv" name="leaseAmenities" value="CCTV">
+          <label for="cctv"><i class="bi bi-camera-video"></i> CCTV Surveillance</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="warehouse" name="leaseAmenities" value="Warehouse Space">
+          <label for="warehouse"><i class="bi bi-box-seam"></i> Warehouse Space</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="office_space" name="leaseAmenities" value="Office Space">
+          <label for="office_space"><i class="bi bi-building"></i> Office Space</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="landscaping" name="leaseAmenities" value="Landscaping">
+          <label for="landscaping"><i class="bi bi-tree"></i> Landscaping</label>
+        </div>
+        <div class="amenity-item">
+          <input type="checkbox" id="drainage" name="leaseAmenities" value="Drainage System">
+          <label for="drainage"><i class="bi bi-droplet"></i> Drainage System</label>
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="otherFeatures">Other Features (comma-separated)</label>
+        <input type="text" id="otherFeatures" placeholder="e.g., High ceilings, Sprinkler system, Truck access">
+      </div>
+
+      <!-- Restrictions & Conditions -->
+      <h3 class="section-title"><i class="bi bi-file-earmark-lock"></i> Restrictions & Conditions</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="restrictions">Use Restrictions</label>
+          <textarea id="restrictions" placeholder="Describe any use restrictions, zoning limitations, or special conditions..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="maintenance">Maintenance Responsibility</label>
+          <select id="maintenance">
+            <option value="">-- Select Responsibility --</option>
+            <option value="landlord">Landlord</option>
+            <option value="tenant">Tenant</option>
+            <option value="shared">Shared</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Property Description -->
+      <div class="form-group">
+        <label for="leaseDescription" class="required">Property Description</label>
+        <textarea id="leaseDescription" placeholder="Describe the property in detail, including development potential, nearby landmarks, transportation access, etc." rows="6" required></textarea>
+      </div>
+
+      <!-- Images -->
+      <h3 class="section-title"><i class="bi bi-images"></i> Property Images & Videos</h3>
+      <div class="image-upload-area" onclick="document.getElementById('leaseImages').click()">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <p>Upload Property Images & Videos</p>
+        <p class="upload-info">Drag & drop or click to browse</p>
+        <p class="upload-info">Max 10 files • Images: 5MB, Videos: 100MB • JPG, PNG, MP4, AVI, MOV</p>
+        <div id="leaseImageCount" class="selected-count" style="display: none;">0 files</div>
+      </div>
+      <input type="file" id="leaseImages" accept="image/*,video/*" multiple style="display: none;" onchange="handleLeaseImageSelection(event)">
+      <div class="preview-container" id="leasePreviewContainer"></div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="resetLeaseForm()">
+          <i class="bi bi-arrow-clockwise"></i> Reset Form
+        </button>
+        <button type="submit" class="btn btn-primary" id="submitLeaseBtn">
+          <i class="bi bi-check-circle"></i> Post Property for Lease
+        </button>
+      </div>
+    </form>
+    </div>
+    <div id="leaseFormBlurOverlay" class="full-page-blur-overlay" style="display: none;">
+      <h2><i class="bi bi-exclamation-triangle"></i> KYC Verification Required</h2>
+      <div class="status" id="kycLeaseStatus">Status: KYC Not Submitted</div>
+      <p class="message" id="kycLeaseMessage">You must complete KYC verification before posting properties for lease.</p>
+      <a href="../kyc.html" class="kyc-button">
+        <i class="bi bi-shield-lock"></i> Complete KYC Verification
+      </a>
+    </div>
+  </div>
+
+  <!-- Upload Progress for Sale -->
+  <div id="saleUploadProgress" class="upload-progress" style="display: none;">
+    <h3 style="margin-top: 0; color: var(--text-dark); display: flex; align-items: center; gap: 10px;">
+      <i class="bi bi-cloud-arrow-up"></i> Uploading Sale Property...
+    </h3>
+    <p id="saleProgressText">Preparing upload...</p>
+    <div class="progress-bar">
+      <div id="saleProgressFill" class="progress-fill" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <!-- Upload Progress for Lease -->
+  <div id="leaseUploadProgress" class="upload-progress" style="display: none;">
+    <h3 style="margin-top: 0; color: var(--text-dark); display: flex; align-items: center; gap: 10px;">
+      <i class="bi bi-cloud-arrow-up"></i> Uploading Lease Property...
+    </h3>
+    <p id="leaseProgressText">Preparing upload...</p>
+    <div class="progress-bar">
+      <div id="leaseProgressFill" class="progress-fill" style="width: 0%;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Sidebar user profile (must load before main script) -->
 <script src="../sidebar-user.js"></script>
-<!-- Firebase Scripts -->
+<!-- Firebase & Maps Scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk&libraries=places" async defer></script>
 
 <script>
   // ===== CONFIGURATION =====
@@ -1659,27 +1659,6 @@
     messagingSenderId: "646878644941",
     appId: "1:646878644941:web:5b4ccc3412250337587784"
   };
-
-  // ===== BATANGAS MAP BOUNDS =====
-  const BATANGAS_BOUNDS = {
-    north: 14.2,
-    south: 13.6,
-    east: 121.3,
-    west: 120.5
-  };
-
-  const BATANGAS_CENTER = { lat: 13.8, lng: 121.0 };
-
-  // ===== GLOBAL VARIABLES =====
-  let currentUser = null;
-  let kycStatus = null;
-  let currentBroker = null;
-  let saleMap = null, saleMarker = null;
-  let leaseMap = null, leaseMarker = null;
-  let selectedSaleMedia = [];
-  let selectedLeaseMedia = [];
-  let selectedSaleType = null;
-  let selectedLeaseType = null;
 
   // ===== SIDEBAR LOADER =====
   document.addEventListener('DOMContentLoaded', function() {
@@ -1729,9 +1708,6 @@
       firebase.initializeApp(firebaseConfig);
     }
     
-    // Initialize forms
-    initializeForms();
-    
     // Check authentication
     firebase.auth().onAuthStateChanged(async function(user) {
       if (!user) {
@@ -1744,31 +1720,10 @@
       await loadBrokerInfo();
     });
     
-    // Initialize form-specific functionality
+    // Initialize forms
     initializeSaleForm();
     initializeLeaseForm();
-    
-    // Load Google Maps separately without callback
-    loadGoogleMaps();
   });
-
-  // ===== LOAD GOOGLE MAPS =====
-  function loadGoogleMaps() {
-    // Create script element
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = function() {
-      // Initialize maps after Google Maps loads
-      if (document.getElementById('saleForm').style.display !== 'none') {
-        setTimeout(() => initSaleMapPicker(), 100);
-      } else {
-        setTimeout(() => initLeaseMapPicker(), 100);
-      }
-    };
-    document.head.appendChild(script);
-  }
 
   // ===== SALE PROPERTY TYPE MAPPING =====
   const salePropertyTypes = {
@@ -1829,6 +1784,17 @@
     ]
   };
 
+  // ===== GLOBAL VARIABLES =====
+  let currentUser = null;
+  let kycStatus = null;
+  let currentBroker = null;
+  let saleMap, saleMarker, saleAutocomplete;
+  let leaseMap, leaseMarker, leaseAutocomplete;
+  let selectedSaleImages = [];
+  let selectedLeaseImages = [];
+  let selectedSaleType = null;
+  let selectedLeaseType = null;
+
   // ===== USER PROFILE =====
   async function loadUserProfile() {
     try {
@@ -1880,18 +1846,20 @@
     }
   }
 
-  // ===== BROKER CONTEXT =====
+  // ===== BROKER CONTEXT (broker posts as themselves) =====
   async function loadBrokerInfo() {
     try {
       const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
       if (userDoc.exists) {
         const userData = userDoc.data();
         
+        // Redirect agents to their add property page
         if (userData.userType === 'agent') {
           window.location.href = 'agent_add_property.html';
           return;
         }
         
+        // Brokers post under their own brokerage
         currentBroker = { id: currentUser.uid, ...userData };
       } else {
         showMessage('User profile not found. Please complete your profile.', 'error');
@@ -1905,7 +1873,7 @@
   // ===== TYPE SELECTION =====
   function selectType(type) {
     if (kycStatus !== 'approved') {
-      showMessage('Please complete KYC verification to access forms', 'error');
+      showMessage('Please complete KYC verification first', 'error');
       return;
     }
     
@@ -1919,57 +1887,22 @@
     
     // Show appropriate form
     if (type === 'sale') {
-      document.getElementById('saleFormContainer').style.display = 'block';
       document.getElementById('saleForm').style.display = 'block';
-      document.getElementById('leaseFormContainer').style.display = 'none';
       document.getElementById('leaseForm').style.display = 'none';
       
-      // Initialize sale map if Google Maps is loaded
+      // Initialize sale map if not already done
       if (window.google && window.google.maps && !saleMap) {
         setTimeout(() => initSaleMapPicker(), 100);
       }
     } else {
-      document.getElementById('saleFormContainer').style.display = 'none';
       document.getElementById('saleForm').style.display = 'none';
-      document.getElementById('leaseFormContainer').style.display = 'block';
       document.getElementById('leaseForm').style.display = 'block';
       
-      // Initialize lease map if Google Maps is loaded
+      // Initialize lease map if not already done
       if (window.google && window.google.maps && !leaseMap) {
         setTimeout(() => initLeaseMapPicker(), 100);
       }
     }
-  }
-
-  // ===== FORM INITIALIZATION =====
-  function initializeForms() {
-    // Get form containers
-    const saleFormContainer = document.getElementById('saleFormContainer');
-    const leaseFormContainer = document.getElementById('leaseFormContainer');
-    
-    if (!saleFormContainer || !leaseFormContainer) {
-      console.error('Form containers not found');
-      return;
-    }
-    
-    // Prevent interaction when blurred
-    saleFormContainer.addEventListener('click', function(e) {
-      if (kycStatus !== 'approved' && this.classList.contains('kyc-blur-overlay')) {
-        e.preventDefault();
-        e.stopPropagation();
-        showMessage('Please complete KYC verification first', 'error');
-      }
-    });
-    
-    leaseFormContainer.addEventListener('click', function(e) {
-      if (kycStatus !== 'approved' && this.classList.contains('kyc-blur-overlay')) {
-        e.preventDefault();
-        e.stopPropagation();
-        showMessage('Please complete KYC verification first', 'error');
-      }
-    });
-    
-    console.log('Form initialization complete');
   }
 
   // ===== SALE FORM FUNCTIONS =====
@@ -1980,29 +1913,33 @@
     // Initialize sale type selection
     document.querySelectorAll('.sale-option').forEach(option => {
       option.addEventListener('click', function() {
-        const saleTypeText = this.querySelector('h4').textContent;
-        let saleTypeValue = saleTypeText.toLowerCase().replace(/\s+/g, '_');
-        if (saleTypeValue === 'bank_financing') saleTypeValue = 'bank-financing';
-        selectSaleType(saleTypeValue);
+        selectSaleType(this.querySelector('h4').textContent.toLowerCase().replace(/\s+/g, '_'));
       });
     });
     
-    // Form submission
-    document.getElementById('saleFormData').addEventListener('submit', function(e) {
-      e.preventDefault();
-      handleSaleSubmit(e);
-    });
+    // Initialize map when Google Maps loads
+    if (window.google && window.google.maps) {
+      initSaleMapPicker();
+    } else {
+      window.addEventListener('load', function() {
+        if (window.google && window.google.maps && !saleMap) {
+          initSaleMapPicker();
+        }
+      });
+    }
     
-    // Initialize property types
-    updateSalePropertyTypes();
+    // Form submission
+    document.getElementById('saleFormData').addEventListener('submit', handleSaleSubmit);
   }
 
   function updateSalePropertyTypes() {
     const category = document.getElementById('salePropertyCategory').value;
     const typeSelect = document.getElementById('salePropertyType');
     
+    // Clear existing options
     typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
     
+    // Add new options based on category
     if (category && salePropertyTypes[category]) {
       salePropertyTypes[category].forEach(type => {
         const option = document.createElement('option');
@@ -2017,6 +1954,7 @@
     selectedSaleType = type;
     document.getElementById('saleTypeInput').value = type;
     
+    // Update UI
     document.querySelectorAll('.sale-option').forEach(option => {
       option.classList.remove('active');
     });
@@ -2026,31 +1964,28 @@
 
   // ===== LEASE FORM FUNCTIONS =====
   function initializeLeaseForm() {
+    // Update property types when category changes
     document.getElementById('leasePropertyCategory').addEventListener('change', updateLeasePropertyTypes);
     
+    // Initialize lease type selection
     document.querySelectorAll('.lease-option').forEach(option => {
       option.addEventListener('click', function() {
-        const leaseTypeText = this.querySelector('h4').textContent;
-        let leaseTypeValue = leaseTypeText.toLowerCase().replace(/\s+/g, '_');
-        if (leaseTypeValue === 'triple_net_(nnn)') leaseTypeValue = 'triple-net';
-        selectLeaseType(leaseTypeValue);
+        selectLeaseType(this.querySelector('h4').textContent.toLowerCase().replace(/\s+/g, '_'));
       });
     });
     
-    document.getElementById('leasePropertyForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      handleLeaseSubmit(e);
-    });
-    
-    updateLeasePropertyTypes();
+    // Form submission
+    document.getElementById('leasePropertyForm').addEventListener('submit', handleLeaseSubmit);
   }
 
   function updateLeasePropertyTypes() {
     const category = document.getElementById('leasePropertyCategory').value;
     const typeSelect = document.getElementById('leasePropertyType');
     
+    // Clear existing options
     typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
     
+    // Add new options based on category
     if (category && leasePropertyTypes[category]) {
       leasePropertyTypes[category].forEach(type => {
         const option = document.createElement('option');
@@ -2065,6 +2000,7 @@
     selectedLeaseType = type;
     document.getElementById('leaseTypeInput').value = type;
     
+    // Update UI
     document.querySelectorAll('.lease-option').forEach(option => {
       option.classList.remove('active');
     });
@@ -2072,14 +2008,22 @@
     event.currentTarget.classList.add('active');
   }
 
-  // ===== MEDIA HANDLING =====
-  function handleSaleMediaSelection(event) {
+  // ===== IMAGE HANDLING =====
+  function handleSaleImageSelection(event) {
+    if (kycStatus !== 'approved') {
+      showMessage('Please complete KYC verification first', 'error');
+      event.target.value = '';
+      return;
+    }
+    
     const files = event.target.files;
+    const countElement = document.getElementById('saleImageCount');
+    
     const newFiles = Array.from(files);
-    const totalFiles = selectedSaleMedia.length + newFiles.length;
+    const totalFiles = selectedSaleImages.length + newFiles.length;
     
     if (totalFiles > 10) {
-      showMessage(`Maximum 10 files allowed. You already have ${selectedSaleMedia.length} files.`, 'error');
+      showMessage(`Maximum 10 files allowed. You already have ${selectedSaleImages.length} files.`, 'error');
       event.target.value = '';
       return;
     }
@@ -2097,25 +2041,32 @@
       }
     }
     
-    selectedSaleMedia.push(...newFiles);
-    updateSaleMediaPreview();
+    selectedSaleImages.push(...newFiles);
+    updateSaleImagePreview();
     
-    const countElement = document.getElementById('saleMediaCount');
-    if (selectedSaleMedia.length > 0) {
-      countElement.textContent = `${selectedSaleMedia.length} file(s)`;
+    if (selectedSaleImages.length > 0) {
+      countElement.textContent = `${selectedSaleImages.length} file(s)`;
       countElement.style.display = 'block';
     }
     
     event.target.value = '';
   }
 
-  function handleLeaseMediaSelection(event) {
+  function handleLeaseImageSelection(event) {
+    if (kycStatus !== 'approved') {
+      showMessage('Please complete KYC verification first', 'error');
+      event.target.value = '';
+      return;
+    }
+    
     const files = event.target.files;
+    const countElement = document.getElementById('leaseImageCount');
+    
     const newFiles = Array.from(files);
-    const totalFiles = selectedLeaseMedia.length + newFiles.length;
+    const totalFiles = selectedLeaseImages.length + newFiles.length;
     
     if (totalFiles > 10) {
-      showMessage(`Maximum 10 files allowed. You already have ${selectedLeaseMedia.length} files.`, 'error');
+      showMessage(`Maximum 10 files allowed. You already have ${selectedLeaseImages.length} files.`, 'error');
       event.target.value = '';
       return;
     }
@@ -2133,270 +2084,366 @@
       }
     }
     
-    selectedLeaseMedia.push(...newFiles);
-    updateLeaseMediaPreview();
+    selectedLeaseImages.push(...newFiles);
+    updateLeaseImagePreview();
     
-    const countElement = document.getElementById('leaseMediaCount');
-    if (selectedLeaseMedia.length > 0) {
-      countElement.textContent = `${selectedLeaseMedia.length} file(s)`;
+    if (selectedLeaseImages.length > 0) {
+      countElement.textContent = `${selectedLeaseImages.length} file(s)`;
       countElement.style.display = 'block';
     }
     
     event.target.value = '';
   }
 
-  function updateSaleMediaPreview() {
+  function updateSaleImagePreview() {
     const container = document.getElementById('salePreviewContainer');
-    const countElement = document.getElementById('saleMediaCount');
+    const countElement = document.getElementById('saleImageCount');
     
     container.innerHTML = '';
     
-    if (selectedSaleMedia.length === 0) {
+    if (selectedSaleImages.length === 0) {
       countElement.style.display = 'none';
       return;
     }
     
-    selectedSaleMedia.forEach((file, index) => {
+    selectedSaleImages.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = function(e) {
         const div = document.createElement('div');
         div.className = 'preview-item';
-        
         if (file.type.startsWith('video/')) {
-          div.innerHTML = '<video controls>' +
-                          '<source src="' + e.target.result + '" type="' + file.type + '">' +
-                          'Your browser does not support the video tag.' +
-                          '</video>' +
-                          '<button type="button" class="remove-btn" onclick="removeSaleMedia(' + index + ')">×</button>' +
-                          '<div class="video-badge">VIDEO</div>';
+          div.innerHTML = `
+            <video controls>
+              <source src="${e.target.result}" type="${file.type}">
+              Your browser does not support the video tag.
+            </video>
+            <button type="button" class="remove-btn" onclick="removeSaleImage(${index})">×</button>
+            <div class="video-badge">VIDEO</div>
+          `;
         } else {
-          div.innerHTML = '<img src="' + e.target.result + '" alt="Preview ' + (index + 1) + '">' +
-                          '<button type="button" class="remove-btn" onclick="removeSaleMedia(' + index + ')">×</button>';
+          div.innerHTML = `
+            <img src="${e.target.result}" alt="Preview ${index + 1}">
+            <button type="button" class="remove-btn" onclick="removeSaleImage(${index})">×</button>
+          `;
         }
         container.appendChild(div);
       };
       reader.readAsDataURL(file);
     });
     
-    countElement.textContent = selectedSaleMedia.length + ' file(s)';
+    countElement.textContent = `${selectedSaleImages.length} file(s)`;
     countElement.style.display = 'block';
   }
 
-  function updateLeaseMediaPreview() {
+  function updateLeaseImagePreview() {
     const container = document.getElementById('leasePreviewContainer');
-    const countElement = document.getElementById('leaseMediaCount');
+    const countElement = document.getElementById('leaseImageCount');
     
     container.innerHTML = '';
     
-    if (selectedLeaseMedia.length === 0) {
+    if (selectedLeaseImages.length === 0) {
       countElement.style.display = 'none';
       return;
     }
     
-    selectedLeaseMedia.forEach((file, index) => {
+    selectedLeaseImages.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = function(e) {
         const div = document.createElement('div');
         div.className = 'preview-item';
-        
         if (file.type.startsWith('video/')) {
-          div.innerHTML = '<video controls>' +
-                          '<source src="' + e.target.result + '" type="' + file.type + '">' +
-                          'Your browser does not support the video tag.' +
-                          '</video>' +
-                          '<button type="button" class="remove-btn" onclick="removeLeaseMedia(' + index + ')">×</button>' +
-                          '<div class="video-badge">VIDEO</div>';
+          div.innerHTML = `
+            <video controls>
+              <source src="${e.target.result}" type="${file.type}">
+              Your browser does not support the video tag.
+            </video>
+            <button type="button" class="remove-btn" onclick="removeLeaseImage(${index})">×</button>
+            <div class="video-badge">VIDEO</div>
+          `;
         } else {
-          div.innerHTML = '<img src="' + e.target.result + '" alt="Preview ' + (index + 1) + '">' +
-                          '<button type="button" class="remove-btn" onclick="removeLeaseMedia(' + index + ')">×</button>';
+          div.innerHTML = `
+            <img src="${e.target.result}" alt="Preview ${index + 1}">
+            <button type="button" class="remove-btn" onclick="removeLeaseImage(${index})">×</button>
+          `;
         }
         container.appendChild(div);
       };
       reader.readAsDataURL(file);
     });
     
-    countElement.textContent = selectedLeaseMedia.length + ' file(s)';
+    countElement.textContent = `${selectedLeaseImages.length} file(s)`;
     countElement.style.display = 'block';
   }
 
-  function removeSaleMedia(index) {
-    selectedSaleMedia.splice(index, 1);
-    updateSaleMediaPreview();
+  function removeSaleImage(index) {
+    selectedSaleImages.splice(index, 1);
+    updateSaleImagePreview();
   }
 
-  function removeLeaseMedia(index) {
-    selectedLeaseMedia.splice(index, 1);
-    updateLeaseMediaPreview();
+  function removeLeaseImage(index) {
+    selectedLeaseImages.splice(index, 1);
+    updateLeaseImagePreview();
   }
 
-  // ===== MAP FUNCTIONS =====
-  function initSaleMapPicker() {
-    if (!window.google || !window.google.maps) {
-      console.error('Google Maps not loaded');
-      return;
+  // ===== UPLOAD MEDIA FILES (Images & Videos) =====
+  async function uploadMediaFiles(files, userId, propertyId, progressCallback) {
+    const mediaUrls = { images: [], videos: [] };
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${propertyId}_${timestamp}_${i}.${fileExt}`;
+      const fileType = file.type.startsWith('video/') ? 'videos' : 'images';
+      
+      const storageRef = firebase.storage().ref()
+        .child(`properties/${userId}/${propertyId}/${fileType}/${fileName}`);
+      
+      await storageRef.put(file);
+      const downloadURL = await storageRef.getDownloadURL();
+      
+      if (fileType === 'videos') {
+        mediaUrls.videos.push({ url: downloadURL });
+      } else {
+        mediaUrls.images.push({ url: downloadURL });
+      }
+      
+      const progressPercent = 30 + ((i + 1) / files.length) * 60;
+      if (progressCallback) progressCallback(progressPercent);
     }
     
-    const defaultLocation = { lat: 13.7565, lng: 121.0583 };
-    
+    return mediaUrls;
+  }
+
+  // ===== MAP FUNCTIONS (Batangas Province Only) =====
+  const BATANGAS_CENTER = { lat: 13.7564, lng: 121.0583 };
+  const BATANGAS_BOUNDS = {
+    north: 14.15,
+    south: 13.4,
+    east: 121.6,
+    west: 120.3
+  };
+
+  function isWithinBatangas(lat, lng) {
+    return lat >= BATANGAS_BOUNDS.south && lat <= BATANGAS_BOUNDS.north &&
+           lng >= BATANGAS_BOUNDS.west && lng <= BATANGAS_BOUNDS.east;
+  }
+
+  window.initSaleMapPicker = function() {
     saleMap = new google.maps.Map(document.getElementById('saleMapPicker'), {
       center: BATANGAS_CENTER,
-      zoom: 9,
+      zoom: 11,
       mapTypeControl: true,
       streetViewControl: true,
+      restriction: {
+        latLngBounds: {
+          north: BATANGAS_BOUNDS.north,
+          south: BATANGAS_BOUNDS.south,
+          east: BATANGAS_BOUNDS.east,
+          west: BATANGAS_BOUNDS.west
+        },
+        strictBounds: true
+      },
       styles: [
         {
+          "featureType": "administrative",
+          "elementType": "geometry",
+          "stylers": [{"visibility": "off"}]
+        },
+        {
           "featureType": "poi",
+          "stylers": [{"visibility": "off"}]
+        },
+        {
+          "featureType": "road",
+          "elementType": "labels.icon",
           "stylers": [{"visibility": "off"}]
         },
         {
           "featureType": "transit",
           "stylers": [{"visibility": "off"}]
         }
-      ],
-      restriction: {
-        latLngBounds: BATANGAS_BOUNDS,
-        strictBounds: true,
-      },
-      draggable: true,
-      zoomControl: true,
-      scrollwheel: true,
-      disableDoubleClickZoom: false
+      ]
     });
-    
-    const infoWindow = new google.maps.InfoWindow({
-      content: '<div style="padding: 10px; font-weight: bold; color: #0b2e52;">📍 Focused on Batangas Province</div>',
-      position: BATANGAS_CENTER
-    });
-    
-    infoWindow.open(saleMap);
-    setTimeout(() => infoWindow.close(), 3000);
     
     const input = document.getElementById('saleLocationSearch');
-    const autocomplete = new  google.maps.places.PlaceAutocompleteElement(input, {
-      bounds: BATANGAS_BOUNDS,
-      strictBounds: true,
-      types: ['geocode', 'establishment']
+    saleAutocomplete = new google.maps.places.Autocomplete(input, {
+      bounds: new google.maps.LatLngBounds(
+        { lat: BATANGAS_BOUNDS.south, lng: BATANGAS_BOUNDS.west },
+        { lat: BATANGAS_BOUNDS.north, lng: BATANGAS_BOUNDS.east }
+      ),
+      componentRestrictions: { country: 'ph' }
     });
     
-    autocomplete.addListener('place_changed', function() {
-      const place = autocomplete.getPlace();
+    saleAutocomplete.addListener('place_changed', function() {
+      const place = saleAutocomplete.getPlace();
       if (place.geometry) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        
-        if (lat < BATANGAS_BOUNDS.south || lat > BATANGAS_BOUNDS.north || 
-            lng < BATANGAS_BOUNDS.west || lng > BATANGAS_BOUNDS.east) {
-          showMessage('Please select a location within Batangas province', 'error');
+        if (!isWithinBatangas(lat, lng)) {
+          showMessage('Please select a location within Batangas province.', 'error');
           return;
         }
-        
         saleMap.setCenter(place.geometry.location);
-        saleMap.setZoom(16);
+        saleMap.setZoom(17);
         placeSaleMarker(place.geometry.location);
+        
+        // Auto-fill address details
         autoFillAddressFromPlace(place, 'sale');
       }
     });
     
     saleMap.addListener('click', function(event) {
+      if (kycStatus !== 'approved') {
+        showMessage('Please complete KYC verification first', 'error');
+        return;
+      }
       placeSaleMarker(event.latLng);
       reverseGeocode(event.latLng, 'sale');
     });
     
-    placeSaleMarker(new google.maps.LatLng(defaultLocation));
-    reverseGeocode(new google.maps.LatLng(defaultLocation), 'sale');
-  }
-
-  function initLeaseMapPicker() {
-    if (!window.google || !window.google.maps) {
-      console.error('Google Maps not loaded');
-      return;
+    placeSaleMarker(new google.maps.LatLng(BATANGAS_CENTER));
+    
+    if (kycStatus !== 'approved') {
+      saleMap.setOptions({ draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true });
     }
-    
-    const defaultLocation = { lat: 13.7565, lng: 121.0583 };
-    
+  };
+
+  window.initLeaseMapPicker = function() {
     leaseMap = new google.maps.Map(document.getElementById('leaseMapPicker'), {
       center: BATANGAS_CENTER,
-      zoom: 9,
+      zoom: 11,
       mapTypeControl: true,
       streetViewControl: true,
+      restriction: {
+        latLngBounds: {
+          north: BATANGAS_BOUNDS.north,
+          south: BATANGAS_BOUNDS.south,
+          east: BATANGAS_BOUNDS.east,
+          west: BATANGAS_BOUNDS.west
+        },
+        strictBounds: true
+      },
       styles: [
         {
+          "featureType": "administrative",
+          "elementType": "geometry",
+          "stylers": [{"visibility": "off"}]
+        },
+        {
           "featureType": "poi",
+          "stylers": [{"visibility": "off"}]
+        },
+        {
+          "featureType": "road",
+          "elementType": "labels.icon",
           "stylers": [{"visibility": "off"}]
         },
         {
           "featureType": "transit",
           "stylers": [{"visibility": "off"}]
         }
-      ],
-      restriction: {
-        latLngBounds: BATANGAS_BOUNDS,
-        strictBounds: true,
-      },
-      draggable: true,
-      zoomControl: true,
-      scrollwheel: true,
-      disableDoubleClickZoom: false
+      ]
     });
-    
-    const infoWindow = new google.maps.InfoWindow({
-      content: '<div style="padding: 10px; font-weight: bold; color: #0b2e52;">📍 Focused on Batangas Province</div>',
-      position: BATANGAS_CENTER
-    });
-    
-    infoWindow.open(leaseMap);
-    setTimeout(() => infoWindow.close(), 3000);
     
     const input = document.getElementById('leaseLocationSearch');
-    const autocomplete = new google.maps.places.PlaceAutocompleteElement(input, {
-      bounds: BATANGAS_BOUNDS,
-      strictBounds: true,
-      types: ['geocode', 'establishment']
+    leaseAutocomplete = new google.maps.places.Autocomplete(input, {
+      bounds: new google.maps.LatLngBounds(
+        { lat: BATANGAS_BOUNDS.south, lng: BATANGAS_BOUNDS.west },
+        { lat: BATANGAS_BOUNDS.north, lng: BATANGAS_BOUNDS.east }
+      ),
+      componentRestrictions: { country: 'ph' }
     });
     
-    autocomplete.addListener('place_changed', function() {
-      const place = autocomplete.getPlace();
+    leaseAutocomplete.addListener('place_changed', function() {
+      const place = leaseAutocomplete.getPlace();
       if (place.geometry) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        
-        if (lat < BATANGAS_BOUNDS.south || lat > BATANGAS_BOUNDS.north || 
-            lng < BATANGAS_BOUNDS.west || lng > BATANGAS_BOUNDS.east) {
-          showMessage('Please select a location within Batangas province', 'error');
+        if (!isWithinBatangas(lat, lng)) {
+          showMessage('Please select a location within Batangas province.', 'error');
           return;
         }
-        
         leaseMap.setCenter(place.geometry.location);
-        leaseMap.setZoom(16);
+        leaseMap.setZoom(17);
         placeLeaseMarker(place.geometry.location);
+        
+        // Auto-fill address details
         autoFillAddressFromPlace(place, 'lease');
       }
     });
     
     leaseMap.addListener('click', function(event) {
+      if (kycStatus !== 'approved') {
+        showMessage('Please complete KYC verification first', 'error');
+        return;
+      }
       placeLeaseMarker(event.latLng);
       reverseGeocode(event.latLng, 'lease');
     });
     
-    placeLeaseMarker(new google.maps.LatLng(defaultLocation));
-    reverseGeocode(new google.maps.LatLng(defaultLocation), 'lease');
+    placeLeaseMarker(new google.maps.LatLng(BATANGAS_CENTER));
+    
+    if (kycStatus !== 'approved') {
+      leaseMap.setOptions({ draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true });
+    }
+  };
+
+  // ===== ADDRESS PARSING HELPER =====
+  function parseAddressComponents(components) {
+    let address = '';
+    let city = '';
+    let province = '';
+    let streetNumber = '';
+    let route = '';
+    let sublocality = '';
+    let barangay = '';
+    
+    for (const component of components) {
+      const types = component.types;
+      
+      if (types.includes('street_number')) {
+        streetNumber = component.long_name;
+      } else if (types.includes('route')) {
+        route = component.long_name;
+      } else if (types.includes('locality')) {
+        city = component.long_name;
+      } else if (types.includes('administrative_area_level_2')) {
+        if (!city) city = component.long_name;
+      } else if (types.includes('administrative_area_level_1')) {
+        province = component.long_name;
+      } else if (types.includes('postal_town')) {
+        if (!city) city = component.long_name;
+      } else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
+        sublocality = component.long_name;
+      } else if (types.includes('neighborhood')) {
+        barangay = component.long_name;
+      }
+    }
+    
+    // Build address
+    if (streetNumber && route) {
+      address = `${streetNumber} ${route}`;
+    } else if (route) {
+      address = route;
+    } else if (streetNumber) {
+      address = streetNumber;
+    }
+    
+    // Add barangay/sublocality if available
+    if (barangay || sublocality) {
+      address += `, ${barangay || sublocality}`;
+    }
+    
+    return { address, city, province };
   }
 
   function placeSaleMarker(location) {
-    const lat = location.lat();
-    const lng = location.lng();
-    
-    if (lat < BATANGAS_BOUNDS.south || lat > BATANGAS_BOUNDS.north || 
-        lng < BATANGAS_BOUNDS.west || lng > BATANGAS_BOUNDS.east) {
-      showMessage('Please select a location within Batangas province', 'error');
-      return;
-    }
-    
     if (saleMarker) {
       saleMarker.setMap(null);
     }
     
-    saleMarker = new google.maps.marker.AdvancedMarkerElement({
+    saleMarker = new google.maps.Marker({
       position: location,
       map: saleMap,
       draggable: true,
@@ -2411,42 +2458,31 @@
       }
     });
     
-    updateSaleCoordinates(lat, lng);
+    updateSaleCoordinates(location.lat(), location.lng());
     
     saleMarker.addListener('dragend', function() {
-      const newPos = saleMarker.getPosition();
-      const newLat = newPos.lat();
-      const newLng = newPos.lng();
-      
-      if (newLat < BATANGAS_BOUNDS.south || newLat > BATANGAS_BOUNDS.north || 
-          newLng < BATANGAS_BOUNDS.west || newLng > BATANGAS_BOUNDS.east) {
-        showMessage('Marker must stay within Batangas province', 'error');
-        saleMarker.setPosition({lat: lat, lng: lng});
-        return;
+      let pos = saleMarker.getPosition();
+      let lat = pos.lat(), lng = pos.lng();
+      if (!isWithinBatangas(lat, lng)) {
+        lat = Math.max(BATANGAS_BOUNDS.south, Math.min(BATANGAS_BOUNDS.north, lat));
+        lng = Math.max(BATANGAS_BOUNDS.west, Math.min(BATANGAS_BOUNDS.east, lng));
+        saleMarker.setPosition({ lat, lng });
+        showMessage('Location must be within Batangas province.', 'error');
       }
-      
-      updateSaleCoordinates(newLat, newLng);
+      updateSaleCoordinates(saleMarker.getPosition().lat(), saleMarker.getPosition().lng());
       reverseGeocode(saleMarker.getPosition(), 'sale');
     });
     
+    // Reverse geocode initial marker position
     reverseGeocode(location, 'sale');
   }
 
   function placeLeaseMarker(location) {
-    const lat = location.lat();
-    const lng = location.lng();
-    
-    if (lat < BATANGAS_BOUNDS.south || lat > BATANGAS_BOUNDS.north || 
-        lng < BATANGAS_BOUNDS.west || lng > BATANGAS_BOUNDS.east) {
-      showMessage('Please select a location within Batangas province', 'error');
-      return;
-    }
-    
     if (leaseMarker) {
       leaseMarker.setMap(null);
     }
     
-    leaseMarker = new google.maps.marker.AdvancedMarkerElement({
+    leaseMarker = new google.maps.Marker({
       position: location,
       map: leaseMap,
       draggable: true,
@@ -2461,72 +2497,57 @@
       }
     });
     
-    updateLeaseCoordinates(lat, lng);
+    updateLeaseCoordinates(location.lat(), location.lng());
     
     leaseMarker.addListener('dragend', function() {
-      const newPos = leaseMarker.getPosition();
-      const newLat = newPos.lat();
-      const newLng = newPos.lng();
-      
-      if (newLat < BATANGAS_BOUNDS.south || newLat > BATANGAS_BOUNDS.north || 
-          newLng < BATANGAS_BOUNDS.west || newLng > BATANGAS_BOUNDS.east) {
-        showMessage('Marker must stay within Batangas province', 'error');
-        leaseMarker.setPosition({lat: lat, lng: lng});
-        return;
+      let pos = leaseMarker.getPosition();
+      let lat = pos.lat(), lng = pos.lng();
+      if (!isWithinBatangas(lat, lng)) {
+        lat = Math.max(BATANGAS_BOUNDS.south, Math.min(BATANGAS_BOUNDS.north, lat));
+        lng = Math.max(BATANGAS_BOUNDS.west, Math.min(BATANGAS_BOUNDS.east, lng));
+        leaseMarker.setPosition({ lat, lng });
+        showMessage('Location must be within Batangas province.', 'error');
       }
-      
-      updateLeaseCoordinates(newLat, newLng);
+      updateLeaseCoordinates(leaseMarker.getPosition().lat(), leaseMarker.getPosition().lng());
       reverseGeocode(leaseMarker.getPosition(), 'lease');
     });
     
+    // Reverse geocode initial marker position
     reverseGeocode(location, 'lease');
   }
 
-  // ===== ADDRESS FUNCTIONS =====
-  function parseAddressComponents(components) {
-    let address = '';
-    let city = '';
-    let province = '';
-    let streetNumber = '';
-    let route = '';
+  // ===== REVERSE GEOCODING =====
+  function reverseGeocode(latlng, formType) {
+    const geocoder = new google.maps.Geocoder();
     
-    for (const component of components) {
-      const types = component.types;
-      
-      if (types.includes('street_number')) {
-        streetNumber = component.long_name;
-      } else if (types.includes('route')) {
-        route = component.long_name;
-      } else if (types.includes('locality')) {
-        city = component.long_name;
-      } else if (types.includes('administrative_area_level_1')) {
-        province = component.long_name;
+    geocoder.geocode({ location: latlng }, function(results, status) {
+      if (status === 'OK') {
+        if (results[0]) {
+          autoFillAddressFromGeocode(results[0], formType);
+        }
+      } else {
+        console.log('Geocoder failed due to: ' + status);
       }
-    }
-    
-    if (streetNumber && route) {
-      address = `${streetNumber} ${route}`;
-    } else if (route) {
-      address = route;
-    } else if (streetNumber) {
-      address = streetNumber;
-    }
-    
-    return { address, city, province };
+    });
   }
 
+  // ===== AUTO-FILL ADDRESS FUNCTIONS =====
   function autoFillAddressFromPlace(place, formType) {
     const parsed = parseAddressComponents(place.address_components);
     let address = parsed.address;
     
+    // Use formatted address if we couldn't parse street address
     if (!address && place.formatted_address) {
       address = place.formatted_address;
     }
     
+    // Update form fields based on form type
     if (formType === 'sale') {
       if (address) document.getElementById('saleAddress').value = address;
       if (parsed.city) document.getElementById('saleCity').value = parsed.city;
       if (parsed.province) document.getElementById('saleProvince').value = parsed.province;
+      
+      // Also update the search input
       if (place.formatted_address) {
         document.getElementById('saleLocationSearch').value = place.formatted_address;
       }
@@ -2534,20 +2555,43 @@
       if (address) document.getElementById('leaseAddress').value = address;
       if (parsed.city) document.getElementById('leaseCity').value = parsed.city;
       if (parsed.province) document.getElementById('leaseProvince').value = parsed.province;
+      
+      // Also update the search input
       if (place.formatted_address) {
         document.getElementById('leaseLocationSearch').value = place.formatted_address;
       }
     }
   }
 
-  function reverseGeocode(latlng, formType) {
-    const geocoder = new google.maps.Geocoder();
+  function autoFillAddressFromGeocode(result, formType) {
+    const parsed = parseAddressComponents(result.address_components);
+    let address = parsed.address;
     
-    geocoder.geocode({ location: latlng }, function(results, status) {
-      if (status === 'OK' && results[0]) {
-        autoFillAddressFromPlace(results[0], formType);
+    // Use formatted address if we couldn't parse street address
+    if (!address && result.formatted_address) {
+      address = result.formatted_address;
+    }
+    
+    // Update form fields based on form type
+    if (formType === 'sale') {
+      if (address) document.getElementById('saleAddress').value = address;
+      if (parsed.city) document.getElementById('saleCity').value = parsed.city;
+      if (parsed.province) document.getElementById('saleProvince').value = parsed.province;
+      
+      // Update search input
+      if (result.formatted_address) {
+        document.getElementById('saleLocationSearch').value = result.formatted_address;
       }
-    });
+    } else {
+      if (address) document.getElementById('leaseAddress').value = address;
+      if (parsed.city) document.getElementById('leaseCity').value = parsed.city;
+      if (parsed.province) document.getElementById('leaseProvince').value = parsed.province;
+      
+      // Update search input
+      if (result.formatted_address) {
+        document.getElementById('leaseLocationSearch').value = result.formatted_address;
+      }
+    }
   }
 
   function updateSaleCoordinates(lat, lng) {
@@ -2577,15 +2621,8 @@
       const userData = userDoc.data();
       kycStatus = userData.kycStatus || 'not_submitted';
       
-      const warning = document.getElementById('kycWarning');
       const badge = document.getElementById('kycBadge');
       const badgeText = document.getElementById('kycBadgeText');
-      const statusText = document.getElementById('kycStatusText');
-      const message = document.getElementById('kycMessage');
-      
-      // Get form containers
-      const saleFormContainer = document.getElementById('saleFormContainer');
-      const leaseFormContainer = document.getElementById('leaseFormContainer');
       
       badge.style.display = 'flex';
       badge.className = `kyc-badge ${kycStatus}`;
@@ -2593,46 +2630,19 @@
       switch(kycStatus) {
         case 'not_submitted':
           badgeText.textContent = 'KYC: Not Submitted';
-          warning.style.display = 'block';
-          statusText.textContent = 'Status: KYC Not Submitted';
-          message.textContent = 'You must complete KYC verification before posting properties.';
-          
-          // Add blur overlay to forms
-          addKYCBlurOverlay(saleFormContainer);
-          addKYCBlurOverlay(leaseFormContainer);
           break;
-          
         case 'pending':
           badgeText.textContent = 'KYC: Pending';
-          warning.style.display = 'block';
-          statusText.textContent = 'Status: KYC Pending Approval';
-          message.textContent = 'Your KYC is under review. Please wait for approval.';
-          
-          // Add blur overlay to forms
-          addKYCBlurOverlay(saleFormContainer);
-          addKYCBlurOverlay(leaseFormContainer);
           break;
-          
         case 'rejected':
           badgeText.textContent = 'KYC: Rejected';
-          warning.style.display = 'block';
-          statusText.textContent = 'Status: KYC Rejected';
-          message.textContent = 'Your KYC was rejected. Please resubmit valid documents.';
-          
-          // Add blur overlay to forms
-          addKYCBlurOverlay(saleFormContainer);
-          addKYCBlurOverlay(leaseFormContainer);
           break;
-          
         case 'approved':
           badgeText.textContent = 'KYC: Verified ✓';
-          warning.style.display = 'none';
-          
-          // Remove blur overlay from forms
-          removeKYCBlurOverlay(saleFormContainer);
-          removeKYCBlurOverlay(leaseFormContainer);
           break;
       }
+      
+      updateFormForKYCStatus();
       
     } catch (error) {
       console.error('KYC check error:', error);
@@ -2640,47 +2650,125 @@
     }
   }
 
-  // ===== BLUR OVERLAY FUNCTIONS =====
-  function addKYCBlurOverlay(container) {
-    if (!container) return;
+  // ===== UPDATE FORM BASED ON KYC STATUS =====
+  function updateFormForKYCStatus() {
+    const typeOverlay = document.getElementById('typeSelectionBlurOverlay');
+    const saleOverlay = document.getElementById('saleFormBlurOverlay');
+    const leaseOverlay = document.getElementById('leaseFormBlurOverlay');
     
-    // Add blur class
-    container.classList.add('kyc-blur-overlay');
+    const typeStatus = document.getElementById('kycTypeStatus');
+    const typeMessage = document.getElementById('kycTypeMessage');
+    const saleStatus = document.getElementById('kycSaleStatus');
+    const saleMessage = document.getElementById('kycSaleMessage');
+    const leaseStatus = document.getElementById('kycLeaseStatus');
+    const leaseMessage = document.getElementById('kycLeaseMessage');
     
-    // Check if overlay already exists
-    let overlay = container.querySelector('.kyc-overlay-message');
-    if (!overlay) {
-      // Create overlay message
-      overlay = document.createElement('div');
-      overlay.className = 'kyc-overlay-message';
-      overlay.innerHTML = `
-        <h3><i class="bi bi-shield-lock"></i> KYC Verification Required</h3>
-        <p>You must complete KYC verification before you can add properties.</p>
-        <a href="../kyc.html">
-          <i class="bi bi-shield-check"></i> Complete KYC Verification
-        </a>
-      `;
-      container.appendChild(overlay);
+    switch(kycStatus) {
+      case 'not_submitted':
+      case 'pending':
+      case 'rejected':
+        typeOverlay.style.display = 'flex';
+        saleOverlay.style.display = 'flex';
+        leaseOverlay.style.display = 'flex';
+        
+        if (kycStatus === 'not_submitted') {
+          typeStatus.textContent = 'Status: KYC Not Submitted';
+          typeMessage.textContent = 'You must complete KYC verification before you can choose a listing type or post properties.';
+          saleStatus.textContent = 'Status: KYC Not Submitted';
+          saleMessage.textContent = 'You must complete KYC verification before posting properties for sale.';
+          leaseStatus.textContent = 'Status: KYC Not Submitted';
+          leaseMessage.textContent = 'You must complete KYC verification before posting properties for lease.';
+        } else if (kycStatus === 'pending') {
+          typeStatus.textContent = 'Status: KYC Pending Approval';
+          typeMessage.textContent = 'Your KYC is under review. Please wait for approval before you can choose a listing type or post properties.';
+          saleStatus.textContent = 'Status: KYC Pending Approval';
+          saleMessage.textContent = 'Your KYC is under review. Please wait for approval before posting properties for sale.';
+          leaseStatus.textContent = 'Status: KYC Pending Approval';
+          leaseMessage.textContent = 'Your KYC is under review. Please wait for approval before posting properties for lease.';
+        } else {
+          typeStatus.textContent = 'Status: KYC Rejected';
+          typeMessage.textContent = 'Your KYC was rejected. Please resubmit valid documents before you can choose a listing type or post properties.';
+          saleStatus.textContent = 'Status: KYC Rejected';
+          saleMessage.textContent = 'Your KYC was rejected. Please resubmit valid documents before posting properties for sale.';
+          leaseStatus.textContent = 'Status: KYC Rejected';
+          leaseMessage.textContent = 'Your KYC was rejected. Please resubmit valid documents before posting properties for lease.';
+        }
+        
+        disableFormElements();
+        break;
+        
+      case 'approved':
+        typeOverlay.style.display = 'none';
+        saleOverlay.style.display = 'none';
+        leaseOverlay.style.display = 'none';
+        enableFormElements();
+        break;
     }
   }
 
-  function removeKYCBlurOverlay(container) {
-    if (!container) return;
+  // ===== DISABLE/ENABLE FORM ELEMENTS =====
+  function disableFormElements() {
+    document.getElementById('typeSelectionCard').classList.add('form-disabled');
+    document.getElementById('saleForm').classList.add('form-disabled');
+    document.getElementById('leaseForm').classList.add('form-disabled');
     
-    // Remove blur class
-    container.classList.remove('kyc-blur-overlay');
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => {
+      input.disabled = true;
+      input.style.cursor = 'not-allowed';
+    });
     
-    // Remove overlay message if exists
-    const overlay = container.querySelector('.kyc-overlay-message');
-    if (overlay) {
-      overlay.remove();
+    const allButtons = document.querySelectorAll('.btn, .type-card, .image-upload-area');
+    allButtons.forEach(button => {
+      button.style.pointerEvents = 'none';
+      button.style.cursor = 'not-allowed';
+    });
+    
+    document.getElementById('saleImages').disabled = true;
+    document.getElementById('leaseImages').disabled = true;
+    
+    if (saleMap) {
+      saleMap.setOptions({ draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true });
+    }
+    if (leaseMap) {
+      leaseMap.setOptions({ draggable: false, zoomControl: false, scrollwheel: false, disableDoubleClickZoom: true });
+    }
+  }
+
+  function enableFormElements() {
+    document.getElementById('typeSelectionCard').classList.remove('form-disabled');
+    document.getElementById('saleForm').classList.remove('form-disabled');
+    document.getElementById('leaseForm').classList.remove('form-disabled');
+    
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => {
+      input.disabled = false;
+      input.style.cursor = 'auto';
+    });
+    
+    const allButtons = document.querySelectorAll('.btn, .type-card, .image-upload-area');
+    allButtons.forEach(button => {
+      button.style.pointerEvents = 'auto';
+      button.style.cursor = 'pointer';
+    });
+    
+    document.getElementById('saleImages').disabled = false;
+    document.getElementById('leaseImages').disabled = false;
+    
+    if (saleMap) {
+      saleMap.setOptions({ draggable: true, zoomControl: true, scrollwheel: true, disableDoubleClickZoom: false });
+    }
+    if (leaseMap) {
+      leaseMap.setOptions({ draggable: true, zoomControl: true, scrollwheel: true, disableDoubleClickZoom: false });
     }
   }
 
   // ===== SALE FORM SUBMISSION =====
   async function handleSaleSubmit(event) {
+    event.preventDefault();
+    
     if (kycStatus !== 'approved') {
-      showMessage('KYC verification required. Please complete KYC verification first.', 'error');
+      showMessage('KYC verification required', 'error');
       return;
     }
     
@@ -2718,24 +2806,17 @@
         createdAt: new Date(),
         updatedAt: new Date(),
         imageUrls: [],
-        videoUrls: [],
-        hasMedia: selectedSaleMedia.length > 0,
-        mediaCount: selectedSaleMedia.length
+        videoUrls: []
       });
       
       const propertyId = propertyRef.id;
       
-      progressText.textContent = `Uploading ${selectedSaleMedia.length} file(s)...`;
+      progressText.textContent = `Uploading ${selectedSaleImages.length} file(s)...`;
       progressFill.style.width = '30%';
       
-      const mediaUrls = await uploadMediaFiles(
-        selectedSaleMedia, 
-        currentUser.uid, 
-        propertyId, 
-        (percent) => {
-          progressFill.style.width = `${30 + percent * 0.6}%`;
-        }
-      );
+      const mediaUrls = await uploadMediaFiles(selectedSaleImages, currentUser.uid, propertyId, (percent) => {
+        progressFill.style.width = `${percent}%`;
+      });
       
       progressText.textContent = 'Finalizing sale listing...';
       progressFill.style.width = '95%';
@@ -2744,11 +2825,7 @@
         imageUrls: mediaUrls.images.map(img => img.url),
         videoUrls: mediaUrls.videos.map(vid => vid.url),
         photos: mediaUrls.images.map(img => img.url),
-        hasVideos: mediaUrls.videos.length > 0,
-        hasMedia: selectedSaleMedia.length > 0,
-        mediaCount: selectedSaleMedia.length,
-        imageCount: mediaUrls.images.length,
-        videoCount: mediaUrls.videos.length
+        hasVideos: mediaUrls.videos.length > 0
       });
       
       progressFill.style.width = '100%';
@@ -2771,8 +2848,10 @@
 
   // ===== LEASE FORM SUBMISSION =====
   async function handleLeaseSubmit(event) {
+    event.preventDefault();
+    
     if (kycStatus !== 'approved') {
-      showMessage('KYC verification required. Please complete KYC verification first.', 'error');
+      showMessage('KYC verification required', 'error');
       return;
     }
     
@@ -2810,24 +2889,17 @@
         createdAt: new Date(),
         updatedAt: new Date(),
         imageUrls: [],
-        videoUrls: [],
-        hasMedia: selectedLeaseMedia.length > 0,
-        mediaCount: selectedLeaseMedia.length
+        videoUrls: []
       });
       
       const propertyId = propertyRef.id;
       
-      progressText.textContent = `Uploading ${selectedLeaseMedia.length} file(s)...`;
+      progressText.textContent = `Uploading ${selectedLeaseImages.length} file(s)...`;
       progressFill.style.width = '30%';
       
-      const mediaUrls = await uploadMediaFiles(
-        selectedLeaseMedia, 
-        currentUser.uid, 
-        propertyId, 
-        (percent) => {
-          progressFill.style.width = `${30 + percent * 0.6}%`;
-        }
-      );
+      const mediaUrls = await uploadMediaFiles(selectedLeaseImages, currentUser.uid, propertyId, (percent) => {
+        progressFill.style.width = `${percent}%`;
+      });
       
       progressText.textContent = 'Finalizing lease listing...';
       progressFill.style.width = '95%';
@@ -2836,11 +2908,7 @@
         imageUrls: mediaUrls.images.map(img => img.url),
         videoUrls: mediaUrls.videos.map(vid => vid.url),
         photos: mediaUrls.images.map(img => img.url),
-        hasVideos: mediaUrls.videos.length > 0,
-        hasMedia: selectedLeaseMedia.length > 0,
-        mediaCount: selectedLeaseMedia.length,
-        imageCount: mediaUrls.images.length,
-        videoCount: mediaUrls.videos.length
+        hasVideos: mediaUrls.videos.length > 0
       });
       
       progressFill.style.width = '100%';
@@ -2859,41 +2927,6 @@
       submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Post Property for Lease';
       progress.style.display = 'none';
     }
-  }
-
-  async function uploadMediaFiles(files, userId, propertyId, progressCallback) {
-    const mediaUrls = {
-      images: [],
-      videos: []
-    };
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${propertyId}_${timestamp}_${i}.${fileExt}`;
-      const fileType = file.type.startsWith('video/') ? 'videos' : 'images';
-      
-      const storageRef = firebase.storage().ref()
-        .child(`properties/${userId}/${propertyId}/${fileType}/${fileName}`);
-      
-      const snapshot = await storageRef.put(file);
-      const downloadURL = await snapshot.ref.getDownloadURL();
-      
-      mediaUrls[fileType].push({
-        url: downloadURL,
-        type: file.type,
-        name: fileName,
-        size: file.size
-      });
-      
-      if (progressCallback) {
-        const percent = ((i + 1) / files.length) * 100;
-        progressCallback(percent);
-      }
-    }
-    
-    return mediaUrls;
   }
 
   // ===== FORM VALIDATION =====
@@ -2917,13 +2950,19 @@
       showMessage('Please select location on map', 'error');
       return false;
     }
+    const saleLat = parseFloat(document.getElementById('saleLatitude').value);
+    const saleLng = parseFloat(document.getElementById('saleLongitude').value);
+    if (!isWithinBatangas(saleLat, saleLng)) {
+      showMessage('Please select a location within Batangas province.', 'error');
+      return false;
+    }
     
     if (!selectedSaleType) {
       showMessage('Please select a sale type', 'error');
       return false;
     }
     
-    if (selectedSaleMedia.length === 0) { 
+    if (selectedSaleImages.length === 0) {
       showMessage('Please upload at least 1 property image or video', 'error');
       return false;
     }
@@ -2951,13 +2990,19 @@
       showMessage('Please select location on map', 'error');
       return false;
     }
+    const leaseLat = parseFloat(document.getElementById('leaseLatitude').value);
+    const leaseLng = parseFloat(document.getElementById('leaseLongitude').value);
+    if (!isWithinBatangas(leaseLat, leaseLng)) {
+      showMessage('Please select a location within Batangas province.', 'error');
+      return false;
+    }
     
     if (!selectedLeaseType) {
       showMessage('Please select a lease type', 'error');
       return false;
     }
     
-    if (selectedLeaseMedia.length === 0) {
+    if (selectedLeaseImages.length === 0) {
       showMessage('Please upload at least 1 property image or video', 'error');
       return false;
     }
@@ -3080,11 +3125,16 @@
     if (confirm('Are you sure you want to reset the sale form? All entered data will be lost.')) {
       document.getElementById('saleFormData').reset();
       document.getElementById('salePreviewContainer').innerHTML = '';
-      selectedSaleMedia = [];
+      selectedSaleImages = [];
       selectedSaleType = null;
       updateSalePropertyTypes();
-      document.getElementById('saleMediaFiles').value = '';
-      document.getElementById('saleMediaCount').style.display = 'none';
+      
+      // Reset file input
+      document.getElementById('saleImages').value = '';
+      
+      // Hide image count
+      document.getElementById('saleImageCount').style.display = 'none';
+      
       document.querySelectorAll('.sale-option').forEach(option => {
         option.classList.remove('active');
       });
@@ -3095,11 +3145,16 @@
     if (confirm('Are you sure you want to reset the lease form? All entered data will be lost.')) {
       document.getElementById('leasePropertyForm').reset();
       document.getElementById('leasePreviewContainer').innerHTML = '';
-      selectedLeaseMedia = [];
+      selectedLeaseImages = [];
       selectedLeaseType = null;
       updateLeasePropertyTypes();
-      document.getElementById('leaseMediaFiles').value = '';
-      document.getElementById('leaseMediaCount').style.display = 'none';
+      
+      // Reset file input
+      document.getElementById('leaseImages').value = '';
+      
+      // Hide image count
+      document.getElementById('leaseImageCount').style.display = 'none';
+      
       document.querySelectorAll('.lease-option').forEach(option => {
         option.classList.remove('active');
       });

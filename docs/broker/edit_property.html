@@ -558,11 +558,24 @@
       box-shadow: var(--shadow-lg);
     }
 
-    .preview-item img {
+    .preview-item img,
+    .preview-item video {
       width: 100%;
       height: 120px;
       object-fit: cover;
       display: block;
+    }
+
+    .preview-item .video-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: bold;
     }
 
     .remove-btn {
@@ -1352,8 +1365,8 @@
           <textarea id="saleDescription" placeholder="Describe your property in detail, include unique selling points, neighborhood features, etc..." rows="6" required></textarea>
         </div>
 
-        <!-- Existing Images -->
-        <h3 class="existing-images-title"><i class="bi bi-image"></i> Existing Property Images</h3>
+        <!-- Existing Images & Videos -->
+        <h3 class="existing-images-title"><i class="bi bi-image"></i> Existing Property Images & Videos</h3>
         <div class="preview-container" id="saleExistingImagesContainer"></div>
         
         <div class="image-actions">
@@ -1376,7 +1389,7 @@
 
         <!-- Form Actions -->
         <div class="form-actions">
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='broker_listings.html'">
+          <button type="button" class="btn btn-secondary" onclick="window.location.href=(window.isAgentUser?'agent_listings.html':'broker_listings.html')">
             <i class="bi bi-x-circle"></i> Cancel
           </button>
           <button type="submit" class="btn btn-primary" id="updateSaleBtn">
@@ -1719,8 +1732,8 @@
           <textarea id="leaseDescription" placeholder="Describe the property in detail, including development potential, nearby landmarks, transportation access, etc." rows="6" required></textarea>
         </div>
 
-        <!-- Existing Images -->
-        <h3 class="existing-images-title"><i class="bi bi-image"></i> Existing Property Images</h3>
+        <!-- Existing Images & Videos -->
+        <h3 class="existing-images-title"><i class="bi bi-image"></i> Existing Property Images & Videos</h3>
         <div class="preview-container" id="leaseExistingImagesContainer"></div>
         
         <div class="image-actions">
@@ -1743,7 +1756,7 @@
 
         <!-- Form Actions -->
         <div class="form-actions">
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='broker_listings.html'">
+          <button type="button" class="btn btn-secondary" onclick="window.location.href=(window.isAgentUser?'agent_listings.html':'broker_listings.html')">
             <i class="bi bi-x-circle"></i> Cancel
           </button>
           <button type="submit" class="btn btn-primary" id="updateLeaseBtn">
@@ -1796,31 +1809,50 @@
   };
 
   // ===== LOAD SIDEBAR =====
-  async function loadSidebar() {
+  async function loadSidebar(sidebarFile) {
+    const file = sidebarFile || 'sidebar.html';
     try {
-      const response = await fetch('sidebar.html');
+      const response = await fetch(file);
       const sidebarHtml = await response.text();
       document.getElementById('sidebar-container').innerHTML = sidebarHtml;
       if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
-      initializeSidebar();
+      initializeSidebar(file);
     } catch (error) {
       console.error('Error loading sidebar:', error);
+      const fallbackHref = file === 'agent_sidebar.html' ? 'agent_listings.html' : 'broker_listings.html';
       document.getElementById('sidebar-container').innerHTML = `
         <div class="sidebar" id="sidebar">
           <div class="sidebar-content" style="background: linear-gradient(180deg, #0b2e52 0%, #071e38 100%); color: white; height: 100%; padding: 25px;">
             <div style="margin-bottom: 25px;"><strong style="font-size: 22px;">BahAI</strong></div>
-            <a href="broker_dashboard.html" style="display: block; padding: 12px; color: rgba(255,255,255,0.9); text-decoration: none;">Dashboard</a>
-            <a href="broker_listings.html" style="display: block; padding: 12px; color: #d4af37; text-decoration: none; font-weight: 600;">My Listings</a>
-            <a href="add_property.html" style="display: block; padding: 12px; color: rgba(255,255,255,0.9); text-decoration: none;">Add Property</a>
+            <a href="${file === 'agent_sidebar.html' ? 'agent_dashboard.html' : 'broker_dashboard.html'}" style="display: block; padding: 12px; color: rgba(255,255,255,0.9); text-decoration: none;">Dashboard</a>
+            <a href="${fallbackHref}" style="display: block; padding: 12px; color: #d4af37; text-decoration: none; font-weight: 600;">My Listings</a>
+            <a href="${file === 'agent_sidebar.html' ? 'agent_add_property.html' : 'add_property.html'}" style="display: block; padding: 12px; color: rgba(255,255,255,0.9); text-decoration: none;">Add Property</a>
             <button id="sidebarLogoutBtn" style="margin-top: 20px; padding: 12px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.3); color: white; border-radius: 8px; width: 100%; cursor: pointer;"><i class="fas fa-sign-out-alt"></i> Log Out</button>
           </div>
         </div>
       `;
-      initializeSidebar();
+      initializeSidebar(file);
     }
   }
 
-  function initializeSidebar() {
+  async function isUserAgent(uid) {
+    try {
+      const brokerDoc = await firebase.firestore().collection('brokers').doc(uid).get();
+      if (brokerDoc.exists) return false;
+      const agentDoc = await firebase.firestore().collection('agents').doc(uid).get();
+      if (agentDoc.exists) return true;
+      const agentsSnap = await firebase.firestore().collection('agents').where('authUid', '==', uid).get();
+      if (!agentsSnap.empty) return true;
+      const userDoc = await firebase.firestore().collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        const d = userDoc.data();
+        if (d.userType === 'agent' || d.userRole === 'agent' || d.role === 'agent') return true;
+      }
+    } catch (e) { console.warn(e); }
+    return false;
+  }
+
+  function initializeSidebar(sidebarFile) {
     const logoutBtn = document.getElementById('logoutBtn') || document.getElementById('sidebarLogoutBtn');
     if (logoutBtn) {
       const newBtn = logoutBtn.cloneNode(true);
@@ -1839,11 +1871,11 @@
         }
       });
     }
-    // Highlight My Listings when on edit_property (user came from listings)
+    const listingsHref = sidebarFile === 'agent_sidebar.html' ? 'agent_listings.html' : 'broker_listings.html';
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
       const href = link.getAttribute('href');
-      if (href === 'broker_listings.html') link.classList.add('active');
+      if (href === listingsHref) link.classList.add('active');
       else link.classList.remove('active');
     });
   }
@@ -1861,21 +1893,18 @@
 
   // ===== INITIALIZE =====
   document.addEventListener('DOMContentLoaded', function() {
-    // Load sidebar first
-    loadSidebar();
-    
-    // Initialize Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     
-    // Check authentication
     firebase.auth().onAuthStateChanged(async function(user) {
       if (!user) {
         window.location.href = "../login.html";
         return;
       }
       currentUser = user;
+      window.isAgentUser = await isUserAgent(user.uid);
+      await loadSidebar(window.isAgentUser ? 'agent_sidebar.html' : 'sidebar.html');
       await loadUserProfile();
       await checkKYCStatus();
       await loadPropertyData();
@@ -1964,6 +1993,8 @@
   let selectedLeaseNewImages = [];
   let existingSaleImages = [];
   let existingLeaseImages = [];
+  let existingSaleVideos = [];
+  let existingLeaseVideos = [];
   let selectedSaleType = null;
   let selectedLeaseType = null;
   let propertyId = null;
@@ -1991,20 +2022,20 @@
     const urlParams = new URLSearchParams(window.location.search);
     propertyId = urlParams.get('id');
     
-    if (!propertyId) {
-      showMessage('Invalid property ID', 'error');
-      setTimeout(() => window.location.href = 'broker_listings.html', 2000);
-      return;
-    }
-    
-    try {
-      const propertyDoc = await firebase.firestore().collection('properties').doc(propertyId).get();
-      
-      if (!propertyDoc.exists) {
-        showMessage('Property not found', 'error');
-        setTimeout(() => window.location.href = 'broker_listings.html', 2000);
+      if (!propertyId) {
+        showMessage('Invalid property ID', 'error');
+        setTimeout(() => window.location.href = (window.isAgentUser ? 'agent_listings.html' : 'broker_listings.html'), 2000);
         return;
       }
+      
+      try {
+        const propertyDoc = await firebase.firestore().collection('properties').doc(propertyId).get();
+        
+        if (!propertyDoc.exists) {
+          showMessage('Property not found', 'error');
+          setTimeout(() => window.location.href = (window.isAgentUser ? 'agent_listings.html' : 'broker_listings.html'), 2000);
+          return;
+        }
       
       propertyData = propertyDoc.data();
       propertyData.id = propertyId;
@@ -2144,8 +2175,12 @@
       }
     }
     
-    // Existing Images
+    // Existing Images & Videos
     existingSaleImages = data.imageUrls || data.photos || [];
+    existingSaleVideos = data.videoUrls || [];
+    if (existingSaleVideos.length === 0 && data.mediaUrls && data.mediaUrls.videos) {
+      existingSaleVideos = (data.mediaUrls.videos || []).map(v => (v && v.url) ? v.url : v).filter(Boolean);
+    }
     updateSaleExistingImages();
   }
 
@@ -2252,8 +2287,12 @@
       }
     }
     
-    // Existing Images
+    // Existing Images & Videos
     existingLeaseImages = data.imageUrls || data.photos || [];
+    existingLeaseVideos = data.videoUrls || [];
+    if (existingLeaseVideos.length === 0 && data.mediaUrls && data.mediaUrls.videos) {
+      existingLeaseVideos = (data.mediaUrls.videos || []).map(v => (v && v.url) ? v.url : v).filter(Boolean);
+    }
     updateLeaseExistingImages();
   }
 
@@ -2517,18 +2556,28 @@
     const container = document.getElementById('saleExistingImagesContainer');
     container.innerHTML = '';
     
-    if (existingSaleImages.length === 0) {
-      container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No existing images</p>';
+    const totalCount = existingSaleImages.length + existingSaleVideos.length;
+    if (totalCount === 0) {
+      container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No existing images or videos</p>';
       return;
     }
     
-    // Create preview for each existing image
     existingSaleImages.forEach((url, index) => {
       const div = document.createElement('div');
       div.className = 'preview-item';
       div.innerHTML = `
-        <img src="${url}" alt="Existing image ${index + 1}">
+        <img src="${url.replace(/"/g, '&quot;')}" alt="Existing image ${index + 1}">
         <button type="button" class="remove-btn" onclick="removeSaleExistingImage(${index})">×</button>
+      `;
+      container.appendChild(div);
+    });
+    existingSaleVideos.forEach((url, index) => {
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+      div.innerHTML = `
+        <video src="${(url || '').replace(/"/g, '&quot;')}" style="width:100%;height:120px;object-fit:cover;"></video>
+        <span class="video-badge">VIDEO</span>
+        <button type="button" class="remove-btn" onclick="removeSaleExistingVideo(${index})">×</button>
       `;
       container.appendChild(div);
     });
@@ -2538,18 +2587,28 @@
     const container = document.getElementById('leaseExistingImagesContainer');
     container.innerHTML = '';
     
-    if (existingLeaseImages.length === 0) {
-      container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No existing images</p>';
+    const totalCount = existingLeaseImages.length + existingLeaseVideos.length;
+    if (totalCount === 0) {
+      container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No existing images or videos</p>';
       return;
     }
     
-    // Create preview for each existing image
     existingLeaseImages.forEach((url, index) => {
       const div = document.createElement('div');
       div.className = 'preview-item';
       div.innerHTML = `
-        <img src="${url}" alt="Existing image ${index + 1}">
+        <img src="${url.replace(/"/g, '&quot;')}" alt="Existing image ${index + 1}">
         <button type="button" class="remove-btn" onclick="removeLeaseExistingImage(${index})">×</button>
+      `;
+      container.appendChild(div);
+    });
+    existingLeaseVideos.forEach((url, index) => {
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+      div.innerHTML = `
+        <video src="${(url || '').replace(/"/g, '&quot;')}" style="width:100%;height:120px;object-fit:cover;"></video>
+        <span class="video-badge">VIDEO</span>
+        <button type="button" class="remove-btn" onclick="removeLeaseExistingVideo(${index})">×</button>
       `;
       container.appendChild(div);
     });
@@ -2633,6 +2692,20 @@
     }
   }
 
+  function removeSaleExistingVideo(index) {
+    if (confirm('Are you sure you want to remove this video?')) {
+      existingSaleVideos.splice(index, 1);
+      updateSaleExistingImages();
+    }
+  }
+
+  function removeLeaseExistingVideo(index) {
+    if (confirm('Are you sure you want to remove this video?')) {
+      existingLeaseVideos.splice(index, 1);
+      updateLeaseExistingImages();
+    }
+  }
+
   function removeSaleNewImage(index) {
     selectedSaleNewImages.splice(index, 1);
     updateSaleNewImagePreview();
@@ -2644,15 +2717,17 @@
   }
 
   function removeAllSaleImages() {
-    if (confirm('Are you sure you want to remove all images? This cannot be undone.')) {
+    if (confirm('Are you sure you want to remove all images and videos? This cannot be undone.')) {
       existingSaleImages = [];
+      existingSaleVideos = [];
       updateSaleExistingImages();
     }
   }
 
   function removeAllLeaseImages() {
-    if (confirm('Are you sure you want to remove all images? This cannot be undone.')) {
+    if (confirm('Are you sure you want to remove all images and videos? This cannot be undone.')) {
       existingLeaseImages = [];
+      existingLeaseVideos = [];
       updateLeaseExistingImages();
     }
   }
@@ -3118,11 +3193,13 @@
       progressText.textContent = 'Finalizing update...';
       progressFill.style.width = '80%';
       
-      // Update Firestore document
+      // Update Firestore document (preserve videoUrls)
+      const allVideoUrls = [...existingSaleVideos];
       await firebase.firestore().collection('properties').doc(propertyId).update({
         ...formData,
         imageUrls: allImageUrls,
         photos: allImageUrls,
+        videoUrls: allVideoUrls,
         updatedAt: new Date()
       });
       
@@ -3132,7 +3209,7 @@
       showMessage('✅ Sale property updated successfully! Redirecting...', 'success');
       
       setTimeout(() => {
-        window.location.href = 'broker_listings.html';
+        window.location.href = window.isAgentUser ? 'agent_listings.html' : 'broker_listings.html';
       }, 2000);
       
     } catch (error) {
@@ -3198,11 +3275,13 @@
       progressText.textContent = 'Finalizing update...';
       progressFill.style.width = '80%';
       
-      // Update Firestore document
+      // Update Firestore document (preserve videoUrls)
+      const allVideoUrls = [...existingLeaseVideos];
       await firebase.firestore().collection('properties').doc(propertyId).update({
         ...formData,
         imageUrls: allImageUrls,
         photos: allImageUrls,
+        videoUrls: allVideoUrls,
         updatedAt: new Date()
       });
       
@@ -3212,7 +3291,7 @@
       showMessage('✅ Lease property updated successfully! Redirecting...', 'success');
       
       setTimeout(() => {
-        window.location.href = 'broker_listings.html';
+        window.location.href = window.isAgentUser ? 'agent_listings.html' : 'broker_listings.html';
       }, 2000);
       
     } catch (error) {
