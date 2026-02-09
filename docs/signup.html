@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #0B3D61; /* Dark blue - luxury primary */
+      --primary: #0B3D61;
       --primary-dark: #082A47;
       --primary-light: #1A5276;
-      --accent: #D4AF37; /* Gold accent */
+      --accent: #D4AF37;
       --accent-dark: #B8941F;
       --neutral-light: #F8F9FA;
       --neutral-medium: #E9ECEF;
@@ -241,7 +241,7 @@
 
     .form-select {
       appearance: none;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%230B3D61%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%230B3D61%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8%205.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
       background-position: right 20px top 50%;
       background-size: 14px auto;
@@ -420,6 +420,140 @@
 
     .form-input.error, .form-select.error {
       border-color: var(--error);
+    }
+
+    /* Role Modal Styles */
+    .role-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .role-modal-content {
+      background: var(--white);
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      max-width: 450px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .role-modal h3 {
+      margin-bottom: 20px;
+      color: var(--primary);
+      font-size: 22px;
+    }
+
+    .role-modal p {
+      margin-bottom: 20px;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+
+    .role-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .role-option-btn {
+      padding: 14px;
+      border: 2px solid var(--neutral-medium);
+      border-radius: var(--radius-md);
+      background: white;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .role-option-btn:hover {
+      border-color: var(--primary);
+      background: var(--neutral-light);
+    }
+
+    .role-option-btn i {
+      font-size: 16px;
+      color: var(--primary);
+      min-width: 20px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .modal-btn-cancel {
+      background: var(--neutral-medium);
+      color: var(--text-dark);
+    }
+
+    .modal-btn-cancel:hover {
+      background: var(--neutral-dark);
+      color: white;
+    }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      font-weight: 500;
+      animation: slideInRight 0.3s ease-out;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 400px;
+    }
+
+    .notification.error {
+      background: var(--error);
+      color: white;
+      border-left: 4px solid #c82333;
+    }
+
+    .notification.success {
+      background: var(--success);
+      color: white;
+      border-left: 4px solid #218838;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
     }
 
     /* Responsive Design */
@@ -624,6 +758,12 @@
         transform: translateY(0);
       }
     }
+
+    /* Spinner animation */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -631,13 +771,13 @@
     <!-- Visual Side -->
     <div class="visual-side">
       <div class="visual-content">
-        <h1 class="visual-title">Join Our Premium Real Estate Network</h1>
-        <p class="visual-subtitle">Create your account to access exclusive tools for agents, brokers, landlords, and sellers to grow your real estate business.</p>
+        <h1 class="visual-title">Join BahAI Real Estate Network</h1>
+        <p class="visual-subtitle">Create your account to access our premium real estate platform for buyers, brokers, and landlords.</p>
         
         <ul class="visual-features">
-          <li><i class="fas fa-home"></i> List and manage properties with advanced tools</li>
+          <li><i class="fas fa-home"></i> Browse thousands of verified properties</li>
           <li><i class="fas fa-chart-line"></i> Access market analytics and insights</li>
-          <li><i class="fas fa-handshake"></i> Connect with verified clients and partners</li>
+          <li><i class="fas fa-handshake"></i> Connect with trusted professionals</li>
           <li><i class="fas fa-shield-alt"></i> Bank-level security for all your data</li>
         </ul>
       </div>
@@ -735,7 +875,7 @@
             </div>
             <div id="phoneError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
-  <span>Please enter a valid Philippine phone number (09XXXXXXXXX, +639XXXXXXXXX, or 639XXXXXXXXX)</span>
+              <span>Please enter a valid Philippine phone number (09XXXXXXXXX, +639XXXXXXXXX, or 639XXXXXXXXX)</span>
             </div>
           </div>
         </div>
@@ -744,15 +884,19 @@
           <label for="role" class="form-label">Account Type</label>
           <div class="input-container">
             <select id="role" class="form-select" required aria-label="Account Type">
-              <option value="">Select account type</option>
+              <option value="">Select your account type</option>
+              <option value="buyer">Buyer (Looking to purchase or rent property)</option>
               <option value="broker">Broker (Licensed Real Estate Broker)</option>
-              <option value="agent">Agent (Property Agent under Broker)</option>
-              <option value="seller">Seller (Property Owner)</option>
-              <option value="landlord">Landlord (Property Lessor)</option>
+              <option value="landlord">Landlord (Property Owner wanting to rent out)</option>
             </select>
           </div>
           <p class="form-note">
-            <i class="fas fa-info-circle"></i> You'll need to complete KYC verification after signup to post properties.
+            <i class="fas fa-info-circle"></i> 
+            <strong>Brokers:</strong> Can create agent accounts after KYC verification.
+            <br>
+            <strong>Landlords:</strong> Need KYC verification to list properties.
+            <br>
+            <strong>Buyers:</strong> No KYC required for browsing and inquiring.
           </p>
           <div id="roleError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
@@ -789,7 +933,6 @@
   <script type="module">
 import { auth, db } from './firebase-common.js';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-// FIX: Add getDoc to imports
 import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const el = id => document.getElementById(id);
@@ -940,13 +1083,13 @@ el('signupForm').addEventListener('submit', async (e) => {
   }
   
   // Validate phone - basic validation
-const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
-const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
-if (!phone || !phPhoneRegex.test(cleanedPhone)) {
-  phoneInput.classList.add('error');
-  phoneError.classList.add('show');
-  isValid = false;
-}
+  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+  const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
+  if (!phone || !phPhoneRegex.test(cleanedPhone)) {
+    phoneInput.classList.add('error');
+    phoneError.classList.add('show');
+    isValid = false;
+  }
   
   // Validate role
   if (!role) {
@@ -968,22 +1111,30 @@ if (!phone || !phPhoneRegex.test(cleanedPhone)) {
     const uid = cred.user.uid;
 
     await setDoc(doc(db, 'users', uid), {
-      fullName, email, phone, role,
-      kycStatus: "not_submitted",
-      createdAt: serverTimestamp()
+      fullName, 
+      email, 
+      phone, 
+      role,
+      kycStatus: role === "buyer" ? "not_required" : "not_submitted",
+      createdAt: serverTimestamp(),
+      provider: "email"
     });
 
-    // Updated redirect paths to match the login page
+    // Redirect paths - 3 roles only
     const dashboardMap = {
+      buyer: 'buyer/buyer_dashboard.html',
       broker: 'broker/broker_dashboard.html',
-      agent: 'broker/agent_dashboard.html',
-      seller: 'seller/seller_dashboard.html',
       landlord: 'landlord/landlord_dashboard.html'
     };
     
     const redirectUrl = dashboardMap[role] || 'login.html';
     
-    showSuccess('✅ Account created successfully! Redirecting...');
+    const message = role === "buyer" 
+      ? "✅ Account created! Start browsing properties."
+      : "✅ Account created! Please complete KYC verification.";
+    
+    showSuccess(message);
+    
     setTimeout(() => {
       window.location.href = redirectUrl;
     }, 1500);
@@ -996,56 +1147,122 @@ if (!phone || !phPhoneRegex.test(cleanedPhone)) {
   }
 });
 
-// ✅ Google Signup
+// Role selection modal for Google signup
+function showRoleModal() {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'role-modal';
+    
+    const modalContent = `
+      <div class="role-modal-content">
+        <h3>Select Your Role</h3>
+        <p>Please select your primary role in BahAI Real Estate:</p>
+        <div class="role-options">
+          <button class="role-option-btn" data-role="buyer">
+            <i class="fas fa-user"></i> Buyer (Looking to purchase or rent property)
+          </button>
+          <button class="role-option-btn" data-role="broker">
+            <i class="fas fa-briefcase"></i> Broker (Licensed Real Estate Broker)
+          </button>
+          <button class="role-option-btn" data-role="landlord">
+            <i class="fas fa-building"></i> Landlord (Property Owner wanting to rent out)
+          </button>
+        </div>
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-cancel" id="cancelBtn">Cancel</button>
+        </div>
+      </div>
+    `;
+    
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+    
+    modal.querySelectorAll('.role-option-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const role = e.currentTarget.getAttribute('data-role');
+        document.body.removeChild(modal);
+        resolve(role);
+      });
+    });
+    
+    modal.querySelector('#cancelBtn').addEventListener('click', () => {
+      document.body.removeChild(modal);
+      resolve(null);
+    });
+  });
+}
+
+// ✅ Google Signup - Updated for 3 roles
 el('googleSignupBtn').addEventListener('click', async () => {
   try {
+    // Show loading state
+    const googleBtn = el('googleSignupBtn');
+    googleBtn.disabled = true;
+    googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+    
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
+    // Reset button
+    googleBtn.disabled = false;
+    googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+    
     let data;
     if (!docSnap.exists()) {
-      const role = prompt("Enter your role (broker/agent/seller/landlord):").toLowerCase();
-      // Validate role input
-      const validRoles = ['broker', 'agent', 'seller', 'landlord'];
-      if (!validRoles.includes(role)) {
-        showError("❌ Invalid role. Please enter: broker, agent, seller, or landlord");
+      // New user - show role selection modal
+      const role = await showRoleModal();
+      if (!role) {
+        await auth.signOut();
         return;
       }
+      
       data = {
         fullName: user.displayName,
         email: user.email,
+        phone: "", // Google doesn't provide phone
         role,
-        kycStatus: "not_submitted",
-        createdAt: serverTimestamp()
+        kycStatus: role === "buyer" ? "not_required" : "not_submitted",
+        createdAt: serverTimestamp(),
+        provider: "google"
       };
+      
       await setDoc(userRef, data);
-      showSuccess("✅ Account created! Please complete KYC verification to post properties.");
+      
+      const message = role === "buyer" 
+        ? "✅ Account created! Start browsing properties."
+        : "✅ Account created! Please complete KYC verification.";
+      
+      showSuccess(message);
+      
       setTimeout(() => {
         const dashboardMap = {
+          buyer: 'buyer/buyer_dashboard.html',
           broker: 'broker/broker_dashboard.html',
-          agent: 'broker/agent_dashboard.html',
-          seller: 'seller/seller_dashboard.html',
           landlord: 'landlord/landlord_dashboard.html'
         };
         window.location.href = dashboardMap[role] || 'login.html';
       }, 1500);
       return;
     } else {
+      // Existing user - redirect based on role
       data = docSnap.data();
+      const dashboardMap = {
+        buyer: 'buyer/buyer_dashboard.html',
+        broker: 'broker/broker_dashboard.html',
+        landlord: 'landlord/landlord_dashboard.html',
+        agent: 'broker/agent_dashboard.html' // For agents created by brokers
+      };
+      window.location.href = dashboardMap[data.role] || 'login.html';
     }
 
-    // Redirect based on role
-    const dashboardMap = {
-      broker: 'broker/broker_dashboard.html',
-      agent: 'broker/agent_dashboard.html',
-      seller: 'seller/seller_dashboard.html',
-      landlord: 'landlord/landlord_dashboard.html'
-    };
-    window.location.href = dashboardMap[data.role] || 'login.html';
-
   } catch (error) {
+    // Reset button
+    const googleBtn = el('googleSignupBtn');
+    googleBtn.disabled = false;
+    googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+    
     showError("❌ Google sign-in failed: " + error.message);
   }
 });
@@ -1060,22 +1277,7 @@ document.addEventListener('keypress', function(e) {
 // UI feedback functions
 function showError(message) {
   const errorDiv = document.createElement('div');
-  errorDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--error);
-    color: white;
-    padding: 15px 25px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    font-weight: 500;
-    animation: slideInRight 0.3s ease-out;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  `;
+  errorDiv.className = 'notification error';
   errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
   document.body.appendChild(errorDiv);
   
@@ -1087,22 +1289,7 @@ function showError(message) {
 
 function showSuccess(message) {
   const successDiv = document.createElement('div');
-  successDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--success);
-    color: white;
-    padding: 15px 25px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    font-weight: 500;
-    animation: slideInRight 0.3s ease-out;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  `;
+  successDiv.className = 'notification success';
   successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
   document.body.appendChild(successDiv);
   
@@ -1111,27 +1298,6 @@ function showSuccess(message) {
     setTimeout(() => document.body.removeChild(successDiv), 300);
   }, 4000);
 }
-
-// Add CSS for notifications
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes slideOutRight {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-  .fa-spinner {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
   </script>
 </body>
 </html>

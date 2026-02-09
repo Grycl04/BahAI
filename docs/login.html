@@ -232,7 +232,7 @@
       background: var(--white);
       padding: 30px;
       border-radius: var(--radius-lg);
-      max-width: 400px;
+      max-width: 450px;
       width: 90%;
       box-shadow: var(--shadow-lg);
     }
@@ -257,18 +257,18 @@
     }
 
     .role-option-btn {
-      padding: 12px;
+      padding: 14px;
       border: 2px solid var(--neutral-medium);
       border-radius: var(--radius-md);
       background: white;
       cursor: pointer;
       text-align: left;
       font-family: 'Poppins', sans-serif;
-      font-size: 15px;
+      font-size: 14px;
       transition: var(--transition);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .role-option-btn:hover {
@@ -277,8 +277,9 @@
     }
 
     .role-option-btn i {
-      font-size: 18px;
+      font-size: 16px;
       color: var(--primary);
+      min-width: 20px;
     }
 
     .modal-buttons {
@@ -800,6 +801,12 @@
         font-size: 22px;
       }
     }
+
+    /* Spinner animation */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -807,14 +814,14 @@
     <!-- Visual Side -->
     <div class="visual-side">
       <div class="visual-content">
-        <h1 class="visual-title">Your Real Estate Journey Begins Here</h1>
-        <p class="visual-subtitle">Access premium tools for agents, brokers, and landlords to manage properties, connect with clients, and grow your business.</p>
+        <h1 class="visual-title">Welcome to BahAI Real Estate</h1>
+        <p class="visual-subtitle">Login to access our premium platform for buyers, brokers, landlords, and agents.</p>
         
         <ul class="visual-features">
-          <li><i class="fas fa-home"></i> Manage multiple property listings with ease</li>
-          <li><i class="fas fa-chart-line"></i> Track performance with advanced analytics</li>
-          <li><i class="fas fa-handshake"></i> Connect with verified clients and partners</li>
-          <li><i class="fas fa-shield-alt"></i> Bank-level security for your sensitive data</li>
+          <li><i class="fas fa-home"></i> Browse thousands of verified properties</li>
+          <li><i class="fas fa-chart-line"></i> Access market analytics and insights</li>
+          <li><i class="fas fa-handshake"></i> Connect with trusted professionals</li>
+          <li><i class="fas fa-shield-alt"></i> Bank-level security for your data</li>
         </ul>
       </div>
     </div>
@@ -823,7 +830,6 @@
     <div class="form-side">
       <div class="logo-container">
         <div class="logo-icon">
-          <!-- Fixed SVG with proper escaping -->
           <img src="images/logo-bahai.png" alt="BahAI Real Estate" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Crect width=\"100\" height=\"100\" fill=\"%230B3D61\"/%3E%3Ctext x=\"50\" y=\"60\" font-size=\"40\" text-anchor=\"middle\" fill=\"%23D4AF37\" font-family=\"Arial\"%3EB%3C/text%3E%3C/svg%3E';" />
         </div>
         <div class="logo-text">Bah<span>AI</span> Real Estate</div>
@@ -924,7 +930,6 @@
   <script type="module">
     // === FIREBASE INITIALIZATION WITH ERROR HANDLING ===
     let auth, db;
-    let useRedirect = false; // Use popup for all devices
     
     try {
       // Import with fallback
@@ -1343,7 +1348,7 @@
             fullName: user.displayName,
             email: user.email,
             role,
-            kycStatus: "not_submitted",
+            kycStatus: role === "buyer" ? "not_required" : "not_submitted",
             createdAt: serverTimestamp(),
             provider: "google"
           };
@@ -1362,7 +1367,11 @@
             // Ignore error, continue
           }
           
-          showNotification('success', '✅ Account created! Please complete KYC verification.');
+          const message = role === "buyer" 
+            ? "✅ Account created! Start browsing properties."
+            : "✅ Account created! Please complete KYC verification.";
+          
+          showNotification('success', message);
           setTimeout(() => {
             window.location.href = getRedirectPage(role);
           }, 1500);
@@ -1393,7 +1402,7 @@
       }
     }
 
-    // Role selection modal
+    // Role selection modal - 4 ROLES INCLUDING AGENT
     function promptForRole() {
       return new Promise((resolve) => {
         const modal = document.createElement('div');
@@ -1405,19 +1414,16 @@
             <p>Please select your primary role:</p>
             <div class="role-options">
               <button class="role-option-btn" data-role="buyer">
-                <i class="fas fa-user"></i> Buyer
-              </button>
-              <button class="role-option-btn" data-role="seller">
-                <i class="fas fa-home"></i> Seller
-              </button>
-              <button class="role-option-btn" data-role="landlord">
-                <i class="fas fa-building"></i> Landlord
-              </button>
-              <button class="role-option-btn" data-role="agent">
-                <i class="fas fa-handshake"></i> Agent
+                <i class="fas fa-user"></i> Buyer (Looking to purchase or rent)
               </button>
               <button class="role-option-btn" data-role="broker">
-                <i class="fas fa-briefcase"></i> Broker
+                <i class="fas fa-briefcase"></i> Broker (Licensed Real Estate Broker)
+              </button>
+              <button class="role-option-btn" data-role="landlord">
+                <i class="fas fa-building"></i> Landlord (Property Owner)
+              </button>
+              <button class="role-option-btn" data-role="agent">
+                <i class="fas fa-handshake"></i> Agent (Created by Broker)
               </button>
             </div>
             <div class="modal-buttons">
@@ -1452,11 +1458,10 @@
 
     function getRedirectPage(role) {
       const pages = {
-        "seller": "seller/seller_dashboard.html",
         "buyer": "buyer/buyer_dashboard.html",
         "broker": "broker/broker_dashboard.html",
-        "agent": "broker/agent_dashboard.html",
-        "landlord": "landlord/landlord_dashboard.html"
+        "landlord": "landlord/landlord_dashboard.html",
+        "agent": "broker/agent_dashboard.html"
       };
       return pages[role] || "login.html";
     }

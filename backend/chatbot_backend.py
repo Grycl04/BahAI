@@ -255,7 +255,7 @@ def preprocess_text(text):
     
     return text
 
-# Entity extraction - UPDATED TO USE sale_type INSTEAD OF financing_type
+# Entity extraction - UPDATED WITH MEMBER3 DETECTION LOGIC
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
@@ -266,13 +266,24 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'price_range': None,
         'bedrooms': None,
         'bathrooms': None,
-        'sale_type': None,  # CHANGED: from financing_type to sale_type
+        'sale_type': None,  
         'listing_type': None,
         'has_general_search': False,
         'max_price': None,
         'min_price': None,
         'min_bedrooms': None,
-        'exact_bedrooms': None
+        'exact_bedrooms': None,
+        # Member3 detection flags
+        'has_need_query': False,
+        'need_type': None,
+        'family_size': None,
+        'has_feature_price_query': False,
+        'price_quality': None,
+        'has_process_query': False,
+        'process_type': None,
+        'has_match_query': False,
+        'lifestyle': None,
+        'has_financing_info_query': False,
     }
     
     query_lower = query.lower()
@@ -292,7 +303,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     elif 'land' in query_lower or 'lot' in query_lower:
         entities['property_type'] = 'land'
         
-    # ========== NEW: Parse numeric price values for filtering ==========
+    # ========== Parse numeric price values for filtering ==========
     max_price = None
     min_price = None
     
@@ -353,7 +364,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.warning(f"⚠️ Could not parse price pattern '{pattern}': {e}")
                 continue
     
-    # ========== NEW: Parse bedroom criteria for filtering ==========
+    # ========== Parse bedroom criteria for filtering ==========
     bedrooms = None
     exact_bedrooms = None
     
@@ -390,8 +401,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     has_location_terms = any(term in query_lower for term in ['in ', 'at ', 'within ', 'inside '])
     has_specific_location = False
     
-    # ========== SALE TYPE DETECTION (CHANGED from financing_type) ==========
-    # Check for your saleType values: outright, installment, bank_financing
+    # ========== SALE TYPE DETECTION ==========
     sale_type_keywords = {
         'bank financing': 'bank_financing',
         'bank loan': 'bank_financing',
@@ -515,6 +525,64 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     if bath_match:
         entities['bathrooms'] = int(bath_match.group(1))
     
+    # ========== ADD MEMBER3 DETECTION LOGIC ==========
+    
+    # Question 3: Family/space needs detection
+    if 'for family' in query_lower or 'family of' in query_lower:
+        entities['has_need_query'] = True
+        entities['need_type'] = 'family'
+        logger.info("🎯 Detected family needs query")
+        
+        # Extract family size if mentioned
+        match = re.search(r'family\s+of\s+(\d+)', query_lower)
+        if match:
+            entities['family_size'] = int(match.group(1))
+            logger.info(f"👨‍👩‍👧‍👦 Detected family size: {entities['family_size']}")
+    
+    # Check for other needs - UPDATED WITH "couples"
+    needs_map = {
+        'for students': 'students',
+        'for professionals': 'professionals', 
+        'for couple': 'couple',
+        'for couples': 'couple',  # ADDED: Handle plural
+        'for retirees': 'retirees',
+        'for business': 'business'
+    }
+    
+    for keyword, need_type in needs_map.items():
+        if keyword in query_lower:
+            entities['has_need_query'] = True
+            entities['need_type'] = need_type
+            logger.info(f"🎯 Detected need type: {need_type}")
+            break
+    
+    # Question 5: Feature with good price
+    price_quality_keywords = ['good price', 'cheap', 'affordable', 'reasonable', 'good value']
+    for keyword in price_quality_keywords:
+        if keyword in query_lower:
+            entities['has_feature_price_query'] = True
+            entities['price_quality'] = keyword
+            logger.info(f"💰 Detected price quality: {keyword}")
+            break
+    
+    # Question 8: Process info
+    process_keywords = ['steps for', 'how to', 'process of', 'timeline', 'requirements', 'documents']
+    for keyword in process_keywords:
+        if keyword in query_lower:
+            entities['has_process_query'] = True
+            entities['process_type'] = keyword.split()[0]
+            logger.info(f"📋 Detected process query: {keyword}")
+            break
+    
+    # Question 10: Lifestyle matching
+    match_keywords = ['match my', 'suitable for', 'fitting my', 'what matches', 'recommendations']
+    for keyword in match_keywords:
+        if keyword in query_lower:
+            entities['has_match_query'] = True
+            logger.info("🎯 Detected lifestyle matching query")
+            break
+    # ========== END MEMBER3 DETECTION ==========
+    
     # NEW: Determine if this is a general search (property type but no location)
     if entities.get('property_type') and not has_specific_location:
         entities['has_general_search'] = True
@@ -531,7 +599,7 @@ def add_price_numeric_value(property_data: Dict) -> Dict:
     
     if listing_type == 'rent' and 'monthlyRent' in property_data:
         property_data['price_numeric'] = property_data['monthlyRent']
-    elif listing_type == 'sale' and 'salePrice' in property_data:
+    elif listing_type == 'sale' and 'salePrice' in propertyData:
         property_data['price_numeric'] = property_data['salePrice']
     elif listing_type == 'lease' and 'annualRent' in property_data:
         property_data['price_numeric'] = property_data['annualRent']
@@ -555,6 +623,44 @@ def add_price_numeric_value(property_data: Dict) -> Dict:
             property_data['price_numeric'] = 0
     
     return property_data
+
+# Helper function for bedroom count conversion - UPDATED
+def get_bedroom_count_from_string(bedroom_str: str) -> int:
+    """Convert bedroom string to numeric count for family filtering"""
+    if not bedroom_str:
+        return 0
+    
+    # If it's already a number, return it
+    try:
+        if isinstance(bedroom_str, (int, float)):
+            return int(bedroom_str)
+    except:
+        pass
+    
+    bedroom_str = str(bedroom_str).lower().strip()
+    
+    # Special cases first
+    if 'studio' in bedroom_str:
+        return 0
+    if '5+' in bedroom_str or 'five plus' in bedroom_str:
+        return 5
+    
+    # Extract number using regex
+    match = re.search(r'(\d+)', bedroom_str)
+    if match:
+        return int(match.group(1))
+    
+    # Word to number mapping
+    word_to_num = {
+        'zero': 0, 'one': 1, 'two': 2, 'three': 3, 
+        'four': 4, 'five': 5, 'six': 6
+    }
+    
+    for word, num in word_to_num.items():
+        if word in bedroom_str:
+            return num
+    
+    return 0  # Default
 
 # Standardize property data from Firestore
 def standardize_property_data(property_data: Dict) -> Dict:
@@ -624,7 +730,7 @@ def standardize_property_data(property_data: Dict) -> Dict:
     
     return standardized
 
-# Get mock properties when Firebase is not connected
+# Get mock properties when Firebase is not connected - UPDATED WITH COUPLE FILTERING
 def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Generate mock properties for testing when Firebase is not connected"""
     mock_properties = []
@@ -710,6 +816,108 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             'imageUrls': [],
             'status': 'available',
             'saleType': 'outright'  # ADDED: Mock sale type
+        },
+        # Add Member3 mock properties
+        {
+            'id': 'mock_family_1',
+            'title': 'Spacious Family House',
+            'propertyType': 'house',
+            'type': 'sale',
+            'city': 'Lipa City',
+            'province': 'Batangas',
+            'address': '321 Family Street, Lipa City',
+            'salePrice': 4500000,
+            'bedrooms': '4',
+            'bathrooms': '3',
+            'floorArea': 150,
+            'description': 'Perfect for large families with spacious rooms',
+            'imageUrls': [],
+            'status': 'available',
+            'saleType': 'bank_financing'
+        },
+        {
+            'id': 'mock_student_1', 
+            'title': 'Affordable Student Apartment',
+            'propertyType': 'apartment',
+            'type': 'rent',
+            'city': 'Batangas City',
+            'province': 'Batangas',
+            'address': '456 University Ave, Batangas City',
+            'monthlyRent': 12000,
+            'bedrooms': '2',
+            'bathrooms': '1',
+            'floorArea': 45,
+            'description': 'Great for students near universities',
+            'imageUrls': [],
+            'status': 'available'
+        },
+        {
+            'id': 'mock_affordable_1',
+            'title': 'Budget-Friendly Studio',
+            'propertyType': 'condo',
+            'type': 'rent',
+            'city': 'Tanauan City',
+            'province': 'Batangas',
+            'address': '789 Budget Road, Tanauan',
+            'monthlyRent': 8000,
+            'bedrooms': 'studio',
+            'bathrooms': '1',
+            'floorArea': 30,
+            'description': 'Cheap and affordable studio unit with good amenities',
+            'imageUrls': [],
+            'status': 'available',
+            'amenities': ['WiFi', 'Security', 'Parking']
+        },
+        {
+            'id': 'mock_couple_1',
+            'title': 'Cozy Apartment for Couples',
+            'propertyType': 'apartment',
+            'type': 'rent',
+            'city': 'Nasugbu',
+            'province': 'Batangas',
+            'address': '987 Romance Street, Nasugbu',
+            'monthlyRent': 15000,
+            'bedrooms': '1',
+            'bathrooms': '1',
+            'floorArea': 40,
+            'description': 'Perfect cozy apartment for couples near the beach',
+            'imageUrls': [],
+            'status': 'available',
+            'amenities': ['Beach Access', 'Balcony', 'Furnished']
+        },
+        {
+            'id': 'mock_couple_2',
+            'title': 'Modern Studio Condo',
+            'propertyType': 'condo',
+            'type': 'rent',
+            'city': 'Lipa City',
+            'province': 'Batangas',
+            'address': '654 Modern Avenue, Lipa City',
+            'monthlyRent': 10000,
+            'bedrooms': 'studio',
+            'bathrooms': '1',
+            'floorArea': 35,
+            'description': 'Modern studio perfect for young couples',
+            'imageUrls': [],
+            'status': 'available',
+            'amenities': ['Pool', 'Gym', 'Security']
+        },
+        {
+            'id': 'mock_couple_3',
+            'title': 'Romantic 1-Bedroom Unit',
+            'propertyType': 'condo',
+            'type': 'sale',
+            'city': 'Nasugbu',
+            'province': 'Batangas',
+            'address': '321 Love Lane, Nasugbu',
+            'salePrice': 2200000,
+            'bedrooms': '1',
+            'bathrooms': '1',
+            'floorArea': 45,
+            'description': 'Romantic 1-bedroom unit with sunset view',
+            'imageUrls': [],
+            'status': 'available',
+            'saleType': 'installment'
         }
     ]
     
@@ -728,6 +936,8 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
             elif 'batangas city' in location and 'batangas city' not in prop_city:
                 matches = False
             elif 'sto tomas' in location and 'sto. tomas city' not in prop_city:
+                matches = False
+            elif 'tanauan' in location and 'tanauan' not in prop_city:
                 matches = False
         
         # Filter by property type
@@ -788,6 +998,39 @@ def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
                     matches = False
             except:
                 pass
+        
+        # Filter for family needs
+        if entities.get('has_need_query') and entities.get('need_type') == 'family' and entities.get('family_size'):
+            if matches:
+                prop_bedrooms = prop.get('bedrooms', '0')
+                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
+                min_bedrooms = max(1, entities['family_size'] // 2)
+                if bedrooms < min_bedrooms:
+                    matches = False
+        
+        # Filter for couple needs - ADDED COUPLE FILTERING
+        if entities.get('has_need_query') and entities.get('need_type') == 'couple':
+            if matches:
+                prop_bedrooms = prop.get('bedrooms', '0')
+                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
+                
+                # Couples typically need 0-2 bedrooms (studio to 2-bedroom)
+                if bedrooms > 2:  # More than 2 bedrooms not ideal for couples
+                    matches = False
+        
+        # Filter for price quality
+        if entities.get('has_feature_price_query') and matches:
+            # For affordable/cheap queries, filter by price
+            if entities.get('price_quality') in ['cheap', 'affordable', 'good price']:
+                price_numeric = 0
+                if prop.get('type') == 'rent' and 'monthlyRent' in prop:
+                    price_numeric = prop['monthlyRent']
+                    if price_numeric > 15000:  # Threshold for "affordable"
+                        matches = False
+                elif prop.get('type') == 'sale' and 'salePrice' in prop:
+                    price_numeric = prop['salePrice']
+                    if price_numeric > 3000000:  # Threshold for "affordable"
+                        matches = False
         
         if matches:
             # Add numeric price value
@@ -1236,6 +1479,16 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     # Skip bathroom filtering if we can't parse
                     pass
             
+            # Apply couple filtering client-side - ADDED
+            if entities.get('has_need_query') and entities.get('need_type') == 'couple' and matches:
+                prop_bedrooms = property_data.get('bedrooms', 'Not specified')
+                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
+                
+                # Couples typically need 0-2 bedrooms (studio to 2-bedroom)
+                if bedrooms > 2:  # More than 2 bedrooms not ideal for couples
+                    matches = False
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - {bedrooms} bedrooms not ideal for couples")
+            
             if matches:
                 # Standardize property data for chatbot response
                 standardized_property = standardize_property_data(property_data_with_price)
@@ -1482,10 +1735,224 @@ def generate_sale_type_response(entities: Dict[str, Any], properties: List[Dict[
     
     return None  # Let the main generate_response handle it
 
-# Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES
+# Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES AND MEMBER3
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
-
+    
+    # ========== HANDLE MEMBER3'S QUESTIONS FIRST ==========
+    
+    # Question 3: Family/space needs
+    if entities.get('has_need_query'):
+        need_type = entities.get('need_type', '')
+        family_size = entities.get('family_size')
+        
+        # Filter properties for family size
+        if need_type == 'family' and family_size:
+            filtered_props = []
+            for prop in properties:
+                prop_bedrooms = prop.get('bedrooms', '')
+                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
+                
+                # Simple rule: need at least (family_size / 2) bedrooms
+                min_bedrooms = max(1, family_size // 2)
+                if bedrooms >= min_bedrooms:
+                    filtered_props.append(prop)
+            
+            properties = filtered_props
+        
+        # ========== UPDATED: COUPLE-SPECIFIC RESPONSE ==========
+        elif need_type == 'couple':
+            filtered_props = []
+            for prop in properties:
+                # Try to get bedroom count from various sources
+                prop_bedrooms = prop.get('bedrooms', '')
+                prop_title = prop.get('title', '')
+                
+                # Extract from title if bedrooms field is empty
+                if not prop_bedrooms or prop_bedrooms == 'Not specified':
+                    # Look for bedroom patterns in title
+                    title_lower = prop_title.lower()
+                    bedroom_match = re.search(r'(\d+)\s*(?:bedroom|bed|br)', title_lower)
+                    if bedroom_match:
+                        prop_bedrooms = bedroom_match.group(1)
+                
+                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
+                
+                # Couples typically need 0-2 bedrooms (studio to 2-bedroom)
+                if bedrooms <= 2:  # Allow studio (0), 1-bedroom, 2-bedroom
+                    filtered_props.append(prop)
+                # If we can't determine bedroom count, include it anyway
+                elif bedrooms == 0:  # Couldn't determine
+                    filtered_props.append(prop)
+            
+            properties = filtered_props
+            
+            response = f"💑 **Properties for Couples**\n\n"
+            if properties:
+                # Sort by bedroom count (smaller first for couples)
+                properties.sort(key=lambda x: get_bedroom_count_from_string(x.get('bedrooms', '')))
+                
+                response += f"I found {len(properties)} cozy properties perfect for couples:\n\n"
+                for i, prop in enumerate(properties[:3]):
+                    title = prop.get('title', f'Property {i+1}')
+                    price = prop.get('price', 'Price not available')
+                    location = prop.get('location', 'Location not specified')
+                    bedrooms = prop.get('bedrooms', 'Not specified')
+                    
+                    # Add emoji based on bedroom count
+                    bed_count = get_bedroom_count_from_string(bedrooms)
+                    if bed_count == 0:
+                        bed_emoji = "🏢 Studio"
+                    elif bed_count == 1:
+                        bed_emoji = "💑 1-Bedroom"
+                    else:
+                        bed_emoji = f"🏡 {bed_count}-Bedroom"
+                        
+                    response += f"{i+1}. **{title}** in {location}\n"
+                    response += f"   {bed_emoji} - {price}\n\n"
+                
+                # Add couple-specific tips
+                response += "💡 **Couple Tips:**\n"
+                response += "   • Look for 1-2 bedroom units for coziness\n"
+                response += "   • Consider romantic locations like beachfront\n"
+                response += "   • Check for couple-friendly amenities (balcony, views)\n"
+                response += "   • Look for properties with privacy features\n"
+                response += "   • Consider proximity to dining and entertainment\n"
+            else:
+                response += "No properties found specifically for couples.\n\n"
+                response += "💡 **Try:**\n"
+                response += "   • Looking for 'studio' or '1-bedroom' properties\n"
+                response += "   • Searching in romantic locations like Nasugbu\n"
+                response += "   • Using 'find apartments' for more options\n"
+            return response
+        # ========== END COUPLE RESPONSE ==========
+        
+        # Generate response for other needs
+        elif need_type:
+            response = f"🏠 **Properties for {need_type}**\n\n"
+            if properties:
+                response += f"I found {len(properties)} properties:\n\n"
+                for i, prop in enumerate(properties[:3]):
+                    title = prop.get('title', f'Property {i+1}')
+                    price = prop.get('price', 'Price not available')
+                    location = prop.get('location', 'Location not specified')
+                    response += f"{i+1}. **{title}** in {location} - {price}\n"
+                
+                # Add need-specific tips
+                if need_type == 'students':
+                    response += "\n💡 **Student Tips:**\n"
+                    response += "   • Look for properties near universities\n"
+                    response += "   • Check for WiFi and study areas\n"
+                    response += "   • Consider shared accommodations\n"
+                elif need_type == 'professionals':
+                    response += "\n💡 **Professional Tips:**\n"
+                    response += "   • Look for properties near business districts\n"
+                    response += "   • Check for security and amenities\n"
+                    response += "   • Consider commute time to work\n"
+                elif need_type == 'retirees':
+                    response += "\n💡 **Retiree Tips:**\n"
+                    response += "   • Look for single-story properties\n"
+                    response += "   • Check for medical facilities nearby\n"
+                    response += "   • Consider peaceful neighborhoods\n"
+                elif need_type == 'business':
+                    response += "\n💡 **Business Tips:**\n"
+                    response += "   • Look for high-traffic locations\n"
+                    response += "   • Check for commercial zoning\n"
+                    response += "   • Consider customer accessibility\n"
+            else:
+                response += "No properties found.\n"
+            return response
+    
+    # Question 5: Feature with price quality
+    elif entities.get('has_feature_price_query'):
+        price_quality = entities.get('price_quality', 'good price')
+        feature = entities.get('feature', 'features')
+        
+        response = f"✅ **Properties with {feature} at {price_quality}**\n\n"
+        if properties:
+            # Filter for affordable properties
+            filtered_props = []
+            for prop in properties:
+                price_numeric = prop.get('price_numeric', 0)
+                # Apply affordability threshold
+                if price_quality in ['cheap', 'affordable']:
+                    if prop.get('listing_type') == 'rent' and price_numeric <= 15000:
+                        filtered_props.append(prop)
+                    elif prop.get('listing_type') == 'sale' and price_numeric <= 3000000:
+                        filtered_props.append(prop)
+                    else:
+                        continue
+                else:
+                    filtered_props.append(prop)
+            
+            properties = filtered_props
+            
+            if properties:
+                response += f"I found {len(properties)} properties:\n\n"
+                for i, prop in enumerate(properties[:3]):
+                    title = prop.get('title', f'Property {i+1}')
+                    price = prop.get('price', 'Price not available')
+                    location = prop.get('location', 'Location not specified')
+                    response += f"{i+1}. **{title}** in {location} - {price}\n"
+                
+                response += "\n💡 **Price Tips:**\n"
+                response += "   • Compare similar properties\n"
+                response += "   • Check for hidden costs\n"
+                response += "   • Consider long-term value\n"
+            else:
+                response += f"No properties found at {price_quality}.\n\n"
+                response += "💡 Try:\n"
+                response += "   • Adjusting your price expectations\n"
+                response += "   • Looking in different areas\n"
+                response += "   • Considering smaller units\n"
+        else:
+            response += "No properties found.\n"
+        return response
+    
+    # Question 8: Process info
+    elif entities.get('has_process_query'):
+        process_type = entities.get('process_type', 'process')
+        property_type = entities.get('property_type', 'property')
+        
+        response = f"📋 **{process_type.title()} Information for {property_type}**\n\n"
+        
+        if process_type == 'steps':
+            response += "**Typical Steps:**\n1. Search & selection\n2. Due diligence\n3. Offer & negotiation\n4. Financing\n5. Payment\n6. Registration\n"
+        elif process_type == 'how':
+            response += "**How to proceed:**\n• Determine your budget\n• Choose location\n• Select property type\n• Arrange financing\n• Complete paperwork\n"
+        elif process_type == 'timeline':
+            response += "**Typical Timeline:**\n• Search: 1-4 weeks\n• Processing: 2-8 weeks\n• Total: 1-3 months\n"
+        elif process_type == 'requirements':
+            response += "**Basic Requirements:**\n• Valid IDs\n• Proof of income\n• Financial documents\n• Property documents\n"
+        
+        response += "\n💡 Contact us for specific details.\n"
+        return response
+    
+    # Question 10: Lifestyle matching
+    elif entities.get('has_match_query'):
+        response = "🎯 **Properties Matching Your Needs**\n\n"
+        if properties:
+            response += f"I found {len(properties)} properties that could work for you:\n\n"
+            for i, prop in enumerate(properties[:3]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                features = prop.get('features', [])
+                features_str = ", ".join(features[:3]) if features else "Standard features"
+                response += f"{i+1}. **{title}** in {location} - {price}\n   Features: {features_str}\n"
+            
+            response += "\n💡 **Matching Tips:**\n"
+            response += "   • Consider your daily routine\n"
+            response += "   • Think about commute times\n"
+            response += "   • Match amenities to your lifestyle\n"
+        else:
+            response += "No matching properties found.\n\n"
+            response += "💡 Try:\n"
+            response += "   • Being more specific about your needs\n"
+            response += "   • Adjusting your budget\n"
+            response += "   • Considering different locations\n"
+        return response
+    
     # ========== NEW: Handle "No Properties Found" First ==========
     if intent == 'find_property' and len(properties) == 0:
         location = entities.get('location', 'the specified location')
@@ -1961,7 +2428,13 @@ def chat():
             'model_version': 'trained' if vectorizer else 'fallback',
             'is_general_search': entities.get('has_general_search', False),
             'is_criteria_search': intent == 'find_property_with_criteria',
-            'has_sale_type_query': entities.get('sale_type') is not None
+            'has_sale_type_query': entities.get('sale_type') is not None,
+            'has_member3_query': any([
+                entities.get('has_need_query'),
+                entities.get('has_feature_price_query'),
+                entities.get('has_process_query'),
+                entities.get('has_match_query')
+            ])
         }
         
         return jsonify(result)
@@ -2017,6 +2490,28 @@ def determine_intent_fallback(query: str) -> str:
     for pattern in location_info_patterns:
         if re.search(pattern, query_lower):
             return 'location_info'
+    
+    # ========== CHECK FOR MEMBER3 QUERIES ==========
+    
+    # Family/needs queries
+    if 'for family' in query_lower or 'family of' in query_lower:
+        return 'find_property_for_need'
+    
+    # Price quality queries
+    if any(keyword in query_lower for keyword in ['good price', 'cheap', 'affordable', 'reasonable', 'good value']):
+        return 'find_with_feature'
+    
+    # Process info queries
+    if any(keyword in query_lower for keyword in ['steps for', 'how to', 'process of', 'timeline', 'requirements', 'documents']):
+        return 'process_info'
+    
+    # Lifestyle matching queries
+    if any(keyword in query_lower for keyword in ['match my', 'suitable for', 'fitting my', 'what matches', 'recommendations']):
+        return 'match_needs'
+    
+    # Other needs queries
+    if any(keyword in query_lower for keyword in ['for students', 'for professionals', 'for couple', 'for couples', 'for retirees', 'for business']):
+        return 'find_property_for_need'
     
     # ========== CHECK FOR SALE TYPE/FINANCING QUERIES ==========
     
@@ -2135,7 +2630,7 @@ def determine_intent_fallback(query: str) -> str:
     # Property for need intent
     if any(phrase in query_lower for phrase in [
         'for family', 'for students', 'for professionals',
-        'for couple', 'for retirees', 'for business',
+        'for couple', 'for couples', 'for retirees', 'for business',
         'for investors', 'for single', 'for workers'
     ]):
         return 'find_property_for_need'
@@ -2205,7 +2700,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'Bah.AI Property Chatbot',
-        'version': '3.7',  # Updated version
+        'version': '3.8',  # Updated version with Member3 features
         'deployed_url': 'https://bahai.onrender.com',
         'firebase_connected': db is not None,
         'firebase_env_exists': firebase_env_exists,
@@ -2214,7 +2709,14 @@ def health_check():
         'training_data_loaded': bool(training_data),
         'supports_general_searches': True,
         'supports_criteria_searches': True,
-        'supports_sale_type_filtering': True,  # Added
+        'supports_sale_type_filtering': True,
+        'member3_features': True,  # Added Member3 features flag
+        'member3_questions_supported': [
+            'Family/space needs detection',
+            'Feature with price quality',
+            'Process information',
+            'Lifestyle matching'
+        ],
         'mock_data_mode': db is None,  # True if using mock data
         'timestamp': datetime.now().isoformat(),
         'endpoints': {
@@ -2228,6 +2730,12 @@ def health_check():
 def test_endpoint():
     """Test endpoint to verify the model is working"""
     test_queries = [
+        # Member3 test queries
+        "show me properties for family of 4",
+        "find affordable apartments",
+        "what are the steps to buy a house",
+        "find properties that match my lifestyle",
+        
         # Sale type queries
         "show me properties with bank financing",
         "find houses with outright payment",
@@ -2266,9 +2774,21 @@ def test_endpoint():
                     'confidence': confidence,
                     'has_location': entities.get('location') is not None,
                     'property_type': entities.get('property_type'),
-                    'sale_type': entities.get('sale_type'),  # Added
+                    'sale_type': entities.get('sale_type'),
                     'max_price': entities.get('max_price'),
                     'exact_bedrooms': entities.get('exact_bedrooms'),
+                    'has_need_query': entities.get('has_need_query'),
+                    'need_type': entities.get('need_type'),
+                    'family_size': entities.get('family_size'),
+                    'has_feature_price_query': entities.get('has_feature_price_query'),
+                    'has_process_query': entities.get('has_process_query'),
+                    'has_match_query': entities.get('has_match_query'),
+                    'is_member3_query': any([
+                        entities.get('has_need_query'),
+                        entities.get('has_feature_price_query'),
+                        entities.get('has_process_query'),
+                        entities.get('has_match_query')
+                    ]),
                     'is_criteria_search': intent == 'find_property_with_criteria',
                     'is_sale_type_query': entities.get('sale_type') is not None
                 })
@@ -2284,13 +2804,14 @@ def test_endpoint():
         'training_data_status': 'loaded' if training_data else 'not loaded',
         'supports_criteria_searches': True,
         'supports_general_searches': True,
-        'supports_sale_type_filtering': True  # Added
+        'supports_sale_type_filtering': True,
+        'member3_features_available': True
     })
 
 # ==================== MODEL LOADING (RUNS ON IMPORT) ====================
 print("\n" + "="*60)
-print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.7")
-print("   (Fixed: Using saleType instead of financingOptions)")
+print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.8")
+print("   (Added: Member3 Detection & Response Logic)")
 print("="*60)
 
 print("📝 Step 1: Loading NLU model...")
@@ -2306,6 +2827,11 @@ print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
 print(f"🔍 General Searches: {'✅ Supported'}")
 print(f"🔍 Criteria Searches: {'✅ Supported'}")
 print(f"💰 Sale Type Filtering: {'✅ Supported (bank_financing, outright, installment)'}")
+print(f"👨‍👩‍👧‍👦 Member3 Features: {'✅ Enabled'}")
+print(f"   • Family/space needs detection")
+print(f"   • Feature with price quality")
+print(f"   • Process information")
+print(f"   • Lifestyle matching")
 
 if vectorizer:
     print(f"📊 Model intents: {len(model_classes)} intents")
@@ -2322,7 +2848,13 @@ print("   POST /api/chat   - Chatbot endpoint")
 print("   GET  /api/health - Health check")
 print("   GET  /api/test   - Test model predictions")
 
-print("\n🔍 Example queries to try:")
+print("\n🔍 Example Member3 queries to try:")
+print("   • 'show me properties for family of 4' (family needs)")
+print("   • 'find affordable apartments' (price quality)")
+print("   • 'what are the steps to buy a house' (process info)")
+print("   • 'find properties that match my lifestyle' (lifestyle matching)")
+
+print("\n🔍 Other example queries:")
 print("   • 'show me properties with bank financing' (sale type filter)")
 print("   • 'find houses with outright payment' (sale type filter)")
 print("   • 'properties with installment plan' (sale type filter)")
