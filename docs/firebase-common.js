@@ -21,15 +21,18 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Auth with proper error handling
+// Initialize Auth
 const auth = getAuth(app);
 
-// Set persistence
-try {
-  await setPersistence(auth, browserLocalPersistence);
-} catch (error) {
-  console.warn('Could not set persistence:', error);
-}
+// Set persistence (wrapped in async function)
+(async () => {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    console.log('Auth persistence set to local');
+  } catch (error) {
+    console.warn('Could not set persistence:', error);
+  }
+})();
 
 const db = getFirestore(app);
 const storage = getStorage(app);
