@@ -573,20 +573,20 @@
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 24px;
     }
-    .category-card {
-        background: white;
-        padding: 28px 24px;
-        min-height: 140px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--card-shadow);
-        border: 2px solid transparent;
-        transition: all 0.25s ease;
-        cursor: pointer;
-        position: relative;
-        display: block;
-        width: 100%;
-        text-align: left;
-    }
+.category-card {
+    background: white;
+    padding: 20px 16px; /* Reduced from 28px 24px */
+    min-height: 100px; /* Reduced from 140px (or 160px for desktop) */
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+}
     .category-card:hover {
         transform: translateY(-3px);
         box-shadow: var(--card-hover-shadow);
@@ -594,7 +594,11 @@
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(212, 175, 55, 0.3);
     }
     .category-card:active { transform: translateY(-1px); }
-    .category-icon { color: #d4af37; font-size: 40px; margin-bottom: 8px; }
+    .category-icon {
+    color: #d4af37;
+    font-size: 32px; /* Reduced from 40px */
+    margin-bottom: 4px; /* Reduced from 8px */
+}
     .category-name { font-weight: 600; font-size: 1.1rem; color: var(--text-dark); margin-bottom: 4px; }
     .category-count { font-size: 0.9rem; color: var(--text-light); margin-bottom: 12px; }
     .category-browse {
@@ -610,9 +614,12 @@
     .category-card:hover .category-browse span { transform: translateX(4px); }
     .category-card.active .category-browse { color: rgba(255, 255, 255, 0.95); }
     .category-card.active:hover { border-color: rgba(212, 175, 55, 0.8); }
-    @media (min-width: 768px) {
-        .category-card { min-height: 160px; padding: 32px 28px; }
+@media (min-width: 768px) {
+    .category-card {
+        min-height: 110px; /* Reduced from 160px */
+        padding: 22px 18px; /* Reduced from 32px 28px */
     }
+}
 
     /* AI Assistant: Primary interaction zone (inline, gold highlight) */
     .ai-assistant-section {
@@ -820,17 +827,6 @@
             Browse properties without logging in. <a href="../login.html">Sign in</a> to save properties and contact brokers.
         </p>
     </div>
-    <div class="hero-cta-row">
-        <a href="#ai-chatbot-section" class="hero-cta-primary" onclick="openBahaiAssistant(); return true;">
-            <i class="fas fa-robot"></i>
-            Ask BahAI to Find My Property
-        </a>
-        <a href="#search-section" class="hero-cta-secondary">
-            <i class="fas fa-th-large"></i>
-            Browse Manually
-        </a>
-    </div>
-    <p class="hero-trust-microcopy">AI-powered recommendations based on your preferences and activity</p>
     <div class="hero-stats">
         <div class="hero-stat-item">
             <div class="hero-stat-icon"><i class="fas fa-building"></i></div>
@@ -1197,436 +1193,7 @@ let messageListener = null;
 const welcomeText = document.getElementById("welcomeText");
 const guestMessage = document.getElementById("guestMessage");
 
-// --- MESSAGING SYSTEM FUNCTIONS ---
-
-// Initialize messaging event listeners
-function initializeMessagingListeners() {
-    // Send message button
-    const sendBtn = document.getElementById('sendMessageBtn');
-    if (sendBtn) {
-        sendBtn.addEventListener('click', sendMessage);
-    }
-    
-    // Message input enter key support
-    const messageInput = document.getElementById('messageInput');
-    if (messageInput) {
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        
-        // Auto-resize textarea
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-    }
-    
-    // Close message modal button
-    const closeMessageBtn = document.getElementById('closeMessageModal');
-    if (closeMessageBtn) {
-        closeMessageBtn.addEventListener('click', closeMessageModal);
-    }
-    
-    // Close modal when clicking outside
-    const messageModal = document.getElementById('messageModal');
-    if (messageModal) {
-        messageModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeMessageModal();
-            }
-        });
-    }
-}
-
-// Contact broker function (for use in onclick attributes)
-window.contactBroker = async function(userId, propertyId = null) {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        alert('Please log in to contact brokers. You can browse properties as a guest, but need to sign in to send messages.');
-        const redirect = encodeURIComponent(window.location.pathname + (window.location.search || ''));
-        window.location.href = "../login.html?redirect=" + (redirect || encodeURIComponent('buyer/buyer_dashboard.html'));
-        return;
-    }
-
-    const userInfo = userMap.get(userId);
-    if (!userInfo) {
-        alert('Broker information not available');
-        return;
-    }
-
-    // Generate conversation ID (sorted combination of both user IDs)
-    currentConversationId = [currentUser.uid, userId].sort().join('_');
-    
-    // Get property info for context
-    const property = allListings.find(l => l.userId === userId);
-    
-    // Update messaging modal UI
-    updateMessagingModal(userInfo, property);
-    
-    // Show messaging modal
-    const messageModal = document.getElementById('messageModal');
-    messageModal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    
-    // Load existing messages
-    loadMessages(currentConversationId, userId);
-    
-    // Focus on message input
-    setTimeout(() => {
-        document.getElementById('messageInput').focus();
-    }, 300);
-};
-
-// Update messaging modal with broker info
-function updateMessagingModal(userInfo, property) {
-    const brokerName = userInfo.displayName || 'Broker';
-    const brokerRole = userInfo.role === 'landlord' ? 'Property Owner' : 
-                     userInfo.role === 'broker' ? 'Licensed Broker' : 
-                     'Property Contact';
-    
-    // Set modal title and info (with ellipsis for long names)
-    const modalTitle = document.getElementById('messageBrokerName');
-    modalTitle.textContent = `Message ${brokerName}`;
-    if (modalTitle.scrollWidth > modalTitle.clientWidth) {
-        modalTitle.title = brokerName;
-        modalTitle.textContent = `Message ${brokerName.length > 20 ? brokerName.substring(0, 20) + '...' : brokerName}`;
-    }
-    
-    document.getElementById('messageBrokerRole').textContent = brokerRole;
-    
-    // Set broker name with ellipsis if too long
-    const brokerNameElement = document.getElementById('messageBrokerFullName');
-    brokerNameElement.textContent = brokerName;
-    if (brokerNameElement.scrollWidth > brokerNameElement.clientWidth) {
-        brokerNameElement.title = brokerName;
-        brokerNameElement.textContent = brokerName.length > 25 ? brokerName.substring(0, 25) + '...' : brokerName;
-    }
-    
-    document.getElementById('messageBrokerType').textContent = brokerRole;
-    document.getElementById('messageBrokerContact').textContent = userInfo.email || 'Email not available';
-
-    // Set broker avatar initials
-    const initials = brokerName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'B';
-    document.getElementById('messageBrokerAvatar').textContent = initials;
-    
-    // Update contact info with ellipsis
-    const emailInfo = document.getElementById('brokerEmailInfo');
-    const phoneInfo = document.getElementById('brokerPhoneInfo');
-    
-    const emailText = `📧 ${userInfo.email || 'Email not available'}`;
-    emailInfo.textContent = emailText;
-    emailInfo.title = userInfo.email || 'Email not available';
-    
-    const phoneText = `📞 ${userInfo.phone || 'Phone not available'}`;
-    phoneInfo.textContent = phoneText;
-    phoneInfo.title = userInfo.phone || 'Phone not available';
-    
-    // Setup quick contact buttons
-    const quickEmailBtn = document.getElementById('quickEmailBtn');
-    const quickCallBtn = document.getElementById('quickCallBtn');
-    
-    if (userInfo.email) {
-        const subject = property ? `Inquiry about: ${property.title}` : 'Property Inquiry';
-        const body = property ? `Hello ${brokerName},\n\nI'm interested in your property: ${property.title}\n\nPlease send me more information.` : '';
-        quickEmailBtn.href = `mailto:${userInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        quickEmailBtn.style.display = 'flex';
-    } else {
-        quickEmailBtn.style.display = 'none';
-    }
-    
-    if (userInfo.phone) {
-        quickCallBtn.href = `tel:${userInfo.phone}`;
-        quickCallBtn.style.display = 'flex';
-    } else {
-        quickCallBtn.style.display = 'none';
-    }
-    
-    // Set up message input placeholder with property context
-    const messageInput = document.getElementById('messageInput');
-    if (property) {
-        const propertyTitle = property.title || 'property';
-        const truncatedTitle = propertyTitle.length > 50 ? propertyTitle.substring(0, 50) + '...' : propertyTitle;
-        messageInput.placeholder = `Hi ${brokerName}, I'm interested in ${truncatedTitle}. Could you please provide more details about...`;
-    } else {
-        messageInput.placeholder = `Type your message here...`;
-    }
-}
-
-// Load messages for a conversation
-function loadMessages(conversationId, brokerId) {
-    const messagesContainer = document.getElementById('messagesContainer');
-    
-    // Clear any existing listener
-    if (messageListener) {
-        messageListener();
-        messageListener = null;
-    }
-    
-    // Show loading state
-    messagesContainer.innerHTML = `
-        <div class="loading-messages">
-            <div class="spinner"></div>
-            <p>Loading messages...</p>
-        </div>
-    `;
-    
-    console.log('🔍 Attempting to load messages for conversation:', conversationId);
-    
-    try {
-        // Query messages for this conversation
-        const messagesRef = collection(db, 'messages');
-        const messagesQuery = query(
-            messagesRef,
-            where('conversationId', '==', conversationId),
-            orderBy('timestamp', 'asc')
-        );
-        
-        console.log('📋 Query created, listening for messages...');
-        
-        // Listen for real-time updates
-        messageListener = onSnapshot(messagesQuery, 
-            (snapshot) => {
-                console.log('📨 Snapshot received, docs:', snapshot.size);
-                
-                messagesContainer.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    console.log('📭 No messages found in conversation');
-                    messagesContainer.innerHTML = `
-                        <div class="no-messages">
-                            <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-                            <h3>No messages yet</h3>
-                            <p>Start the conversation by sending a message below.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                const currentUser = auth.currentUser;
-                
-                snapshot.forEach((doc) => {
-                    const message = doc.data();
-                    const isSent = message.senderId === currentUser.uid;
-                    
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
-                    
-                    // Format timestamp
-                    let timestamp = 'Just now';
-                    if (message.timestamp) {
-                        const date = message.timestamp.toDate ? message.timestamp.toDate() : new Date();
-                        timestamp = formatMessageTime(date);
-                    }
-                    
-                    const messageContent = document.createElement('div');
-                    messageContent.className = 'message-bubble-content';
-                    
-                    let statusIndicator = '';
-                    if (isSent) {
-                        statusIndicator = `<span class="message-status" style="margin-left: 5px; font-size: 10px;">✓</span>`;
-                    }
-                    
-                    messageContent.innerHTML = `
-                        <div>${message.text}</div>
-                        <span class="message-time">${timestamp}${statusIndicator}</span>
-                    `;
-                    
-                    messageElement.appendChild(messageContent);
-                    messagesContainer.appendChild(messageElement);
-                });
-                
-                // Scroll to bottom
-                setTimeout(() => {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 100);
-                
-            }, 
-            (error) => {
-                console.error('❌ Error in onSnapshot listener:', error);
-                
-                messagesContainer.innerHTML = `
-                    <div class="no-messages">
-                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-                        <h3>Start a conversation</h3>
-                        <p>Send a message to begin chatting with the broker.</p>
-                    </div>
-                `;
-            }
-        );
-        
-    } catch (error) {
-        console.error('💥 Error setting up message listener:', error);
-        messagesContainer.innerHTML = `
-            <div class="no-messages">
-                <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-                <h3>Ready to chat</h3>
-                <p>Send your first message below to start the conversation.</p>
-            </div>
-        `;
-    }
-}
-
-// Send message function
-async function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const messageText = messageInput.value.trim();
-    const sendBtn = document.getElementById('sendMessageBtn');
-    
-    if (!messageText) {
-        messageInput.focus();
-        return;
-    }
-    
-    if (!currentConversationId || !auth.currentUser) {
-        alert('Unable to send message. Please refresh and try again.');
-        return;
-    }
-    
-    // Get broker ID from conversation ID
-    const conversationParts = currentConversationId.split('_');
-    const brokerId = conversationParts.find(id => id !== auth.currentUser.uid);
-    
-    if (!brokerId) {
-        alert('Unable to identify recipient.');
-        return;
-    }
-    
-    // Disable send button and show loading
-    const originalText = sendBtn.innerHTML;
-    sendBtn.innerHTML = '<div class="spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; width: 16px; height: 16px;"></div>';
-    sendBtn.disabled = true;
-    messageInput.disabled = true;
-    
-    try {
-        // Get property ID for context
-        const property = allListings.find(l => l.userId === brokerId);
-        const propertyId = property?.id;
-        
-        // Create conversation document if it doesn't exist
-        const conversationRef = doc(db, 'conversations', currentConversationId);
-        const conversationSnap = await getDoc(conversationRef);
-        
-        const conversationData = {
-            participants: [auth.currentUser.uid, brokerId],
-            lastMessage: messageText.substring(0, 100),
-            lastMessageTime: serverTimestamp(),
-            lastSenderId: auth.currentUser.uid,
-            unreadCount: {
-                [brokerId]: (conversationSnap.exists() ? 
-                    (conversationSnap.data().unreadCount?.[brokerId] || 0) + 1 : 1)
-            },
-            buyerId: auth.currentUser.uid,
-            brokerId: brokerId,
-            propertyId: propertyId || null,
-            propertyTitle: property?.title || null,
-            buyerName: auth.currentUser.displayName || auth.currentUser.email,
-            createdAt: conversationSnap.exists() ? 
-                conversationSnap.data().createdAt : serverTimestamp(),
-            updatedAt: serverTimestamp()
-        };
-        
-        // Update or create conversation
-        await setDoc(conversationRef, conversationData, { merge: true });
-        
-        // Add message to messages collection
-        const messageData = {
-            conversationId: currentConversationId,
-            senderId: auth.currentUser.uid,
-            receiverId: brokerId,
-            text: messageText,
-            timestamp: serverTimestamp(),
-            read: false,
-            createdAt: serverTimestamp(),
-            type: 'text',
-            propertyId: propertyId || null,
-            senderName: auth.currentUser.displayName || auth.currentUser.email
-        };
-        
-        await addDoc(collection(db, 'messages'), messageData);
-        
-        console.log('✅ Message sent successfully');
-        
-        // Clear input and reset UI
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-        messageInput.disabled = false;
-        
-        // Show success feedback
-        sendBtn.innerHTML = '✓ Sent';
-        sendBtn.style.background = '#10b981';
-        
-        setTimeout(() => {
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Send Message</span>';
-            sendBtn.style.background = '';
-            sendBtn.disabled = false;
-        }, 1500);
-        
-        // Scroll to bottom of messages
-        const messagesContainer = document.getElementById('messagesContainer');
-        setTimeout(() => {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
-        
-    } catch (error) {
-        console.error('❌ Error sending message:', error);
-        
-        // Reset UI
-        sendBtn.innerHTML = originalText;
-        sendBtn.disabled = false;
-        messageInput.disabled = false;
-        
-        // Show user-friendly error
-        let errorMessage = 'Failed to send message. ';
-        if (error.code === 'permission-denied') {
-            errorMessage += 'You do not have permission to send messages.';
-        } else if (error.code === 'unavailable') {
-            errorMessage += 'Network error. Please check your connection.';
-        } else {
-            errorMessage += 'Please try again.';
-        }
-        
-        alert(errorMessage);
-    }
-}
-
-// Format message timestamp
-function formatMessageTime(date) {
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-}
-
-// Close messaging modal
-function closeMessageModal() {
-    const messageModal = document.getElementById('messageModal');
-    messageModal.classList.remove('show');
-    document.body.style.overflow = 'auto';
-    
-    // Clean up message listener
-    if (messageListener) {
-        messageListener();
-        messageListener = null;
-    }
-    
-    currentConversationId = null;
-    
-    // Clear message input
-    document.getElementById('messageInput').value = '';
-}
-
-// --- MAIN APPLICATION LOGIC ---
+// ================================ BATANGAS PROPERTY CATEGORIES =============================
 
 // Update the BATANGAS_PROPERTY_CATEGORIES array with ALL COMBINED CATEGORIES
 const BATANGAS_PROPERTY_CATEGORIES = [
@@ -2081,12 +1648,51 @@ function resetFilters() {
 
 // --- CATEGORIES FUNCTIONS ---
 
-// Update the loadCategories() function with better matching logic
+// Helper function to check if property belongs to category
+function propertyBelongsToCategory(listing, category) {
+    const propertyType = (listing.propertyType || '').toLowerCase();
+    const propertyCategory = (listing.propertyCategory || '').toLowerCase();
+    const listingTitle = (listing.title || '').toLowerCase();
+    const listingDescription = (listing.description || '').toLowerCase();
+    const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
+
+    // Check property types first (exact matches)
+    for (const type of category.propertyTypes) {
+        const typeLower = type.toLowerCase();
+        if (propertyType === typeLower || propertyType.includes(typeLower)) {
+            return true;
+        }
+    }
+
+    // Check keywords
+    for (const keyword of category.keywords) {
+        if (searchText.includes(keyword.toLowerCase())) {
+            // Check exclusions
+            if (category.excludeKeywords) {
+                let shouldExclude = false;
+                for (const excludeKeyword of category.excludeKeywords) {
+                    if (searchText.includes(excludeKeyword.toLowerCase())) {
+                        shouldExclude = true;
+                        break;
+                    }
+                }
+                if (!shouldExclude) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 async function loadCategories() {
     const container = document.getElementById('categoriesContainer');
 
     try {
-        // Calculate counts for each category based on actual listings
+        // Calculate counts for each category
         const activeListings = allListings.filter(listing => 
             listing.status === 'active' ||
             listing.status === 'available' ||
@@ -2098,76 +1704,9 @@ async function loadCategories() {
         const categories = BATANGAS_PROPERTY_CATEGORIES.map((category, index) => {
             let count = 0;
 
-            // Count properties for this category using better matching logic
+            // Count properties for this category
             activeListings.forEach(listing => {
-                const propertyType = (listing.propertyType || '').toLowerCase();
-                const propertyCategory = (listing.propertyCategory || '').toLowerCase();
-                const listingTitle = (listing.title || '').toLowerCase();
-                const listingDescription = (listing.description || '').toLowerCase();
-                const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
-
-                // Check if property matches this category
-                let matchesCategory = false;
-
-                // First, check if property type matches any of this category's property types
-                for (const type of category.propertyTypes) {
-                    const typeLower = type.toLowerCase();
-                    // Exact property type match (e.g., propertyType === 'house')
-                    if (propertyType === typeLower || propertyType.includes(typeLower)) {
-                        matchesCategory = true;
-                        break;
-                    }
-                }
-
-                // If no direct match, check using category-specific keywords
-                if (!matchesCategory) {
-                    for (const keyword of category.keywords) {
-                        const keywordLower = keyword.toLowerCase();
-                        // Check if keyword appears in search text
-                        if (searchText.includes(keywordLower)) {
-                            matchesCategory = true;
-                            break;
-                        }
-                    }
-                }
-
-                // EXCLUSION CHECK: Make sure property doesn't match exclusion keywords
-                if (matchesCategory && category.excludeKeywords) {
-                    for (const excludeKeyword of category.excludeKeywords) {
-                        const excludeLower = excludeKeyword.toLowerCase();
-                        if (searchText.includes(excludeLower)) {
-                            // If it matches an exclusion keyword, double-check
-                            // Only exclude if it's a strong match for another category
-                            let shouldExclude = false;
-                            
-                            // Special logic for residential vs commercial
-                            if (category.name === 'Residential' && 
-                                (searchText.includes('commercial') || searchText.includes('office'))) {
-                                shouldExclude = true;
-                            }
-                            // Special logic for land vs building
-                            if (category.name === 'Land / Lot' && 
-                                (searchText.includes('house') || searchText.includes('building') || 
-                                 searchText.includes('apartment') || searchText.includes('condo'))) {
-                                shouldExclude = true;
-                            }
-                            // Special logic for special purpose
-                            if (category.name === 'Special Purpose' && 
-                                (searchText.includes('house') || searchText.includes('apartment') || 
-                                 searchText.includes('condo') || searchText.includes('office') || 
-                                 searchText.includes('warehouse'))) {
-                                shouldExclude = true;
-                            }
-                            
-                            if (shouldExclude) {
-                                matchesCategory = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (matchesCategory) {
+                if (propertyBelongsToCategory(listing, category)) {
                     count++;
                 }
             });
@@ -2179,7 +1718,7 @@ async function loadCategories() {
             };
         });
 
-        // Render categories
+        // Render categories (removed property types display)
         container.innerHTML = categories.map(category => `
             <div class="category-card ${selectedCategory === category.name ? 'active' : ''}" 
                  data-category="${category.name}"
@@ -2191,14 +1730,6 @@ async function loadCategories() {
                 <div class="category-count">${category.count} Properties</div>
                 <div style="margin-top: 12px; font-size: 13px; color: ${selectedCategory === category.name ? 'rgba(255,255,255,0.9)' : 'var(--text-light)'}">
                     <div style="margin-bottom: 8px; font-style: italic;">${category.description}</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;">
-                        ${category.propertyTypes.slice(0, 5).map(type => 
-                            `<span style="background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #8b6914;">${type.replace(/_/g, ' ')}</span>`
-                        ).join('')}
-                        ${category.propertyTypes.length > 5 ? 
-                            `<span style="background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #8b6914;">+${category.propertyTypes.length - 5} more</span>` : 
-                            ''}
-                    </div>
                 </div>
                 <div class="category-browse">Browse <span aria-hidden="true">→</span></div>
             </div>
@@ -2267,6 +1798,40 @@ function updateCategoryUI() {
 
 // --- LISTINGS FUNCTIONS ---
 
+// Helper function to check if property is in Batangas
+function isPropertyInBatangas(listing) {
+    const province = (listing.province || '').toLowerCase();
+    const city = (listing.city || '').toLowerCase();
+    const address = (listing.address || '').toLowerCase();
+    
+    // Check if property is in Batangas province
+    if (province.includes('batangas')) {
+        return true;
+    }
+    
+    // Check for specific Batangas cities and municipalities
+    const batangasCities = [
+        'batangas city', 'lipa city', 'tanauan city', 'baoan', 'balayan',
+        'calaca', 'lemery', 'nasugbu', 'san juan', 'taal', 'talisay',
+        'alitagtag', 'cuenca', 'laurel', 'mataasnakahoy', 'san jose',
+        'san luis', 'san pascual', 'santo tomas'
+    ];
+    
+    for (const batangasCity of batangasCities) {
+        if (city.includes(batangasCity) || address.includes(batangasCity)) {
+            return true;
+        }
+    }
+    
+    // If no location data but listing exists in database, assume it's in Batangas
+    // (since this is a Batangas-focused platform)
+    if (!province && !city && !address) {
+        return true;
+    }
+    
+    return false;
+}
+
 async function loadAllListings() {
     try {
         console.log('🔄 Loading all properties for Batangas...');
@@ -2317,40 +1882,6 @@ async function loadAllListings() {
         console.error("   Error loading properties:", error);
         displayError(error);
     }
-}
-
-// Helper function to check if property is in Batangas
-function isPropertyInBatangas(listing) {
-    const province = (listing.province || '').toLowerCase();
-    const city = (listing.city || '').toLowerCase();
-    const address = (listing.address || '').toLowerCase();
-    
-    // Check if property is in Batangas province
-    if (province.includes('batangas')) {
-        return true;
-    }
-    
-    // Check for specific Batangas cities and municipalities
-    const batangasCities = [
-        'batangas city', 'lipa city', 'tanauan city', 'baoan', 'balayan',
-        'calaca', 'lemery', 'nasugbu', 'san juan', 'taal', 'talisay',
-        'alitagtag', 'cuenca', 'laurel', 'mataasnakahoy', 'san jose',
-        'san luis', 'san pascual', 'santo tomas'
-    ];
-    
-    for (const batangasCity of batangasCities) {
-        if (city.includes(batangasCity) || address.includes(batangasCity)) {
-            return true;
-        }
-    }
-    
-    // If no location data but listing exists in database, assume it's in Batangas
-    // (since this is a Batangas-focused platform)
-    if (!province && !city && !address) {
-        return true;
-    }
-    
-    return false;
 }
 
 async function loadAllUserData(userIds) {
@@ -2465,7 +1996,49 @@ async function checkSavedStatus(listings) {
     }
 }
 
-// Also update the displayFilteredListings() function with better filtering
+// Add property type normalization function
+function normalizePropertyType(propertyType) {
+    if (!propertyType) return '';
+    
+    const typeMap = {
+        // Residential
+        'house': 'House', 'townhouse': 'Townhouse', 'bungalow': 'Bungalow',
+        'duplex': 'Duplex', 'village_lot': 'Village Lot',
+        'apartment': 'Apartment', 'boarding_house': 'Boarding House',
+        'room': 'Room', 'dormitory': 'Dormitory',
+        
+        // Commercial
+        'commercial_building': 'Commercial Building', 'office_space': 'Office Space',
+        'retail_space': 'Retail Space', 'warehouse': 'Warehouse',
+        'showroom': 'Showroom', 'office_unit': 'Office Unit',
+        'food_stall': 'Food Stall', 'shop': 'Shop',
+        'office_floor': 'Office Floor', 'retail_space_lease': 'Retail Space (Lease)',
+        'building_lease': 'Building Lease', 'commercial_unit': 'Commercial Unit',
+        'showroom_lease': 'Showroom Lease', 'warehouse_lease': 'Warehouse Lease',
+        
+        // Land/Lot
+        'residential_lot': 'Residential Lot', 'commercial_lot': 'Commercial Lot',
+        'agricultural_land': 'Agricultural Land', 'industrial_lot': 'Industrial Lot',
+        'beachfront': 'Beachfront', 'development_land': 'Development Land',
+        'vacant_lot': 'Vacant Lot',
+        
+        // Condominium
+        'condo_unit': 'Condo Unit', 'penthouse': 'Penthouse',
+        'studio': 'Studio', 'loft': 'Loft', 'condo': 'Condominium',
+        
+        // Industrial
+        'factory': 'Factory', 'storage_unit': 'Storage Unit',
+        'workshop': 'Workshop',
+        
+        // Special Purpose
+        'resort_property': 'Resort Property', 'event_venue': 'Event Venue',
+        'parking_area': 'Parking Area', 'school_property': 'School Property',
+        'hospitality': 'Hospitality', 'sports_facility': 'Sports Facility'
+    };
+    
+    return typeMap[propertyType.toLowerCase()] || propertyType;
+}
+
 function displayFilteredListings() {
     // Filter only active listings
     let filtered = allListings.filter(listing => {
@@ -2475,84 +2048,12 @@ function displayFilteredListings() {
                (listing.status === undefined && listing.isActive !== false);
     });
 
-    // Apply selected category filter ONLY (no search filters in dashboard)
+    // Apply selected category filter
     if (selectedCategory) {
         const categoryData = BATANGAS_PROPERTY_CATEGORIES.find(cat => cat.name === selectedCategory);
         if (categoryData) {
             filtered = filtered.filter(listing => {
-                const propertyType = (listing.propertyType || '').toLowerCase();
-                const propertyCategory = (listing.propertyCategory || '').toLowerCase();
-                const listingTitle = (listing.title || '').toLowerCase();
-                const listingDescription = (listing.description || '').toLowerCase();
-                const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
-
-                // Check if property matches this category
-                let matchesCategory = false;
-
-                // First, check if property type matches any of the category's property types
-                for (const type of categoryData.propertyTypes) {
-                    const typeLower = type.toLowerCase();
-                    // Direct property type match
-                    if (propertyType === typeLower || propertyType.includes(typeLower)) {
-                        matchesCategory = true;
-                        break;
-                    }
-                }
-
-                // If no direct match, check using category-specific keywords
-                if (!matchesCategory) {
-                    for (const keyword of categoryData.keywords) {
-                        if (searchText.includes(keyword.toLowerCase())) {
-                            matchesCategory = true;
-                            break;
-                        }
-                    }
-                }
-
-                // EXCLUSION CHECK: Make sure property doesn't match exclusion keywords
-                if (matchesCategory && categoryData.excludeKeywords) {
-                    for (const excludeKeyword of categoryData.excludeKeywords) {
-                        if (searchText.includes(excludeKeyword.toLowerCase())) {
-                            // Special exclusion logic for different categories
-                            if (selectedCategory === 'Special Purpose') {
-                                // Special Purpose should NOT include regular houses, apartments, condos, offices, warehouses
-                                if (searchText.includes('house') || 
-                                    searchText.includes('apartment') || 
-                                    searchText.includes('condo') || 
-                                    searchText.includes('office') || 
-                                    searchText.includes('warehouse') ||
-                                    searchText.includes('commercial unit')) {
-                                    matchesCategory = false;
-                                    break;
-                                }
-                            }
-                            if (selectedCategory === 'Land / Lot') {
-                                // Land/Lot should NOT include buildings
-                                if (searchText.includes('house') || 
-                                    searchText.includes('apartment') || 
-                                    searchText.includes('building') || 
-                                    searchText.includes('condo') || 
-                                    searchText.includes('villa')) {
-                                    matchesCategory = false;
-                                    break;
-                                }
-                            }
-                            if (selectedCategory === 'Residential') {
-                                // Residential should NOT include commercial/industrial properties
-                                if (searchText.includes('commercial') || 
-                                    searchText.includes('office') || 
-                                    searchText.includes('retail') || 
-                                    searchText.includes('warehouse') ||
-                                    searchText.includes('factory')) {
-                                    matchesCategory = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return matchesCategory;
+                return propertyBelongsToCategory(listing, categoryData);
             });
         }
     }
@@ -2603,6 +2104,7 @@ async function displayListings(listings) {
     const bedrooms = listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0);
     const bathrooms = listing.bathrooms || 0;
     const area = listing.floorArea || listing.totalArea || 'N/A';
+    const propertyType = normalizePropertyType(listing.propertyType);
     
     // Truncate long titles with ellipsis
     const title = listing.title || 'Untitled Property';
@@ -2654,6 +2156,7 @@ async function displayListings(listings) {
                 <span> · ${listingTypeLabel}</span>
             </div>
             <div class="listing-details">
+                ${propertyType && propertyType !== 'undefined' ? `<div class="detail"><i class="fas fa-tag"></i> ${propertyType}</div>` : ''}
                 <div class="detail"><i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</div>
                 <div class="detail"><i class="fas fa-bath"></i> ${bathrooms} baths</div>
                 <div class="detail"><i class="fas fa-ruler-combined"></i> ${area} sqm</div>
@@ -2668,7 +2171,7 @@ async function displayListings(listings) {
   
     setTimeout(() => {
         setupListingEventListeners();
-        makePropertyCardsClickable();  // ADD THIS LINE
+        makePropertyCardsClickable();
         forceBadgeVisibility();
     }, 100);
 }
@@ -2851,6 +2354,435 @@ function forceBadgeVisibility() {
     });
 }
 
+// --- MESSAGING SYSTEM FUNCTIONS ---
+
+// Initialize messaging event listeners
+function initializeMessagingListeners() {
+    // Send message button
+    const sendBtn = document.getElementById('sendMessageBtn');
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+    }
+    
+    // Message input enter key support
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+    
+    // Close message modal button
+    const closeMessageBtn = document.getElementById('closeMessageModal');
+    if (closeMessageBtn) {
+        closeMessageBtn.addEventListener('click', closeMessageModal);
+    }
+    
+    // Close modal when clicking outside
+    const messageModal = document.getElementById('messageModal');
+    if (messageModal) {
+        messageModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMessageModal();
+            }
+        });
+    }
+}
+
+// Contact broker function (for use in onclick attributes)
+window.contactBroker = async function(userId, propertyId = null) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        alert('Please log in to contact brokers. You can browse properties as a guest, but need to sign in to send messages.');
+        const redirect = encodeURIComponent(window.location.pathname + (window.location.search || ''));
+        window.location.href = "../login.html?redirect=" + (redirect || encodeURIComponent('buyer/buyer_dashboard.html'));
+        return;
+    }
+
+    const userInfo = userMap.get(userId);
+    if (!userInfo) {
+        alert('Broker information not available');
+        return;
+    }
+
+    // Generate conversation ID (sorted combination of both user IDs)
+    currentConversationId = [currentUser.uid, userId].sort().join('_');
+    
+    // Get property info for context
+    const property = allListings.find(l => l.userId === userId);
+    
+    // Update messaging modal UI
+    updateMessagingModal(userInfo, property);
+    
+    // Show messaging modal
+    const messageModal = document.getElementById('messageModal');
+    messageModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Load existing messages
+    loadMessages(currentConversationId, userId);
+    
+    // Focus on message input
+    setTimeout(() => {
+        document.getElementById('messageInput').focus();
+    }, 300);
+};
+
+// Update messaging modal with broker info
+function updateMessagingModal(userInfo, property) {
+    const brokerName = userInfo.displayName || 'Broker';
+    const brokerRole = userInfo.role === 'landlord' ? 'Property Owner' : 
+                     userInfo.role === 'broker' ? 'Licensed Broker' : 
+                     'Property Contact';
+    
+    // Set modal title and info (with ellipsis for long names)
+    const modalTitle = document.getElementById('messageBrokerName');
+    modalTitle.textContent = `Message ${brokerName}`;
+    if (modalTitle.scrollWidth > modalTitle.clientWidth) {
+        modalTitle.title = brokerName;
+        modalTitle.textContent = `Message ${brokerName.length > 20 ? brokerName.substring(0, 20) + '...' : brokerName}`;
+    }
+    
+    document.getElementById('messageBrokerRole').textContent = brokerRole;
+    
+    // Set broker name with ellipsis if too long
+    const brokerNameElement = document.getElementById('messageBrokerFullName');
+    brokerNameElement.textContent = brokerName;
+    if (brokerNameElement.scrollWidth > brokerNameElement.clientWidth) {
+        brokerNameElement.title = brokerName;
+        brokerNameElement.textContent = brokerName.length > 25 ? brokerName.substring(0, 25) + '...' : brokerName;
+    }
+    
+    document.getElementById('messageBrokerType').textContent = brokerRole;
+    document.getElementById('messageBrokerContact').textContent = userInfo.email || 'Email not available';
+
+    // Set broker avatar initials
+    const initials = brokerName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'B';
+    document.getElementById('messageBrokerAvatar').textContent = initials;
+    
+    // Update contact info with ellipsis
+    const emailInfo = document.getElementById('brokerEmailInfo');
+    const phoneInfo = document.getElementById('brokerPhoneInfo');
+    
+    const emailText = `📧 ${userInfo.email || 'Email not available'}`;
+    emailInfo.textContent = emailText;
+    emailInfo.title = userInfo.email || 'Email not available';
+    
+    const phoneText = `📞 ${userInfo.phone || 'Phone not available'}`;
+    phoneInfo.textContent = phoneText;
+    phoneInfo.title = userInfo.phone || 'Phone not available';
+    
+    // Setup quick contact buttons
+    const quickEmailBtn = document.getElementById('quickEmailBtn');
+    const quickCallBtn = document.getElementById('quickCallBtn');
+    
+    if (userInfo.email) {
+        const subject = property ? `Inquiry about: ${property.title}` : 'Property Inquiry';
+        const body = property ? `Hello ${brokerName},\n\nI'm interested in your property: ${property.title}\n\nPlease send me more information.` : '';
+        quickEmailBtn.href = `mailto:${userInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        quickEmailBtn.style.display = 'flex';
+    } else {
+        quickEmailBtn.style.display = 'none';
+    }
+    
+    if (userInfo.phone) {
+        quickCallBtn.href = `tel:${userInfo.phone}`;
+        quickCallBtn.style.display = 'flex';
+    } else {
+        quickCallBtn.style.display = 'none';
+    }
+    
+    // Set up message input placeholder with property context
+    const messageInput = document.getElementById('messageInput');
+    if (property) {
+        const propertyTitle = property.title || 'property';
+        const truncatedTitle = propertyTitle.length > 50 ? propertyTitle.substring(0, 50) + '...' : propertyTitle;
+        messageInput.placeholder = `Hi ${brokerName}, I'm interested in ${truncatedTitle}. Could you please provide more details about...`;
+    } else {
+        messageInput.placeholder = `Type your message here...`;
+    }
+}
+
+// Load messages for a conversation
+function loadMessages(conversationId, brokerId) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    
+    // Clear any existing listener
+    if (messageListener) {
+        messageListener();
+        messageListener = null;
+    }
+    
+    // Show loading state
+    messagesContainer.innerHTML = `
+        <div class="loading-messages">
+            <div class="spinner"></div>
+            <p>Loading messages...</p>
+        </div>
+    `;
+    
+    console.log('🔍 Attempting to load messages for conversation:', conversationId);
+    
+    try {
+        // Query messages for this conversation
+        const messagesRef = collection(db, 'messages');
+        const messagesQuery = query(
+            messagesRef,
+            where('conversationId', '==', conversationId),
+            orderBy('timestamp', 'asc')
+        );
+        
+        console.log('📋 Query created, listening for messages...');
+        
+        // Listen for real-time updates
+        messageListener = onSnapshot(messagesQuery, 
+            (snapshot) => {
+                console.log('📨 Snapshot received, docs:', snapshot.size);
+                
+                messagesContainer.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    console.log('📭 No messages found in conversation');
+                    messagesContainer.innerHTML = `
+                        <div class="no-messages">
+                            <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                            <h3>No messages yet</h3>
+                            <p>Start the conversation by sending a message below.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const currentUser = auth.currentUser;
+                
+                snapshot.forEach((doc) => {
+                    const message = doc.data();
+                    const isSent = message.senderId === currentUser.uid;
+                    
+                    const messageElement = document.createElement('div');
+                    messageElement.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+                    
+                    // Format timestamp
+                    let timestamp = 'Just now';
+                    if (message.timestamp) {
+                        const date = message.timestamp.toDate ? message.timestamp.toDate() : new Date();
+                        timestamp = formatMessageTime(date);
+                    }
+                    
+                    const messageContent = document.createElement('div');
+                    messageContent.className = 'message-bubble-content';
+                    
+                    let statusIndicator = '';
+                    if (isSent) {
+                        statusIndicator = `<span class="message-status" style="margin-left: 5px; font-size: 10px;">✓</span>`;
+                    }
+                    
+                    messageContent.innerHTML = `
+                        <div>${message.text}</div>
+                        <span class="message-time">${timestamp}${statusIndicator}</span>
+                    `;
+                    
+                    messageElement.appendChild(messageContent);
+                    messagesContainer.appendChild(messageElement);
+                });
+                
+                // Scroll to bottom
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+                
+            }, 
+            (error) => {
+                console.error('❌ Error in onSnapshot listener:', error);
+                
+                messagesContainer.innerHTML = `
+                    <div class="no-messages">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                        <h3>Start a conversation</h3>
+                        <p>Send a message to begin chatting with the broker.</p>
+                    </div>
+                `;
+            }
+        );
+        
+    } catch (error) {
+        console.error('💥 Error setting up message listener:', error);
+        messagesContainer.innerHTML = `
+            <div class="no-messages">
+                <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                <h3>Ready to chat</h3>
+                <p>Send your first message below to start the conversation.</p>
+            </div>
+        `;
+    }
+}
+
+// Send message function
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
+    const sendBtn = document.getElementById('sendMessageBtn');
+    
+    if (!messageText) {
+        messageInput.focus();
+        return;
+    }
+    
+    if (!currentConversationId || !auth.currentUser) {
+        alert('Unable to send message. Please refresh and try again.');
+        return;
+    }
+    
+    // Get broker ID from conversation ID
+    const conversationParts = currentConversationId.split('_');
+    const brokerId = conversationParts.find(id => id !== auth.currentUser.uid);
+    
+    if (!brokerId) {
+        alert('Unable to identify recipient.');
+        return;
+    }
+    
+    // Disable send button and show loading
+    const originalText = sendBtn.innerHTML;
+    sendBtn.innerHTML = '<div class="spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; width: 16px; height: 16px;"></div>';
+    sendBtn.disabled = true;
+    messageInput.disabled = true;
+    
+    try {
+        // Get property ID for context
+        const property = allListings.find(l => l.userId === brokerId);
+        const propertyId = property?.id;
+        
+        // Create conversation document if it doesn't exist
+        const conversationRef = doc(db, 'conversations', currentConversationId);
+        const conversationSnap = await getDoc(conversationRef);
+        
+        const conversationData = {
+            participants: [auth.currentUser.uid, brokerId],
+            lastMessage: messageText.substring(0, 100),
+            lastMessageTime: serverTimestamp(),
+            lastSenderId: auth.currentUser.uid,
+            unreadCount: {
+                [brokerId]: (conversationSnap.exists() ? 
+                    (conversationSnap.data().unreadCount?.[brokerId] || 0) + 1 : 1)
+            },
+            buyerId: auth.currentUser.uid,
+            brokerId: brokerId,
+            propertyId: propertyId || null,
+            propertyTitle: property?.title || null,
+            buyerName: auth.currentUser.displayName || auth.currentUser.email,
+            createdAt: conversationSnap.exists() ? 
+                conversationSnap.data().createdAt : serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        
+        // Update or create conversation
+        await setDoc(conversationRef, conversationData, { merge: true });
+        
+        // Add message to messages collection
+        const messageData = {
+            conversationId: currentConversationId,
+            senderId: auth.currentUser.uid,
+            receiverId: brokerId,
+            text: messageText,
+            timestamp: serverTimestamp(),
+            read: false,
+            createdAt: serverTimestamp(),
+            type: 'text',
+            propertyId: propertyId || null,
+            senderName: auth.currentUser.displayName || auth.currentUser.email
+        };
+        
+        await addDoc(collection(db, 'messages'), messageData);
+        
+        console.log('✅ Message sent successfully');
+        
+        // Clear input and reset UI
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        messageInput.disabled = false;
+        
+        // Show success feedback
+        sendBtn.innerHTML = '✓ Sent';
+        sendBtn.style.background = '#10b981';
+        
+        setTimeout(() => {
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Send Message</span>';
+            sendBtn.style.background = '';
+            sendBtn.disabled = false;
+        }, 1500);
+        
+        // Scroll to bottom of messages
+        const messagesContainer = document.getElementById('messagesContainer');
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+        
+    } catch (error) {
+        console.error('❌ Error sending message:', error);
+        
+        // Reset UI
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
+        messageInput.disabled = false;
+        
+        // Show user-friendly error
+        let errorMessage = 'Failed to send message. ';
+        if (error.code === 'permission-denied') {
+            errorMessage += 'You do not have permission to send messages.';
+        } else if (error.code === 'unavailable') {
+            errorMessage += 'Network error. Please check your connection.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+        
+        alert(errorMessage);
+    }
+}
+
+// Format message timestamp
+function formatMessageTime(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+// Close messaging modal
+function closeMessageModal() {
+    const messageModal = document.getElementById('messageModal');
+    messageModal.classList.remove('show');
+    document.body.style.overflow = 'auto';
+    
+    // Clean up message listener
+    if (messageListener) {
+        messageListener();
+        messageListener = null;
+    }
+    
+    currentConversationId = null;
+    
+    // Clear message input
+    document.getElementById('messageInput').value = '';
+}
+
 // --- EVENT LISTENER SETUP ---
 
 function setupEventListeners() {
@@ -2925,7 +2857,7 @@ function setupEventListeners() {
                 typ.value = 'Apartment'; loc.value = ''; if (name) name.value = ''; if (maxP) maxP.value = '';
             } else if (id === 'lots-batangas') {
                 tt.value = 'sale'; updateCategoryDropdown();
-                cat.value = 'Land'; updateTypeDropdown();
+                cat.value = 'Land / Lot'; updateTypeDropdown();
                 typ.value = 'Residential Lot'; loc.value = ''; if (name) name.value = ''; if (maxP) maxP.value = '';
             } else if (id === 'under-3m') {
                 if (maxP) maxP.value = '3000000';
@@ -3076,23 +3008,34 @@ async function loadRecommendationsFromPython() {
             console.log(`🎯 Received ${data.recommendations.length} AI recommendations`);
             
             // Map recommendations to actual listings
-            const recommendedListings = data.recommendations
-                .map(rec => {
-                    // Find the matching listing - check both id and property_id
-                    const listing = allListings.find(l => l.id === rec.id || l.id === rec.property_id);
-                    if (listing) {
-                        return {
-                            ...listing,
-                            recoScore: rec.match_score || rec.similarity_score || 0,
-                            similarity_score: rec.similarity_score || rec.match_score || 0,
-                            similar_to: rec.match_reason || "Similar to your preferences"
-                        };
-                    }
-                    console.warn('Could not find listing for recommendation:', rec.id || rec.property_id);
-                    return null;
-                })
-                .filter(l => l !== null)
-                .slice(0, 5);
+const recommendedListings = data.recommendations
+    .map(rec => {
+        // Find the matching listing
+        const listing = allListings.find(l => l.id === rec.id);
+        if (listing) {
+            console.log(`✅ Mapped recommendation ${rec.id}`, {
+                match_score: rec.match_score,
+                match_reason: rec.match_reason,
+                match_details: rec.match_details
+            });
+            
+            // Merge listing with recommendation metadata
+            return {
+                ...listing,
+                // Preserve ALL recommendation data
+                match_score: rec.match_score || rec.similarity_score || 0,
+                similarity_score: rec.similarity_score || rec.match_score || 0,
+                match_reason: rec.match_reason,
+                match_details: rec.match_details,
+                component_scores: rec.component_scores,
+                is_ai_recommended: rec.is_ai_recommended || true
+            };
+        }
+        console.warn('❌ Could not find listing for recommendation:', rec.id);
+        return null;
+    })
+    .filter(l => l !== null)
+    .slice(0, 5);
 
             if (recommendedListings.length > 0) {
                 console.log(`✅ Mapped ${recommendedListings.length} recommendations to listings`);
@@ -3276,6 +3219,7 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             const bedrooms = property.bedrooms || (listingType === 'rent' && property.propertyType === 'studio' ? 'Studio' : 0);
             const bathrooms = property.bathrooms || 0;
             const area = property.floorArea || property.totalArea || 'N/A';
+            const propertyType = normalizePropertyType(property.propertyType);
             
             // Truncate long titles with ellipsis
             const title = property.title || 'Untitled Property';
@@ -3343,6 +3287,7 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
                                 <span> · ${listingTypeLabel}</span>
                             </div>
                             <div class="listing-details">
+                                ${propertyType && propertyType !== 'undefined' ? `<div class="detail"><i class="fas fa-tag"></i> ${propertyType}</div>` : ''}
                                 ${bedrooms ? `<div class="detail"><i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</div>` : ''}
                                 ${bathrooms ? `<div class="detail"><i class="fas fa-bath"></i> ${bathrooms} baths</div>` : ''}
                                 ${area && area !== 'N/A' ? `<div class="detail"><i class="fas fa-ruler-combined"></i> ${area} sqm</div>` : ''}
@@ -3390,73 +3335,6 @@ function setupRecommendationsEventListeners() {
     }
 }
 
-// Add this debugging function to see what's being classified
-function debugCategoryClassification() {
-    console.log('=== DEBUGGING CATEGORY CLASSIFICATION ===');
-    
-    const activeListings = allListings.filter(listing => 
-        listing.status === 'active' ||
-        listing.status === 'available' ||
-        listing.status === 'Active' ||
-        (listing.status === undefined && listing.isActive !== false)
-    );
-    
-    activeListings.forEach(listing => {
-        const propertyType = (listing.propertyType || '').toLowerCase();
-        const propertyCategory = (listing.propertyCategory || '').toLowerCase();
-        const listingTitle = (listing.title || '').toLowerCase();
-        const listingDescription = (listing.description || '').toLowerCase();
-        const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
-        
-        const categories = [];
-        
-        BATANGAS_PROPERTY_CATEGORIES.forEach(cat => {
-            let matchesCategory = false;
-            
-            // Check property types
-            for (const type of cat.propertyTypes) {
-                if (propertyType === type.toLowerCase() || propertyType.includes(type.toLowerCase())) {
-                    matchesCategory = true;
-                    break;
-                }
-            }
-            
-            // Check keywords
-            if (!matchesCategory) {
-                for (const keyword of cat.keywords) {
-                    if (searchText.includes(keyword.toLowerCase())) {
-                        matchesCategory = true;
-                        break;
-                    }
-                }
-            }
-            
-            // Check exclusions
-            if (matchesCategory && cat.excludeKeywords) {
-                for (const excludeKeyword of cat.excludeKeywords) {
-                    if (searchText.includes(excludeKeyword.toLowerCase())) {
-                        matchesCategory = false;
-                        break;
-                    }
-                }
-            }
-            
-            if (matchesCategory) {
-                categories.push(cat.name);
-            }
-        });
-        
-        console.log(`Listing: ${listing.title || 'No Title'} (ID: ${listing.id})`);
-        console.log(`  Property Type: ${listing.propertyType || 'None'}`);
-        console.log(`  Categories: ${categories.join(', ') || 'None'}`);
-        console.log(`  Search Text: ${searchText.substring(0, 100)}...`);
-        console.log('---');
-    });
-}
-
-// Call this function after loading listings to debug
-// debugCategoryClassification();
-
 // --- INITIALIZATION ---
 
 // Initialize dropdowns
@@ -3475,101 +3353,6 @@ function initializeDropdowns() {
     // Initialize with current values
     if (transactionTypeSelect && categorySelect) {
         updateCategoryDropdown();
-    }
-}
-
-// Add demo prompts to the chat interface
-function addDemoPrompts() {
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    
-    if (!chatInput || !chatMessages) return;
-    
-    // Add demo prompts section if it doesn't exist
-    if (!document.querySelector('.demo-prompts')) {
-        const demoSection = document.createElement('div');
-        demoSection.className = 'demo-prompts';
-        demoSection.style.cssText = `
-            margin-top: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border-radius: 12px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            animation: fadeIn 0.5s ease;
-        `;
-        
-        demoSection.innerHTML = `
-            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600; margin-bottom: 10px;">
-                <i class="fas fa-lightbulb"></i> Try these quick prompts:
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <button class="demo-prompt-btn" data-prompt="Find apartments in Batangas City">
-                    🏢 Find apartments
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Find houses in Lipa City">
-                    🏠 Find houses
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Tell me about Batangas City">
-                    ℹ️ About Batangas
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Properties that accept bank financing">
-                    💰 Bank financing
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Find condos in Tanauan City">
-                    🏙️ Find condos
-                </button>
-            </div>
-        `;
-        
-        chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
-        
-        // Add event listeners to demo prompt buttons
-        setTimeout(() => {
-            document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const prompt = this.getAttribute('data-prompt');
-                    chatInput.value = prompt;
-                    chatInput.focus();
-                    
-                    // Highlight the button briefly
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = '';
-                    }, 150);
-                });
-            });
-        }, 100);
-    }
-}
-
-// Function to show chatbot error state
-function showChatbotError() {
-    const container = document.querySelector('.ai-assistant-section .chatbot-container');
-    if (container) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'chatbot-error';
-        errorDiv.style.cssText = `
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 16px;
-            color: #c00;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <div>
-                <strong>AI Assistant Temporarily Unavailable</strong>
-                <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
-                    The AI chatbot is still being trained. Please use the search filters above to find properties.
-                </p>
-            </div>
-        `;
-        container.appendChild(errorDiv);
     }
 }
 
@@ -3641,36 +3424,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Setup event listeners
         setupEventListeners();
-        
-        // Initialize AI chatbot with delay to ensure DOM is fully loaded
-        setTimeout(() => {
-            if (typeof initChatbot === 'function') {
-                console.log('🤖 Initializing AI chatbot...');
-                initChatbot();
-                
-                // Add sample demo prompts for easy testing
-                addDemoPrompts();
-            } else {
-                console.warn('⚠️ initChatbot function not found. Make sure ai_chatbot.js is loaded.');
-                
-                // Try to load it dynamically
-                const script = document.createElement('script');
-                script.src = 'ai_chatbot.js';
-                script.type = 'module';
-                script.onload = () => {
-                    console.log('✅ AI chatbot script loaded dynamically');
-                    if (typeof initChatbot === 'function') {
-                        initChatbot();
-                        addDemoPrompts();
-                    }
-                };
-                script.onerror = () => {
-                    console.error('❌ Failed to load AI chatbot script');
-                    showChatbotError();
-                };
-                document.body.appendChild(script);
-            }
-        }, 1500);
     });
 });
 

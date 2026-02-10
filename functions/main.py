@@ -379,12 +379,12 @@ def calculate_property_score(property_data, user_profile, all_saved_ids):
             unique_reasons = ["Based on your search patterns"]
     
     return {
-        "score": final_score,
+        "score": round(final_score, 1),
         "match_reasons": unique_reasons[:3],
         "component_scores": {
-            "saved_similarity": saved_similarity_score,
-            "search_match": search_match_score,
-            "preference_match": preference_match_score
+            "saved_similarity": round(saved_similarity_score, 1),
+            "search_match": round(search_match_score, 1),
+            "preference_match": round(preference_match_score, 1)
         }
     }
 
@@ -399,15 +399,21 @@ def find_ai_recommendations(db, user_profile, all_properties, count: int = 5):
                 continue
             
             score_result = calculate_property_score(prop, user_profile, saved_ids)
+            score = score_result["score"]
             
-            if score_result["score"] > 20:
-                prop['similarity_score'] = score_result["score"]
-                prop['match_score'] = int(score_result["score"])
+            if score > 20:
+                # Add recommendation metadata
+                prop['match_score'] = int(score)
+                prop['similarity_score'] = score
                 prop['match_reason'] = score_result["match_reasons"][0] if score_result["match_reasons"] else "Recommended for you"
                 prop['match_details'] = score_result["match_reasons"]
+                prop['component_scores'] = score_result["component_scores"]
                 prop['is_ai_recommended'] = True
+                
+                logger.info(f"Property {prop['id']} score: {score}, reasons: {score_result['match_reasons']}")
                 scored_properties.append(prop)
         
+        # Sort by score (highest first)
         scored_properties.sort(key=lambda x: x.get('similarity_score', 0), reverse=True)
         
         final_recommendations = []
@@ -463,8 +469,9 @@ def find_search_based_recommendations(db, user_profile, all_properties, count: i
                 match_reasons.append(f"Type you look for: {prop_type}")
             
             if search_bonus > 30:
-                prop['similarity_score'] = min(100, search_bonus)
-                prop['match_score'] = int(min(100, search_bonus))
+                score = min(100, search_bonus)
+                prop['similarity_score'] = score
+                prop['match_score'] = int(score)
                 prop['match_reason'] = match_reasons[0] if match_reasons else "Based on your searches"
                 prop['match_details'] = match_reasons
                 prop['is_search_based'] = True
@@ -505,6 +512,24 @@ def get_recent_properties(db, count: int = 5):
         return []
 
 # =========================== CLOUD FUNCTION ===========================
+
+def safe_json_serializer(obj):
+    """Custom JSON serializer that handles all edge cases"""
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    elif obj is None:
+        return None
+    elif isinstance(obj, (int, float, str, bool)):
+        return obj
+    elif isinstance(obj, (list, tuple)):
+        return [safe_json_serializer(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {safe_json_serializer(k): safe_json_serializer(v) for k, v in obj.items()}
+    else:
+        try:
+            return str(obj)
+        except:
+            return None
 
 @firebase_functions.https_fn.on_request()
 def personalized_recommendations(request):
@@ -678,7 +703,10 @@ def personalized_recommendations(request):
             }
             logger.info(f"User {user_id[:8]}... - returning {len(recommendations)} AI recommendations (confidence: {prefs['confidence_score']}%)")
         
-        return (json.dumps(response, cls=FirestoreEncoder, indent=2),
+        # Clean the response to remove any problematic values
+        cleaned_response = safe_json_serializer(response)
+        
+        return (json.dumps(cleaned_response, indent=2),
                 200,
                 {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
         
@@ -762,7 +790,9 @@ def user_profile_insights(request):
             "timestamp": datetime.now().isoformat()
         }
         
-        return (json.dumps(response, cls=FirestoreEncoder, indent=2),
+        cleaned_response = safe_json_serializer(response)
+        
+        return (json.dumps(cleaned_response, indent=2),
                 200,
                 {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
     except Exception as e:
@@ -777,7 +807,7 @@ def health(request):
     return (json.dumps({
         "status": "healthy",
         "service": "bahai-enhanced-recommender",
-        "version": "3.1",  # Updated version
+        "version": "3.2",  # Updated version
         "timestamp": datetime.now().isoformat(),
         "algorithm_features": {
             "saved_property_analysis": True,
@@ -794,4 +824,3 @@ def health(request):
     }, indent=2),
     200,
     {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
-

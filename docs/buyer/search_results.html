@@ -680,72 +680,78 @@ let isUserAuthenticated = false;
 let currentConversationId = null;
 let messageListener = null;
 
-// Property category and type mappings - UPDATED TO MATCH DASHBOARD
+// ================================ BATANGAS PROPERTY CATEGORIES =============================
+// UPDATED TO MATCH EXACTLY FROM BUYER DASHBOARD
 const BATANGAS_PROPERTY_CATEGORIES = [
     {
         name: 'Residential',
         icon: '🏠',
-        description: 'Properties intended for living or dwelling',
+        description: 'Houses, apartments, and living spaces',
         propertyTypes: [
-            'apartment', 'boarding_house', 'condo', 'room', 'townhouse', 'house', 'dormitory',
-            'bungalow', 'duplex', 'village_lot'
+            'house', 'townhouse', 'bungalow', 'duplex', 'village_lot',
+            'apartment', 'boarding_house', 'room', 'dormitory'
         ],
-        keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 'townhouse', 
-                  'dormitory', 'room', 'bedspace', 'home', 'villa', 'bungalow', 'duplex'],
-        excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 'agricultural', 
-                         'warehouse', 'factory', 'office', 'retail', 'shop', 'establishment']
+        keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 
+                  'townhouse', 'dormitory', 'room', 'bedspace', 'home', 
+                  'villa', 'bungalow', 'duplex', 'boarding', 'dorm'],
+        excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 
+                         'agricultural', 'warehouse', 'factory', 'office', 
+                         'retail', 'shop', 'establishment']
     },
     {
         name: 'Commercial',
         icon: '🏢',
-        description: 'Properties used for business and income generation',
+        description: 'Business, office, and retail spaces',
         propertyTypes: [
-            'office_unit', 'retail_space', 'food_stall', 'shop', 'showroom',
-            'commercial_building', 'office_space', 'warehouse',
-            'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 
+            'commercial_building', 'office_space', 'retail_space', 'warehouse', 
+            'showroom', 'office_unit', 'food_stall', 'shop', 'office_floor', 
+            'retail_space_lease', 'building_lease', 'commercial_unit', 
             'showroom_lease', 'warehouse_lease'
         ],
-        keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 
-                  'mall', 'business', 'establishment', 'showroom', 'warehouse'],
+        keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 
+                  'store', 'mall', 'business', 'establishment', 'showroom', 
+                  'warehouse', 'building', 'floor', 'space'],
         excludeKeywords: ['residential', 'house', 'apartment', 'condo', 'land', 'lot']
-    },
-    {
-        name: 'Industrial',
-        icon: '🏭',
-        description: 'Properties for storage, production, and logistics',
-        propertyTypes: [
-            'warehouse', 'storage_unit', 'factory', 'workshop'
-        ],
-        keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 
-                  'plant', 'facility', 'workshop'],
-        excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 'office', 'retail']
     },
     {
         name: 'Land / Lot',
         icon: '🌳',
-        description: 'Undeveloped or semi-developed land for future use',
+        description: 'Plots, lots, and agricultural land',
         propertyTypes: [
-            'residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 
-            'beachfront', 'development_land', 'vacant_lot'
+            'residential_lot', 'commercial_lot', 'agricultural_land', 
+            'industrial_lot', 'beachfront', 'development_land', 'vacant_lot'
         ],
         keywords: ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 
-                  'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 'raw land'],
-        excludeKeywords: ['house', 'apartment', 'building', 'commercial', 'office', 'retail']
+                  'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 
+                  'raw land', 'development', 'industrial', 'commercial'],
+        excludeKeywords: ['house', 'apartment', 'building', 'condo', 'villa']
     },
     {
         name: 'Condominium',
         icon: '🏙️',
         description: 'Condominium units and complexes',
         propertyTypes: [
-            'condo', 'condo_unit', 'penthouse', 'studio', 'loft'
+            'condo_unit', 'penthouse', 'studio', 'loft', 'condo'
         ],
         keywords: ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'],
         excludeKeywords: ['house', 'apartment', 'townhouse', 'duplex', 'villa']
     },
     {
+        name: 'Industrial',
+        icon: '🏭',
+        description: 'Factories, warehouses, and storage',
+        propertyTypes: [
+            'warehouse', 'storage_unit', 'factory', 'workshop'
+        ],
+        keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 
+                  'plant', 'facility', 'workshop', 'production'],
+        excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 
+                         'office', 'retail', 'shop']
+    },
+    {
         name: 'Special Purpose',
         icon: '🎯',
-        description: 'Properties with specific or institutional functions',
+        description: 'Properties with specific functions',
         propertyTypes: [
             'resort_property', 'event_venue', 'parking_area', 'school_property', 
             'hospitality', 'sports_facility'
@@ -760,20 +766,54 @@ const BATANGAS_PROPERTY_CATEGORIES = [
 // Property category and type mappings based on transaction type (for dropdowns)
 const PROPERTY_CATEGORIES = {
     'rent': [
-        { category: 'Residential', types: ['Apartment', 'Boarding House', 'Condo', 'Room', 'Townhouse', 'House', 'Dormitory'] },
-        { category: 'Commercial', types: ['Office Unit', 'Retail Space', 'Food Stall', 'Shop', 'Showroom'] },
-        { category: 'Industrial', types: ['Warehouse', 'Storage Unit', 'Factory', 'Workshop'] }
+        { 
+            category: 'Residential', 
+            types: ['Apartment', 'Boarding House', 'Room', 'Townhouse', 'House', 'Dormitory'] 
+        },
+        { 
+            category: 'Commercial', 
+            types: ['Office Unit', 'Retail Space', 'Food Stall', 'Shop', 'Showroom', 'Warehouse'] 
+        },
+        { 
+            category: 'Industrial', 
+            types: ['Warehouse', 'Storage Unit', 'Factory', 'Workshop'] 
+        }
     ],
     'sale': [
-        { category: 'Residential', types: ['House', 'Townhouse', 'Bungalow', 'Duplex', 'Village Lot'] },
-        { category: 'Commercial', types: ['Commercial Building', 'Office Space', 'Retail Space', 'Warehouse', 'Showroom'] },
-        { category: 'Land / Lot', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Beachfront'] },
-        { category: 'Condominium', types: ['Condo Unit', 'Penthouse', 'Studio', 'Loft'] }
+        { 
+            category: 'Residential', 
+            types: ['House', 'Townhouse', 'Bungalow', 'Duplex', 'Village Lot'] 
+        },
+        { 
+            category: 'Commercial', 
+            types: ['Commercial Building', 'Office Space', 'Retail Space', 'Warehouse', 'Showroom'] 
+        },
+        { 
+            category: 'Land / Lot', 
+            types: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Beachfront'] 
+        },
+        { 
+            category: 'Condominium', 
+            types: ['Condo Unit', 'Penthouse', 'Studio', 'Loft'] 
+        },
+        { 
+            category: 'Industrial', 
+            types: ['Warehouse', 'Factory', 'Workshop'] 
+        }
     ],
     'lease': [
-        { category: 'Commercial', types: ['Office Floor', 'Retail Space (Lease)', 'Building Lease', 'Commercial Unit', 'Showroom Lease', 'Warehouse Lease'] },
-        { category: 'Land / Lot', types: ['Commercial Lot', 'Agricultural Land', 'Development Land', 'Industrial Lot', 'Residential Lot', 'Vacant Lot'] },
-        { category: 'Special Purpose', types: ['Resort Property', 'Event Venue', 'Parking Area', 'School Property', 'Hospitality', 'Sports Facility'] }
+        { 
+            category: 'Commercial', 
+            types: ['Office Floor', 'Retail Space (Lease)', 'Building Lease', 'Commercial Unit', 'Showroom Lease', 'Warehouse Lease'] 
+        },
+        { 
+            category: 'Land / Lot', 
+            types: ['Commercial Lot', 'Agricultural Land', 'Development Land', 'Industrial Lot', 'Residential Lot', 'Vacant Lot'] 
+        },
+        { 
+            category: 'Special Purpose', 
+            types: ['Resort Property', 'Event Venue', 'Parking Area', 'School Property', 'Hospitality', 'Sports Facility'] 
+        }
     ]
 };
 
@@ -1282,61 +1322,23 @@ function getTypeBadgeText(listing) {
 }
 
 // Address helper functions from dashboard
-function getFullAddress(listing) {
-    // If there's already a complete address in 'address' field
-    if (listing.address && listing.address.includes(',') && listing.address.length > 10) {
-        return listing.address;
-    }
-
-    // Build address from components
-    const addressParts = [];
-    
-    // Add the basic location (street/landmark)
-    if (listing.location) {
-        addressParts.push(listing.location);
-    } else if (listing.address) {
-        addressParts.push(listing.address);
-    }
-    
-    // Add city
-    if (listing.city) {
-        addressParts.push(listing.city);
-    }
-    
-    // Add province
-    if (listing.province) {
-        addressParts.push(listing.province);
-    }
-    
-    // If we have a city but no province, add "Philippines" as default
-    if (addressParts.length === 1 && listing.city) {
-        addressParts.push("Philippines");
-    } else if (addressParts.length === 0) {
-        return 'Location not specified';
-    }
-    
-    return addressParts.join(', ');
-}
-
 function getCompleteAddress(listing) {
-    // Priority: address (full) -> location (street) -> title
     const primaryAddress = listing.address || listing.location || listing.title || '';
-
-    // Always append city and province if available
+    
     let fullAddress = primaryAddress;
-
+    
     if (listing.city) {
         fullAddress += ', ' + listing.city;
     }
-
+    
     if (listing.province && listing.province !== 'Calabarzon') {
         fullAddress += ', ' + listing.province;
     }
-
+    
     if (!listing.province && listing.city) {
         fullAddress += ', Philippines';
     }
-
+    
     return fullAddress || 'Batangas, Philippines';
 }
 
@@ -1360,6 +1362,7 @@ function updateCategoryDropdown() {
             option.textContent = cat.category;
             categorySelect.appendChild(option);
         });
+        categorySelect.disabled = false;
     } else {
         // If no transaction type selected, show all possible categories
         const allCategories = new Set();
@@ -1372,6 +1375,7 @@ function updateCategoryDropdown() {
             option.textContent = category;
             categorySelect.appendChild(option);
         });
+        categorySelect.disabled = false;
     }
 
     // Update type dropdown
@@ -1397,7 +1401,50 @@ function updateTypeDropdown() {
                 typeSelect.appendChild(option);
             });
         }
+        typeSelect.disabled = false;
+    } else {
+        typeSelect.disabled = false;
     }
+}
+
+// --- CATEGORY DETECTION FUNCTION (FROM BUYER DASHBOARD) ---
+function propertyBelongsToCategory(listing, category) {
+    const propertyType = (listing.propertyType || '').toLowerCase();
+    const propertyCategory = (listing.propertyCategory || '').toLowerCase();
+    const listingTitle = (listing.title || '').toLowerCase();
+    const listingDescription = (listing.description || '').toLowerCase();
+    const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
+
+    // Check property types first (exact matches)
+    for (const type of category.propertyTypes) {
+        const typeLower = type.toLowerCase();
+        if (propertyType === typeLower || propertyType.includes(typeLower)) {
+            return true;
+        }
+    }
+
+    // Check keywords
+    for (const keyword of category.keywords) {
+        if (searchText.includes(keyword.toLowerCase())) {
+            // Check exclusions
+            if (category.excludeKeywords) {
+                let shouldExclude = false;
+                for (const excludeKeyword of category.excludeKeywords) {
+                    if (searchText.includes(excludeKeyword.toLowerCase())) {
+                        shouldExclude = true;
+                        break;
+                    }
+                }
+                if (!shouldExclude) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // Force all type badges to be visible
@@ -1552,7 +1599,7 @@ async function logSearchEvent(userId, filters) {
             metadata: { filters: filters },
             timestamp: new Date()
         });
-        console.log('Logged search event for user ${userId}');
+        console.log(`Logged search event for user ${userId}`);
         return true;
     } catch (error) {
         console.error("Failed to log search event:", error);
@@ -1570,7 +1617,7 @@ async function logSaveEvent(userId, propertyId) {
             metadata: { propertyId: propertyId },
             timestamp: new Date()
         });
-        console.log('Logged save event for user ${userId}, property ${propertyId}');
+        console.log(`Logged save event for user ${userId}, property ${propertyId}`);
         return true;
     } catch (error) {
         console.error("Failed to log save event:", error);
@@ -1824,82 +1871,16 @@ function displayFilteredListings() {
             );
         }
         
-        // Apply property category filter (UPDATED TO MATCH DASHBOARD LOGIC)
+        // Apply property category filter - USING BUYER DASHBOARD LOGIC
         if (searchFilters.propertyCategory) {
             filtered = filtered.filter(listing => {
-                const propertyType = (listing.propertyType || "").toLowerCase();
-                const propertyCategory = (listing.propertyCategory || "").toLowerCase();
-                const listingTitle = (listing.title || "").toLowerCase();
-                const listingDescription = (listing.description || "").toLowerCase();
-                const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
-
                 const selectedCategory = searchFilters.propertyCategory;
                 const categoryData = BATANGAS_PROPERTY_CATEGORIES.find(cat => cat.name === selectedCategory);
                 
                 if (!categoryData) return false;
-
-                // Check if property matches this category using dashboard logic
-                let matchesCategory = false;
-
-                // First, check if property type matches any of this category's property types
-                for (const type of categoryData.propertyTypes) {
-                    const typeLower = type.toLowerCase();
-                    // Exact property type match (e.g., propertyType === 'house')
-                    if (propertyType === typeLower || propertyType.includes(typeLower)) {
-                        matchesCategory = true;
-                        break;
-                    }
-                }
-
-                // If no direct match, check using category-specific keywords
-                if (!matchesCategory) {
-                    for (const keyword of categoryData.keywords) {
-                        const keywordLower = keyword.toLowerCase();
-                        // Check if keyword appears in search text
-                        if (searchText.includes(keywordLower)) {
-                            matchesCategory = true;
-                            break;
-                        }
-                    }
-                }
-
-                // EXCLUSION CHECK: Make sure property doesn't match exclusion keywords
-                if (matchesCategory && categoryData.excludeKeywords) {
-                    for (const excludeKeyword of categoryData.excludeKeywords) {
-                        const excludeLower = excludeKeyword.toLowerCase();
-                        if (searchText.includes(excludeLower)) {
-                            // If it matches an exclusion keyword, double-check
-                            // Only exclude if it's a strong match for another category
-                            let shouldExclude = false;
-                            
-                            // Special logic for residential vs commercial
-                            if (selectedCategory === 'Residential' && 
-                                (searchText.includes('commercial') || searchText.includes('office'))) {
-                                shouldExclude = true;
-                            }
-                            // Special logic for land vs building
-                            if (selectedCategory === 'Land / Lot' && 
-                                (searchText.includes('house') || searchText.includes('building') || 
-                                 searchText.includes('apartment') || searchText.includes('condo'))) {
-                                shouldExclude = true;
-                            }
-                            // Special logic for special purpose
-                            if (selectedCategory === 'Special Purpose' && 
-                                (searchText.includes('house') || searchText.includes('apartment') || 
-                                 searchText.includes('condo') || searchText.includes('office') || 
-                                 searchText.includes('warehouse'))) {
-                                shouldExclude = true;
-                            }
-                            
-                            if (shouldExclude) {
-                                matchesCategory = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                return matchesCategory;
+                
+                // Use the same category detection logic as buyer dashboard
+                return propertyBelongsToCategory(listing, categoryData);
             });
         }
         
