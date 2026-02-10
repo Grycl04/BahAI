@@ -1281,238 +1281,284 @@
       }
     });
 
-    // ===== GOOGLE LOGIN - FIXED VERSION =====
+    // ===== ENHANCED GOOGLE LOGIN - MOBILE FIX =====
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
         // Show loading state
         const googleBtn = document.getElementById("googleLoginBtn");
+        const originalHTML = googleBtn.innerHTML;
         googleBtn.disabled = true;
         googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
         
-        // Get the email from the form if available
-        const emailFromForm = emailInput.value.trim();
-        
-        if (emailFromForm) {
-          try {
-            const methods = await fetchSignInMethodsForEmail(auth, emailFromForm);
-            
-            if (methods.includes("password")) {
-              // Warn user about separate accounts
-              const choice = confirm(
-                `⚠️ IMPORTANT: "${emailFromForm}" is already registered with email/password.\n\n` +
-                `Click OK to login with email/password.\n` +
-                `Click Cancel to create a SEPARATE Google account.\n\n` +
-                `Note: These will be two different accounts!`
-              );
-              
-              if (choice) {
-                // User wants email/password login
-                googleBtn.disabled = false;
-                googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-                showNotification('info', 'Please enter your password to continue');
-                passwordInput.focus();
-                return;
-              }
-            }
-          } catch (error) {
-            // Continue with Google if we can't check
-            console.log("Could not check email methods, continuing with Google:", error.message);
-          }
-        }
-        
         // Check if we're on mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        console.log(`Device detection: Mobile=${isMobile}, iOS=${isIOS}`);
         
         if (isMobile) {
           // Use redirect for mobile devices
-          await signInWithRedirect(auth, googleProvider);
-          // User will be redirected back after auth
-          return;
+          console.log('Using redirect for mobile authentication');
+          
+          // Store current page state to localStorage before redirect
+          localStorage.setItem('googleLoginPending', 'true');
+          localStorage.setItem('googleLoginTime', Date.now().toString());
+          
+          // For iOS Safari, we need to handle popup/redirect differently
+          if (isIOS) {
+            try {
+              // Try popup first on iOS
+              const result = await signInWithPopup(auth, googleProvider);
+              await handleGoogleLoginResult(result);
+            } catch (popupError) {
+              console.log('Popup failed on iOS, trying redirect:', popupError);
+              // Fallback to redirect
+              await signInWithRedirect(auth, googleProvider);
+              // Page will reload after redirect, so we need to handle in getRedirectResult
+              return;
+            }
+          } else {
+            // Use redirect for other mobile devices
+            await signInWithRedirect(auth, googleProvider);
+            // Page will reload after redirect
+            return;
+          }
         } else {
           // Use popup for desktop
           const result = await signInWithPopup(auth, googleProvider);
-          const user = result.user;
-          
-          // IMPORTANT: Check if this email already has password authentication
-          try {
-            const existingAuthMethods = await fetchSignInMethodsForEmail(auth, user.email);
-            
-            if (existingAuthMethods.includes("password") && !existingAuthMethods.includes("google.com")) {
-              // This email already has a password account but not Google auth
-              await auth.signOut();
-              
-              googleBtn.disabled = false;
-              googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-              
-              showNotification('warning', 
-                `<i class="fas fa-exclamation-triangle"></i>
-                <div>
-                  <strong>Account Conflict</strong><br>
-                  "${user.email}" is already registered with email/password.<br>
-                  Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login with email/password</a> instead.
-                </div>`, 
-                true
-              );
-              
-              // Pre-fill the email field
-              emailInput.value = user.email;
-              emailInput.classList.add('shake');
-              setTimeout(() => emailInput.classList.remove('shake'), 500);
-              
-              return;
-            }
-          } catch (error) {
-            console.log("Could not check auth methods for Google email:", error.message);
-          }
-          
-          const userRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(userRef);
-
-          // Reset button
-          googleBtn.disabled = false;
-          googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-          
-          if (!docSnap.exists()) {
-            // New user - show role selection modal
-            const role = await promptForRole();
-            if (!role) {
-              await auth.signOut();
-              return;
-            }
-            
-            const data = {
-              fullName: user.displayName,
-              email: user.email,
-              phone: "", // Google doesn't provide phone
-              role,
-              kycStatus: role === "buyer" ? "not_required" : "not_submitted",
-              createdAt: serverTimestamp(),
-              provider: "google"
-            };
-            
-            await setDoc(userRef, data);
-            
-            const message = role === "buyer" 
-              ? "✅ Account created! Start browsing properties."
-              : "✅ Account created! Please complete KYC verification.";
-            
-            showSuccess(message);
-            
-            setTimeout(() => {
-              const dashboardMap = {
-                buyer: 'buyer/buyer_dashboard.html',
-                broker: 'broker/broker_dashboard.html',
-                landlord: 'landlord/landlord_dashboard.html'
-              };
-              window.location.href = dashboardMap[role] || 'login.html';
-            }, 1500);
-            return;
-          } else {
-            // Existing user - redirect based on role
-            const data = docSnap.data();
-            const dashboardMap = {
-              buyer: 'buyer/buyer_dashboard.html',
-              broker: 'broker/broker_dashboard.html',
-              landlord: 'landlord/landlord_dashboard.html',
-              agent: 'broker/agent_dashboard.html'
-            };
-            window.location.href = dashboardMap[data.role] || 'login.html';
-          }
+          await handleGoogleLoginResult(result);
         }
-
+        
       } catch (error) {
+        console.error('Google login error:', error);
+        
         // Reset button
         const googleBtn = document.getElementById("googleLoginBtn");
         googleBtn.disabled = false;
         googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
         
+        // Clear pending state
+        localStorage.removeItem('googleLoginPending');
+        
+        // Handle specific errors
         let userMessage = 'Google sign-in failed. ';
         
         if (error.code === 'auth/popup-blocked') {
           userMessage = 'Popup was blocked. Please allow popups and try again.';
         } else if (error.code === 'auth/popup-closed-by-user') {
           userMessage = 'Popup was closed. Please try again.';
+          return; // Don't show error for user cancellation
         } else if (error.code === 'auth/account-exists-with-different-credential') {
-          // This is the critical error you're experiencing
-          userMessage = 'This email is already registered with email/password. Please login with your email and password instead.';
+          userMessage = `This email is already registered with email/password. 
+                         Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.`;
           
-          // Show a more helpful notification with a link to login
-          showNotification('error', 
-            `<i class="fas fa-exclamation-triangle"></i> 
-            <div>
-              <strong>Account Conflict</strong><br>
-              This email is already registered with email/password.<br>
-              Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.
-            </div>`, 
-            true
-          );
+          showNotification('error', userMessage, true);
           
-          // Also auto-fill the email field to help the user
+          // Auto-fill the email field
           const email = error.customData?.email;
           if (email) {
             emailInput.value = email;
             emailInput.classList.add('shake');
             setTimeout(() => emailInput.classList.remove('shake'), 500);
           }
-          
-          return; // Don't show the generic error below
-        } else if (error.code === 'auth/email-already-in-use') {
-          userMessage = 'This email is already in use. Please login or use a different Google account.';
-        } else if (error.code === 'auth/user-cancelled') {
-          userMessage = 'Sign-in was cancelled.';
-          return; // Don't show error for user cancellation
+          return;
+        } else if (error.code === 'auth/cancelled-popup-request') {
+          // User cancelled, don't show error
+          return;
         } else {
           userMessage += error.message || 'Unknown error occurred.';
         }
         
-        showNotification('error', `❌ ${userMessage}`);
+        showNotification('error', userMessage);
       }
     });
 
-    // Handle redirect result for mobile
-    getRedirectResult(auth).then(async (result) => {
-      if (result) {
-        const user = result.user;
-        const userRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userRef);
+    // Handle redirect result - IMPORTANT for mobile
+    async function handleRedirectResult() {
+      try {
+        console.log('Checking for redirect result...');
+        
+        const result = await getRedirectResult(auth);
+        
+        if (result) {
+          console.log('Redirect result found:', result.user.email);
+          
+          // Clear pending state
+          localStorage.removeItem('googleLoginPending');
+          
+          await handleGoogleLoginResult(result);
+        } else {
+          // Check if we were expecting a redirect (mobile flow)
+          const pending = localStorage.getItem('googleLoginPending');
+          const loginTime = localStorage.getItem('googleLoginTime');
+          
+          if (pending === 'true' && loginTime) {
+            const timeSinceLogin = Date.now() - parseInt(loginTime);
+            
+            // If it's been less than 2 minutes, we might still be processing
+            if (timeSinceLogin < 120000) {
+              console.log('Google login is pending...');
+              
+              // Show loading indicator
+              const googleBtn = document.getElementById("googleLoginBtn");
+              if (googleBtn) {
+                googleBtn.disabled = true;
+                googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Completing login...';
+              }
+              
+              // Try to get the result again after a delay
+              setTimeout(async () => {
+                try {
+                  const retryResult = await getRedirectResult(auth);
+                  if (retryResult) {
+                    await handleGoogleLoginResult(retryResult);
+                  } else {
+                    // If still no result after delay, reset button
+                    if (googleBtn) {
+                      googleBtn.disabled = false;
+                      googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+                    }
+                    localStorage.removeItem('googleLoginPending');
+                  }
+                } catch (retryError) {
+                  console.error('Retry error:', retryError);
+                  if (googleBtn) {
+                    googleBtn.disabled = false;
+                    googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+                  }
+                  localStorage.removeItem('googleLoginPending');
+                }
+              }, 1000);
+            } else {
+              // Clean up old pending state
+              localStorage.removeItem('googleLoginPending');
+              localStorage.removeItem('googleLoginTime');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Redirect result handling error:', error);
+        
+        // Clear pending state
+        localStorage.removeItem('googleLoginPending');
+        localStorage.removeItem('googleLoginTime');
+        
+        // Reset button
+        const googleBtn = document.getElementById("googleLoginBtn");
+        if (googleBtn) {
+          googleBtn.disabled = false;
+          googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+        }
+        
+        if (error.code === 'auth/account-exists-with-different-credential') {
+          showNotification('error', 
+            `❌ This email is already registered with email/password. 
+             Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.`, 
+            true
+          );
+        }
+      }
+    }
 
-        if (!docSnap.exists()) {
-          // New user from redirect - show role selection modal
-          const role = await promptForRole();
-          if (!role) {
-            await auth.signOut();
-            return;
+    // Common handler for Google login result
+    async function handleGoogleLoginResult(result) {
+      const user = result.user;
+      console.log('Google login successful:', user.email);
+      
+      // Check for existing email/password account
+      try {
+        const existingAuthMethods = await fetchSignInMethodsForEmail(auth, user.email);
+        
+        if (existingAuthMethods.includes("password") && !existingAuthMethods.includes("google.com")) {
+          // This email already has a password account but not Google auth
+          await auth.signOut();
+          
+          showNotification('warning', 
+            `<i class="fas fa-exclamation-triangle"></i>
+            <div>
+              <strong>Account Conflict</strong><br>
+              "${user.email}" is already registered with email/password.<br>
+              Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login with email/password</a> instead.
+            </div>`, 
+            true
+          );
+          
+          // Pre-fill the email field
+          emailInput.value = user.email;
+          emailInput.classList.add('shake');
+          setTimeout(() => emailInput.classList.remove('shake'), 500);
+          
+          // Reset Google button
+          const googleBtn = document.getElementById("googleLoginBtn");
+          if (googleBtn) {
+            googleBtn.disabled = false;
+            googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
           }
           
-          const data = {
-            fullName: user.displayName,
-            email: user.email,
-            phone: "",
-            role,
-            kycStatus: role === "buyer" ? "not_required" : "not_submitted",
-            createdAt: serverTimestamp(),
-            provider: "google"
+          return;
+        }
+      } catch (error) {
+        console.log("Could not check auth methods:", error.message);
+      }
+      
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+      
+      // Reset Google button if it exists
+      const googleBtn = document.getElementById("googleLoginBtn");
+      if (googleBtn) {
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+      }
+      
+      if (!docSnap.exists()) {
+        // New user - show role selection modal
+        const role = await promptForRole();
+        if (!role) {
+          await auth.signOut();
+          return;
+        }
+        
+        const data = {
+          fullName: user.displayName,
+          email: user.email,
+          phone: user.phoneNumber || "",
+          photoURL: user.photoURL,
+          role,
+          kycStatus: role === "buyer" ? "not_required" : "not_submitted",
+          createdAt: serverTimestamp(),
+          provider: "google",
+          lastLogin: serverTimestamp()
+        };
+        
+        await setDoc(userRef, data);
+        
+        const message = role === "buyer" 
+          ? "✅ Account created! Start browsing properties."
+          : "✅ Account created! Please complete KYC verification.";
+        
+        showNotification('success', message);
+        
+        setTimeout(() => {
+          const dashboardMap = {
+            buyer: 'buyer/buyer_dashboard.html',
+            broker: 'broker/broker_dashboard.html',
+            landlord: 'landlord/landlord_dashboard.html'
           };
-          
-          await setDoc(userRef, data);
-          
-          const message = role === "buyer" 
-            ? "✅ Account created! Start browsing properties."
-            : "✅ Account created! Please complete KYC verification.";
-          
-          showSuccess(message);
-          
-          setTimeout(() => {
-            const dashboardMap = {
-              buyer: 'buyer/buyer_dashboard.html',
-              broker: 'broker/broker_dashboard.html',
-              landlord: 'landlord/landlord_dashboard.html'
-            };
-            window.location.href = dashboardMap[role] || 'login.html';
-          }, 1500);
-        } else {
-          // Existing user from redirect
-          const data = docSnap.data();
+          window.location.href = dashboardMap[role] || 'login.html';
+        }, 1500);
+      } else {
+        // Existing user - update last login and redirect
+        const data = docSnap.data();
+        
+        // Update last login timestamp
+        await setDoc(userRef, {
+          lastLogin: serverTimestamp()
+        }, { merge: true });
+        
+        showNotification('success', 'Login successful! Redirecting...');
+        
+        setTimeout(() => {
           const dashboardMap = {
             buyer: 'buyer/buyer_dashboard.html',
             broker: 'broker/broker_dashboard.html',
@@ -1520,15 +1566,24 @@
             agent: 'broker/agent_dashboard.html'
           };
           window.location.href = dashboardMap[data.role] || 'login.html';
-        }
+        }, 1000);
       }
-    }).catch((error) => {
-      console.error("Redirect result error:", error);
+    }
+
+    // Initialize redirect handling when page loads
+    window.addEventListener('load', async () => {
+      console.log('Page loaded, checking for redirect results...');
       
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        showNotification('error', `❌ This email is already registered with email/password. Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.`);
+      // Check if we're coming back from a redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasAuthParams = urlParams.has('apiKey') || urlParams.has('authType');
+      
+      if (hasAuthParams) {
+        console.log('Auth parameters detected in URL, handling redirect...');
+        await handleRedirectResult();
       } else {
-        showNotification('error', "❌ Authentication error: " + error.message);
+        // Also try to handle redirect result on normal load
+        await handleRedirectResult();
       }
     });
 

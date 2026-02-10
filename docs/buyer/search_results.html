@@ -680,7 +680,84 @@ let isUserAuthenticated = false;
 let currentConversationId = null;
 let messageListener = null;
 
-// Replace the current PROPERTY_CATEGORIES with this updated version:
+// Property category and type mappings - UPDATED TO MATCH DASHBOARD
+const BATANGAS_PROPERTY_CATEGORIES = [
+    {
+        name: 'Residential',
+        icon: '🏠',
+        description: 'Properties intended for living or dwelling',
+        propertyTypes: [
+            'apartment', 'boarding_house', 'condo', 'room', 'townhouse', 'house', 'dormitory',
+            'bungalow', 'duplex', 'village_lot'
+        ],
+        keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 'townhouse', 
+                  'dormitory', 'room', 'bedspace', 'home', 'villa', 'bungalow', 'duplex'],
+        excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 'agricultural', 
+                         'warehouse', 'factory', 'office', 'retail', 'shop', 'establishment']
+    },
+    {
+        name: 'Commercial',
+        icon: '🏢',
+        description: 'Properties used for business and income generation',
+        propertyTypes: [
+            'office_unit', 'retail_space', 'food_stall', 'shop', 'showroom',
+            'commercial_building', 'office_space', 'warehouse',
+            'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 
+            'showroom_lease', 'warehouse_lease'
+        ],
+        keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 
+                  'mall', 'business', 'establishment', 'showroom', 'warehouse'],
+        excludeKeywords: ['residential', 'house', 'apartment', 'condo', 'land', 'lot']
+    },
+    {
+        name: 'Industrial',
+        icon: '🏭',
+        description: 'Properties for storage, production, and logistics',
+        propertyTypes: [
+            'warehouse', 'storage_unit', 'factory', 'workshop'
+        ],
+        keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 
+                  'plant', 'facility', 'workshop'],
+        excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 'office', 'retail']
+    },
+    {
+        name: 'Land / Lot',
+        icon: '🌳',
+        description: 'Undeveloped or semi-developed land for future use',
+        propertyTypes: [
+            'residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 
+            'beachfront', 'development_land', 'vacant_lot'
+        ],
+        keywords: ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 
+                  'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 'raw land'],
+        excludeKeywords: ['house', 'apartment', 'building', 'commercial', 'office', 'retail']
+    },
+    {
+        name: 'Condominium',
+        icon: '🏙️',
+        description: 'Condominium units and complexes',
+        propertyTypes: [
+            'condo', 'condo_unit', 'penthouse', 'studio', 'loft'
+        ],
+        keywords: ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'],
+        excludeKeywords: ['house', 'apartment', 'townhouse', 'duplex', 'villa']
+    },
+    {
+        name: 'Special Purpose',
+        icon: '🎯',
+        description: 'Properties with specific or institutional functions',
+        propertyTypes: [
+            'resort_property', 'event_venue', 'parking_area', 'school_property', 
+            'hospitality', 'sports_facility'
+        ],
+        keywords: ['resort', 'event', 'venue', 'school', 'sports', 'facility', 
+                  'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn', 
+                  'parking', 'hospitality', 'tourism', 'recreational'],
+        excludeKeywords: ['house', 'apartment', 'condo', 'office', 'retail', 'warehouse']
+    }
+];
+
+// Property category and type mappings based on transaction type (for dropdowns)
 const PROPERTY_CATEGORIES = {
     'rent': [
         { category: 'Residential', types: ['Apartment', 'Boarding House', 'Condo', 'Room', 'Townhouse', 'House', 'Dormitory'] },
@@ -1747,7 +1824,7 @@ function displayFilteredListings() {
             );
         }
         
-        // Apply property category filter
+        // Apply property category filter (UPDATED TO MATCH DASHBOARD LOGIC)
         if (searchFilters.propertyCategory) {
             filtered = filtered.filter(listing => {
                 const propertyType = (listing.propertyType || "").toLowerCase();
@@ -1756,74 +1833,135 @@ function displayFilteredListings() {
                 const listingDescription = (listing.description || "").toLowerCase();
                 const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
 
-                const categoryName = searchFilters.propertyCategory.toLowerCase();
+                const selectedCategory = searchFilters.propertyCategory;
+                const categoryData = BATANGAS_PROPERTY_CATEGORIES.find(cat => cat.name === selectedCategory);
+                
+                if (!categoryData) return false;
 
-                // Check category-specific keywords
-                if (categoryName.includes("residential")) {
-                    const residentialKeywords = ['house', 'apartment', 'condo', 'condominium', 'townhouse', 'dormitory', 'room', 'bedspace', 'residential', 'home', 'villa', 'bungalow', 'duplex'];
-                    return residentialKeywords.some(keyword =>
-                        searchText.includes(keyword) ||
-                        propertyType.includes(keyword) ||
-                        propertyCategory.includes(keyword)
-                    );
+                // Check if property matches this category using dashboard logic
+                let matchesCategory = false;
+
+                // First, check if property type matches any of this category's property types
+                for (const type of categoryData.propertyTypes) {
+                    const typeLower = type.toLowerCase();
+                    // Exact property type match (e.g., propertyType === 'house')
+                    if (propertyType === typeLower || propertyType.includes(typeLower)) {
+                        matchesCategory = true;
+                        break;
+                    }
                 }
 
-                if (categoryName.includes("commercial")) {
-                    const commercialKeywords = ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 'mall', 'business', 'establishment', 'showroom'];
-                    return commercialKeywords.some(keyword =>
-                        searchText.includes(keyword) ||
-                        propertyType.includes(keyword) ||
-                        propertyCategory.includes(keyword)
-                    );
+                // If no direct match, check using category-specific keywords
+                if (!matchesCategory) {
+                    for (const keyword of categoryData.keywords) {
+                        const keywordLower = keyword.toLowerCase();
+                        // Check if keyword appears in search text
+                        if (searchText.includes(keywordLower)) {
+                            matchesCategory = true;
+                            break;
+                        }
+                    }
                 }
 
-                if (categoryName.includes("industrial")) {
-                    const industrialKeywords = ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 'plant', 'facility', 'workshop'];
-                    return industrialKeywords.some(keyword =>
-                        searchText.includes(keyword) ||
-                        propertyType.includes(keyword) ||
-                        propertyCategory.includes(keyword)
-                    );
+                // EXCLUSION CHECK: Make sure property doesn't match exclusion keywords
+                if (matchesCategory && categoryData.excludeKeywords) {
+                    for (const excludeKeyword of categoryData.excludeKeywords) {
+                        const excludeLower = excludeKeyword.toLowerCase();
+                        if (searchText.includes(excludeLower)) {
+                            // If it matches an exclusion keyword, double-check
+                            // Only exclude if it's a strong match for another category
+                            let shouldExclude = false;
+                            
+                            // Special logic for residential vs commercial
+                            if (selectedCategory === 'Residential' && 
+                                (searchText.includes('commercial') || searchText.includes('office'))) {
+                                shouldExclude = true;
+                            }
+                            // Special logic for land vs building
+                            if (selectedCategory === 'Land / Lot' && 
+                                (searchText.includes('house') || searchText.includes('building') || 
+                                 searchText.includes('apartment') || searchText.includes('condo'))) {
+                                shouldExclude = true;
+                            }
+                            // Special logic for special purpose
+                            if (selectedCategory === 'Special Purpose' && 
+                                (searchText.includes('house') || searchText.includes('apartment') || 
+                                 searchText.includes('condo') || searchText.includes('office') || 
+                                 searchText.includes('warehouse'))) {
+                                shouldExclude = true;
+                            }
+                            
+                            if (shouldExclude) {
+                                matchesCategory = false;
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                if (categoryName.includes('land') || categoryName.includes('lot')) {
-                    const landKeywords = ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 'property', 'vacant', 'empty', 'beachfront'];
-                    return landKeywords.some(keyword =>
-                        searchText.includes(keyword) ||
-                        propertyType.includes(keyword) ||
-                        propertyCategory.includes(keyword)
-                    );
-                }
-
-                if (categoryName.includes('special') || categoryName.includes('purpose')) {
-                    const specialKeywords = ['resort', 'event', 'venue', 'school', 'sports', 'facility', 'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn', 'parking', 'hospitality'];
-                    return specialKeywords.some(keyword =>
-                        searchText.includes(keyword) ||
-                        propertyType.includes(keyword) ||
-                        propertyCategory.includes(keyword)
-                    );
-                }
-
-                if (categoryName.includes('condominium') || categoryName.includes('condo')) {
-                    const condoKeywords = ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'];
-                    return condoKeywords.some(keyword =>
-                        searchText.includes(keyword) ||
-                        propertyType.includes(keyword) ||
-                        propertyCategory.includes(keyword)
-                    );
-                }
-
-                // Fallback: exact match
-                return propertyCategory.includes(categoryName) ||
-                    listingTitle.includes(categoryName) ||
-                    propertyType.includes(categoryName);
+                return matchesCategory;
             });
         }
         
         // Apply property type filter
         if (searchFilters.propertyType) {
+            // Convert the display type to the database format
+            const propertyTypeMap = {
+                // Residential
+                'Apartment': 'apartment',
+                'Boarding House': 'boarding_house',
+                'Condo': 'condo',
+                'Room': 'room',
+                'Townhouse': 'townhouse',
+                'House': 'house',
+                'Dormitory': 'dormitory',
+                'Bungalow': 'bungalow',
+                'Duplex': 'duplex',
+                'Village Lot': 'village_lot',
+                // Commercial
+                'Office Unit': 'office_unit',
+                'Retail Space': 'retail_space',
+                'Food Stall': 'food_stall',
+                'Shop': 'shop',
+                'Showroom': 'showroom',
+                'Commercial Building': 'commercial_building',
+                'Office Space': 'office_space',
+                'Warehouse': 'warehouse',
+                'Office Floor': 'office_floor',
+                'Retail Space (Lease)': 'retail_space_lease',
+                'Building Lease': 'building_lease',
+                'Commercial Unit': 'commercial_unit',
+                'Showroom Lease': 'showroom_lease',
+                'Warehouse Lease': 'warehouse_lease',
+                // Industrial
+                'Storage Unit': 'storage_unit',
+                'Factory': 'factory',
+                'Workshop': 'workshop',
+                // Land / Lot
+                'Residential Lot': 'residential_lot',
+                'Commercial Lot': 'commercial_lot',
+                'Agricultural Land': 'agricultural_land',
+                'Industrial Lot': 'industrial_lot',
+                'Beachfront': 'beachfront',
+                'Development Land': 'development_land',
+                'Vacant Lot': 'vacant_lot',
+                // Condominium
+                'Condo Unit': 'condo_unit',
+                'Penthouse': 'penthouse',
+                'Studio': 'studio',
+                'Loft': 'loft',
+                // Special Purpose
+                'Resort Property': 'resort_property',
+                'Event Venue': 'event_venue',
+                'Parking Area': 'parking_area',
+                'School Property': 'school_property',
+                'Hospitality': 'hospitality',
+                'Sports Facility': 'sports_facility'
+            };
+            
+            const dbPropertyType = propertyTypeMap[searchFilters.propertyType] || searchFilters.propertyType.toLowerCase();
             filtered = filtered.filter(listing =>
-                listing.propertyType === searchFilters.propertyType
+                (listing.propertyType || "").toLowerCase() === dbPropertyType.toLowerCase()
             );
         }
         
@@ -1832,7 +1970,8 @@ function displayFilteredListings() {
             const searchTerm = searchFilters.searchTerm.toLowerCase().trim();
             filtered = filtered.filter(listing =>
                 (listing.title || "").toLowerCase().includes(searchTerm) ||
-                (listing.description || "").toLowerCase().includes(searchTerm)
+                (listing.description || "").toLowerCase().includes(searchTerm) ||
+                (listing.location || "").toLowerCase().includes(searchTerm)
             );
         }
     }

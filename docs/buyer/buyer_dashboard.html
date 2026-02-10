@@ -1628,72 +1628,77 @@ function closeMessageModal() {
 
 // --- MAIN APPLICATION LOGIC ---
 
-// Update the BATANGAS_PROPERTY_CATEGORIES array with more precise categorization
+// Update the BATANGAS_PROPERTY_CATEGORIES array with ALL COMBINED CATEGORIES
 const BATANGAS_PROPERTY_CATEGORIES = [
     {
         name: 'Residential',
         icon: '🏠',
-        description: 'Properties intended for living or dwelling',
+        description: 'Houses, apartments, and living spaces',
         propertyTypes: [
-            'apartment', 'boarding_house', 'condo', 'room', 'townhouse', 'house', 'dormitory',
-            'bungalow', 'duplex', 'village_lot'
+            'house', 'townhouse', 'bungalow', 'duplex', 'village_lot',
+            'apartment', 'boarding_house', 'room', 'dormitory'
         ],
-        keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 'townhouse', 
-                  'dormitory', 'room', 'bedspace', 'home', 'villa', 'bungalow', 'duplex'],
-        excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 'agricultural', 
-                         'warehouse', 'factory', 'office', 'retail', 'shop', 'establishment']
+        keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 
+                  'townhouse', 'dormitory', 'room', 'bedspace', 'home', 
+                  'villa', 'bungalow', 'duplex', 'boarding', 'dorm'],
+        excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 
+                         'agricultural', 'warehouse', 'factory', 'office', 
+                         'retail', 'shop', 'establishment']
     },
     {
         name: 'Commercial',
         icon: '🏢',
-        description: 'Properties used for business and income generation',
+        description: 'Business, office, and retail spaces',
         propertyTypes: [
-            'office_unit', 'retail_space', 'food_stall', 'shop', 'showroom',
-            'commercial_building', 'office_space', 'warehouse',
-            'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 
+            'commercial_building', 'office_space', 'retail_space', 'warehouse', 
+            'showroom', 'office_unit', 'food_stall', 'shop', 'office_floor', 
+            'retail_space_lease', 'building_lease', 'commercial_unit', 
             'showroom_lease', 'warehouse_lease'
         ],
-        keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 
-                  'mall', 'business', 'establishment', 'showroom', 'warehouse'],
+        keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 
+                  'store', 'mall', 'business', 'establishment', 'showroom', 
+                  'warehouse', 'building', 'floor', 'space'],
         excludeKeywords: ['residential', 'house', 'apartment', 'condo', 'land', 'lot']
-    },
-    {
-        name: 'Industrial',
-        icon: '🏭',
-        description: 'Properties for storage, production, and logistics',
-        propertyTypes: [
-            'warehouse', 'storage_unit', 'factory', 'workshop'
-        ],
-        keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 
-                  'plant', 'facility', 'workshop'],
-        excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 'office', 'retail']
     },
     {
         name: 'Land / Lot',
         icon: '🌳',
-        description: 'Undeveloped or semi-developed land for future use',
+        description: 'Plots, lots, and agricultural land',
         propertyTypes: [
-            'residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 
-            'beachfront', 'development_land', 'vacant_lot'
+            'residential_lot', 'commercial_lot', 'agricultural_land', 
+            'industrial_lot', 'beachfront', 'development_land', 'vacant_lot'
         ],
         keywords: ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 
-                  'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 'raw land'],
-        excludeKeywords: ['house', 'apartment', 'building', 'commercial', 'office', 'retail']
+                  'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 
+                  'raw land', 'development', 'industrial', 'commercial'],
+        excludeKeywords: ['house', 'apartment', 'building', 'condo', 'villa']
     },
     {
         name: 'Condominium',
         icon: '🏙️',
         description: 'Condominium units and complexes',
         propertyTypes: [
-            'condo', 'condo_unit', 'penthouse', 'studio', 'loft'
+            'condo_unit', 'penthouse', 'studio', 'loft', 'condo'
         ],
         keywords: ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'],
         excludeKeywords: ['house', 'apartment', 'townhouse', 'duplex', 'villa']
     },
     {
+        name: 'Industrial',
+        icon: '🏭',
+        description: 'Factories, warehouses, and storage',
+        propertyTypes: [
+            'warehouse', 'storage_unit', 'factory', 'workshop'
+        ],
+        keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 
+                  'plant', 'facility', 'workshop', 'production'],
+        excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 
+                         'office', 'retail', 'shop']
+    },
+    {
         name: 'Special Purpose',
         icon: '🎯',
-        description: 'Properties with specific or institutional functions',
+        description: 'Properties with specific functions',
         propertyTypes: [
             'resort_property', 'event_venue', 'parking_area', 'school_property', 
             'hospitality', 'sports_facility'
@@ -1708,20 +1713,54 @@ const BATANGAS_PROPERTY_CATEGORIES = [
 // Property category and type mappings based on transaction type (for dropdowns)
 const PROPERTY_CATEGORIES = {
     'rent': [
-        { category: 'Residential', types: ['Apartment', 'Boarding House', 'Condo', 'Room', 'Townhouse', 'House', 'Dormitory'] },
-        { category: 'Commercial', types: ['Office Unit', 'Retail Space', 'Food Stall', 'Shop', 'Showroom'] },
-        { category: 'Industrial', types: ['Warehouse', 'Storage Unit', 'Factory', 'Workshop'] }
+        { 
+            category: 'Residential', 
+            types: ['Apartment', 'Boarding House', 'Room', 'Townhouse', 'House', 'Dormitory'] 
+        },
+        { 
+            category: 'Commercial', 
+            types: ['Office Unit', 'Retail Space', 'Food Stall', 'Shop', 'Showroom', 'Warehouse'] 
+        },
+        { 
+            category: 'Industrial', 
+            types: ['Warehouse', 'Storage Unit', 'Factory', 'Workshop'] 
+        }
     ],
     'sale': [
-        { category: 'Residential', types: ['House', 'Townhouse', 'Bungalow', 'Duplex', 'Village Lot'] },
-        { category: 'Commercial', types: ['Commercial Building', 'Office Space', 'Retail Space', 'Warehouse', 'Showroom'] },
-        { category: 'Land', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Beachfront'] },
-        { category: 'Condo', types: ['Condo Unit', 'Penthouse', 'Studio', 'Loft'] }
+        { 
+            category: 'Residential', 
+            types: ['House', 'Townhouse', 'Bungalow', 'Duplex', 'Village Lot'] 
+        },
+        { 
+            category: 'Commercial', 
+            types: ['Commercial Building', 'Office Space', 'Retail Space', 'Warehouse', 'Showroom'] 
+        },
+        { 
+            category: 'Land / Lot', 
+            types: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Beachfront'] 
+        },
+        { 
+            category: 'Condominium', 
+            types: ['Condo Unit', 'Penthouse', 'Studio', 'Loft'] 
+        },
+        { 
+            category: 'Industrial', 
+            types: ['Warehouse', 'Factory', 'Workshop'] 
+        }
     ],
     'lease': [
-        { category: 'Commercial', types: ['Office Floor', 'Retail Space (Lease)', 'Building Lease', 'Commercial Unit', 'Showroom Lease', 'Warehouse Lease'] },
-        { category: 'Land', types: ['Commercial Lot', 'Agricultural Land', 'Development Land', 'Industrial Lot', 'Residential Lot', 'Vacant Lot'] },
-        { category: 'Special', types: ['Resort Property', 'Event Venue', 'Parking Area', 'School Property', 'Hospitality', 'Sports Facility'] }
+        { 
+            category: 'Commercial', 
+            types: ['Office Floor', 'Retail Space (Lease)', 'Building Lease', 'Commercial Unit', 'Showroom Lease', 'Warehouse Lease'] 
+        },
+        { 
+            category: 'Land / Lot', 
+            types: ['Commercial Lot', 'Agricultural Land', 'Development Land', 'Industrial Lot', 'Residential Lot', 'Vacant Lot'] 
+        },
+        { 
+            category: 'Special Purpose', 
+            types: ['Resort Property', 'Event Venue', 'Parking Area', 'School Property', 'Hospitality', 'Sports Facility'] 
+        }
     ]
 };
 
@@ -2230,9 +2269,9 @@ function updateCategoryUI() {
 
 async function loadAllListings() {
     try {
-        console.log('🔄 Loading all listings for Batangas...');
+        console.log('🔄 Loading all properties for Batangas...');
         
-        // Fetch ALL properties
+        // Fetch ALL properties from Firestore
         const listingsQuery = query(collection(db, "properties"));
         const querySnapshot = await getDocs(listingsQuery);
         
@@ -2244,21 +2283,28 @@ async function loadAllListings() {
                 id: doc.id,
                 ...doc.data()
             };
-            allListings.push(listing);
             
-            // Collect user IDs
-            if (listing.userId) {
-                userIds.add(listing.userId);
-            } else if (listing.ownerId) {
-                userIds.add(listing.ownerId);
+            // Filter for Batangas properties only
+            if (isPropertyInBatangas(listing)) {
+                allListings.push(listing);
+                
+                // Collect user IDs
+                if (listing.userId) {
+                    userIds.add(listing.userId);
+                } else if (listing.ownerId) {
+                    userIds.add(listing.ownerId);
+                } else if (listing.brokerId) {
+                    userIds.add(listing.brokerId);
+                }
             }
         });
         
-        console.log(`   Found ${allListings.length} listings total`);
+        console.log(`   Found ${allListings.length} properties in Batangas`);
         
         // Update total properties count
         updateTotalPropertiesCount(allListings.length);
         
+        // Load user data for all property owners/brokers
         await loadAllUserData(userIds);
         
         // Display all active listings initially
@@ -2268,9 +2314,43 @@ async function loadAllListings() {
         loadCategories();
         
     } catch (error) {
-        console.error("   Error loading listings:", error);
+        console.error("   Error loading properties:", error);
         displayError(error);
     }
+}
+
+// Helper function to check if property is in Batangas
+function isPropertyInBatangas(listing) {
+    const province = (listing.province || '').toLowerCase();
+    const city = (listing.city || '').toLowerCase();
+    const address = (listing.address || '').toLowerCase();
+    
+    // Check if property is in Batangas province
+    if (province.includes('batangas')) {
+        return true;
+    }
+    
+    // Check for specific Batangas cities and municipalities
+    const batangasCities = [
+        'batangas city', 'lipa city', 'tanauan city', 'baoan', 'balayan',
+        'calaca', 'lemery', 'nasugbu', 'san juan', 'taal', 'talisay',
+        'alitagtag', 'cuenca', 'laurel', 'mataasnakahoy', 'san jose',
+        'san luis', 'san pascual', 'santo tomas'
+    ];
+    
+    for (const batangasCity of batangasCities) {
+        if (city.includes(batangasCity) || address.includes(batangasCity)) {
+            return true;
+        }
+    }
+    
+    // If no location data but listing exists in database, assume it's in Batangas
+    // (since this is a Batangas-focused platform)
+    if (!province && !city && !address) {
+        return true;
+    }
+    
+    return false;
 }
 
 async function loadAllUserData(userIds) {

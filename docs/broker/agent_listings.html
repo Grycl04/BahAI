@@ -1060,10 +1060,10 @@ window.performLogout = async function() {
     await signOut(auth);
     localStorage.removeItem('userData');
     sessionStorage.removeItem('userData');
-    window.location.href = "../auth/login.html";
+    window.location.href = "../login.html";
   } catch (e) {
     console.error('Logout error:', e);
-    window.location.href = "../auth/login.html";
+    window.location.href = "../login.html";
   }
 };
 </script>
