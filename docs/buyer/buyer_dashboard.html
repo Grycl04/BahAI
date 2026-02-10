@@ -1069,19 +1069,16 @@
 
 <!-- All Properties Section -->
 <div class="properties-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+    <div style="margin-bottom: 25px;">
         <div>
             <h2 class="section-title">
                 <i class="fas fa-building"></i>
-                All Properties in Batangas
+                All Available Properties
             </h2>
             <p style="color: var(--text-light); margin-bottom: 0; font-size: 15px;" id="propertiesCount">
                 Finding homes you'll love…
             </p>
         </div>
-        <button class="search-button" onclick="viewAllProperties()" style="padding: 12px 24px;">
-            <i class="fas fa-eye"></i> View All Properties
-        </button>
     </div>
 
     <!-- Properties Grid -->
@@ -1113,9 +1110,6 @@ window.addEventListener('hashchange', function() {
     if (window.location.hash === '#ai-chatbot-section') openBahaiAssistant();
 });
 
-window.viewAllProperties = function() {
-    window.location.href = 'search_results.html';
-};
 window.openBahaiAssistant = openBahaiAssistant;
 
 // Update total properties count
@@ -1798,45 +1792,11 @@ function updateCategoryUI() {
 
 // --- LISTINGS FUNCTIONS ---
 
-// Helper function to check if property is in Batangas
-function isPropertyInBatangas(listing) {
-    const province = (listing.province || '').toLowerCase();
-    const city = (listing.city || '').toLowerCase();
-    const address = (listing.address || '').toLowerCase();
-    
-    // Check if property is in Batangas province
-    if (province.includes('batangas')) {
-        return true;
-    }
-    
-    // Check for specific Batangas cities and municipalities
-    const batangasCities = [
-        'batangas city', 'lipa city', 'tanauan city', 'baoan', 'balayan',
-        'calaca', 'lemery', 'nasugbu', 'san juan', 'taal', 'talisay',
-        'alitagtag', 'cuenca', 'laurel', 'mataasnakahoy', 'san jose',
-        'san luis', 'san pascual', 'santo tomas'
-    ];
-    
-    for (const batangasCity of batangasCities) {
-        if (city.includes(batangasCity) || address.includes(batangasCity)) {
-            return true;
-        }
-    }
-    
-    // If no location data but listing exists in database, assume it's in Batangas
-    // (since this is a Batangas-focused platform)
-    if (!province && !city && !address) {
-        return true;
-    }
-    
-    return false;
-}
-
 async function loadAllListings() {
     try {
-        console.log('🔄 Loading all properties for Batangas...');
+        console.log('🔄 Loading all properties from database...');
         
-        // Fetch ALL properties from Firestore
+        // Fetch ALL properties from Firestore (no initial filtering)
         const listingsQuery = query(collection(db, "properties"));
         const querySnapshot = await getDocs(listingsQuery);
         
@@ -1849,22 +1809,20 @@ async function loadAllListings() {
                 ...doc.data()
             };
             
-            // Filter for Batangas properties only
-            if (isPropertyInBatangas(listing)) {
-                allListings.push(listing);
-                
-                // Collect user IDs
-                if (listing.userId) {
-                    userIds.add(listing.userId);
-                } else if (listing.ownerId) {
-                    userIds.add(listing.ownerId);
-                } else if (listing.brokerId) {
-                    userIds.add(listing.brokerId);
-                }
+            // Add ALL listings to array (don't filter by Batangas here)
+            allListings.push(listing);
+            
+            // Collect user IDs
+            if (listing.userId) {
+                userIds.add(listing.userId);
+            } else if (listing.ownerId) {
+                userIds.add(listing.ownerId);
+            } else if (listing.brokerId) {
+                userIds.add(listing.brokerId);
             }
         });
         
-        console.log(`   Found ${allListings.length} properties in Batangas`);
+        console.log(`   Found ${allListings.length} total properties in database`);
         
         // Update total properties count
         updateTotalPropertiesCount(allListings.length);
@@ -2040,7 +1998,7 @@ function normalizePropertyType(propertyType) {
 }
 
 function displayFilteredListings() {
-    // Filter only active listings
+    // Filter only active listings (same as search_results)
     let filtered = allListings.filter(listing => {
         return listing.status === 'active' || 
                listing.status === 'available' || 
@@ -2048,7 +2006,7 @@ function displayFilteredListings() {
                (listing.status === undefined && listing.isActive !== false);
     });
 
-    // Apply selected category filter
+    // Apply selected category filter (if any)
     if (selectedCategory) {
         const categoryData = BATANGAS_PROPERTY_CATEGORIES.find(cat => cat.name === selectedCategory);
         if (categoryData) {
@@ -2062,9 +2020,9 @@ function displayFilteredListings() {
     const propertiesCount = document.getElementById('propertiesCount');
     if (propertiesCount) {
         if (selectedCategory) {
-            propertiesCount.textContent = `Showing ${filtered.length} ${selectedCategory} properties in Batangas`;
+            propertiesCount.textContent = `Showing ${filtered.length} ${selectedCategory} properties`;
         } else {
-            propertiesCount.textContent = `Showing ${filtered.length} properties in Batangas`;
+            propertiesCount.textContent = `Showing ${filtered.length} active properties`;
         }
     }
 

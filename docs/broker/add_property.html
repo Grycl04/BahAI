@@ -2388,7 +2388,7 @@
   const BATANGAS_CENTER = { lat: 13.7564, lng: 121.0583 };
   const BATANGAS_BOUNDS = {
     north: 14.15,
-    south: 13.4,
+    south: 13.60,
     east: 121.6,
     west: 120.3
   };
@@ -2701,67 +2701,79 @@
   }
 
   // ===== AUTO-FILL ADDRESS FUNCTIONS =====
-  function autoFillAddressFromPlace(place, formType) {
-    const parsed = parseAddressComponents(place.address_components);
-    let address = parsed.address;
+function autoFillAddressFromPlace(place, formType) {
+  const parsed = parseAddressComponents(place.address_components);
+  let address = parsed.address;
+  
+  // Use formatted address if we couldn't parse street address
+  if (!address && place.formatted_address) {
+    address = place.formatted_address;
+  }
+  
+  // Update form fields based on form type
+  if (formType === 'sale') {
+    // DO NOT auto-fill the Full Address form field
+    // if (address) document.getElementById('saleAddress').value = address;
     
-    // Use formatted address if we couldn't parse street address
-    if (!address && place.formatted_address) {
-      address = place.formatted_address;
+    // Still auto-fill city and province for convenience
+    if (parsed.city) document.getElementById('saleCity').value = parsed.city;
+    if (parsed.province) document.getElementById('saleProvince').value = parsed.province;
+    
+    // UPDATE THE MAP SEARCH INPUT with the full address
+    if (place.formatted_address) {
+      document.getElementById('saleLocationSearch').value = place.formatted_address;
     }
+  } else {
+    // DO NOT auto-fill the Full Address form field
+    // if (address) document.getElementById('leaseAddress').value = address;
     
-    // Update form fields based on form type
-    if (formType === 'sale') {
-      if (address) document.getElementById('saleAddress').value = address;
-      if (parsed.city) document.getElementById('saleCity').value = parsed.city;
-      if (parsed.province) document.getElementById('saleProvince').value = parsed.province;
-      
-      // Also update the search input
-      if (place.formatted_address) {
-        document.getElementById('saleLocationSearch').value = place.formatted_address;
-      }
-    } else {
-      if (address) document.getElementById('leaseAddress').value = address;
-      if (parsed.city) document.getElementById('leaseCity').value = parsed.city;
-      if (parsed.province) document.getElementById('leaseProvince').value = parsed.province;
-      
-      // Also update the search input
-      if (place.formatted_address) {
-        document.getElementById('leaseLocationSearch').value = place.formatted_address;
-      }
+    // Still auto-fill city and province for convenience
+    if (parsed.city) document.getElementById('leaseCity').value = parsed.city;
+    if (parsed.province) document.getElementById('leaseProvince').value = parsed.province;
+    
+    // UPDATE THE MAP SEARCH INPUT with the full address
+    if (place.formatted_address) {
+      document.getElementById('leaseLocationSearch').value = place.formatted_address;
     }
   }
+}
 
-  function autoFillAddressFromGeocode(result, formType) {
-    const parsed = parseAddressComponents(result.address_components);
-    let address = parsed.address;
+function autoFillAddressFromGeocode(result, formType) {
+  const parsed = parseAddressComponents(result.address_components);
+  let address = parsed.address;
+  
+  // Use formatted address if we couldn't parse street address
+  if (!address && result.formatted_address) {
+    address = result.formatted_address;
+  }
+  
+  // Update form fields based on form type
+  if (formType === 'sale') {
+    // DO NOT auto-fill the Full Address form field
+    // if (address) document.getElementById('saleAddress').value = address;
     
-    // Use formatted address if we couldn't parse street address
-    if (!address && result.formatted_address) {
-      address = result.formatted_address;
+    // Still auto-fill city and province for convenience
+    if (parsed.city) document.getElementById('saleCity').value = parsed.city;
+    if (parsed.province) document.getElementById('saleProvince').value = parsed.province;
+    
+    // UPDATE THE MAP SEARCH INPUT with the full address
+    if (result.formatted_address) {
+      document.getElementById('saleLocationSearch').value = result.formatted_address;
     }
+  } else {
+    // DO NOT auto-fill the Full Address form field
+    // if (address) document.getElementById('leaseAddress').value = address;
     
-    // Update form fields based on form type
-    if (formType === 'sale') {
-      if (address) document.getElementById('saleAddress').value = address;
-      if (parsed.city) document.getElementById('saleCity').value = parsed.city;
-      if (parsed.province) document.getElementById('saleProvince').value = parsed.province;
-      
-      // Update search input
-      if (result.formatted_address) {
-        document.getElementById('saleLocationSearch').value = result.formatted_address;
-      }
-    } else {
-      if (address) document.getElementById('leaseAddress').value = address;
-      if (parsed.city) document.getElementById('leaseCity').value = parsed.city;
-      if (parsed.province) document.getElementById('leaseProvince').value = parsed.province;
-      
-      // Update search input
-      if (result.formatted_address) {
-        document.getElementById('leaseLocationSearch').value = result.formatted_address;
-      }
+    // Still auto-fill city and province for convenience
+    if (parsed.city) document.getElementById('leaseCity').value = parsed.city;
+    if (parsed.province) document.getElementById('leaseProvince').value = parsed.province;
+    
+    // UPDATE THE MAP SEARCH INPUT with the full address
+    if (result.formatted_address) {
+      document.getElementById('leaseLocationSearch').value = result.formatted_address;
     }
   }
+}
 
   function updateSaleCoordinates(lat, lng) {
     document.getElementById('saleLatitude').value = lat;
