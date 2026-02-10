@@ -1,909 +1,472 @@
-<!-- sidebar.html -->
-<div class="sidebar">
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <div class="sidebar-content">
-    <!-- Logo Section -->
-    <div class="logo-section">
-      <div class="logo">
-        <div class="logo-icon">
-          <img src="../images/logo_bahai_nobg.png" alt="BahAI Real Estate" />
-        </div>
-        <div class="logo-text">
-          <h1>BahAI</h1>
-          <p>Real Estate Platform</p>
-        </div>
-      </div>
-      <div class="user-profile">
-        <div class="user-avatar guest-avatar" id="userAvatar">
-          <i class="fas fa-user" style="font-size: 16px; color: #0b2e52;"></i>
-        </div>
-        <div class="user-info">
-          <div class="user-name" id="userName">Guest</div>
-          <div class="user-role guest-role" id="userRole">Browsing without account</div>
-        </div>
-      </div>
-    </div>
+<!-- Classic top navigation bar -->
+<nav class="top-nav" id="topNav">
+  <div class="top-nav-inner">
+    <a href="buyer_dashboard.html" class="top-nav-logo">
+      <img src="../images/logo_bahai_nobg.png" alt="BahAI" class="top-nav-logo-img">
+      <span class="top-nav-logo-text">BahAI</span>
+    </a>
 
-    <!-- Navigation Menu -->
-    <nav class="sidebar-nav">
-      <div class="nav-title">Navigation</div>
-      <ul>
-        <li>
-          <a href="buyer_dashboard.html" class="sidebar-link">
-            <div class="nav-icon">
-              <i class="fas fa-home"></i>
-            </div>
-            <span class="nav-text">Dashboard</span>
-            <div class="nav-badge" id="dashboardBadge"></div>
-          </a>
-        </li>
-        <li>
-          <a href="search_results.html" class="sidebar-link">
-            <div class="nav-icon">
-              <i class="fas fa-search"></i>
-            </div>
-            <span class="nav-text">Browse Properties</span>
-          </a>
-        </li>
-        <li>
-          <a href="messages.html" class="sidebar-link" id="messagesLink" data-guest-redirect="messages.html">
-            <div class="nav-icon">
-              <i class="fas fa-comments"></i>
-            </div>
-            <span class="nav-text">Messages</span>
-            <div class="nav-badge" id="messageBadge"></div>
-          </a>
-        </li>
-        <li>
-          <a href="liked_properties.html" class="sidebar-link" id="savedLink" data-guest-redirect="liked_properties.html">
-            <div class="nav-icon">
-              <i class="fas fa-heart"></i>
-            </div>
-            <span class="nav-text">Saved Properties</span>
-            <div class="nav-badge" id="savedBadge"></div>
-          </a>
-        </li>
-        <li>
-          <a href="settings.html" class="sidebar-link" id="settingsLink" data-guest-redirect="settings.html">
-            <div class="nav-icon">
-              <i class="fas fa-user"></i>
-            </div>
-            <span class="nav-text">Profile</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+    <button class="top-nav-toggle" id="topNavToggle" aria-label="Toggle menu">
+      <i class="fas fa-bars"></i>
+    </button>
 
-    <!-- Bottom Section -->
-    <div class="sidebar-footer">
-      <a href="buyer_dashboard.html#ai-chatbot-section" class="ai-status" id="aiAssistantLink" title="Go to AI chatbot">
-        <div class="ai-status-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="ai-status-text">
-          <div class="ai-status-title">AI Assistant</div>
-          <div class="ai-status-subtitle">Active</div>
-        </div>
+    <div class="top-nav-menu" id="topNavMenu">
+      <a href="buyer_dashboard.html" class="top-nav-link sidebar-link">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
       </a>
-      <button id="logoutBtn" class="logout-btn login-btn">
-        <div class="logout-icon">
-          <i class="fas fa-sign-in-alt"></i>
+      <a href="search_results.html" class="top-nav-link sidebar-link">
+        <i class="fas fa-search"></i>
+        <span>Browse Properties</span>
+      </a>
+      <a href="messages.html" class="top-nav-link sidebar-link">
+        <i class="fas fa-comments"></i>
+        <span>Messages</span>
+      </a>
+      <a href="liked_properties.html" class="top-nav-link sidebar-link">
+        <i class="fas fa-heart"></i>
+        <span>Saved Properties</span>
+      </a>
+      <a href="buyer_dashboard.html#ai-chatbot-section" class="top-nav-link top-nav-ai">
+        <i class="fas fa-robot"></i>
+        <span>AI Assistant</span>
+      </a>
+      <div class="top-nav-profile-wrap">
+        <button class="top-nav-profile-trigger" id="topNavProfileTrigger" aria-expanded="false" aria-haspopup="true">
+          <div class="top-nav-avatar" id="topNavAvatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="top-nav-profile-name" id="topNavProfileName">Guest</span>
+          <i class="fas fa-chevron-down top-nav-chevron"></i>
+        </button>
+        <div class="top-nav-dropdown" id="topNavDropdown" role="menu">
+          <a href="settings.html" class="top-nav-dropdown-item" id="topNavProfileLink" role="menuitem">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+          </a>
+          <button type="button" class="top-nav-dropdown-item top-nav-dropdown-logout" id="topNavLogoutBtn" role="menuitem" style="display: none;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </button>
+          <a href="../login.html" class="top-nav-dropdown-item top-nav-dropdown-login" id="topNavLoginLink" role="menuitem">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Login</span>
+          </a>
         </div>
-        <span class="logout-text">Login / Sign Up</span>
-      </button>
+      </div>
     </div>
   </div>
-</div>
+</nav>
 
 <style>
-:root {
-  --sidebar-bg: linear-gradient(180deg, #0b2e52 0%, #071e38 100%);
-  --sidebar-accent: #d4af37;
-  --sidebar-accent-dark: #b8860b;
-  --sidebar-text-light: rgba(255, 255, 255, 0.95);
-  --sidebar-text-muted: rgba(255, 255, 255, 0.75);
-  --sidebar-border: rgba(212, 175, 55, 0.15);
-  --sidebar-hover: rgba(212, 175, 55, 0.12);
-  --sidebar-active: rgba(212, 175, 55, 0.22);
-}
-
-/* Font Family */
-.sidebar {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.sidebar {
-  width: 280px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 1000;
-  transition: all 0.3s ease;
-}
-
-.sidebar-overlay {
-  display: none;
+.top-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
-  z-index: 999;
+  z-index: 1000;
+  background: linear-gradient(180deg, #0b2e52 0%, #071e38 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.sidebar-content {
-  width: 100%;
-  height: 100%;
-  background: var(--sidebar-bg);
+.top-nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.top-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
   color: white;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 5px 0 30px rgba(0, 0, 0, 0.3);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-.sidebar-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-/* Logo Section */
-.logo-section {
-  padding: 30px 25px 20px;
-  border-bottom: 1px solid var(--sidebar-border);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.logo-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.logo-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.logo-text h1 {
-  font-size: 26px;
   font-weight: 700;
-  margin: 0;
-  color: var(--sidebar-text-light);
-  letter-spacing: -0.5px;
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-right: 24px;
 }
 
-.logo-text p {
-  font-size: 12px;
-  color: var(--sidebar-text-muted);
-  margin: 4px 0 0;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-weight: 500;
+.top-nav-logo:hover {
+  color: #d4af37;
 }
 
-/* User Profile */
-.user-profile {
+.top-nav-logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.top-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.top-nav-menu {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid var(--sidebar-border);
-  transition: all 0.3s ease;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
 }
 
-.user-profile:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
+.top-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.user-avatar {
-  width: 45px;
-  height: 45px;
-  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+.top-nav-link:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: white;
+}
+
+.top-nav-link.active {
+  background: rgba(212, 175, 55, 0.25);
+  color: #d4af37;
+}
+
+.top-nav-ai {
+  color: #d4af37;
+}
+
+.top-nav-ai:hover {
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.top-nav-profile-wrap {
+  position: relative;
+  margin-left: auto;
+}
+
+.top-nav-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.top-nav-profile-trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.top-nav-avatar {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 14px;
   color: #0b2e52;
   overflow: hidden;
 }
-.user-avatar img {
+
+.top-nav-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.user-info {
-  flex: 1;
+.top-nav-profile-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.user-name {
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--sidebar-text-light);
-  margin-bottom: 2px;
+.top-nav-chevron {
+  font-size: 10px;
+  opacity: 0.8;
+  transition: transform 0.2s;
 }
 
-.user-role {
-  font-size: 12px;
-  color: var(--sidebar-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
+.top-nav-profile-trigger[aria-expanded="true"] .top-nav-chevron {
+  transform: rotate(180deg);
 }
 
-.user-role::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: #d4af37;
-  border-radius: 50%;
-}
-
-.user-role.guest-role::before {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.user-avatar.guest-avatar {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.logout-btn.login-btn:hover {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.3);
-  color: white;
-}
-
-.logout-btn.login-btn .logout-icon {
-  background: rgba(16, 185, 129, 0.2);
-}
-
-/* Navigation Menu */
-.sidebar-nav {
-  padding: 20px 15px;
-}
-
-.nav-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--sidebar-text-muted);
-  margin-bottom: 15px;
-  padding: 0 10px;
-  font-weight: 600;
-}
-
-.sidebar-nav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sidebar-nav li {
-  margin: 4px 0;
-}
-
-.sidebar-nav a {
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
-  text-decoration: none;
-  color: var(--sidebar-text-muted);
-  transition: all 0.3s ease;
-  position: relative;
-  border-radius: 10px;
-  font-weight: 500;
-}
-
-.sidebar-nav a:hover {
-  background: var(--sidebar-hover);
-  color: var(--sidebar-text-light);
-  transform: translateX(5px);
-}
-
-.sidebar-nav a.active {
-  background: var(--sidebar-active);
-  color: var(--sidebar-text-light);
-  font-weight: 600;
-}
-
-.sidebar-nav a.active::before {
-  content: '';
+.top-nav-dropdown {
   position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 20px;
-  background: linear-gradient(to bottom, #d4af37, #b8860b);
-  border-radius: 0 4px 4px 0;
-}
-
-.nav-icon {
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-}
-
-.sidebar-nav a:hover .nav-icon {
-  background: rgba(212, 175, 55, 0.2);
-}
-
-.sidebar-nav a.active .nav-icon {
-  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-  color: #0b2e52;
-}
-
-.nav-text {
-  flex: 1;
-  font-size: 14px;
-}
-
-.nav-badge {
-  background: #ef4444;
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
-  min-width: 20px;
-  text-align: center;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  padding: 8px;
   display: none;
+  z-index: 1001;
 }
 
-.nav-badge:not(:empty) {
+.top-nav-dropdown.open {
   display: block;
 }
 
-/* Sidebar Footer */
-.sidebar-footer {
-  padding: 25px;
-  border-top: 1px solid var(--sidebar-border);
-  margin-top: auto;
-}
-
-.ai-status {
+.top-nav-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background: rgba(212, 175, 55, 0.1);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  transition: all 0.3s ease;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #1a202c;
   text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-.ai-status:hover {
-  background: rgba(212, 175, 55, 0.15);
-  transform: translateY(-2px);
-}
-
-.ai-status-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: #0b2e52;
-}
-
-.ai-status-text {
-  flex: 1;
-}
-
-.ai-status-title {
-  font-weight: 600;
   font-size: 14px;
-  color: var(--sidebar-text-light);
-  margin-bottom: 2px;
-}
-
-.ai-status-subtitle {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
-}
-
-/* Logout Button */
-.logout-btn {
+  border-radius: 8px;
+  transition: all 0.2s;
   width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
-  background: rgba(239, 68, 68, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
+  border: none;
+  background: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-family: inherit;
   text-align: left;
-  font-family: 'Inter', sans-serif;
 }
 
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: white;
-  transform: translateX(5px);
-  border-color: rgba(239, 68, 68, 0.3);
+.top-nav-dropdown-item:hover {
+  background: #f1f5f9;
 }
 
-.logout-icon {
-  width: 36px;
-  height: 36px;
-  background: rgba(239, 68, 68, 0.2);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  font-size: 16px;
-  transition: all 0.3s ease;
+.top-nav-dropdown-item i {
+  width: 18px;
+  color: #64748b;
 }
 
-.logout-btn:hover .logout-icon {
-  background: rgba(239, 68, 68, 0.3);
+.top-nav-dropdown-logout:hover i {
+  color: #ef4444;
 }
 
-.logout-text {
-  flex: 1;
-  font-weight: 500;
+.top-nav-dropdown-login {
+  color: #059669;
 }
 
-/* Mobile/Tablet Responsive */
+.top-nav-dropdown-login:hover {
+  background: #ecfdf5;
+}
+
 @media (max-width: 1024px) {
-  .sidebar {
-    width: 280px;
+  .top-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  
-  .sidebar-overlay {
-    display: block;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-  
-  .sidebar.active .sidebar-overlay {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-}
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
+  .top-nav-menu {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0b2e52 0%, #071e38 100%);
+    padding: 20px;
+    gap: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
-.logo-section,
-.sidebar-nav,
-.sidebar-footer {
-  animation: fadeIn 0.5s ease;
-}
-
-.sidebar-nav li:nth-child(1) { animation-delay: 0.1s; }
-.sidebar-nav li:nth-child(2) { animation-delay: 0.2s; }
-.sidebar-nav li:nth-child(3) { animation-delay: 0.3s; }
-.sidebar-nav li:nth-child(4) { animation-delay: 0.4s; }
-.sidebar-nav li:nth-child(5) { animation-delay: 0.5s; }
-
-/* Pulse Animation */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
+  .top-nav-menu.open {
+    max-height: 400px;
   }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
 
-.ai-status:hover .ai-status-icon {
-  animation: pulse 1.5s infinite;
+  .top-nav-link {
+    width: 100%;
+    padding: 14px 20px;
+    justify-content: flex-start;
+  }
+
+  .top-nav-profile-wrap {
+    margin-left: 0;
+    margin-top: 12px;
+    width: 100%;
+  }
+
+  .top-nav-profile-trigger {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .top-nav-dropdown {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 200px;
+  }
 }
 </style>
 
 <script>
-// Immediate guest setup (runs when sidebar loads, before Firebase)
-// Only setup login button - do NOT overwrite nav links here. Links stay as messages.html etc.
-// initializeSidebar will set links to login redirect ONLY when user is confirmed guest.
 (function() {
-  const btn = document.getElementById('logoutBtn');
-  if (btn && btn.classList.contains('login-btn')) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      const redirect = encodeURIComponent(window.location.pathname || 'buyer/buyer_dashboard.html');
-      window.location.href = '../login.html?redirect=' + redirect;
-    });
-  }
-})();
-
-// Import Firebase modules if not already imported
-async function initializeSidebar() {
-  // Wait for Firebase globals
-  if (!window.firebaseApp || !window.firebaseAuth || !window.firebaseDB) {
-    console.log('Firebase not available yet, waiting...');
-    setTimeout(initializeSidebar, 100);
-    return;
-  }
-
-  try {
-    // Import Firebase modules
-    const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
-    const { getFirestore, getDoc, doc, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
-    
-    // Get the Firebase app instance from the main page
-    const app = window.firebaseApp;
-    if (!app) {
-      console.error('Firebase app not found');
-      return;
-    }
-    
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    
-    // Load user info from Firebase
-    async function loadUserInfo() {
-      try {
-        const currentUser = auth.currentUser;
-        const userNameEl = document.getElementById('userName');
-        const userRoleEl = document.getElementById('userRole');
-        const userAvatarEl = document.getElementById('userAvatar');
-        
-        if (!currentUser) {
-          // Guest user - browsing without account
-          if (userNameEl) userNameEl.textContent = 'Guest';
-          if (userRoleEl) {
-            userRoleEl.textContent = 'Browsing without account';
-            userRoleEl.classList.add('guest-role');
-          }
-          if (userAvatarEl) {
-            userAvatarEl.innerHTML = '<i class="fas fa-user" style="font-size: 16px; color: #0b2e52;"></i>';
-            userAvatarEl.classList.add('guest-avatar');
-          }
-          updateSidebarForGuest();
-          return;
-        }
-        
-        userRoleEl?.classList.remove('guest-role');
-        userAvatarEl?.classList.remove('guest-avatar');
-        
-        // Default values
-        let userName = currentUser.displayName || currentUser.email || 'User';
-        let userRole = 'Buyer';
-        let photoURL = currentUser.photoURL || null; // Firebase Auth (Google/social login)
-        
-        // Try to get user data from Firestore
-        try {
-          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            userName = userData.fullName || userData.email || userName;
-            userRole = userData.role || userData.userType || userRole;
-            // Firestore photoURL (from settings upload) overrides Auth photoURL
-            photoURL = userData.photoURL || userData.profilePhotoURL || photoURL;
-          }
-        } catch (error) {
-          console.log('Could not load user from Firestore:', error);
-        }
-        
-        if (userNameEl) userNameEl.textContent = userName;
-        
-        if (userRoleEl) {
-          const roleMap = {
-            'landlord': 'Property Owner',
-            'broker': 'Licensed Broker',
-            'seller': 'Property Seller',
-            'admin': 'Administrator',
-            'agent': 'Property Agent',
-            'user': 'Buyer'
-          };
-          userRoleEl.textContent = roleMap[userRole] || 'Buyer';
-        }
-        
-        if (userAvatarEl) {
-          const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
-          if (photoURL) {
-            const img = document.createElement('img');
-            img.src = photoURL;
-            img.alt = 'Profile';
-            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
-            img.onerror = function() { userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>'; };
-            userAvatarEl.innerHTML = '';
-            userAvatarEl.appendChild(img);
-          } else {
-            userAvatarEl.innerHTML = '<span style="font-weight: 600;">' + initials + '</span>';
-          }
-        }
-        
-        updateSidebarForLoggedIn();
-        
-      } catch (error) {
-        console.error('Error loading user info:', error);
-      }
-    }
-    
-    function updateSidebarForGuest() {
-      const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        const newBtn = logoutBtn.cloneNode(true);
-        newBtn.innerHTML = '<div class="logout-icon"><i class="fas fa-sign-in-alt"></i></div><span class="logout-text">Login / Sign Up</span>';
-        newBtn.classList.add('login-btn');
-        newBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          const redirect = encodeURIComponent(window.location.pathname || 'buyer/buyer_dashboard.html');
-          window.location.href = '../login.html?redirect=' + redirect;
-        });
-        logoutBtn.replaceWith(newBtn);
-      }
-      ['messagesLink', 'savedLink', 'settingsLink'].forEach(id => {
-        const link = document.getElementById(id);
-        if (link && link.dataset.guestRedirect) {
-          link.href = '../login.html?redirect=' + encodeURIComponent('buyer/' + link.dataset.guestRedirect);
-          link.title = id === 'messagesLink' ? 'Login to access Messages' : id === 'savedLink' ? 'Login to save properties' : 'Login to access Profile';
-        }
-      });
-    }
-    
-    async function updateSidebarForLoggedIn() {
-      const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        const newBtn = logoutBtn.cloneNode(true);
-        newBtn.innerHTML = '<div class="logout-icon"><i class="fas fa-sign-out-alt"></i></div><span class="logout-text">Log Out</span>';
-        newBtn.classList.remove('login-btn');
-        newBtn.addEventListener('click', async function(e) {
-          e.preventDefault();
-          if (confirm('Are you sure you want to log out?')) {
-            if (typeof window.performLogout === 'function') {
-              window.performLogout();
-            } else {
-              try {
-                const { signOut } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
-                await signOut(auth);
-                window.location.href = '../login.html';
-              } catch (err) {
-                window.location.href = '../login.html';
-              }
-            }
-          }
-        });
-        logoutBtn.replaceWith(newBtn);
-      }
-      ['messagesLink', 'savedLink', 'settingsLink'].forEach(id => {
-        const link = document.getElementById(id);
-        if (link && link.dataset.guestRedirect) {
-          link.href = link.dataset.guestRedirect;
-          link.title = '';
-        }
-      });
-    }
-    
-    // Load saved count for nav badge
-    async function loadStats() {
-      try {
-        const currentUser = auth.currentUser;
-        const savedBadge = document.getElementById('savedBadge');
-        if (!savedBadge) return;
-        
-        if (!currentUser) {
-          savedBadge.textContent = '';
-          return;
-        }
-        
-        const savedRef = collection(db, 'savedProperties');
-        const savedQuery = query(savedRef, where('userId', '==', currentUser.uid));
-        const savedSnapshot = await getDocs(savedQuery);
-        savedBadge.textContent = savedSnapshot.size > 0 ? savedSnapshot.size : '';
-      } catch (error) {
-        console.log('Could not load saved count:', error);
-      }
-    }
-    
-    function resetStats() {
-      const savedBadge = document.getElementById('savedBadge');
-      if (savedBadge) savedBadge.textContent = '';
-    }
-    
-    // Initialize when auth state changes (login, logout, etc.)
-    onAuthStateChanged(auth, async (user) => {
-      await loadUserInfo();  // Updates profile to Guest when logged out
-      if (user) {
-        await loadStats();
-      } else {
-        resetStats();
-      }
-    });
-    
-    // Initialize now if user is already logged in
-    if (auth.currentUser) {
-      await loadUserInfo();
-      await loadStats();
-    }
-    
-    // Highlight current page
-    function highlightCurrentPage() {
-      const currentPath = window.location.pathname.split('/').pop() || 'buyer_dashboard.html';
-      const links = document.querySelectorAll('.sidebar-link');
-      
-      links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPath) {
-          link.classList.add('active');
-        } else {
-          link.classList.remove('active');
-        }
-      });
-    }
-    
-    highlightCurrentPage();
-    
-    // Refresh stats periodically
-    setInterval(loadStats, 60000); // Every 60 seconds
-    
-  } catch (error) {
-    console.error('Error initializing sidebar:', error);
-    // Fallback to localStorage method
-    loadUserInfoFallback();
-    loadStatsFallback();
-  }
-}
-
-// Fallback functions if Firebase fails
-function loadUserInfoFallback() {
-  try {
-    const userData = JSON.parse(localStorage.getItem('userData')) || 
-                    JSON.parse(sessionStorage.getItem('userData'));
-    
-    if (userData) {
-      const userNameEl = document.getElementById('userName');
-      const userRoleEl = document.getElementById('userRole');
-      const userAvatarEl = document.getElementById('userAvatar');
-      
-      if (userNameEl) {
-        userNameEl.textContent = userData.fullName || userData.email || 'User';
-      }
-      
-      if (userRoleEl) {
-        const roleMap = {
-          'landlord': 'Property Owner',
-          'broker': 'Licensed Broker',
-          'seller': 'Property Seller',
-          'admin': 'Administrator',
-          'user': 'Buyer'
-        };
-        userRoleEl.textContent = roleMap[userData.role] || 'Buyer';
-      }
-      
-      if (userAvatarEl && userData.fullName) {
-        const initials = userData.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        userAvatarEl.innerHTML = `<span style="font-weight: 600;">${initials}</span>`;
-      }
-    }
-  } catch (error) {
-    console.log('Fallback: Could not load user info:', error);
-  }
-}
-
-function loadStatsFallback() {
-  try {
-    const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '[]');
-    const savedBadge = document.getElementById('savedBadge');
-    if (savedBadge) savedBadge.textContent = savedProperties.length > 0 ? savedProperties.length : '';
-  } catch (error) {
-    console.log('Fallback: Could not load stats:', error);
-  }
-}
-
-// Initialize sidebar - run immediately (sidebar is loaded dynamically, DOMContentLoaded has already fired)
-(function initSidebarDOM() {
-  initializeSidebar();
-  
-  // Overlay click to close sidebar (mobile/tablet)
-  const overlay = document.getElementById('sidebarOverlay');
-  if (overlay) {
-    overlay.addEventListener('click', function() {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) sidebar.classList.remove('active');
-    });
-  }
-  
-  // Close sidebar on link click (mobile/tablet)
-  document.addEventListener('click', function(e) {
-    if (window.innerWidth <= 1024 && e.target.closest('.sidebar-link')) {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) sidebar.classList.remove('active');
-    }
+  var currentPath = window.location.pathname.split('/').pop() || 'buyer_dashboard.html';
+  document.querySelectorAll('.top-nav-link.sidebar-link').forEach(function(link) {
+    var href = link.getAttribute('href');
+    if (href === currentPath) link.classList.add('active');
+    else link.classList.remove('active');
   });
-  
-  // Make stats updater available globally
-  window.updateSidebarStats = async function() {
-    if (!window.firebaseApp) {
-      loadStatsFallback();
-      return;
-    }
-    try {
-      const { getAuth } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js");
-      const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
-      const app = window.firebaseApp;
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const currentUser = auth.currentUser;
-      const savedBadge = document.getElementById('savedBadge');
-      if (!savedBadge) return;
-      
-      if (!currentUser) {
-        savedBadge.textContent = '';
-      } else {
-        const savedRef = collection(db, 'savedProperties');
-        const savedQuery = query(savedRef, where('userId', '==', currentUser.uid));
-        const savedSnapshot = await getDocs(savedQuery);
-        savedBadge.textContent = savedSnapshot.size > 0 ? savedSnapshot.size : '';
-      }
-    } catch (error) {
-      loadStatsFallback();
-    }
-  };
-})();
 
-// Export initialization function for main pages to call
-window.initializeSidebar = initializeSidebar;
+  var trigger = document.getElementById('topNavProfileTrigger');
+  var dropdown = document.getElementById('topNavDropdown');
+  var avatarEl = document.getElementById('topNavAvatar');
+  var nameEl = document.getElementById('topNavProfileName');
+  var profileLink = document.getElementById('topNavProfileLink');
+  var logoutBtn = document.getElementById('topNavLogoutBtn');
+  var loginLink = document.getElementById('topNavLoginLink');
+
+  if (!trigger || !dropdown) return;
+
+  trigger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var isOpen = dropdown.classList.toggle('open');
+    trigger.setAttribute('aria-expanded', isOpen);
+  });
+
+  document.addEventListener('click', function() {
+    dropdown.classList.remove('open');
+    trigger.setAttribute('aria-expanded', 'false');
+  });
+
+  dropdown.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+
+  function setLoginMode() {
+    if (nameEl) nameEl.textContent = 'Guest';
+    if (avatarEl) {
+      avatarEl.innerHTML = '<i class="fas fa-user"></i>';
+      avatarEl.style.background = 'rgba(255,255,255,0.2)';
+      avatarEl.style.color = 'white';
+    }
+    if (profileLink) {
+      profileLink.href = '../login.html?redirect=' + encodeURIComponent('buyer/settings.html');
+      profileLink.style.display = 'flex';
+    }
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (loginLink) loginLink.style.display = 'flex';
+  }
+
+  function setLogoutMode(userData) {
+    var name = (userData && (userData.fullName || userData.displayName || userData.email)) || 'User';
+    if (nameEl) nameEl.textContent = name;
+    if (avatarEl) {
+      var photoURL = userData && (userData.photoURL || userData.profilePhotoURL);
+      if (photoURL) {
+        avatarEl.innerHTML = '<img src="' + photoURL.replace(/"/g, '&quot;') + '" alt="Profile">';
+      } else {
+        var initials = (name + '').split(' ').map(function(n) { return n ? n[0] : ''; }).join('').toUpperCase().substring(0, 2) || 'U';
+        avatarEl.innerHTML = '<span style="font-weight:600;font-size:14px;">' + initials + '</span>';
+        avatarEl.style.background = 'linear-gradient(135deg, #d4af37 0%, #b8860b 100%)';
+        avatarEl.style.color = '#0b2e52';
+      }
+    }
+    if (profileLink) {
+      profileLink.href = 'settings.html';
+      profileLink.style.display = 'flex';
+    }
+    if (logoutBtn) logoutBtn.style.display = 'flex';
+    if (loginLink) loginLink.style.display = 'none';
+  }
+
+  function doLogout(e) {
+    e.preventDefault();
+    if (confirm('Are you sure you want to log out?')) {
+      if (typeof window.performLogout === 'function') {
+        window.performLogout();
+      } else {
+        window.location.href = '../login.html';
+      }
+    }
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', doLogout);
+  }
+
+  if (loginLink) {
+    loginLink.href = '../login.html?redirect=' + encodeURIComponent(window.location.pathname + (window.location.search || ''));
+  }
+
+  [profileLink, logoutBtn, loginLink].forEach(function(el) {
+    if (el) el.addEventListener('click', function() {
+      dropdown.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  function updateAuthState(user) {
+    if (user) {
+      var userData = null;
+      try { userData = JSON.parse(localStorage.getItem('userData') || 'null'); } catch (e) {}
+      setLogoutMode(userData || { fullName: user.displayName || user.email, email: user.email, photoURL: user.photoURL });
+    } else {
+      setLoginMode();
+    }
+  }
+
+  window.updateBuyerNavAuth = updateAuthState;
+
+  if (window.firebaseAuth) {
+    window.firebaseAuth.onAuthStateChanged(updateAuthState);
+    if (window.firebaseAuth.currentUser) updateAuthState(window.firebaseAuth.currentUser);
+  } else {
+    var userData = null;
+    try { userData = JSON.parse(localStorage.getItem('userData') || 'null'); } catch (e) {}
+    if (userData && userData.email) setLogoutMode(userData);
+    else setLoginMode();
+
+    var checkCount = 0;
+    var checkAuth = setInterval(function() {
+      if (window.firebaseAuth) {
+        clearInterval(checkAuth);
+        window.firebaseAuth.onAuthStateChanged(updateAuthState);
+      }
+      if (++checkCount > 50) clearInterval(checkAuth);
+    }, 100);
+  }
+
+  var toggle = document.getElementById('topNavToggle');
+  var menu = document.getElementById('topNavMenu');
+  if (toggle && menu) {
+    toggle.addEventListener('click', function() {
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth <= 1024 && !toggle.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+      }
+    });
+    document.querySelectorAll('.top-nav-link').forEach(function(link) {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 1024) menu.classList.remove('open');
+      });
+    });
+  }
+})();
 </script>

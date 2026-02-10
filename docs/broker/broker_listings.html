@@ -28,7 +28,10 @@
     .container {
         margin-left: 280px;
         padding-top: 15px;
+        padding-right: 24px;
+        padding-bottom: 24px;
     }
+    body { overflow-x: hidden; }
     .mobile-menu-toggle {
         display: none;
         position: fixed;
@@ -225,6 +228,7 @@
         margin-bottom: 14px;
         padding-bottom: 14px;
         border-bottom: 1px solid #e5e7eb;
+        flex-wrap: wrap;
     }
     .detail {
         display: flex;
@@ -294,6 +298,57 @@
     .empty-state-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
     .empty-state h3 { font-size: 20px; margin-bottom: 10px; color: var(--text-dark); }
 
+    /* Listings header: filter + count + add button */
+    .listings-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .listings-filter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .filter-select {
+        padding: 10px 36px 10px 14px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: var(--text-dark);
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23718096' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        transition: border-color 0.2s ease;
+    }
+    .filter-select:hover,
+    .filter-select:focus {
+        border-color: var(--primary-dark);
+        outline: none;
+    }
+    .listings-header-meta {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .properties-count {
+        color: var(--text-light);
+        font-size: 15px;
+    }
+
     /* Listing actions - same colors/fonts as dashboard buttons */
     .listing-actions {
         display: flex;
@@ -337,22 +392,79 @@
         transform: translateY(-2px);
     }
 
+    /* Tablet */
     @media (max-width: 1024px) {
-        .container { margin-left: 240px; padding: 25px; padding-top: 15px; }
+        .container { margin-left: 0; padding: 24px; padding-top: 70px; }
         .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
-        .hero-stats { gap: 20px; }
-        .hero-section { padding: 24px 30px; }
+        .hero-stats { gap: 20px; flex-wrap: wrap; }
+        .hero-section { padding: 24px 28px; margin-bottom: 30px; }
+        .hero-section h1 { font-size: 2.2rem; }
+        .hero-section p { font-size: 1rem; max-width: 100%; }
+        .listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+        .listing-card-image-container { height: 210px; }
     }
+    /* Large Mobile - 2 cards per row, compact cards, sidebar overlay */
     @media (max-width: 768px) {
-        .container { margin-left: 0; padding: 20px; padding-top: 60px; }
+        .container { margin-left: 0; padding: 16px; padding-top: 56px; }
         .mobile-menu-toggle { display: flex !important; }
-        .listings-grid { grid-template-columns: 1fr; gap: 15px; }
-        .hero-section h1 { font-size: 1.8rem; }
-        .hero-section { padding: 22px 24px; }
+        .listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+        .hero-section h1 { font-size: 1.6rem; }
+        .hero-section { padding: 16px 18px; margin-bottom: 20px; }
+        .hero-section p { font-size: 0.9rem; margin-bottom: 14px; }
+        .hero-stats { flex-direction: column; gap: 14px; margin-top: 18px; }
+        .hero-stat-item { width: 100%; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
+        .hero-stat-item:last-child { border-bottom: none; }
+        .hero-stat-value { font-size: 1.3rem; }
+        .hero-stat-label { font-size: 0.85rem; }
+        .hero-stat-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+        .section-title { font-size: 1.25rem; }
+        .listing-content { padding: 10px; }
+        .listing-header { flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; }
+        .listing-price { text-align: left; max-width: none; width: 100%; }
+        .listing-details { gap: 8px; margin-bottom: 10px; padding-bottom: 10px; }
+        .listing-card-image-container { height: 150px; }
+        .listing-status-badge { padding: 4px 10px; font-size: 10px; border-radius: 16px; top: 8px; right: 8px; }
+        .listing-title { font-size: 0.95rem; line-height: 1.25; }
+        .listing-actions { padding-top: 8px; gap: 8px; }
+        .action-btn { padding: 10px 12px; font-size: 0.8rem; }
+        /* Sidebar mobile */
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 260px; max-width: 80%; height: 100vh;
+            transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000;
+        }
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.35); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        body.sidebar-open { overflow: hidden; }
+        body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+        body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+        .listings-header-row { flex-direction: column; align-items: stretch; }
+        .listings-filter { justify-content: flex-start; }
+        .filter-select { min-width: 140px; }
+        .listings-header-meta { flex-direction: column; }
+        .properties-section .add-button { width: 100%; justify-content: center; }
     }
+    /* Small Mobile */
     @media (max-width: 480px) {
-        .container { padding: 15px; padding-top: 58px; }
-        .hero-section { padding: 20px 18px; }
+        .container { padding: 12px; padding-top: 54px; }
+        .mobile-menu-toggle { top: 12px; left: 12px; width: 44px; height: 44px; font-size: 20px; }
+        .hero-section { padding: 14px 14px; margin-bottom: 18px; }
+        .hero-section h1 { font-size: 1.35rem; }
+        .hero-section p { font-size: 0.85rem; margin-bottom: 12px; }
+        .hero-stat-value { font-size: 1.1rem; }
+        .hero-stat-label { font-size: 0.78rem; }
+        .hero-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+        .section-title { font-size: 1.15rem; }
+        .listing-content { padding: 10px; }
+        .listing-title { font-size: 0.9rem; }
+        .listing-price { font-size: 0.9rem; }
+        .listing-details { gap: 6px; margin-bottom: 8px; padding-bottom: 8px; }
+        .detail { font-size: 0.8rem; }
+        .listing-card-image-container { height: 120px; }
+        .listing-status-badge { padding: 3px 8px; font-size: 9px; border-radius: 14px; top: 6px; right: 6px; }
+        .listing-actions { padding-top: 6px; gap: 6px; }
+        .action-btn { padding: 8px 10px; font-size: 0.75rem; }
     }
 </style>
 </head>
@@ -364,13 +476,13 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Main - same layout as broker dashboard -->
 <div class="container">
   <!-- Hero Section - same design as broker dashboard -->
   <div class="hero-section">
     <h1>My Listings</h1>
-    <p>Manage your property listings and track their performance</p>
     <div class="hero-stats">
       <div class="hero-stat-item">
         <div class="hero-stat-icon"><i class="fas fa-check-circle"></i></div>
@@ -389,21 +501,23 @@
     </div>
   </div>
 
-  <!-- My Listings Section - same design as broker dashboard -->
+  <!-- My Listings Section -->
   <div class="properties-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
-      <div>
-        <h2 class="section-title">
-          <i class="fas fa-building"></i>
-          Your Properties
-        </h2>
-        <p style="color: var(--text-light); margin-bottom: 0; font-size: 15px;" id="propertiesCount">
-          Your listed properties
-        </p>
+    <div class="listings-header-row">
+      <div class="listings-filter">
+        <label for="listingsFilter" class="filter-label">Status</label>
+        <select id="listingsFilter" class="filter-select" aria-label="Filter by status">
+          <option value="all">All</option>
+          <option value="available">Available</option>
+          <option value="sold">Sold</option>
+        </select>
       </div>
-      <a href="add_property.html" class="add-button" style="text-decoration: none;">
-        <i class="fas fa-plus"></i> Add New Property
-      </a>
+      <div class="listings-header-meta">
+        <span class="properties-count" id="propertiesCount">Your listed properties</span>
+        <a href="add_property.html" class="add-button" style="text-decoration: none;">
+          <i class="fas fa-plus"></i> Add New Property
+        </a>
+      </div>
     </div>
     <div class="listings-grid" id="listingsContainer">
       <div class="empty-state">
@@ -421,12 +535,20 @@
 <!-- Sidebar Loader - same as broker dashboard, active link for My Listings -->
 <script src="../sidebar-user.js"></script>
 <script>
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
-      'translateX(-100%)' : 'translateX(0px)';
-  }
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
+var overlayEl = document.getElementById('sidebarOverlay');
+if (overlayEl) {
+  overlayEl.addEventListener('click', function() {
+    document.body.classList.remove('sidebar-open');
+  });
+}
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
 });
 fetch('sidebar.html')
   .then(response => response.text())
@@ -487,34 +609,63 @@ const auth = getAuth(app);
 
 
 let currentListings = [];
+let currentFilter = 'all';
 
+function isAvailable(listing) {
+  const s = (listing.status || '').toLowerCase();
+  return s === 'active' || s === 'available' || s === 'published' ||
+    !listing.status || listing.status === true || listing.status === 'true';
+}
+
+function getFilteredListings() {
+  if (currentFilter === 'all') return currentListings;
+  if (currentFilter === 'available') return currentListings.filter(isAvailable);
+  if (currentFilter === 'sold') return currentListings.filter(l => (l.status || '').toLowerCase() === 'sold');
+  return currentListings;
+}
+
+function applyFilter() {
+  const filtered = getFilteredListings();
+  displayListings(filtered);
+  const countEl = document.getElementById('propertiesCount');
+  if (countEl) {
+    const n = filtered.length;
+    if (currentFilter === 'all') countEl.textContent = n === 0 ? 'No properties listed' : n + ' propert' + (n === 1 ? 'y' : 'ies') + ' listed';
+    else if (currentFilter === 'available') countEl.textContent = n === 0 ? 'No available properties' : n + ' available';
+    else countEl.textContent = n === 0 ? 'No sold properties' : n + ' sold';
+  }
+  const selectEl = document.getElementById('listingsFilter');
+  if (selectEl) selectEl.value = currentFilter;
+}
 
 // Load user's listings
 async function loadListings() {
   const user = auth.currentUser;
   if (!user) return;
 
-
   try {
     const q = query(
       collection(db, "properties"),
       where("userId", "==", user.uid)
     );
-   
     const querySnapshot = await getDocs(q);
     currentListings = [];
-   
     querySnapshot.forEach((doc) => {
       currentListings.push({ id: doc.id, ...doc.data() });
     });
-
-
-    displayListings(currentListings);
     updateStats(currentListings);
-   
+    applyFilter();
   } catch (error) {
     console.error("Error loading listings:", error);
   }
+}
+
+var filterSelect = document.getElementById('listingsFilter');
+if (filterSelect) {
+  filterSelect.addEventListener('change', function() {
+    currentFilter = this.value;
+    applyFilter();
+  });
 }
 
 
@@ -686,9 +837,9 @@ async function deleteListing(id, event) {
     // Remove from local array
     currentListings = currentListings.filter(listing => listing.id !== id);
     
-    // Update UI
-    displayListings(currentListings);
+    // Update UI (preserve filter state)
     updateStats(currentListings);
+    applyFilter();
     
     // Show success message
     console.log('Listing deleted successfully');

@@ -10,23 +10,7 @@
     '<p>Unable to load navigation. Please refresh the page.</p></div>';
 
   function setupMobileMenu() {
-    var toggle = document.getElementById('mobileMenuToggle');
-    if (toggle) {
-      toggle.addEventListener('click', function() {
-        var sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.toggle('active');
-      });
-    }
-    document.addEventListener('click', function(e) {
-      if (window.innerWidth <= 1024 && e.target.closest('.sidebar-link')) {
-        var sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.remove('active');
-      }
-    });
-    window.addEventListener('resize', function() {
-      var sidebar = document.querySelector('.sidebar');
-      if (window.innerWidth > 1024 && sidebar) sidebar.classList.remove('active');
-    });
+    /* Top nav has its own hamburger - no separate mobile toggle needed */
   }
 
   function setupLogoutButton() {

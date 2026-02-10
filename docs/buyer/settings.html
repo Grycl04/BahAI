@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Profile - BahAI Real Estate</title>
+<title>Profile & Preferences - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="style.css">
@@ -66,8 +66,11 @@
 
     .container {
       flex: 1;
-      margin-left: 280px;
+      margin-left: 0;
       padding: 30px;
+      padding-top: 94px;
+      width: 100%;
+      min-height: calc(100vh - 94px);
       transition: margin-left 0.3s ease;
     }
     @media (max-width: 1024px) {
@@ -210,6 +213,76 @@
       margin-top: 5px;
     }
 
+    /* Page context header: purpose above profile card */
+    .settings-page-header {
+      margin-bottom: 28px;
+    }
+    .settings-page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+    }
+    .settings-page-header p {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    /* Profile header polish: name primary, email secondary */
+    .profile-info h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .profile-info p {
+      color: var(--text-light);
+      font-size: 15px;
+    }
+    /* View vs Edit clarity */
+    .profile-view {
+      transition: opacity 0.25s ease;
+    }
+    #profileForm {
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .profile-edit-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .profile-edit-label i {
+      font-size: 12px;
+    }
+
+    /* Trust microcopy */
+    .trust-microcopy {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(11, 46, 82, 0.03);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+    .trust-microcopy i {
+      color: var(--success);
+      margin-right: 6px;
+    }
+
     /* Form Styles */
     .form-grid {
       display: grid;
@@ -324,16 +397,6 @@
       margin-top: 8px;
     }
 
-    .profile-info h3 {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .profile-info p {
-      color: var(--text-light);
-      font-size: 14px;
-    }
 
     .profile-view .profile-value {
       padding: 12px 0;
@@ -404,6 +467,9 @@
     .success-message.show {
       display: flex;
     }
+    .success-message {
+      font-weight: 500;
+    }
 
     /* Responsive Design */
     @media (max-width: 1024px) {
@@ -460,12 +526,18 @@
 <div id="sidebar-container"></div>
 
 <div class="container">
+  <!-- Page context: purpose above profile card -->
+  <header class="settings-page-header">
+    <h1>Profile & Preferences</h1>
+    <p>Your information helps BahAI personalize recommendations and insights</p>
+  </header>
+
   <div class="success-message" id="successMessage">
     <i class="fas fa-check-circle"></i>
     <span id="successText">Profile updated successfully!</span>
   </div>
 
-  <div class="settings-content" style="max-width: 800px;">
+  <div class="settings-content">
     <div class="settings-section active" id="profile-section">
         <div class="section-header">
           <h2><i class="fas fa-user"></i> Profile</h2>
@@ -508,13 +580,27 @@
               <p class="profile-value" id="viewCompany">—</p>
             </div>
             <div class="field field-full">
+              <label>Address</label>
+              <p class="profile-value" id="viewAddress">—</p>
+            </div>
+            <div class="field">
+              <label>Preferred Location</label>
+              <p class="profile-value" id="viewPreferredLocation">—</p>
+            </div>
+            <div class="field">
+              <label>Budget Range</label>
+              <p class="profile-value" id="viewBudgetRange">—</p>
+            </div>
+            <div class="field field-full">
               <label>Bio</label>
               <p class="profile-value" id="viewBio">—</p>
             </div>
           </div>
+          <div class="trust-microcopy"><i class="fas fa-shield-alt"></i> Your information is kept secure. Only used to improve your experience.</div>
         </div>
 
         <form id="profileForm" style="display: none;">
+          <div class="profile-edit-label"><i class="fas fa-pen"></i> Editing Profile</div>
           <div class="form-grid">
             <div class="field">
               <label for="firstName">First Name</label>
@@ -531,17 +617,33 @@
             <div class="field">
               <label for="phone">Phone Number</label>
               <input type="tel" id="phone" placeholder="+63 XXX XXX XXXX">
+              <div class="field-hint">Include country code (e.g. +63 for Philippines)</div>
             </div>
             <div class="field">
               <label for="company">Company</label>
               <input type="text" id="company" placeholder="Your company name">
             </div>
             <div class="field field-full">
+              <label for="address">Address</label>
+              <input type="text" id="address" placeholder="Your residential address">
+            </div>
+            <div class="field">
+              <label for="preferredLocation">Preferred Location</label>
+              <input type="text" id="preferredLocation" placeholder="e.g. Manila, Cebu">
+              <div class="field-hint">City or area where you're looking for properties</div>
+            </div>
+            <div class="field">
+              <label for="budgetRange">Budget Range</label>
+              <input type="text" id="budgetRange" placeholder="e.g. ₱2M - ₱5M">
+              <div class="field-hint">Your budget for purchase or rent</div>
+            </div>
+            <div class="field field-full">
               <label for="bio">Bio</label>
               <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
-              <div class="field-hint">Brief description about yourself (max 200 characters)</div>
+              <div class="field-hint">Brief description (max 200 characters)</div>
             </div>
           </div>
+          <div class="trust-microcopy"><i class="fas fa-shield-alt"></i> Your information is kept secure. Only used to improve your experience.</div>
           
           <div style="display: flex; gap: 15px; margin-top: 30px;">
             <button type="submit" class="btn btn-primary">
@@ -684,6 +786,9 @@ function updateProfileView() {
   document.getElementById('viewEmail').textContent = userData.email || currentUser?.email || '—';
   document.getElementById('viewPhone').textContent = userData.phone || userData.phoneNumber || '—';
   document.getElementById('viewCompany').textContent = userData.company || '—';
+  document.getElementById('viewAddress').textContent = userData.address || '—';
+  document.getElementById('viewPreferredLocation').textContent = userData.preferredLocation || '—';
+  document.getElementById('viewBudgetRange').textContent = userData.budgetRange || '—';
   document.getElementById('viewBio').textContent = userData.bio || '—';
 }
 
@@ -693,6 +798,9 @@ function populateForm(data) {
   document.getElementById('email').value = data.email || currentUser?.email || '';
   document.getElementById('phone').value = data.phone || data.phoneNumber || '';
   document.getElementById('company').value = data.company || '';
+  document.getElementById('address').value = data.address || '';
+  document.getElementById('preferredLocation').value = data.preferredLocation || '';
+  document.getElementById('budgetRange').value = data.budgetRange || '';
   document.getElementById('bio').value = data.bio || '';
 }
 
@@ -748,7 +856,7 @@ document.getElementById('profilePhotoInput').addEventListener('change', async fu
     try { localStorage.setItem('userData', JSON.stringify(profileData)); } catch (e) {}
     if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile(profileData);
 
-    showSuccess('Profile photo updated!');
+    showSuccess('Profile photo updated. Your new photo is saved.');
   } catch (err) {
     console.error('Photo upload error:', err);
     alert('Failed to upload photo. Please try again.');
@@ -779,13 +887,16 @@ document.getElementById('profileForm').addEventListener('submit', async function
       email: document.getElementById('email').value,
       phone: document.getElementById('phone').value,
       company: document.getElementById('company').value,
+      address: document.getElementById('address').value,
+      preferredLocation: document.getElementById('preferredLocation').value,
+      budgetRange: document.getElementById('budgetRange').value,
       bio: document.getElementById('bio').value,
       updatedAt: new Date()
     };
     await setDoc(userDocRef, updateData, { merge: true });
 
     // Update local userData
-    userData = { ...userData, firstName, lastName, fullName, email: document.getElementById('email').value, phone: document.getElementById('phone').value, company: document.getElementById('company').value, bio: document.getElementById('bio').value };
+    userData = { ...userData, firstName, lastName, fullName, email: document.getElementById('email').value, phone: document.getElementById('phone').value, company: document.getElementById('company').value, address: document.getElementById('address').value, preferredLocation: document.getElementById('preferredLocation').value, budgetRange: document.getElementById('budgetRange').value, bio: document.getElementById('bio').value };
 
     // Refresh UI
     document.getElementById('settingsUserName').textContent = fullName;
@@ -799,7 +910,7 @@ document.getElementById('profileForm').addEventListener('submit', async function
     if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile(profileData);
 
     showViewMode();
-    showSuccess('Profile updated successfully!');
+    showSuccess('Profile updated successfully. Your changes are saved and secure.');
   } catch (error) {
     console.error("Error updating profile:", error);
     alert('Error updating profile: ' + error.message);
@@ -811,19 +922,21 @@ window.resetProfileForm = function() {
   populateForm(userData);
 };
 
-// Success message function
+// Success message function - confirms changes, reinforces trust
 function showSuccess(message) {
   const successEl = document.getElementById('successMessage');
-  document.getElementById('successText').textContent = message;
+  const textEl = document.getElementById('successText');
+  textEl.textContent = message || 'Changes saved successfully. Your profile is up to date.';
   successEl.classList.add('show');
   
   setTimeout(() => {
     successEl.classList.remove('show');
-  }, 3000);
+  }, 4000);
 }
 
 // Require login and load user data
 onAuthStateChanged(auth, (user) => {
+  if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
   if (!user) {
     window.location.href = "../login.html";
   } else {

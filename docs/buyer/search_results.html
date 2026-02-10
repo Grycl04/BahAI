@@ -680,22 +680,23 @@ let isUserAuthenticated = false;
 let currentConversationId = null;
 let messageListener = null;
 
-// Property category and type mappings based on transaction type
+// Replace the current PROPERTY_CATEGORIES with this updated version:
 const PROPERTY_CATEGORIES = {
     'rent': [
-        { category: 'Residential Property', types: ['Apartment', 'Condominium', 'Room / Bedspace', 'House', 'Dormitory'] },
-        { category: 'Commercial Property', types: ['Office Unit', 'Retail Space / Shop', 'Food Stall / Kiosk'] },
-        { category: 'Industrial Property', types: ['Warehouse', 'Factory', 'Storage Unit'] }
-    ],
-    'lease': [
-        { category: 'Commercial Property', types: ['Office Floor', 'Commercial Building', 'Warehouse'] },
-        { category: 'Land / Lot', types: ['Agricultural Lot', 'Commercial Lot', 'Industrial Lot'] },
-        { category: 'Special Purpose Property', types: ['Resort Property', 'Event Venue', 'School Property', 'Sports Facility'] }
+        { category: 'Residential', types: ['Apartment', 'Boarding House', 'Condo', 'Room', 'Townhouse', 'House', 'Dormitory'] },
+        { category: 'Commercial', types: ['Office Unit', 'Retail Space', 'Food Stall', 'Shop', 'Showroom'] },
+        { category: 'Industrial', types: ['Warehouse', 'Storage Unit', 'Factory', 'Workshop'] }
     ],
     'sale': [
-        { category: 'Residential Property', types: ['House', 'Townhouse', 'Condominium', 'Apartment'] },
-        { category: 'Commercial Property', types: ['Office Space', 'Retail Space / Shop', 'Commercial Building'] },
-        { category: 'Land / Lot', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Lot'] }
+        { category: 'Residential', types: ['House', 'Townhouse', 'Bungalow', 'Duplex', 'Village Lot'] },
+        { category: 'Commercial', types: ['Commercial Building', 'Office Space', 'Retail Space', 'Warehouse', 'Showroom'] },
+        { category: 'Land / Lot', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Beachfront'] },
+        { category: 'Condominium', types: ['Condo Unit', 'Penthouse', 'Studio', 'Loft'] }
+    ],
+    'lease': [
+        { category: 'Commercial', types: ['Office Floor', 'Retail Space (Lease)', 'Building Lease', 'Commercial Unit', 'Showroom Lease', 'Warehouse Lease'] },
+        { category: 'Land / Lot', types: ['Commercial Lot', 'Agricultural Land', 'Development Land', 'Industrial Lot', 'Residential Lot', 'Vacant Lot'] },
+        { category: 'Special Purpose', types: ['Resort Property', 'Event Venue', 'Parking Area', 'School Property', 'Hospitality', 'Sports Facility'] }
     ]
 };
 

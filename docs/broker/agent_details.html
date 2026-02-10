@@ -67,6 +67,8 @@
       box-shadow: var(--shadow-lg);
     }
 
+    .sidebar-overlay { display: none; }
+
     .container {
       flex: 1;
       margin-left: 280px;
@@ -101,30 +103,30 @@
 
     /* Page Header */
     .page-header {
-      margin-bottom: 30px;
+      margin-bottom: 24px;
     }
 
     .page-header h1 {
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 700;
       color: var(--text-dark);
-      margin-bottom: 10px;
-      line-height: 1.2;
+      margin-bottom: 6px;
+      line-height: 1.25;
     }
 
     .page-header p {
       color: var(--text-light);
-      font-size: 16px;
+      font-size: 14px;
     }
 
     /* Profile Header - same as agent_ownprofile */
     .profile-header {
       background: var(--bg-white);
-      padding: 30px;
+      padding: 24px;
       border-radius: var(--border-radius);
       box-shadow: var(--card-shadow);
       border: 1px solid rgba(0, 0, 0, 0.05);
-      margin-bottom: 30px;
+      margin-bottom: 24px;
       position: relative;
       overflow: hidden;
       border-top: 5px solid var(--premium);
@@ -146,9 +148,9 @@
     }
 
     .profile-badge {
-      padding: 6px 16px;
+      padding: 5px 12px;
       border-radius: 20px;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
     }
@@ -218,7 +220,7 @@
       justify-content: center;
       background: var(--premium-gradient);
       color: white;
-      font-size: 60px;
+      font-size: 48px;
       font-weight: bold;
     }
 
@@ -227,20 +229,20 @@
     }
 
     .profile-name {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 700;
       color: var(--text-dark);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
     }
 
     .profile-title {
-      font-size: 18px;
+      font-size: 15px;
       color: var(--premium);
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .profile-title i {
@@ -250,10 +252,10 @@
     .profile-location {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       color: var(--text-light);
-      margin-bottom: 15px;
-      font-size: 16px;
+      margin-bottom: 12px;
+      font-size: 14px;
     }
 
     .profile-location i {
@@ -261,11 +263,12 @@
     }
 
     .profile-bio {
-      line-height: 1.6;
+      line-height: 1.55;
       color: var(--text-dark);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       font-style: italic;
       max-width: 800px;
+      font-size: 14px;
     }
 
     /* Agent Specific Info */
@@ -280,29 +283,29 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 15px;
+      font-size: 13px;
       color: var(--text-dark);
     }
 
     .agent-info-item i {
       color: #d4af37;
-      width: 20px;
+      width: 18px;
     }
 
     /* Broker Affiliated */
     .broker-info-container {
       background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       border-radius: var(--border-radius-sm);
-      padding: 20px;
-      margin-top: 20px;
+      padding: 16px;
+      margin-top: 16px;
       border: 1px solid rgba(11, 46, 82, 0.2);
     }
 
     .broker-info-header {
       font-weight: 600;
       color: var(--premium);
-      margin-bottom: 10px;
-      font-size: 16px;
+      margin-bottom: 8px;
+      font-size: 14px;
     }
 
     .broker-info-content {
@@ -342,7 +345,7 @@
     }
 
     .broker-company {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-light);
     }
 
@@ -364,11 +367,11 @@
     .action-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 24px;
+      gap: 6px;
+      padding: 10px 20px;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
       transition: all 0.3s ease;
       text-decoration: none;
@@ -428,32 +431,39 @@
     /* Card Styles */
     .profile-card {
       background: var(--bg-white);
-      padding: 25px;
+      padding: 20px;
       border-radius: var(--border-radius);
       box-shadow: var(--card-shadow);
       border: 1px solid rgba(0, 0, 0, 0.05);
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       border-top: 3px solid var(--premium);
     }
 
     .section-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
       border-bottom: 2px solid var(--border);
     }
 
     .section-header i {
-      font-size: 22px;
+      font-size: 18px;
       color: var(--premium);
     }
 
     .section-header h2 {
-      font-size: 20px;
+      font-size: 17px;
       font-weight: 600;
       color: var(--text-dark);
+    }
+
+    .profile-card h3 {
+      margin-bottom: 8px;
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 600;
     }
 
     /* Tags Container */
@@ -467,9 +477,9 @@
     .tag {
       background: var(--bg-light);
       color: var(--text-dark);
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 20px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       border: 1px solid var(--border);
     }
@@ -494,8 +504,8 @@
     .contact-item {
       display: flex;
       align-items: center;
-      gap: 15px;
-      padding: 15px 0;
+      gap: 12px;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border);
     }
 
@@ -504,15 +514,15 @@
     }
 
     .contact-icon {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: rgba(11, 46, 82, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--premium);
-      font-size: 18px;
+      font-size: 16px;
     }
 
     .contact-details {
@@ -520,13 +530,14 @@
     }
 
     .contact-label {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-light);
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .contact-value {
       font-weight: 500;
+      font-size: 14px;
       color: var(--text-dark);
       word-break: break-all;
     }
@@ -642,7 +653,7 @@
       background: #3b82f6;
     }
     .listing-content {
-      padding: 25px;
+      padding: 18px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -652,8 +663,8 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 10px;
-      gap: 12px;
+      margin-bottom: 8px;
+      gap: 10px;
     }
     .listing-header > div:first-child {
       flex: 1;
@@ -661,10 +672,10 @@
       overflow: hidden;
     }
     .listing-title {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text-dark);
-      line-height: 1.35;
+      line-height: 1.3;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -672,7 +683,7 @@
       -webkit-box-orient: vertical;
     }
     .listing-price {
-      font-size: 1.2rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary-dark);
       white-space: normal;
@@ -687,8 +698,8 @@
       align-items: flex-start;
       gap: 6px;
       color: var(--text-light);
-      font-size: 0.9rem;
-      margin-bottom: 14px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
     }
     .listing-location-text {
       overflow: hidden;
@@ -698,17 +709,17 @@
     }
     .listing-details {
       display: flex;
-      gap: 16px;
-      margin-bottom: 14px;
-      padding-bottom: 14px;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
       border-bottom: 1px solid #e5e7eb;
     }
     .detail {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       color: var(--text-light);
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
     .card-link-overlay {
       position: absolute;
@@ -861,81 +872,148 @@
       transform: translateY(-2px);
     }
 
+    /* Page top row: back + title (desktop) */
+    .page-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .page-top-row .back-button { margin-bottom: 0; }
+
     /* Responsive Design */
     @media (max-width: 1024px) {
       .container {
         margin-left: 0;
-        padding: 25px;
+        padding: 24px;
+        padding-top: 70px;
         max-width: 100%;
       }
-      
       .mobile-menu-toggle {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
       }
     }
 
     @media (max-width: 768px) {
-      .page-header h1 {
-        font-size: 24px;
+      .container {
+        padding: 16px;
+        padding-top: 56px;
       }
-      
+      .page-header { margin-bottom: 16px; }
+      .page-header h1 { font-size: 20px; }
+      .page-header p { font-size: 13px; }
+      .profile-header { padding: 18px; margin-bottom: 20px; }
+      .profile-header-top { margin-bottom: 14px; }
+      .profile-main { gap: 20px; margin-bottom: 20px; }
       .profile-photo {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
       }
-      
-      .profile-name {
-        font-size: 24px;
-      }
-      
+      .profile-photo-placeholder { font-size: 36px; }
+      .profile-name { font-size: 18px; margin-bottom: 2px; }
+      .profile-title { font-size: 13px; margin-bottom: 6px; }
+      .profile-location { font-size: 13px; margin-bottom: 10px; }
+      .profile-bio { font-size: 13px; margin-bottom: 14px; }
       .profile-actions {
-        flex-direction: column;
-        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
       }
-      
       .action-btn {
-        width: 100%;
+        flex: 1;
+        min-width: 120px;
         justify-content: center;
+        padding: 10px 16px;
+        font-size: 13px;
       }
-      
+      .profile-card { padding: 16px; margin-bottom: 16px; }
+      .section-header { margin-bottom: 12px; padding-bottom: 10px; }
+      .section-header i { font-size: 16px; }
+      .section-header h2 { font-size: 15px; }
+      .tags-container { gap: 8px; margin-top: 10px; }
+      .tag { padding: 5px 10px; font-size: 12px; }
+      .contact-item { padding: 10px 0; gap: 10px; }
+      .contact-icon { width: 32px; height: 32px; font-size: 14px; }
+      .contact-label { font-size: 11px; }
+      .contact-value { font-size: 13px; }
       .properties-header {
         flex-direction: column;
         align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
       }
-      
       .filter-select {
         width: 100%;
+        min-width: 0;
+        padding: 10px 14px;
+        font-size: 13px;
       }
-      
-      .agent-info-row {
-        flex-direction: column;
-        gap: 10px;
+      .agent-info-row { flex-direction: column; gap: 8px; }
+      .agent-info-item { font-size: 12px; }
+      .broker-info-container { padding: 14px; margin-top: 14px; }
+      .broker-info-header { font-size: 13px; }
+      .broker-avatar { width: 44px; height: 44px; }
+      .broker-name, .broker-company { font-size: 13px; }
+      .properties-grid { gap: 20px; margin-top: 16px; }
+      .listing-card-image-container { height: 180px; }
+      .listing-content { padding: 14px; }
+      .listing-title { font-size: 0.95rem; }
+      .listing-price { font-size: 1rem; }
+      .listing-location { font-size: 0.8rem; margin-bottom: 8px; }
+      .listing-details { gap: 10px; margin-bottom: 8px; padding-bottom: 8px; }
+      .detail { font-size: 0.75rem; }
+      .listing-type-badge { font-size: 11px; padding: 5px 10px; }
+      .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+      .empty-state h3 { font-size: 17px; }
+      .empty-state { padding: 40px 16px; font-size: 14px; }
+      .professional-details > div { margin-bottom: 12px !important; }
+      .social-link { width: 40px; height: 40px; font-size: 16px; }
+      /* Back button fixed right, in line with burger */
+      .page-top-row .back-button {
+        position: fixed;
+        top: 20px;
+        right: 16px;
+        z-index: 1001;
+        margin: 0;
       }
-      
-      .broker-info-content {
-        flex-direction: column;
-        text-align: center;
+      .page-top-row .page-header { margin-bottom: 0; }
+      /* Mobile sidebar overlay */
+      .sidebar { position: fixed; top: 0; left: 0; width: 260px; max-width: 80%; height: 100vh; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000; }
+      .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.35);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
       }
-      
-      .container {
-        padding: 20px;
-      }
+      body.sidebar-open { overflow: hidden; }
+      body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+      body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
     }
 
     @media (max-width: 480px) {
-      .profile-header {
-        padding: 20px;
-      }
-      
-      .stat-value {
-        font-size: 28px;
-      }
-      
-      .profile-content {
-        grid-template-columns: 1fr;
-      }
+      .container { padding: 12px; padding-top: 54px; }
+      .mobile-menu-toggle { top: 12px; left: 12px; width: 44px; height: 44px; font-size: 20px; }
+      .page-header h1 { font-size: 1.15rem; }
+      .profile-header { padding: 14px; }
+      .profile-photo { width: 80px; height: 80px; }
+      .profile-photo-placeholder { font-size: 28px; }
+      .profile-name { font-size: 1.1rem; }
+      .profile-title { font-size: 12px; }
+      .profile-actions { flex-direction: column; }
+      .action-btn { width: 100%; min-width: 0; }
+      .profile-card { padding: 14px; }
+      .section-header h2 { font-size: 14px; }
+      .page-top-row .back-button { top: 12px; right: 12px; padding: 10px 14px; font-size: 13px; }
     }
 </style>
 </head>
@@ -945,20 +1023,18 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Main Content -->
 <div class="container">
-    <!-- Back Button -->
-    <div>
+    <div class="page-top-row">
         <a href="list_agent.html" class="back-button">
             <i class="fas fa-arrow-left"></i> Back to Agents
         </a>
-    </div>
-
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 id="pageTitle">Agent Profile</h1>
-        <p id="pageSubtitle">View agent profile and listings</p>
+        <div class="page-header" style="flex: 1; min-width: 0;">
+            <h1 id="pageTitle">Agent Profile</h1>
+            <p id="pageSubtitle">View agent profile and listings</p>
+        </div>
     </div>
 
     <!-- Profile Content -->
@@ -1022,19 +1098,10 @@
                         </div>
                     </div>
 
-                    <!-- Profile Actions (Contact buttons for viewing other agent) -->
+                    <!-- Profile Actions -->
                     <div class="profile-actions" id="profileActions">
-                        <a href="#" class="action-btn btn-primary" id="contactBtn">
-                            <i class="fas fa-envelope"></i> Contact
-                        </a>
-                        <a href="#" class="action-btn btn-secondary" id="whatsappBtn" style="display: none;">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
-                        </a>
-                        <a href="#" class="action-btn btn-outline" id="callBtn">
-                            <i class="fas fa-phone"></i> Call Now
-                        </a>
-                        <a href="#" class="action-btn btn-secondary" id="viberBtn" style="display: none;">
-                            <i class="fab fa-viber"></i> Viber
+                        <a href="#" class="action-btn btn-primary" id="chatBtn">
+                            <i class="fas fa-comments"></i> Chat
                         </a>
                     </div>
                 </div>
@@ -1063,22 +1130,22 @@
                         <h2>Specializations</h2>
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px; color: var(--text-dark); font-size: 16px; font-weight: 600;">Property Types</h3>
+                    <div style="margin-bottom: 16px;">
+                        <h3>Property Types</h3>
                         <div class="tags-container" id="propertyTypes">
                             <span class="tag no-data">Not specified</span>
                         </div>
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px; color: var(--text-dark); font-size: 16px; font-weight: 600;">Service Areas</h3>
+                    <div style="margin-bottom: 16px;">
+                        <h3>Service Areas</h3>
                         <div class="tags-container" id="serviceAreas">
                             <span class="tag no-data">Not specified</span>
                         </div>
                     </div>
                     
                     <div>
-                        <h3 style="margin-bottom: 10px; color: var(--text-dark); font-size: 16px; font-weight: 600;">Agent Skills</h3>
+                        <h3>Agent Skills</h3>
                         <div class="tags-container" id="agentSkills">
                             <span class="tag no-data">Not specified</span>
                         </div>
@@ -1212,13 +1279,21 @@
 <!-- Sidebar Loader Script -->
 <script src="../sidebar-user.js"></script>
 <script>
-// Mobile menu functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-            'translateX(-100%)' : 'translateX(0px)';
-    }
+// Mobile menu: toggle body class so sidebar slides in (works before sidebar loads)
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', function() {
+        document.body.classList.toggle('sidebar-open');
+    });
+}
+var overlayEl = document.getElementById('sidebarOverlay');
+if (overlayEl) {
+    overlayEl.addEventListener('click', function() {
+        document.body.classList.remove('sidebar-open');
+    });
+}
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
 });
 
 // Simple logout function
@@ -1600,7 +1675,7 @@ function displayAgentProfile(agent) {
   document.getElementById('agentId').textContent = agentId;
   document.getElementById('languagesSpoken').textContent = languages;
   
-  setupContactButtons(email, phone, agent.socialMedia);
+  setupChatButton(agent.id || currentAgentId);
   
   // Update specializations (same order as agent_ownprofile)
   updateTagsSection('propertyTypes', agent.propertyTypes);
@@ -1619,57 +1694,14 @@ function displayAgentProfile(agent) {
   updateBrokerInfo(agent);
 }
 
-function setupContactButtons(email, phone, socialMedia) {
-  const contactBtn = document.getElementById('contactBtn');
-  const callBtn = document.getElementById('callBtn');
-  const whatsappBtn = document.getElementById('whatsappBtn');
-  const viberBtn = document.getElementById('viberBtn');
-  
-  // Email button
-  if (email && email !== 'Not provided') {
-    contactBtn.href = `mailto:${email}?subject=Inquiry about working with you`;
-    contactBtn.style.display = 'inline-flex';
+function setupChatButton(agentId) {
+  const chatBtn = document.getElementById('chatBtn');
+  if (!chatBtn) return;
+  if (agentId) {
+    chatBtn.href = `inquiries.html?with=${encodeURIComponent(agentId)}`;
+    chatBtn.style.display = 'inline-flex';
   } else {
-    contactBtn.style.display = 'none';
-  }
-  
-  // Call button
-  if (phone && phone !== 'Not provided') {
-    const cleanPhone = phone.replace(/\D/g, '');
-    callBtn.href = `tel:${cleanPhone}`;
-    callBtn.style.display = 'inline-flex';
-  } else {
-    callBtn.style.display = 'none';
-  }
-  
-  // WhatsApp button
-  let whatsappNumber = '';
-  if (socialMedia && socialMedia.whatsapp) {
-    whatsappNumber = socialMedia.whatsapp.replace(/\D/g, '');
-  } else if (phone && phone !== 'Not provided') {
-    whatsappNumber = phone.replace(/\D/g, '');
-  }
-  
-  if (whatsappNumber) {
-    whatsappBtn.href = `https://wa.me/${whatsappNumber}`;
-    whatsappBtn.style.display = 'inline-flex';
-  } else {
-    whatsappBtn.style.display = 'none';
-  }
-  
-  // Viber button
-  let viberNumber = '';
-  if (socialMedia && socialMedia.viber) {
-    viberNumber = socialMedia.viber.replace(/\D/g, '');
-  } else if (phone && phone !== 'Not provided') {
-    viberNumber = phone.replace(/\D/g, '');
-  }
-  
-  if (viberNumber) {
-    viberBtn.href = `viber://chat?number=${viberNumber}`;
-    viberBtn.style.display = 'inline-flex';
-  } else {
-    viberBtn.style.display = 'none';
+    chatBtn.style.display = 'none';
   }
 }
 
@@ -2110,10 +2142,8 @@ function displayEmptyProfile() {
   document.getElementById('agentTitle').textContent = '';
   document.getElementById('agentBio').innerHTML = '<p class="no-data">This profile could not be loaded.</p>';
   document.getElementById('agentAbout').innerHTML = '<p class="no-data">This profile could not be loaded.</p>';
-  document.getElementById('contactBtn').style.display = 'none';
-  document.getElementById('callBtn').style.display = 'none';
-  document.getElementById('whatsappBtn').style.display = 'none';
-  document.getElementById('viberBtn').style.display = 'none';
+  const chatBtn = document.getElementById('chatBtn');
+  if (chatBtn) chatBtn.style.display = 'none';
 }
 
 function showToast(message, type = 'info') {

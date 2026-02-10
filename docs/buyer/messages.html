@@ -8,13 +8,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="style.css">
 <style>
-    /* Same design tokens as buyer dashboard */
+    /* Match buyer dashboard - Navy + Gold */
     :root {
-      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #667eea 100%);
-      --primary-light: #667eea;
-      --primary-dark: #764ba2;
-      --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --primary-light: #1e3a5f;
+      --primary-dark: #071e38;
+      --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
       --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
       --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
       --border-radius: 16px;
@@ -25,9 +25,9 @@
       --bg-light: #f8fafc;
       --bg-white: #ffffff;
       --border: #e5e7eb;
-      --unread-bg: #eef2ff;
-      --unread-border: rgba(102, 126, 234, 0.3);
-      --message-sent: #e3f2fd;
+      --unread-bg: rgba(11, 46, 82, 0.06);
+      --unread-border: rgba(11, 46, 82, 0.25);
+      --message-sent: #e8f0f7;
       --message-received: #f5f5f5;
       --success: #10b981;
       --error: #ef4444;
@@ -54,7 +54,7 @@
 
     body {
       font-family: 'Inter', Arial, sans-serif;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: #f1f5f9;
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
@@ -80,9 +80,13 @@
 
     .container {
       flex: 1;
-      margin-left: 280px;
-      padding: 30px;
-      transition: margin-left 0.3s ease;
+      margin-left: 0;
+      padding: 0;
+      padding-top: 94px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow: hidden;
     }
 
     /* Hero Section - same as buyer dashboard */
@@ -132,6 +136,7 @@
       position: relative;
       z-index: 1;
     }
+
     .refresh-btn {
       background: rgba(255,255,255,0.2);
       color: white;
@@ -160,25 +165,44 @@
     .messages-container {
       display: grid;
       grid-template-columns: 350px 1fr;
-      gap: 25px;
-      height: calc(100vh - 180px);
-      min-height: 600px;
+      grid-template-rows: 1fr;
+      gap: 0;
+      flex: 1;
+      min-height: calc(100vh - 94px);
+      overflow: hidden;
     }
 
-    /* Conversations List - same card style as dashboard */
+    /* Conversations List - full height */
     .conversations-sidebar {
       background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--card-shadow);
-      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-width: 320px;
+      min-height: 0;
     }
 
     .conversations-header {
       padding: 20px;
       border-bottom: 1px solid var(--border);
+    }
+    .conversations-header-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .conversations-header-title i {
+      color: #d4af37;
+    }
+    .conversations-header-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin: 0 0 16px 0;
     }
 
     /* Schedule status message styles */
@@ -296,7 +320,7 @@
     }
     .schedule-action-btn.primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
     }
     .schedule-action-btn.secondary {
       background: white;
@@ -348,7 +372,7 @@
       margin-bottom: 15px;
     }
     .conversations-header h2 i {
-      color: var(--primary-light);
+      color: #d4af37;
       font-size: 1.2rem;
     }
 
@@ -366,31 +390,6 @@
       color: var(--primary-light);
       font-weight: 600;
       text-decoration: underline;
-    }
-
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;
-      font-size: 14px;
-    }
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .stat-value {
-      font-weight: 700;
-      color: var(--primary-light);
-      font-size: 20px;
-    }
-
-    .stat-label {
-      color: var(--text-light);
-      font-size: 12px;
     }
 
     .filter-buttons {
@@ -443,7 +442,7 @@
     .conversations-search input:focus {
       outline: none;
       border-color: var(--primary-light);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.15);
     }
 
     .conversations-search i {
@@ -480,12 +479,14 @@
     }
 
     .conversation-item.unread {
-      background: var(--unread-bg);
+      background: rgba(212, 175, 55, 0.08);
+      border-left: 4px solid #d4af37;
     }
 
     .conversation-avatar {
       width: 50px;
       height: 50px;
+      min-width: 50px;
       border-radius: 50%;
       background: var(--primary-gradient);
       display: flex;
@@ -495,6 +496,13 @@
       font-weight: 600;
       font-size: 16px;
       flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .conversation-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .conversation-info {
@@ -532,13 +540,14 @@
       margin-bottom: 6px;
     }
 
+    /* Property tag: "Regarding: [Property Name]" */
     .conversation-property {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
       color: var(--primary-light);
-      background: rgba(102, 126, 234, 0.08);
+      background: rgba(11, 46, 82, 0.06);
       padding: 4px 8px;
       border-radius: var(--border-radius-sm);
       width: fit-content;
@@ -550,6 +559,16 @@
 
     .conversation-property i {
       font-size: 10px;
+    }
+
+    /* Property thumbnail in conversation list */
+    .conversation-property-thumb {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
     }
 
     .conversation-badge {
@@ -599,15 +618,14 @@
       transform: scale(1.1);
     }
 
-    /* Chat Container - same card style as dashboard */
+    /* Chat Container - full height */
     .chat-container {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--card-shadow);
-      border: 1px solid rgba(0, 0, 0, 0.05);
+      background: var(--bg-light);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-width: 0;
+      min-height: 0;
     }
 
     .chat-header {
@@ -616,7 +634,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--bg-white);
+      background: white;
+      flex-shrink: 0;
       flex-wrap: wrap;
       gap: 15px;
     }
@@ -632,6 +651,7 @@
     .chat-user-avatar {
       width: 45px;
       height: 45px;
+      min-width: 45px;
       border-radius: 50%;
       background: var(--primary-gradient);
       display: flex;
@@ -641,6 +661,13 @@
       font-weight: 600;
       font-size: 16px;
       flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .chat-user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .chat-user-details {
@@ -670,48 +697,9 @@
       font-size: 11px;
     }
 
-    .chat-property-info {
-      background: var(--bg-light);
-      padding: 12px 16px;
-      border-radius: 10px;
-      max-width: 300px;
-      flex-shrink: 0;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .chat-property-info:hover {
-      background: white;
-      box-shadow: var(--card-shadow);
-    }
-
-    .chat-property-info h4 {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .chat-property-info p {
-      font-size: 12px;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-bottom: 4px;
-    }
-
-    .chat-property-price {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--primary-dark);
-    }
-
     .chat-messages-container {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding: 25px;
       background: var(--bg-light);
@@ -763,8 +751,9 @@
       font-size: 14px;
     }
 
+    /* Buyer messages: navy accent */
     .message-bubble.received .message-content {
-      background: var(--message-received);
+      background: #f1f5f9;
       border-bottom-left-radius: 4px;
       color: var(--text-dark);
     }
@@ -775,10 +764,23 @@
       border-bottom-right-radius: 4px;
     }
 
+    /* AI-suggested message: subtle gold accent (when flagged) */
+    .message-bubble.ai-suggested .message-content {
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .message-bubble.ai-suggested .message-ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #b8860b;
+      margin-top: 4px;
+    }
+
     .message-time {
       font-size: 11px;
       color: var(--text-light);
-      margin-top: 4px;
+      margin-top: 6px;
       padding: 0 8px;
     }
 
@@ -823,13 +825,28 @@
     .chat-input-container {
       padding: 20px 25px;
       border-top: 1px solid var(--border);
-      background: var(--bg-white);
+      background: white;
+      flex-shrink: 0;
     }
 
     .chat-input-wrapper {
       display: flex;
       gap: 12px;
       align-items: flex-end;
+      position: relative;
+    }
+
+    .chat-input-wrapper .ai-icon-near-input {
+      position: absolute;
+      left: 14px;
+      bottom: 16px;
+      color: #d4af37;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .chat-input-wrapper.has-ai-icon .chat-input {
+      padding-left: 38px;
     }
 
     .chat-input {
@@ -848,7 +865,50 @@
     .chat-input:focus {
       outline: none;
       border-color: var(--primary-light);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.15);
+    }
+
+    /* BahAI Assist panel - suggested replies (core feature) */
+    .bahai-assist-panel {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(11, 46, 82, 0.04) 0%, rgba(212, 175, 55, 0.08) 100%);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: var(--border-radius-sm);
+    }
+    .bahai-assist-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bahai-assist-label i {
+      color: #d4af37;
+    }
+    .bahai-assist-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .bahai-suggestion-chip {
+      padding: 8px 14px;
+      background: white;
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bahai-suggestion-chip:hover {
+      background: rgba(212, 175, 55, 0.12);
+      border-color: #d4af37;
     }
     .send-button {
       background: var(--primary-gradient);
@@ -866,7 +926,7 @@
     }
     .send-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
     }
     .send-button:disabled {
       background: #e5e7eb;
@@ -907,7 +967,7 @@
     }
 
     .spinner {
-      border: 4px solid rgba(102, 126, 234, 0.2);
+      border: 4px solid rgba(11, 46, 82, 0.2);
       border-top: 4px solid var(--primary-light);
       border-radius: 50%;
       width: 50px;
@@ -1062,7 +1122,7 @@
     }
     .action-btn.primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
     }
 
     /* Delete Conversation Modal */
@@ -1174,7 +1234,7 @@
     @media (max-width: 1024px) {
       .container {
         margin-left: 0;
-        padding: 25px;
+        padding: 0;
       }
       
       .mobile-menu-toggle {
@@ -1185,29 +1245,27 @@
       
       .messages-container {
         grid-template-columns: 1fr;
-        height: auto;
-        min-height: calc(100vh - 180px);
+        grid-template-rows: minmax(0, 1fr) minmax(0, 2fr);
+        min-height: 100vh;
       }
       
       .conversations-sidebar {
-        max-height: 400px;
+        max-height: 45vh;
+        min-height: 200px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
       }
       
       .chat-header {
         flex-direction: column;
         align-items: flex-start;
       }
-      
-      .chat-property-info {
-        max-width: 100%;
-        width: 100%;
-      }
     }
 
-    /* Large Mobile - same as buyer dashboard */
+    /* Large Mobile */
     @media (max-width: 768px) {
       .container {
-        padding: 20px;
+        padding: 0;
       }
       .mobile-menu-toggle {
         top: 15px;
@@ -1236,12 +1294,24 @@
       .filter-buttons {
         flex-wrap: wrap;
       }
+
+      /* BahAI Assist: remain accessible on mobile */
+      .bahai-assist-panel {
+        padding: 10px 14px;
+      }
+      .bahai-assist-suggestions {
+        gap: 6px;
+      }
+      .bahai-suggestion-chip {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
     }
 
     /* Small Mobile */
     @media (max-width: 480px) {
       .container {
-        padding: 15px;
+        padding: 0;
       }
       
       .mobile-menu-toggle {
@@ -1304,41 +1374,22 @@
 
 <!-- Main - same layout as buyer dashboard -->
 <div class="container">
-  <!-- Hero Section - same design as buyer dashboard -->
-  <div class="hero-section">
-    <h1>My Messages</h1>
-    <p>View and manage your conversations with brokers and property owners</p>
-    <div class="hero-actions">
-      <button class="refresh-btn" id="refreshBtn">
-        <i class="fas fa-sync-alt"></i> Refresh
-      </button>
-    </div>
-  </div>
-
   <div class="messages-container">
     <!-- Conversations Sidebar -->
     <div class="conversations-sidebar">
       <div class="conversations-header">
-        <h2><i class="fas fa-comments"></i> Conversations</h2>
+        <h2 class="conversations-header-title"><i class="fas fa-comments"></i> Messages</h2>
+        <p class="conversations-header-subtitle">AI-assisted communication with property owners and brokers</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 0.9rem; color: var(--text-light);">Conversations</span>
+          <button class="refresh-btn" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
         
         <div class="index-notice" id="indexNotice">
           <i class="fas fa-info-circle"></i> 
           <span id="noticeText">No conversations yet. Start messaging brokers from property listings.</span>
-        </div>
-        
-        <div class="stats-row" id="conversationStats">
-          <div class="stat-item">
-            <div class="stat-value">0</div>
-            <div class="stat-label">Total</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">0</div>
-            <div class="stat-label">Unread</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">0</div>
-            <div class="stat-label">Today</div>
-          </div>
         </div>
         
         <div class="filter-buttons">
@@ -1350,9 +1401,6 @@
           </button>
           <button class="filter-btn" id="filterToday">
             <i class="fas fa-calendar-day"></i> Today
-          </button>
-          <button class="filter-btn" id="fixDataBtn" style="background: var(--accent-gradient); color: white; border: none;">
-            <i class="fas fa-wrench"></i> Fix Data
           </button>
         </div>
         
@@ -1379,24 +1427,33 @@
             <p id="chatUserStatus"><i class="fas fa-circle" style="color: #ccc; font-size: 8px;"></i> Choose a conversation to start messaging</p>
           </div>
         </div>
-        <div class="chat-property-info" id="chatPropertyInfo" style="display: none;">
-          <h4 id="propertyTitle">Property Title</h4>
-          <p><i class="fas fa-map-marker-alt"></i> <span id="propertyLocation">Location</span></p>
-          <div class="property-quick-price" id="propertyPrice">₱0</div>
-        </div>
       </div>
 
       <div class="chat-messages-container" id="chatMessagesContainer">
         <div class="empty-state">
           <div class="empty-state-icon">💬</div>
-          <h3>No conversation selected</h3>
-          <p>Select a conversation from the list to view messages</p>
+          <h3>Select a conversation to begin</h3>
+          <p>BahAI can help you start the conversation. Choose a chat from the list.</p>
         </div>
       </div>
 
       <div class="chat-input-container" id="chatInputContainer" style="display: none;">
-        <div class="chat-input-wrapper">
-          <textarea class="chat-input" id="chatInput" placeholder="Type your message here..." rows="1"></textarea>
+        <!-- BahAI Assist: Suggested replies (auto-fill input, user confirms before send) -->
+        <div class="bahai-assist-panel" id="bahaiAssistPanel">
+          <div class="bahai-assist-label">
+            <i class="fas fa-robot"></i>
+            Suggested by BahAI
+          </div>
+          <div class="bahai-assist-suggestions">
+            <button type="button" class="bahai-suggestion-chip" data-suggestion="Is this property still available? I'm very interested.">Ask about availability</button>
+            <button type="button" class="bahai-suggestion-chip" data-suggestion="I'd like to schedule a site visit. When would be a good time?">Request a site visit</button>
+            <button type="button" class="bahai-suggestion-chip" data-suggestion="I'm interested in this property. Is there any flexibility on the price?">Negotiate price</button>
+          </div>
+        </div>
+        
+        <div class="chat-input-wrapper has-ai-icon">
+          <i class="fas fa-sparkles ai-icon-near-input" title="BahAI can help you compose messages"></i>
+          <textarea class="chat-input" id="chatInput" placeholder="Type your message or use BahAI suggestions…" rows="1"></textarea>
           <button class="send-button" id="sendButton">
             <i class="fas fa-paper-plane"></i>
           </button>
@@ -1441,50 +1498,11 @@
 </div>
 
 <!-- Sidebar Loader -->
+<script src="../sidebar-user.js"></script>
+<script src="buyer-sidebar-loader.js"></script>
 <script>
-// Mobile menu functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-      'translateX(-100%)' : 'translateX(0px)';
-  }
-});
-
-// Close sidebar when clicking on a link (mobile)
-document.addEventListener('click', function(e) {
-  if (window.innerWidth <= 1024) {
-    if (e.target.closest('.sidebar-link')) {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.style.transform = 'translateX(-100%)';
-      }
-    }
-  }
-});
-
-// Load sidebar
-fetch('sidebar.html')
-  .then(response => response.text())
-  .then(html => {
-    document.getElementById('sidebar-container').innerHTML = html;
-    const links = document.querySelectorAll('.sidebar-link');
-    links.forEach(link => {
-      if (link.getAttribute('href') === 'messages.html') {
-        link.classList.add('active');
-      }
-    });
-  })
-  .catch(error => console.error('Error loading sidebar:', error));
-
-// Handle window resize
-window.addEventListener('resize', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (window.innerWidth > 1024 && sidebar) {
-    sidebar.style.transform = 'translateX(0)';
-  } else if (window.innerWidth <= 1024 && sidebar) {
-    sidebar.style.transform = 'translateX(-100%)';
-  }
+document.addEventListener('DOMContentLoaded', function() {
+  loadBuyerSidebar('messages.html');
 });
 </script>
 
@@ -1492,7 +1510,8 @@ window.addEventListener('resize', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { 
   getAuth, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -1524,6 +1543,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+window.firebaseApp = app;
+window.firebaseAuth = auth;
+window.firebaseDB = db;
+
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userData');
+    window.location.href = '../login.html';
+  } catch (e) {
+    console.error('Logout error:', e);
+    window.location.href = '../login.html';
+  }
+};
 
 // Global variables
 let currentUser = null;
@@ -1550,8 +1584,9 @@ function debugLog(...args) {
 
 // Initialize on auth state change
 onAuthStateChanged(auth, async (user) => {
+  if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname || "buyer/messages.html");
     return;
   }
   
@@ -1562,9 +1597,17 @@ onAuthStateChanged(auth, async (user) => {
   initPage();
 });
 
+// Get URL param (e.g. userId from view_profile Message link)
+function getUrlParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name) || '';
+}
+
 // Initialize the page
 async function initPage() {
   debugLog('🚀 Initializing messages page...');
+  
+  const targetUserId = getUrlParam('userId');
   
   // Load current user data first
   await loadCurrentUserData();
@@ -1578,6 +1621,22 @@ async function initPage() {
   
   // Load conversations
   await loadConversations();
+  
+  // If userId in URL, auto-open existing conversation with that user
+  if (targetUserId && allConversations.length > 0) {
+    const conv = allConversations.find(c => {
+      const brokerId = c.brokerId || (c.participants && c.participants.find(id => id !== currentUser.uid));
+      return brokerId === targetUserId;
+    });
+    if (conv) {
+      const brokerId = conv.brokerId || conv.participants.find(id => id !== currentUser.uid);
+      await selectConversation(conv.id, brokerId, conv.propertyId || null);
+      // Clear URL param so back button works naturally
+      if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }
 }
 
 // Load current user data
@@ -1589,8 +1648,34 @@ async function loadCurrentUserData() {
       currentUser.displayName = extractUserName(userData);
       currentUser.phone = userData.phone || userData.phoneNumber || '';
       currentUser.role = userData.role || 'buyer';
+      // Store and update sidebar so it shows logged-in user
+      const fullName = userData.fullName || userData.displayName || userData.name ||
+        ((userData.firstName || '') + ' ' + (userData.lastName || '')).trim() || currentUser.email?.split('@')[0] || 'User';
+      const profileData = {
+        fullName,
+        email: userData.email || currentUser.email,
+        role: userData.role || userData.userType || 'user',
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        photoURL: userData.photoURL || userData.profilePhotoURL
+      };
+      try { localStorage.setItem('userData', JSON.stringify(profileData)); } catch (e) {}
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile(profileData);
+      }
     } else {
       currentUser.displayName = 'Buyer';
+      // Fallback: use auth user for sidebar
+        const profileData = {
+          fullName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+          email: currentUser.email,
+          role: 'user',
+          photoURL: userData.photoURL || userData.profilePhotoURL
+        };
+      try { localStorage.setItem('userData', JSON.stringify(profileData)); } catch (e) {}
+      if (typeof window.updateSidebarUserProfile === 'function') {
+        window.updateSidebarUserProfile(profileData);
+      }
     }
   } catch (error) {
     debugLog('❌ Error loading current user data:', error);
@@ -1603,12 +1688,6 @@ function setupEventListeners() {
   // Refresh button
   document.getElementById('refreshBtn').addEventListener('click', refreshConversations);
   
-  // Fix Data button
-  document.getElementById('fixDataBtn').addEventListener('click', async function() {
-    if (confirm('This will create conversation documents from your existing messages. Continue?')) {
-      await createConversationsFromMessages();
-    }
-  });
   
   // Filter buttons
   document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
@@ -1623,6 +1702,18 @@ function setupEventListeners() {
   
   // Send message
   document.getElementById('sendButton').addEventListener('click', sendMessage);
+  
+  // BahAI Assist: suggestion chips auto-fill input (user confirms before send)
+  document.querySelectorAll('.bahai-suggestion-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      const suggestion = this.getAttribute('data-suggestion');
+      const input = document.getElementById('chatInput');
+      if (suggestion && input) {
+        input.value = suggestion;
+        input.focus();
+      }
+    });
+  });
   
   // Enter key for sending messages
   document.getElementById('chatInput').addEventListener('keydown', function(e) {
@@ -1643,13 +1734,6 @@ function setupEventListeners() {
   document.getElementById('makeCallBtn').addEventListener('click', makeCallToBroker);
   document.getElementById('scheduleViewingBtn').addEventListener('click', scheduleViewing);
   document.getElementById('deleteConversationBtn').addEventListener('click', openDeleteModal);
-  
-  // Property info click
-  document.getElementById('chatPropertyInfo').addEventListener('click', function() {
-    if (currentPropertyId) {
-      viewPropertyDetails(currentPropertyId);
-    }
-  });
   
   // Delete modal buttons
   document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
@@ -1700,11 +1784,11 @@ async function loadConversations() {
       // Sort by last message time
       allConversations.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
       
-      // Update UI
-      updateStats();
-      
       // Load all user data for conversations
       await loadAllUsersForConversations();
+      
+      // Load property data for conversations (for thumbnails and "Regarding" tag)
+      await loadAllPropertiesForConversations();
       
       // Display conversations
       displayConversations(allConversations);
@@ -1741,6 +1825,18 @@ async function loadAllUsersForConversations() {
   // Load users in parallel
   const userPromises = Array.from(userIds).map(userId => loadUserData(userId));
   await Promise.all(userPromises);
+}
+
+// Load property data for all conversations (for thumbnails and "Regarding" tag)
+async function loadAllPropertiesForConversations() {
+  const propertyIds = new Set();
+  allConversations.forEach(conv => {
+    if (conv.propertyId) propertyIds.add(conv.propertyId);
+  });
+  if (propertyIds.size === 0) return;
+  debugLog(`🏠 Loading ${propertyIds.size} properties for conversation list...`);
+  const promises = Array.from(propertyIds).map(id => loadPropertyData(id));
+  await Promise.all(promises);
 }
 
 // Load conversations from database for buyer
@@ -1868,6 +1964,7 @@ function setupConversationsListener() {
       if (needsRefresh) {
         // Reload user data for new conversations
         await loadAllUsersForConversations();
+        await loadAllPropertiesForConversations();
         filterConversations();
       }
     });
@@ -1890,25 +1987,10 @@ function showNoConversations() {
       </a>
     </div>
   `;
-  updateStats();
 }
 
-// Update conversation statistics
-function updateStats() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const total = allConversations.length;
-  const unread = allConversations.filter(conv => conv.unreadCount?.[currentUser.uid] > 0).length;
-  const todayCount = allConversations.filter(conv => {
-    const lastTime = conv.lastMessageTime;
-    return lastTime >= today;
-  }).length;
-  
-  document.querySelectorAll('.stat-value')[0].textContent = total;
-  document.querySelectorAll('.stat-value')[1].textContent = unread;
-  document.querySelectorAll('.stat-value')[2].textContent = todayCount;
-}
+// Update conversation statistics (stats removed - kept as no-op for any remaining callers)
+function updateStats() {}
 
 // Filter and display conversations
 function filterConversations() {
@@ -1965,7 +2047,8 @@ async function loadUserData(userId) {
       displayName: currentUser.displayName || 'Me',
       email: currentUser.email || 'No email',
       phone: currentUser.phone || 'No phone',
-      role: currentUser.role || 'buyer'
+      role: currentUser.role || 'buyer',
+      photoURL: currentUser.photoURL || null
     });
     return;
   }
@@ -1987,13 +2070,15 @@ async function loadUserData(userId) {
                          role === 'broker' ? 'Licensed Broker' : 
                          role === 'seller' ? 'Property Seller' : 'Contact';
       
+      const photoURL = userData.photoURL || userData.profilePhotoURL || userData.profileImage || userData.imageURL || null;
       userMap.set(userId, {
         id: userId,
         displayName: displayName,
         email: email,
         phone: phone,
         role: role,
-        roleDisplay: roleDisplay
+        roleDisplay: roleDisplay,
+        photoURL: photoURL
       });
       
       debugLog(`✅ User ${userId}: ${displayName} (${roleDisplay})`);
@@ -2006,7 +2091,8 @@ async function loadUserData(userId) {
         email: 'No email',
         phone: 'No phone',
         role: 'unknown',
-        roleDisplay: 'Contact'
+        roleDisplay: 'Contact',
+        photoURL: null
       });
     }
   } catch (error) {
@@ -2017,7 +2103,8 @@ async function loadUserData(userId) {
       email: 'No email',
       phone: 'No phone',
       role: 'error',
-      roleDisplay: 'Contact'
+      roleDisplay: 'Contact',
+      photoURL: null
     });
   }
 }
@@ -2106,15 +2193,24 @@ function displayConversations(conversations) {
     
     // Get initials from display name
     const initials = getInitials(displayInfo.displayName);
+    const photoURL = displayInfo.photoURL || displayInfo.profilePhotoURL || displayInfo.profileImage || displayInfo.imageURL;
+    const avatarHtml = photoURL
+      ? `<img src="${photoURL.replace(/"/g, '&quot;')}" alt="${(displayInfo.displayName || '').replace(/"/g, '&quot;')}" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex';"><span style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getAvatarColor(displayInfo.displayName)};color:white;font-weight:600;font-size:16px;">${initials}</span>`
+      : initials;
     
     // Truncate last message
     const lastMessage = conversation.lastMessage || 'No messages yet';
     const preview = lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage;
     
+    const propPhoto = propertyInfo ? (getPropertyThumb(propertyInfo) || 'https://via.placeholder.com/44x44/0b2e52/white?text=Property') : null;
+    const title = propertyInfo?.title || '';
+    const regardingText = propertyInfo ? `Regarding: ${title.length > 25 ? title.substring(0, 25) + '...' : title || 'Property'}` : displayInfo.roleDisplay;
+
     conversationElement.innerHTML = `
-      <div class="conversation-avatar" style="background: ${getAvatarColor(displayInfo.displayName)}">
-        ${initials}
-        ${hasPendingSchedule ? '<span style="position: absolute; bottom: -2px; right: -2px; background: #f59e0b; color: white; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center;">📅</span>' : ''}
+      ${propPhoto ? `<img class="conversation-property-thumb" src="${propPhoto.replace(/"/g, '&quot;')}" alt="">` : ''}
+      <div class="conversation-avatar" style="background: ${photoURL ? 'transparent' : getAvatarColor(displayInfo.displayName)}">
+        ${avatarHtml}
+        ${hasPendingSchedule ? '<span style="position: absolute; bottom: -2px; right: -2px; background: #f59e0b; color: white; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; z-index: 1;">📅</span>' : ''}
       </div>
       <div class="conversation-info">
         <div class="conversation-header">
@@ -2126,12 +2222,7 @@ function displayConversations(conversations) {
           ${hasPendingSchedule ? ' <span style="color: #f59e0b;">📅</span>' : ''}
         </div>
         <div class="conversation-property">
-          <i class="fas fa-user-tag"></i> ${displayInfo.roleDisplay}
-          ${propertyInfo ? `
-            <span style="margin-left: 5px;">•</span>
-            <i class="fas fa-home"></i>
-            ${propertyInfo.title.substring(0, 20)}${propertyInfo.title.length > 20 ? '...' : ''}
-          ` : ''}
+          <i class="fas fa-home"></i> ${regardingText}
         </div>
       </div>
       ${unreadCount > 0 ? `<div class="conversation-badge">${unreadCount}</div>` : ''}
@@ -2206,31 +2297,21 @@ async function selectConversation(conversationId, brokerId, propertyId = null) {
   
   // Update chat header
   const initials = getInitials(finalBrokerInfo.displayName);
-  document.getElementById('chatUserAvatar').textContent = initials;
-  document.getElementById('chatUserAvatar').style.background = getAvatarColor(finalBrokerInfo.displayName);
+  const brokerPhotoURL = finalBrokerInfo.photoURL || finalBrokerInfo.profilePhotoURL || finalBrokerInfo.profileImage || finalBrokerInfo.imageURL;
+  const chatAvatarEl = document.getElementById('chatUserAvatar');
+  if (brokerPhotoURL) {
+    chatAvatarEl.innerHTML = `<img src="${brokerPhotoURL.replace(/"/g, '&quot;')}" alt="${(finalBrokerInfo.displayName || '').replace(/"/g, '&quot;')}" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex';"><span style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getAvatarColor(finalBrokerInfo.displayName)};color:white;font-weight:600;font-size:16px;">${initials}</span>`;
+    chatAvatarEl.style.background = 'transparent';
+  } else {
+    chatAvatarEl.innerHTML = initials;
+    chatAvatarEl.style.background = getAvatarColor(finalBrokerInfo.displayName);
+  }
   document.getElementById('chatUserName').textContent = finalBrokerInfo.displayName;
   document.getElementById('chatUserStatus').innerHTML = `<i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> ${finalBrokerInfo.roleDisplay}`;
   
-  // Load property data if available
+  // Load property data if available (for conversation list display)
   if (propertyId && !propertyMap.has(propertyId)) {
     await loadPropertyData(propertyId);
-  }
-  
-  const propertyInfo = propertyId ? propertyMap.get(propertyId) : null;
-  const propertyInfoElement = document.getElementById('chatPropertyInfo');
-  
-  if (propertyInfo) {
-    propertyInfoElement.style.display = 'block';
-    document.getElementById('propertyTitle').textContent = propertyInfo.title;
-    document.getElementById('propertyLocation').textContent = propertyInfo.location;
-    
-    // Format price
-    const price = propertyInfo.price || 0;
-    const isRental = propertyInfo.type === 'rent' || (price < 1000000);
-    const priceDisplay = isRental ? `₱${price.toLocaleString()}/month` : `₱${price.toLocaleString()}`;
-    document.getElementById('propertyPrice').textContent = priceDisplay;
-  } else {
-    propertyInfoElement.style.display = 'none';
   }
   
   // Show chat input and quick actions
@@ -2261,21 +2342,49 @@ async function selectConversation(conversationId, brokerId, propertyId = null) {
   await markConversationAsRead(conversationId);
 }
 
+// Format property price for display (rent/lease/sale)
+function formatPropertyPrice(property) {
+  if (!property) return '—';
+  const type = property.listingType === 'lease' || property.type === 'lease' ? 'lease'
+    : property.listingType === 'rent' || property.type === 'rent' ? 'rent'
+    : property.monthlyRent != null && property.monthlyRent > 0 ? 'rent'
+    : property.annualRent != null && property.annualRent > 0 ? 'lease'
+    : 'sale';
+  if (type === 'rent') return `₱${(property.monthlyRent || 0).toLocaleString()}/mo`;
+  if (type === 'lease') return `₱${(property.annualRent || 0).toLocaleString()}/yr`;
+  return `₱${(property.pricing || property.salePrice || property.price || 0).toLocaleString()}`;
+}
+
+// Get property thumbnail URL
+function getPropertyThumb(property) {
+  if (!property) return null;
+  const arr = property.photos || property.imageUrls || property.galleryImages || [];
+  return Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
+}
+
 // Load property data
 async function loadPropertyData(propertyId) {
   try {
     const propertyDoc = await getDoc(doc(db, "properties", propertyId));
     if (propertyDoc.exists()) {
       const propertyData = propertyDoc.data();
-      propertyMap.set(propertyId, {
+      const photos = propertyData.photos || propertyData.imageUrls || propertyData.galleryImages || [];
+      const prop = {
         id: propertyId,
         title: propertyData.title || 'Untitled Property',
-        location: propertyData.location || propertyData.address || 'Location not specified',
-        price: propertyData.pricing || propertyData.monthlyRent || propertyData.price || 0,
+        location: propertyData.location || propertyData.address || propertyData.city || 'Location not specified',
         type: propertyData.propertyType || propertyData.type || 'Property',
-        photos: propertyData.photos || propertyData.imageUrls || [],
-        userId: propertyData.userId || null
-      });
+        photos: photos,
+        imageUrls: propertyData.imageUrls || photos,
+        userId: propertyData.userId || null,
+        listingType: propertyData.listingType || propertyData.type,
+        monthlyRent: propertyData.monthlyRent,
+        annualRent: propertyData.annualRent,
+        salePrice: propertyData.salePrice,
+        pricing: propertyData.pricing,
+        price: propertyData.pricing || propertyData.monthlyRent || propertyData.salePrice || propertyData.price || 0
+      };
+      propertyMap.set(propertyId, prop);
     }
   } catch (error) {
     debugLog(`❌ Error loading property ${propertyId}:`, error);
@@ -2372,15 +2481,16 @@ function showEmptyMessagesState() {
   
   if (currentPropertyId && propertyMap.has(currentPropertyId)) {
     const property = propertyMap.get(currentPropertyId);
-    const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
+    const photo = getPropertyThumb(property) || 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
+    const priceDisplay = formatPropertyPrice(property);
     
     messagesContainer.innerHTML = `
       <div class="property-quick-view" onclick="viewPropertyDetails('${currentPropertyId}')">
-        <img src="${photo}" alt="${property.title}">
+        <img src="${photo.replace(/"/g, '&quot;')}" alt="${(property.title || '').replace(/"/g, '&quot;')}">
         <div class="property-quick-info">
-          <h4>${property.title}</h4>
-          <p><i class="fas fa-map-marker-alt"></i> ${property.location}</p>
-          <div class="property-quick-price">₱${property.price.toLocaleString()}</div>
+          <h4>${(property.title || 'Untitled').replace(/</g, '&lt;')}</h4>
+          <p><i class="fas fa-map-marker-alt"></i> ${(property.location || '—').replace(/</g, '&lt;')}</p>
+          <div class="property-quick-price">${priceDisplay}</div>
         </div>
       </div>
       <div class="message-date">
@@ -2389,7 +2499,7 @@ function showEmptyMessagesState() {
       <div class="empty-state" style="padding: 40px 0;">
         <div class="empty-state-icon">💬</div>
         <h3>No messages yet</h3>
-        <p>Send a message to start the conversation</p>
+        <p>Send a message to start. BahAI suggestions above can help you begin.</p>
       </div>
     `;
   } else {
@@ -2397,7 +2507,7 @@ function showEmptyMessagesState() {
       <div class="empty-state">
         <div class="empty-state-icon">💬</div>
         <h3>No messages yet</h3>
-        <p>Send a message to start the conversation</p>
+        <p>Send a message to start. BahAI suggestions above can help you begin.</p>
       </div>
     `;
   }
@@ -2413,17 +2523,18 @@ function displayMessages(snapshot) {
   // Add property quick view at the top if available
   if (currentPropertyId && propertyMap.has(currentPropertyId)) {
     const property = propertyMap.get(currentPropertyId);
-    const photo = property.photos && property.photos.length > 0 ? property.photos[0] : 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
+    const photo = getPropertyThumb(property) || 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
+    const priceDisplay = formatPropertyPrice(property);
     
     const propertyView = document.createElement('div');
     propertyView.className = 'property-quick-view';
     propertyView.onclick = () => viewPropertyDetails(currentPropertyId);
     propertyView.innerHTML = `
-      <img src="${photo}" alt="${property.title}">
+      <img src="${photo.replace(/"/g, '&quot;')}" alt="${(property.title || '').replace(/"/g, '&quot;')}">
       <div class="property-quick-info">
-        <h4>${property.title}</h4>
-        <p><i class="fas fa-map-marker-alt"></i> ${property.location}</p>
-        <div class="property-quick-price">₱${property.price.toLocaleString()}</div>
+        <h4>${(property.title || 'Untitled').replace(/</g, '&lt;')}</h4>
+        <p><i class="fas fa-map-marker-alt"></i> ${(property.location || '—').replace(/</g, '&lt;')}</p>
+        <div class="property-quick-price">${priceDisplay}</div>
       </div>
     `;
     
@@ -2761,21 +2872,19 @@ function resetChatUI() {
   }
   
   // Reset chat header
-  document.getElementById('chatUserAvatar').textContent = 'BR';
-  document.getElementById('chatUserAvatar').style.background = '';
+  const chatAvatarEl = document.getElementById('chatUserAvatar');
+  chatAvatarEl.innerHTML = 'BR';
+  chatAvatarEl.style.background = '';
   document.getElementById('chatUserName').textContent = 'Select a conversation';
   document.getElementById('chatUserStatus').innerHTML = `<i class="fas fa-circle" style="color: #ccc; font-size: 8px;"></i> Choose a conversation to start messaging`;
-  
-  // Hide property info
-  document.getElementById('chatPropertyInfo').style.display = 'none';
   
   // Show empty state
   const messagesContainer = document.getElementById('chatMessagesContainer');
   messagesContainer.innerHTML = `
     <div class="empty-state">
       <div class="empty-state-icon">💬</div>
-      <h3>No conversation selected</h3>
-      <p>Select a conversation from the list to view messages</p>
+      <h3>Select a conversation to begin</h3>
+      <p>BahAI can help you start the conversation. Choose a chat from the list.</p>
     </div>
   `;
   
@@ -3413,10 +3522,6 @@ window.createConversationsFromMessages = async function() {
   try {
     debugLog('🔄 Creating conversations from existing messages...');
     
-    // Show loading
-    document.getElementById('fixDataBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fixing...';
-    document.getElementById('fixDataBtn').disabled = true;
-    
     const messagesRef = collection(db, 'messages');
     const messagesSnapshot = await getDocs(messagesRef);
     
@@ -3509,10 +3614,6 @@ window.createConversationsFromMessages = async function() {
       }
     }
     
-    // Reset button
-    document.getElementById('fixDataBtn').innerHTML = '<i class="fas fa-wrench"></i> Fix Data';
-    document.getElementById('fixDataBtn').disabled = false;
-    
     showToast(`Created ${createdCount} conversations from ${messagesSnapshot.size} messages`);
     debugLog(`✅ Created ${createdCount} conversations, ${errorCount} errors`);
     
@@ -3523,11 +3624,6 @@ window.createConversationsFromMessages = async function() {
     
   } catch (error) {
     console.error('❌ Error creating conversations from messages:', error);
-    
-    // Reset button
-    document.getElementById('fixDataBtn').innerHTML = '<i class="fas fa-wrench"></i> Fix Data';
-    document.getElementById('fixDataBtn').disabled = false;
-    
     showError('Failed to create conversations: ' + error.message);
   }
 };
@@ -3597,12 +3693,7 @@ function makeCallToBroker() {
 // View property details
 window.viewPropertyDetails = function(propertyId) {
   if (!propertyId) return;
-  
-  const propertyInfo = propertyMap.get(propertyId);
-  if (propertyInfo) {
-    // Redirect to dashboard to view property details
-    window.open(`buyer_dashboard.html#property-${propertyId}`, '_blank');
-  }
+  window.open(`new_property_details.html?id=${propertyId}`, '_blank');
 };
 
 // Helper function to get initials from name

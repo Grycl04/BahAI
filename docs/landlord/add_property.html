@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Post Property for Rent/Lease</title>
+  <title>Add Property - Landlord | BahAI Real Estate</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../buyer/style.css">
   <style>
-    /* ===== BASE STYLES (BROKER DASHBOARD THEME) ===== */
+    /* ===== BASE STYLES - matches broker (navy + gold) ===== */
     :root {
       --primary: #0b2e52;
-      --primary-dark: #001F3F;
-      --primary-light: #002f3f;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --primary-dark: #071e38;
+      --primary-light: #1e3a5f;
+      --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
       --secondary: #1976d2;
-      --accent: #ff9800;
+      --accent: #d4af37;
       --text-dark: #1a202c;
       --text-light: #718096;
       --bg-light: #f8fafc;
@@ -21,183 +26,72 @@
       --border: #e2e8f0;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-lg: 24px;
     }
     
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
       font-family: 'Inter', Arial, sans-serif;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       color: var(--text-dark);
+      display: flex;
       min-height: 100vh;
     }
 
-    /* ===== SIDEBAR STYLES ===== */
-    .sidebar {
-      width: 280px;
-      background: var(--primary);
-      color: white;
-      position: fixed;
-      height: 100vh;
-      overflow-y: auto;
-      z-index: 1000;
-      transition: all 0.3s ease;
-      left: 0;
-      top: 0;
-    }
-
-    .sidebar.collapsed {
-      transform: translateX(-280px);
-    }
-
-    .sidebar-header {
-      padding: 25px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar-header h2 {
-      font-size: 24px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sidebar-menu {
-      padding: 20px 0;
-    }
-
-    .menu-item {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 15px 20px;
-      color: rgba(255, 255, 255, 0.8);
-      text-decoration: none;
-      transition: all 0.3s ease;
-      border-left: 4px solid transparent;
-    }
-
-    .menu-item:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border-left-color: var(--accent);
-    }
-
-    .menu-item.active {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-      border-left-color: var(--accent);
-    }
-
-    .menu-item i {
-      font-size: 18px;
-      width: 24px;
-      text-align: center;
-    }
-
-    .sidebar-footer {
-      padding: 20px;
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .logout-btn {
-      width: 100%;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      border-radius: 8px;
-      font-family: 'Inter', sans-serif;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    /* ===== MAIN CONTENT CONTAINER ===== */
-    .main-content {
-      flex: 1;
-      padding: 30px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      transition: all 0.3s ease;
-      min-height: 100vh;
-      width: calc(100% - 280px);
-      margin-left: 280px;
-    }
-
-    /* When sidebar is collapsed */
-    .sidebar.collapsed + .main-content {
-      margin-left: 0;
-      width: 100%;
-    }
-
-    /* Mobile Toggle */
-    .mobile-toggle {
+    .mobile-toggle, .mobile-menu-toggle {
       display: none;
-      background: none;
+      background: var(--primary-gradient);
+      color: white;
       border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--border-radius-sm);
       font-size: 24px;
-      color: var(--text-dark);
       cursor: pointer;
-      padding: 8px;
-      border-radius: 8px;
-      background: var(--bg-white);
-      box-shadow: var(--shadow);
+      box-shadow: var(--card-hover-shadow);
       position: fixed;
       top: 20px;
       left: 20px;
-      z-index: 999;
-    }
-
-    /* ===== PAGE HEADER ===== */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
+      z-index: 1001;
       align-items: center;
-      margin-bottom: 30px;
-      gap: 20px;
+      justify-content: center;
     }
 
-    .page-title h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1.2;
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      margin-left: 280px;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
     }
 
-    .page-title p {
-      color: var(--text-light);
-      font-size: 16px;
-      line-height: 1.4;
+    .hero-section {
+      background: var(--primary-gradient);
+      color: white;
+      border-radius: var(--border-radius-lg);
+      padding: 50px 40px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
     }
-
-    .header-actions {
-      display: flex;
-      gap: 15px;
-      align-items: center;
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>');
+      background-size: cover;
+      opacity: 0.1;
     }
+    .hero-section h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 15px; line-height: 1.2; max-width: 800px; position: relative; z-index: 1; }
+    .hero-section p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin-bottom: 0; position: relative; z-index: 1; }
+    .hero-actions { margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap; position: relative; z-index: 1; }
+    .header-actions { display: flex; gap: 15px; align-items: center; }
 
-    /* ===== KYC BADGE ===== */
     .kyc-badge {
       padding: 8px 16px;
       border-radius: 20px;
@@ -207,46 +101,46 @@
       align-items: center;
       gap: 8px;
     }
+    .kyc-badge.pending { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; }
+    .kyc-badge.approved { background: var(--secondary-gradient); color: white; }
+    .kyc-badge.rejected { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #991b1b; }
 
-    .kyc-badge.pending {
-      background: #feebc8;
-      color: #744210;
-    }
-
-    .kyc-badge.approved {
-      background: #c6f6d5;
-      color: #22543d;
-    }
-
-    .kyc-badge.rejected {
-      background: #fed7d7;
-      color: #742a2a;
-    }
-
-    /* ===== CARD STYLES ===== */
     .card {
       background: var(--bg-white);
-      border-radius: 16px;
+      border-radius: var(--border-radius);
       padding: 30px;
       margin-bottom: 25px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       position: relative;
       overflow: hidden;
       max-width: 1200px;
       margin-left: auto;
       margin-right: auto;
     }
-
     .card::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       width: 100%;
       height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      background: var(--primary-gradient);
     }
+
+    .kyc-warning {
+      background: linear-gradient(135deg, #feebc8, #fbd38d);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      text-align: center;
+      border: none;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .kyc-warning h2 { color: #744210; margin-top: 0; margin-bottom: 10px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .kyc-warning a { display: inline-flex; align-items: center; gap: 8px; background: var(--primary-gradient); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 15px; transition: all 0.3s ease; }
+    .kyc-warning a:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 
 /* ===== FORM DISABLED STATE ===== */
 .form-disabled {
@@ -868,38 +762,11 @@
 
     /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 1024px) {
-      .sidebar {
-        transform: translateX(-280px);
-      }
-      
-      .sidebar.active {
-        transform: translateX(0);
-      }
-      
-      .main-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 25px;
-      }
-      
-      .mobile-toggle {
-        display: block;
-      }
-      
-      .type-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      }
-      
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-      }
-      
-      .header-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
+      .main-content { margin-left: 0; padding: 25px; padding-top: 80px; }
+      .mobile-toggle, .mobile-menu-toggle { display: flex; align-items: center; justify-content: center; }
+      .hero-section h1 { font-size: 1.8rem; }
+      .hero-section { padding: 30px 24px; }
+      .type-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
     }
 
     @media (max-width: 768px) {
@@ -959,17 +826,9 @@
     }
 
     @media (max-width: 480px) {
-      .main-content {
-        padding: 15px;
-      }
-      
-      .card {
-        padding: 20px;
-      }
-      
-      .page-title h1 {
-        font-size: 24px;
-      }
+      .main-content { padding: 15px; }
+      .card { padding: 20px; }
+      .hero-section h1 { font-size: 1.5rem; }
       
       .section-title {
         font-size: 20px;
@@ -1003,22 +862,17 @@
   </style>
 </head>
 <body>
-  <!-- Mobile Toggle -->
-  <button class="mobile-toggle" id="mobileToggle">
+  <button class="mobile-toggle mobile-menu-toggle" id="mobileToggle" aria-label="Toggle menu">
     <i class="bi bi-list"></i>
   </button>
   
-  <!-- Sidebar will be loaded here -->
   <div id="sidebar-container"></div>
   
-  <!-- Main Content -->
   <div class="main-content" id="mainContent">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-title">
-        <h1>Add New Property</h1>
-        <p>List your property for rent or long-term lease</p>
-      </div>
+  <div class="hero-section">
+    <h1>Add Property</h1>
+    <p>List your properties for rent or lease</p>
+    <div class="hero-actions" id="heroActionsContainer">
       <div class="header-actions">
         <div id="kycBadge" class="kyc-badge" style="display: none;">
           <i class="bi bi-shield-check"></i>
@@ -1026,8 +880,16 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Success/Error Messages -->
+  <div id="kycWarning" class="kyc-warning" style="display: none;">
+    <h2><i class="bi bi-exclamation-triangle"></i> KYC Verification Required</h2>
+    <p id="kycStatusText"></p>
+    <p id="kycMessage"></p>
+    <a href="../kyc.html"><i class="bi bi-shield-lock"></i> Complete KYC Verification</a>
+  </div>
+
+  <!-- Success/Error Messages -->
     <div id="messageBox" class="message" style="display: none;"></div>
 
     <!-- Type Selection -->
@@ -1673,6 +1535,8 @@
   </div>
 </div>
 
+<!-- Sidebar user profile -->
+<script src="../sidebar-user.js"></script>
 <!-- Firebase & Maps Scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -1702,98 +1566,47 @@ const BATANGAS_BOUNDS = {
 // Keep the original center or adjust slightly
 const BATANGAS_CENTER = { lat: 13.8, lng: 121.0 }; // Centered on Batangas
 
-  // ===== LOAD SIDEBAR =====
-  async function loadSidebar() {
-    try {
-      const response = await fetch('sidebar.html');
-      const sidebarHtml = await response.text();
-      document.getElementById('sidebar-container').innerHTML = sidebarHtml;
-      
-      // Initialize sidebar after loading
-      initializeSidebar();
-    } catch (error) {
-      console.error('Error loading sidebar:', error);
-      // Fallback to basic sidebar if loading fails
-      document.getElementById('sidebar-container').innerHTML = `
-        <div class="sidebar" id="sidebar">
-          <div class="sidebar-header">
-            <h2><i class="bi bi-house"></i> PropHub</h2>
-          </div>
-          
-          <div class="sidebar-menu">
-            <a href="landlord_dashboard.html" class="menu-item">
-              <i class="bi bi-speedometer2"></i>
-              <span class="menu-text">Dashboard</span>
-            </a>
-            <a href="landlord_listings.html" class="menu-item">
-              <i class="bi bi-list-ul"></i>
-              <span class="menu-text">My Properties</span>
-            </a>
-            <a href="#" class="menu-item active">
-              <i class="bi bi-plus-circle"></i>
-              <span class="menu-text">Add Property</span>
-            </a>
-            <a href="../kyc.html" class="menu-item">
-              <i class="bi bi-shield-check"></i>
-              <span class="menu-text">KYC Verification</span>
-            </a>
-          </div>
-          
-          <div class="sidebar-footer">
-            <button class="logout-btn" id="sidebarLogoutBtn">
-              <i class="bi bi-box-arrow-right"></i> Logout
-            </button>
-          </div>
-        </div>
-      `;
-      initializeSidebar();
-    }
-  }
-
-  function initializeSidebar() {
-    // Setup logout button
-    const logoutBtn = document.getElementById('sidebarLogoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function() {
-        firebase.auth().signOut().then(() => {
-          window.location.href = "../login.html";
-        });
-      });
-    }
-    
-    // Mark current page as active
-    const currentPage = window.location.pathname.split('/').pop();
-    const menuItems = document.querySelectorAll('.menu-item');
-    menuItems.forEach(item => {
-      const href = item.getAttribute('href');
-      if (href && href.includes(currentPage)) {
-        item.classList.add('active');
-      } else {
-        item.classList.remove('active');
-      }
-    });
-  }
-
-  // ===== SIDEBAR FUNCTIONS =====
-  function toggleMobileSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.classList.toggle('active');
-    }
-  }
-
-  function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.classList.toggle('collapsed');
-    }
-  }
-
   // ===== INITIALIZE =====
   document.addEventListener('DOMContentLoaded', function() {
-    // Load sidebar first
-    loadSidebar();
-    
+    // Mobile menu (matches broker)
+    document.getElementById('mobileToggle').addEventListener('click', function() {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 'translateX(-100%)' : 'translateX(0px)';
+      }
+    });
+
+    // Load landlord sidebar
+    fetch('sidebar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('sidebar-container').innerHTML = html;
+        if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
+        const links = document.querySelectorAll('.sidebar-link');
+        links.forEach(link => {
+          if (link.getAttribute('href') === 'add_property.html') link.classList.add('active');
+        });
+        setupLogoutButton();
+      })
+      .catch(error => console.error('Error loading sidebar:', error));
+
+    function setupLogoutButton() {
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (!logoutBtn) { setTimeout(setupLogoutButton, 100); return; }
+      const newBtn = logoutBtn.cloneNode(true);
+      logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (confirm('Are you sure you want to log out?')) {
+          firebase.auth().signOut().then(() => {
+            localStorage.removeItem('userData');
+            sessionStorage.removeItem('userData');
+            window.location.href = '../login.html';
+          });
+        }
+      });
+    }
+
     // Initialize Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
@@ -1813,9 +1626,6 @@ const BATANGAS_CENTER = { lat: 13.8, lng: 121.0 }; // Centered on Batangas
     // Initialize forms
     initializeRentForm();
     initializeLeaseForm();
-    
-    // Setup mobile toggle
-    document.getElementById('mobileToggle').addEventListener('click', toggleMobileSidebar);
   });
 
   // ===== RENT PROPERTY TYPE MAPPING =====
@@ -1885,9 +1695,16 @@ const BATANGAS_CENTER = { lat: 13.8, lng: 121.0 }; // Centered on Batangas
   async function loadUserProfile() {
     try {
       const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
-      if (userDoc.exists) {
+      if (userDoc.exists()) {
         const userData = userDoc.data();
-        // You can use user data if needed
+        const profileData = {
+          fullName: userData.fullName || userData.displayName || userData.name || ((userData.firstName || '') + ' ' + (userData.lastName || '')).trim() || currentUser.email?.split('@')[0] || 'Property Owner',
+          email: userData.email || currentUser.email,
+          role: userData.role || 'landlord',
+          photoURL: userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || currentUser.photoURL
+        };
+        try { localStorage.setItem('userData', JSON.stringify(profileData)); } catch (e) {}
+        if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile(profileData);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);

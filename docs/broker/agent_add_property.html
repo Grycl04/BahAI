@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Post Property for Sale/Lease - Agent</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,25 +45,37 @@
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* Mobile Menu Toggle */
-    .mobile-menu-toggle {
+    /* Mobile Menu Toggle - same as agent dashboard */
+    .mobile-menu-toggle,
+    .mobile-toggle {
       display: none;
       position: fixed;
-      top: 20px;
-      left: 20px;
+      top: 16px;
+      left: 16px;
       z-index: 1001;
-      background: var(--primary);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--primary-gradient);
       color: white;
       border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      font-size: 24px;
+      font-size: 22px;
       cursor: pointer;
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
     }
+    .mobile-menu-toggle:hover,
+    .mobile-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #pageSidebarOverlay { display: none; }
 
     /* Main content - same as broker dashboard */
     .main-content {
@@ -74,31 +86,12 @@
       min-height: 100vh;
     }
 
-    .mobile-toggle, .mobile-menu-toggle {
-      display: none;
-      background: var(--primary);
-      color: white;
-      border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: var(--card-hover-shadow);
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1001;
-      align-items: center;
-      justify-content: center;
-    }
-
     /* Hero Section - same as broker dashboard */
     .hero-section {
       background: var(--primary-gradient);
       color: white;
       border-radius: var(--border-radius-lg);
-      padding: 50px 40px;
+      padding: 28px 40px;
       margin-bottom: 40px;
       position: relative;
       overflow: hidden;
@@ -200,6 +193,11 @@
       font-size: 24px;
       font-weight: 600;
     }
+
+    .type-select-mobile-label,
+    .type-select-mobile { display: none; }
+    .sale-type-mobile-label,
+    .sale-type-mobile-select { display: none; }
 
     .type-grid {
       display: grid;
@@ -812,128 +810,114 @@
       border-radius: 4px;
     }
 
-    /* ===== RESPONSIVE DESIGN ===== */
+    /* ===== RESPONSIVE DESIGN - same as broker add_property ===== */
     @media (max-width: 1024px) {
       .main-content {
         margin-left: 0;
         padding: 25px;
+        padding-top: 70px;
       }
-      
       .mobile-toggle, .mobile-menu-toggle {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
       }
-      
-      .hero-section h1 {
-        font-size: 1.8rem;
-      }
-      
-      .hero-section {
-        padding: 30px 24px;
-      }
-      
-      .type-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      }
-      
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .type-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      }
-      
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-      }
-      
-      .header-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
+      .hero-section h1 { font-size: 1.8rem; }
+      .hero-section { padding: 30px 24px; }
+      .type-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+      .page-header { flex-direction: column; align-items: flex-start; }
+      .header-actions { width: 100%; justify-content: space-between; }
     }
 
     @media (max-width: 768px) {
-      .main-content {
-        padding: 20px;
+      html { font-size: 14px; }
+      .main-content { padding: 20px; padding-top: 56px; }
+      .type-select-mobile-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
       }
-      
-      .card {
-        padding: 20px;
-      }
-      
-      .type-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .amenities-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      }
-      
-      .sale-type-grid,
-      .lease-term-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .form-actions {
-        flex-direction: column;
-      }
-      
-      .btn {
+      .type-select-mobile {
+        display: block;
         width: 100%;
-        justify-content: center;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+        font-weight: 500;
+        background: var(--bg-white);
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23718096' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
       }
-      
-      .coordinates-display {
-        grid-template-columns: 1fr;
+      .type-select-mobile:focus {
+        outline: none;
+        border-color: var(--primary);
       }
+      .type-grid { display: none; }
+      /* Sidebar: off-screen by default, slide in when body.sidebar-open */
+      .sidebar {
+        position: fixed; top: 0; left: 0; width: 260px; max-width: 80%; height: 100vh;
+        transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000;
+      }
+      body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+      body.sidebar-open { overflow: hidden; }
+      /* Page overlay: unique id so handler attaches here (sidebar injects its own #sidebarOverlay) */
+      #pageSidebarOverlay {
+        display: block;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.35); z-index: 999;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+      }
+      body.sidebar-open #pageSidebarOverlay { opacity: 1; pointer-events: auto; }
+      .sidebar .sidebar-overlay { display: none !important; }
+      .card { padding: 20px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .amenities-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+      .sale-type-mobile-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+      }
+      .sale-type-mobile-select {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+        background: var(--bg-white);
+        margin-bottom: 10px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23718096' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+      }
+      .sale-type-grid { display: none; }
+      .sale-type-grid,
+      .lease-term-grid { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+      .coordinates-display { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 480px) {
-      .main-content {
-        padding: 15px;
-      }
-      
-      .card {
-        padding: 20px;
-      }
-      
-      .hero-section h1 {
-        font-size: 1.5rem;
-      }
-      
-      .section-title {
-        font-size: 1.1rem;
-      }
-      
-      .amenities-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .section-title {
-        font-size: 20px;
-      }
-      
-      .amenities-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .image-upload-area {
-        padding: 25px;
-      }
-      
-      .preview-container {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      }
+      html { font-size: 13px; }
+      .main-content { padding: 15px; }
+      .card { padding: 20px; }
+      .hero-section h1 { font-size: 1.5rem; }
+      .section-title { font-size: 1.1rem; }
+      .amenities-grid { grid-template-columns: 1fr; }
+      .section-title { font-size: 20px; }
+      .image-upload-area { padding: 25px; }
+      .preview-container { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     }
   </style>
 </head>
@@ -945,6 +929,7 @@
 
   <!-- Sidebar will be loaded here -->
   <div id="sidebar-container"></div>
+  <div class="sidebar-overlay" id="pageSidebarOverlay" aria-hidden="true"></div>
   
   <!-- Main Content - same layout as broker dashboard -->
   <div class="main-content" id="mainContent">
@@ -978,6 +963,11 @@
   <div id="typeSelectionCard" class="card" style="position: relative;">
     <div class="type-selection">
       <h2>Choose Listing Type</h2>
+      <label for="listingTypeMobile" class="type-select-mobile-label">Listing type</label>
+      <select id="listingTypeMobile" class="type-select-mobile" aria-label="Choose listing type">
+        <option value="sale">For Sale</option>
+        <option value="lease">For Lease</option>
+      </select>
       <div class="type-grid">
         <div class="type-card active" onclick="selectType('sale', event)">
           <span class="type-icon"><i class="bi bi-cash-coin"></i></span>
@@ -1124,6 +1114,12 @@
         
         <div class="form-group">
           <label for="saleType" class="required">Sale Type</label>
+          <label for="saleTypeMobile" class="sale-type-mobile-label">Sale type</label>
+          <select id="saleTypeMobile" class="sale-type-mobile-select" aria-label="Sale type">
+            <option value="outright">Outright Sale</option>
+            <option value="installment">Installment</option>
+            <option value="bank_financing">Bank Financing</option>
+          </select>
           <div class="sale-type-grid">
             <div class="sale-option" onclick="selectSaleType('outright')">
               <h4>Outright Sale</h4>
@@ -1673,14 +1669,32 @@
 
   // ===== SIDEBAR LOADER =====
   document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu functionality
-    document.getElementById('mobileToggle').addEventListener('click', function() {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
-          'translateX(-100%)' : 'translateX(0px)';
+    // Mobile menu - same as agent dashboard (body.sidebar-open)
+    var mobileToggleEl = document.getElementById('mobileToggle');
+    if (mobileToggleEl) {
+      mobileToggleEl.addEventListener('click', function() {
+        document.body.classList.toggle('sidebar-open');
+      });
+    }
+    var overlayEl = document.getElementById('pageSidebarOverlay');
+    if (overlayEl) {
+      overlayEl.addEventListener('click', function() {
+        document.body.classList.remove('sidebar-open');
+      });
+    }
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) {
+        document.body.classList.remove('sidebar-open');
       }
     });
+
+    // Mobile listing type dropdown - same as broker add_property
+    var listingTypeMobile = document.getElementById('listingTypeMobile');
+    if (listingTypeMobile) {
+      listingTypeMobile.addEventListener('change', function() {
+        selectType(this.value);
+      });
+    }
 
     // Load sidebar
     fetch('agent_sidebar.html')
@@ -1690,11 +1704,18 @@
         if (typeof window.updateSidebarUserProfile === 'function') {
           window.updateSidebarUserProfile();
         }
-        const links = document.querySelectorAll('.sidebar-link');
+        var links = document.querySelectorAll('.sidebar-link');
         links.forEach(link => {
           if (link.getAttribute('href') === 'agent_add_property.html') link.classList.add('active');
         });
         setupLogoutButton();
+        links.forEach(link => {
+          link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+              document.body.classList.remove('sidebar-open');
+            }
+          });
+        });
       })
       .catch(error => console.error('Error loading sidebar:', error));
     
@@ -1920,6 +1941,10 @@
     const clickedCard = evt && evt.currentTarget ? evt.currentTarget : document.querySelector(`.type-card[onclick*="${type}"]`);
     if (clickedCard) clickedCard.classList.add('active');
     
+    // Sync mobile dropdown if present
+    var listingMobile = document.getElementById('listingTypeMobile');
+    if (listingMobile) listingMobile.value = type;
+
     // Show appropriate form
     if (type === 'sale') {
       document.getElementById('saleForm').style.display = 'block';
@@ -1951,6 +1976,12 @@
         selectSaleType(this.querySelector('h4').textContent.toLowerCase().replace(/\s+/g, '_'));
       });
     });
+    var saleTypeMobile = document.getElementById('saleTypeMobile');
+    if (saleTypeMobile) {
+      saleTypeMobile.addEventListener('change', function() {
+        selectSaleType(this.value);
+      });
+    }
     
     // Initialize map when Google Maps loads
     if (window.google && window.google.maps) {
@@ -1989,12 +2020,17 @@
     selectedSaleType = type;
     document.getElementById('saleTypeInput').value = type;
     
-    // Update UI
+    // Update UI - desktop options
     document.querySelectorAll('.sale-option').forEach(option => {
       option.classList.remove('active');
+      var h4 = option.querySelector('h4');
+      var optType = h4 ? h4.textContent.toLowerCase().replace(/\s+/g, '_') : '';
+      if (optType === type) option.classList.add('active');
     });
     
-    event.currentTarget.classList.add('active');
+    // Sync mobile dropdown if present
+    var saleMobile = document.getElementById('saleTypeMobile');
+    if (saleMobile) saleMobile.value = type;
   }
 
   // ===== LEASE FORM FUNCTIONS =====

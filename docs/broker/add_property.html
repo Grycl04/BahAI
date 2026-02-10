@@ -45,7 +45,10 @@
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
+      overflow-x: hidden;
     }
+
+    .sidebar-overlay { display: none; }
 
     /* Mobile Menu Toggle */
     .mobile-menu-toggle {
@@ -200,6 +203,9 @@
       font-size: 24px;
       font-weight: 600;
     }
+
+    .type-select-mobile-label,
+    .type-select-mobile { display: none; }
 
     .type-grid {
       display: grid;
@@ -771,6 +777,27 @@
       background: linear-gradient(135deg, rgba(11, 46, 82, 0.05), rgba(0, 47, 63, 0.05));
     }
 
+    .sale-type-mobile-label,
+    .sale-type-mobile-select { display: none; }
+
+    .bank-financing-wrap {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .bank-financing-wrap label,
+    .bank-other-wrap label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+    .sale-financing-bank-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--border-radius-sm);
+      font-size: 1rem;
+      background: var(--bg-white);
+    }
+    .bank-other-wrap { margin-top: 12px; }
+    .bank-other-wrap input { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--border-radius-sm); }
+
     /* ===== LEASE SPECIFIC STYLES ===== */
     .lease-term-grid {
       display: grid;
@@ -839,10 +866,11 @@
       .main-content {
         margin-left: 0;
         padding: 25px;
+        padding-top: 70px;
       }
       
       .mobile-toggle, .mobile-menu-toggle {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
       }
@@ -883,7 +911,64 @@
     @media (max-width: 768px) {
       .main-content {
         padding: 20px;
+        padding-top: 56px;
       }
+      .type-select-mobile-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+      }
+      .type-select-mobile {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+        font-weight: 500;
+        background: var(--bg-white);
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23718096' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+      }
+      .type-select-mobile:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      .type-grid { display: none; }
+      /* Mobile sidebar: slide-in + overlay */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        max-width: 80%;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      body.sidebar-open { overflow: hidden; }
+      body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+      body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
       
       .card {
         padding: 20px;
@@ -901,6 +986,28 @@
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
+      .sale-type-mobile-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+      }
+      .sale-type-mobile-select {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+        background: var(--bg-white);
+        margin-bottom: 10px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23718096' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+      }
+      .sale-type-grid { display: none; }
       .sale-type-grid,
       .lease-term-grid {
         grid-template-columns: 1fr;
@@ -967,6 +1074,7 @@
 
   <!-- Sidebar will be loaded here -->
   <div id="sidebar-container"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
   
   <!-- Main Content - same layout as broker dashboard -->
   <div class="main-content" id="mainContent">
@@ -991,16 +1099,20 @@
   <div class="card" id="typeSelectionCard" style="position: relative;">
     <div class="form-content">
       <div class="type-selection">
-        <h2>Choose Listing Type</h2>
-        <div class="type-grid">
-          <div class="type-card active" onclick="selectType('sale')">
+        <label for="listingTypeMobile" class="type-select-mobile-label">Listing type</label>
+        <select id="listingTypeMobile" class="type-select-mobile" aria-label="Choose listing type" onchange="selectType(this.value)">
+          <option value="sale">For Sale</option>
+          <option value="lease">For Lease</option>
+        </select>
+        <div class="type-grid" id="typeGrid">
+          <div class="type-card active" data-type="sale" onclick="selectType('sale')">
             <span class="type-icon"><i class="bi bi-cash-coin"></i></span>
             <h3>FOR SALE</h3>
             <div class="description">
               List residential or commercial properties available for outright purchase with full ownership transfer.
             </div>
           </div>
-          <div class="type-card" onclick="selectType('lease')">
+          <div class="type-card" data-type="lease" onclick="selectType('lease')">
             <span class="type-icon"><i class="bi bi-file-text"></i></span>
             <h3>FOR LEASE</h3>
             <div class="description">
@@ -1125,7 +1237,7 @@
           <label for="salePrice" class="required">Asking Price (₱)</label>
           <div class="input-with-icon">
             <i class="bi bi-cash-stack"></i>
-            <input type="number" id="salePrice" placeholder="e.g., 5,000,000" min="100000" step="10000" required>
+            <input type="number" id="salePrice" placeholder="e.g., 5,000,000" step="10000" required>
           </div>
         </div>
         
@@ -1138,22 +1250,49 @@
         </div>
         
         <div class="form-group">
-          <label for="saleType" class="required">Sale Type</label>
-          <div class="sale-type-grid">
-            <div class="sale-option" onclick="selectSaleType('outright')">
+          <label for="saleType" class="required">Sale Type</label>  
+          <select id="saleTypeMobile" class="sale-type-mobile-select" aria-label="Sale type" onchange="selectSaleType(this.value)">
+            <option value="">-- Select sale type --</option>
+            <option value="outright">Outright Sale</option>
+            <option value="installment">Installment</option>
+            <option value="bank_financing">Bank Financing</option>
+          </select>
+          <div class="sale-type-grid" id="saleTypeGrid">
+            <div class="sale-option" data-sale-type="outright" onclick="selectSaleType('outright')">
               <h4>Outright Sale</h4>
               <p style="font-size: 13px; color: var(--text-light);">Full payment upon closing</p>
             </div>
-            <div class="sale-option" onclick="selectSaleType('installment')">
+            <div class="sale-option" data-sale-type="installment" onclick="selectSaleType('installment')">
               <h4>Installment</h4>
               <p style="font-size: 13px; color: var(--text-light);">Payment in installments</p>
             </div>
-            <div class="sale-option" onclick="selectSaleType('bank_financing')">
+            <div class="sale-option" data-sale-type="bank_financing" onclick="selectSaleType('bank_financing')">
               <h4>Bank Financing</h4>
               <p style="font-size: 13px; color: var(--text-light);">With bank loan option</p>
             </div>
           </div>
           <input type="hidden" id="saleTypeInput" name="saleType" required>
+          <div id="bankFinancingWrap" class="bank-financing-wrap" style="display: none;">
+            <label for="saleFinancingBank" class="required">Which bank?</label>
+            <select id="saleFinancingBank" class="sale-financing-bank-select">
+              <option value="">-- Select bank --</option>
+              <option value="BDO">BDO Unibank</option>
+              <option value="BPI">BPI</option>
+              <option value="Metrobank">Metrobank</option>
+              <option value="Landbank">Land Bank of the Philippines</option>
+              <option value="UnionBank">UnionBank</option>
+              <option value="Security Bank">Security Bank</option>
+              <option value="RCBC">RCBC</option>
+              <option value="PNB">PNB</option>
+              <option value="China Bank">China Bank</option>
+              <option value="Maybank">Maybank</option>
+              <option value="Other">Other</option>
+            </select>
+            <div id="saleFinancingBankOtherWrap" class="bank-other-wrap" style="display: none;">
+              <label for="saleFinancingBankOther">Specify bank</label>
+              <input type="text" id="saleFinancingBankOther" placeholder="e.g., Bank name">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1662,13 +1801,21 @@
 
   // ===== SIDEBAR LOADER =====
   document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu functionality
-    document.getElementById('mobileToggle').addEventListener('click', function() {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
-          'translateX(-100%)' : 'translateX(0px)';
-      }
+    // Mobile menu: toggle body class so sidebar slides in (works before sidebar HTML loads)
+    var mobileToggle = document.getElementById('mobileToggle');
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', function() {
+        document.body.classList.toggle('sidebar-open');
+      });
+    }
+    var overlayEl = document.getElementById('sidebarOverlay');
+    if (overlayEl) {
+      overlayEl.addEventListener('click', function() {
+        document.body.classList.remove('sidebar-open');
+      });
+    }
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
     });
 
     // Load broker sidebar
@@ -1877,13 +2024,12 @@
       return;
     }
     
-    // Update UI
     document.querySelectorAll('.type-card').forEach(card => {
       card.classList.remove('active');
+      if (card.getAttribute('data-type') === type) card.classList.add('active');
     });
-    
-    const clickedCard = event.currentTarget;
-    clickedCard.classList.add('active');
+    var mobileSelect = document.getElementById('listingTypeMobile');
+    if (mobileSelect) mobileSelect.value = type;
     
     // Show appropriate form
     if (type === 'sale') {
@@ -1910,10 +2056,11 @@
     // Update property types when category changes
     document.getElementById('salePropertyCategory').addEventListener('change', updateSalePropertyTypes);
     
-    // Initialize sale type selection
+    // Initialize sale type selection (data-sale-type used for value)
     document.querySelectorAll('.sale-option').forEach(option => {
       option.addEventListener('click', function() {
-        selectSaleType(this.querySelector('h4').textContent.toLowerCase().replace(/\s+/g, '_'));
+        var t = this.getAttribute('data-sale-type');
+        if (t) selectSaleType(t);
       });
     });
     
@@ -1952,15 +2099,37 @@
 
   function selectSaleType(type) {
     selectedSaleType = type;
-    document.getElementById('saleTypeInput').value = type;
-    
-    // Update UI
+    var saleTypeInput = document.getElementById('saleTypeInput');
+    if (saleTypeInput) saleTypeInput.value = type || '';
+    var mobileSelect = document.getElementById('saleTypeMobile');
+    if (mobileSelect) mobileSelect.value = type || '';
+
     document.querySelectorAll('.sale-option').forEach(option => {
       option.classList.remove('active');
+      if (option.getAttribute('data-sale-type') === type) option.classList.add('active');
     });
-    
-    event.currentTarget.classList.add('active');
+
+    var bankWrap = document.getElementById('bankFinancingWrap');
+    if (bankWrap) bankWrap.style.display = (type === 'bank_financing') ? 'block' : 'none';
+    if (type !== 'bank_financing') {
+      var bankSelect = document.getElementById('saleFinancingBank');
+      var bankOther = document.getElementById('saleFinancingBankOther');
+      if (bankSelect) bankSelect.value = '';
+      if (bankOther) bankOther.value = '';
+      var otherWrap = document.getElementById('saleFinancingBankOtherWrap');
+      if (otherWrap) otherWrap.style.display = 'none';
+    }
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var bankSelect = document.getElementById('saleFinancingBank');
+    if (bankSelect) {
+      bankSelect.addEventListener('change', function() {
+        var otherWrap = document.getElementById('saleFinancingBankOtherWrap');
+        if (otherWrap) otherWrap.style.display = (this.value === 'Other') ? 'block' : 'none';
+      });
+    }
+  });
 
   // ===== LEASE FORM FUNCTIONS =====
   function initializeLeaseForm() {
@@ -2961,7 +3130,21 @@
       showMessage('Please select a sale type', 'error');
       return false;
     }
-    
+    if (selectedSaleType === 'bank_financing') {
+      var bankEl = document.getElementById('saleFinancingBank');
+      var bankOtherEl = document.getElementById('saleFinancingBankOther');
+      if (!bankEl || !bankEl.value.trim()) {
+        showMessage('Please select which bank for financing', 'error');
+        if (bankEl) bankEl.focus();
+        return false;
+      }
+      if (bankEl.value === 'Other' && (!bankOtherEl || !bankOtherEl.value.trim())) {
+        showMessage('Please specify the bank name', 'error');
+        if (bankOtherEl) bankOtherEl.focus();
+        return false;
+      }
+    }
+
     if (selectedSaleImages.length === 0) {
       showMessage('Please upload at least 1 property image or video', 'error');
       return false;
@@ -3040,6 +3223,7 @@
       salePrice: parseFloat(document.getElementById('salePrice').value),
       priceNegotiable: document.getElementById('priceNegotiable').value,
       saleType: document.getElementById('saleTypeInput').value,
+      financingBank: (document.getElementById('saleTypeInput').value === 'bank_financing') ? (document.getElementById('saleFinancingBank').value === 'Other' ? document.getElementById('saleFinancingBankOther').value : document.getElementById('saleFinancingBank').value) : null,
       address: document.getElementById('saleAddress').value,
       location: document.getElementById('saleAddress').value,
       city: document.getElementById('saleCity').value,
@@ -3127,12 +3311,16 @@
       document.getElementById('salePreviewContainer').innerHTML = '';
       selectedSaleImages = [];
       selectedSaleType = null;
+      document.getElementById('saleTypeInput').value = '';
+      var saleTypeMobile = document.getElementById('saleTypeMobile');
+      if (saleTypeMobile) saleTypeMobile.value = '';
+      var bankWrap = document.getElementById('bankFinancingWrap');
+      if (bankWrap) bankWrap.style.display = 'none';
+      var bankOtherWrap = document.getElementById('saleFinancingBankOtherWrap');
+      if (bankOtherWrap) bankOtherWrap.style.display = 'none';
       updateSalePropertyTypes();
       
-      // Reset file input
       document.getElementById('saleImages').value = '';
-      
-      // Hide image count
       document.getElementById('saleImageCount').style.display = 'none';
       
       document.querySelectorAll('.sale-option').forEach(option => {

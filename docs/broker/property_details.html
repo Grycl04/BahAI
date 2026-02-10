@@ -29,11 +29,12 @@
       --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-dark); display: flex; min-height: 100vh; }
+    body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-dark); display: flex; min-height: 100vh; overflow-x: hidden; }
 
     .mobile-menu-toggle { display: none; position: fixed; top: 20px; left: 20px; z-index: 1001;
       background: var(--primary-gradient); color: white; border: none; width: 50px; height: 50px;
-      border-radius: 12px; font-size: 24px; cursor: pointer; }
+      border-radius: 12px; font-size: 24px; cursor: pointer; align-items: center; justify-content: center; }
+    .sidebar-overlay { display: none; }
     .container { flex: 1; margin-left: 280px; padding: 24px; transition: margin-left 0.3s ease; }
 
     .back-button { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; margin-bottom: 24px;
@@ -129,15 +130,6 @@
     .calc-results .monthly { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
     .calc-results .note { font-size: 11px; opacity: 0.9; margin-top: 8px; }
 
-    /* BahAI Insights */
-    .bahai-insights-panel { background: linear-gradient(135deg, rgba(11,46,82,0.04) 0%, rgba(212,175,55,0.08) 100%); border: 1px solid rgba(212,175,55,0.25); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px; }
-    .bahai-insights-label { font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .bahai-insights-label i { color: var(--accent); }
-    .bahai-insights-list { list-style: none; padding: 0; margin: 0; }
-    .bahai-insights-list li { font-size: 0.95rem; color: var(--text-dark); padding: 6px 0; padding-left: 20px; position: relative; line-height: 1.4; }
-    .bahai-insights-list li::before { content: '•'; color: var(--accent); font-weight: 700; position: absolute; left: 0; }
-    .bahai-insights-footer { font-size: 0.7rem; color: var(--text-light); margin-top: 12px; font-style: italic; }
-
     .trust-note { font-size: 0.8rem; color: var(--text-light); margin-top: 12px; display: flex; align-items: center; gap: 6px; }
     .trust-note i { color: var(--success); }
 
@@ -163,13 +155,94 @@
 
     /* Responsive Design */
     @media (max-width: 1024px) {
-      .container { margin-left: 0; padding: 25px; }
+      .container { margin-left: 0; padding: 24px; padding-top: 70px; }
       .mobile-menu-toggle { display: flex; align-items: center; justify-content: center; }
+      .content-grid { grid-template-columns: 1fr; gap: 20px; }
+      .gallery-hero .main-media-wrap { height: 380px; }
+      .prop-title { font-size: 26px; }
+      .prop-price { font-size: 28px; }
     }
     @media (max-width: 768px) {
-      .container { padding: 20px; }
-      .prop-title { font-size: 22px; }
-      .gallery-hero .main-media-wrap { height: 300px; }
+      .container { padding: 16px; padding-top: 64px; }
+      .container > div:first-child { position: fixed; top: 20px; right: 16px; z-index: 1001; margin: 0; }
+      .back-button { padding: 10px 18px; font-size: 0.9rem; margin-bottom: 0; }
+      .gallery-hero { margin-bottom: 18px; border-radius: var(--radius); }
+      .gallery-hero .main-media-wrap { height: 280px; }
+      .gallery-badges { top: 12px; left: 12px; gap: 8px; }
+      .badge { padding: 6px 12px; font-size: 11px; }
+      .gallery-image-count { bottom: 50px; right: 12px; padding: 5px 10px; font-size: 11px; }
+      .image-navigation { padding: 0 12px; }
+      .image-nav-btn { width: 44px; height: 44px; font-size: 18px; }
+      .gallery-thumbs { padding: 10px; gap: 6px; }
+      .gallery-thumbs .thumb-item { width: 64px; height: 48px; }
+      .card { padding: 18px; margin-bottom: 16px; border-radius: var(--radius); }
+      .card-title { font-size: 16px; margin-bottom: 12px; }
+      .prop-header { margin-bottom: 18px; }
+      .prop-title { font-size: 22px; margin-bottom: 10px; line-height: 1.25; }
+      .prop-location { font-size: 14px; margin-bottom: 12px; }
+      .prop-price { font-size: 26px; margin-bottom: 16px; }
+      .prop-stats { gap: 16px; }
+      .stat i { font-size: 16px; }
+      .stat span { font-size: 14px; }
+      .detail-row { padding: 10px 14px; }
+      .detail-label { font-size: 12px; }
+      .detail-value { font-size: 14px; }
+      .contact-card { padding: 20px; border-radius: var(--radius); }
+      .contact-header { font-size: 18px; margin-bottom: 18px; }
+      .contact-profile { flex-direction: column; text-align: center; gap: 14px; margin-bottom: 18px; }
+      .contact-avatar { width: 64px; height: 64px; font-size: 20px; }
+      .contact-name { font-size: 18px; }
+      .contact-role { font-size: 14px; }
+      .contact-method { padding: 12px 14px; font-size: 14px; min-height: 48px; }
+      .contact-btn { padding: 14px 20px; font-size: 15px; min-height: 48px; }
+      .amenity-chip { padding: 6px 12px; font-size: 12px; }
+      .desc-text { font-size: 14px; line-height: 1.6; }
+      .map-container { height: 220px; }
+      #propertyMap { min-height: 220px; }
+      .calc-widget { padding: 16px; margin-top: 16px; }
+      .calc-widget h3 { font-size: 14px; margin-bottom: 10px; }
+      .calc-results .monthly { font-size: 18px; }
+      .loading-state { padding: 50px 16px; }
+      .error-state { padding: 60px 16px; }
+      /* Mobile sidebar overlay */
+      .sidebar { position: fixed; top: 0; left: 0; width: 260px; max-width: 80%; height: 100vh; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000; }
+      .sidebar-overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+      body.sidebar-open { overflow: hidden; }
+      body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+      body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 12px; padding-top: 58px; }
+      .mobile-menu-toggle { top: 12px; left: 12px; width: 44px; height: 44px; font-size: 20px; }
+      .container > div:first-child { top: 12px; right: 12px; }
+      .back-button { padding: 10px 14px; font-size: 0.85rem; }
+      .gallery-hero .main-media-wrap { height: 240px; }
+      .gallery-badges { top: 8px; left: 8px; }
+      .badge { padding: 5px 10px; font-size: 10px; }
+      .image-nav-btn { width: 40px; height: 40px; font-size: 16px; }
+      .gallery-thumbs .thumb-item { width: 56px; height: 42px; }
+      .card { padding: 14px; margin-bottom: 14px; }
+      .card-title { font-size: 15px; }
+      .prop-title { font-size: 20px; margin-bottom: 8px; }
+      .prop-location { font-size: 13px; }
+      .prop-price { font-size: 22px; margin-bottom: 12px; }
+      .prop-stats { gap: 12px; }
+      .stat { gap: 8px; }
+      .stat i { font-size: 14px; }
+      .stat span { font-size: 13px; }
+      .detail-row { padding: 10px 12px; }
+      .detail-label { font-size: 11px; }
+      .detail-value { font-size: 13px; }
+      .contact-card { padding: 16px; }
+      .contact-header { font-size: 16px; margin-bottom: 14px; }
+      .contact-avatar { width: 56px; height: 56px; font-size: 18px; }
+      .contact-name { font-size: 16px; }
+      .contact-role { font-size: 13px; }
+      .contact-method { padding: 10px 12px; font-size: 13px; min-height: 44px; }
+      .contact-btn { padding: 12px 16px; font-size: 14px; min-height: 44px; }
+      .map-container { height: 200px; }
+      #propertyMap { min-height: 200px; }
+      .calc-widget { padding: 14px; }
     }
 </style>
 </head>
@@ -180,6 +253,7 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Main Content -->
 <div class="container">
@@ -205,12 +279,20 @@
 <!-- Sidebar Loader Script -->
 <script>
 // Mobile menu functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-            'translateX(-100%)' : 'translateX(0px)';
-    }
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', function() {
+        document.body.classList.toggle('sidebar-open');
+    });
+}
+var overlayEl = document.getElementById('sidebarOverlay');
+if (overlayEl) {
+    overlayEl.addEventListener('click', function() {
+        document.body.classList.remove('sidebar-open');
+    });
+}
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
 });
 
 // Simple logout function
@@ -438,20 +520,6 @@ function renderDetailSection(title, icon, items) {
         `).join('')}
       </div>
     </div>`;
-}
-
-function populateBahaiInsights(l, type) {
-  const list = document.getElementById('bahaiInsightsList');
-  if (!list) return;
-  const insights = [];
-  const loc = l.location || l.address || l.city;
-  if (loc) insights.push(`Located in ${loc}`);
-  const price = l.pricing || l.salePrice || l.monthlyRent || (l.annualRent || 0) / 12;
-  if (price > 0) insights.push('Matches typical budget ranges for this area');
-  const pt = (l.propertyType || l.propertyCategory || '').replace(/_/g, ' ');
-  if (pt) insights.push(`Similar to other ${pt} properties`);
-  if (insights.length === 0) insights.push('This property meets common search criteria');
-  list.innerHTML = insights.map(i => `<li>${i}</li>`).join('');
 }
 
 function initMortgageCalc(l, type) {
@@ -1036,12 +1104,6 @@ function displayPropertyDetails(listing, userInfo) {
           </div>
         </div>
 
-        <div class="bahai-insights-panel" id="bahaiInsightsPanel">
-          <div class="bahai-insights-label"><i class="fas fa-robot"></i> BahAI Insights</div>
-          <ul class="bahai-insights-list" id="bahaiInsightsList"></ul>
-          <div class="bahai-insights-footer">Insights improve as you interact with the system</div>
-        </div>
-
         ${listing.description ? `
         <div class="card">
           <h3 class="card-title"><i class="fas fa-align-left"></i> Description</h3>
@@ -1164,9 +1226,6 @@ function displayPropertyDetails(listing, userInfo) {
     </div>`;
     
     container.innerHTML = html;
-    
-    // Populate BahAI insights
-    populateBahaiInsights(listing, listingType);
     
     // Initialize components
     initializeMediaNavigation(allMedia);

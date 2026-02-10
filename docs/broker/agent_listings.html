@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>My Listings - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,12 +24,14 @@
         --text-light: #718096;
     }
 
+    body { overflow-x: hidden; }
+
     /* Hero Section - same as broker dashboard */
     .hero-section {
         background: var(--primary-gradient);
         color: white;
         border-radius: var(--border-radius-lg);
-        padding: 50px 40px;
+        padding: 28px 40px;
         margin-bottom: 40px;
         position: relative;
         overflow: hidden;
@@ -309,45 +311,159 @@
         transform: translateY(-2px);
     }
 
-    /* Mobile Menu Toggle */
+    /* Mobile Menu Toggle - same as agent dashboard */
     .mobile-menu-toggle {
         display: none;
         position: fixed;
-        top: 20px;
-        left: 20px;
+        top: 16px;
+        left: 16px;
         z-index: 1001;
-        background: var(--primary-dark);
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
         color: white;
         border: none;
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        font-size: 24px;
+        font-size: 22px;
         cursor: pointer;
-        box-shadow: var(--card-shadow);
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
     }
+    .mobile-menu-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #sidebarOverlay { display: none; }
 
     .container {
         flex: 1;
         margin-left: 280px;
-        padding: 30px;
+        padding-top: 15px;
+        padding-right: 24px;
+        padding-bottom: 24px;
+        padding-left: 24px;
         transition: margin-left 0.3s ease;
     }
 
-    @media (max-width: 1024px) {
-        .container { margin-left: 0; padding: 25px; }
-        .hero-stats { gap: 20px; }
-        .mobile-menu-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .properties-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
     }
+    .properties-count {
+        color: var(--text-light);
+        margin-bottom: 0;
+        font-size: 15px;
+    }
+
+    /* Tablet */
+    @media (max-width: 1024px) {
+        .container {
+            margin-left: 0;
+            padding: 24px;
+            padding-top: 70px;
+        }
+        .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
+        .hero-section { padding: 24px 28px; }
+        .hero-section h1 { font-size: 2.2rem; }
+        .hero-section p { font-size: 1rem; max-width: 100%; }
+        .hero-stats { gap: 20px; flex-wrap: wrap; }
+        .listings-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+        .listing-card-image-container { height: 200px; }
+        .properties-section-header { flex-direction: column; align-items: stretch; gap: 15px; }
+        .properties-section-header .add-button { width: 100%; justify-content: center; }
+    }
+
+    /* Large Mobile */
     @media (max-width: 768px) {
-        .container { padding: 20px; }
-        .listings-grid { grid-template-columns: 1fr; gap: 15px; }
-        .hero-section h1 { font-size: 1.8rem; }
-        .hero-section { padding: 30px 24px; }
+        html { font-size: 14px; }
+        .container { margin-left: 0; padding: 16px; padding-top: 56px; }
+        .mobile-menu-toggle { display: flex !important; }
+        .listings-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+        .hero-section h1 { font-size: 1.6rem; }
+        .hero-section { padding: 16px 18px; margin-bottom: 20px; }
+        .hero-section p { font-size: 0.9rem; margin-bottom: 14px; }
+        .hero-stats {
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .hero-stat-item {
+            width: 100%;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .hero-stat-item:last-child { border-bottom: none; }
+        .hero-stat-value { font-size: 1.3rem; }
+        .hero-stat-label { font-size: 0.85rem; }
+        .hero-stat-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+        .section-title { font-size: 1.25rem; }
+        .listing-content { padding: 14px; }
+        .listing-header { flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; }
+        .listing-price { text-align: left; max-width: none; width: 100%; font-size: 1rem; }
+        .listing-details { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; }
+        .listing-card-image-container { height: 150px; }
+        .listing-status-badge { padding: 4px 10px; font-size: 10px; top: 8px; right: 8px; }
+        .listing-actions { flex-wrap: wrap; gap: 8px; }
+        .action-btn { min-width: 0; padding: 10px 12px; font-size: 0.85rem; }
+        .empty-state { padding: 40px 16px; }
+        .empty-state-icon { font-size: 48px; }
+        .empty-state h3 { font-size: 18px; }
+        body.sidebar-open { overflow: hidden; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 260px; max-width: 80%; height: 100vh;
+            transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000;
+        }
+        body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+        #sidebarOverlay {
+            display: block;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.35); z-index: 999;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        body.sidebar-open #sidebarOverlay { opacity: 1; pointer-events: auto; }
+        .sidebar .sidebar-overlay { display: none !important; }
+    }
+
+    /* Small Mobile - 2 cards per row like broker listings */
+    @media (max-width: 480px) {
+        html { font-size: 13px; }
+        .container { padding: 12px; padding-top: 54px; }
+        .mobile-menu-toggle {
+            top: 12px; left: 12px;
+            width: 44px; height: 44px;
+            font-size: 20px;
+        }
+        .hero-section { padding: 14px 14px; margin-bottom: 18px; }
+        .hero-section h1 { font-size: 1.35rem; }
+        .hero-section p { font-size: 0.85rem; margin-bottom: 12px; }
+        .hero-stat-value { font-size: 1.1rem; }
+        .hero-stat-label { font-size: 0.78rem; }
+        .hero-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+        .section-title { font-size: 1.15rem; }
+        .section-title i { font-size: 1.1rem; }
+        .listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .listing-card-image-container { height: 120px; }
+        .listing-content { padding: 10px; }
+        .listing-title { font-size: 0.9rem; }
+        .listing-price { font-size: 0.9rem; }
+        .listing-details { gap: 6px; margin-bottom: 8px; padding-bottom: 8px; }
+        .detail { font-size: 0.8rem; }
+        .listing-status-badge { padding: 3px 8px; font-size: 9px; border-radius: 14px; top: 6px; right: 6px; }
+        .listing-actions { padding-top: 6px; gap: 6px; }
+        .action-btn { padding: 8px 10px; font-size: 0.75rem; }
     }
 </style>
 </head>
@@ -358,6 +474,7 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
 <!-- Main - same layout as broker dashboard -->
 <div class="container">
@@ -385,15 +502,13 @@
 
   <!-- My Listings Section - same design as broker dashboard -->
   <div class="properties-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+    <div class="properties-section-header">
       <div>
         <h2 class="section-title">
           <i class="fas fa-building"></i>
           Your Properties
         </h2>
-        <p style="color: var(--text-light); margin-bottom: 0; font-size: 15px;" id="propertiesCount">
-          Your listed properties
-        </p>
+        <p class="properties-count" id="propertiesCount">Your listed properties</p>
       </div>
       <a href="agent_add_property.html" class="add-button" style="text-decoration: none;">
         <i class="fas fa-plus"></i> Add New Property
@@ -415,11 +530,22 @@
 <!-- Sidebar Loader - same as broker dashboard, active link for My Listings -->
 <script src="../sidebar-user.js"></script>
 <script>
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ?
-      'translateX(-100%)' : 'translateX(0px)';
+// Mobile menu - same as agent dashboard (body.sidebar-open)
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
+var overlayEl = document.getElementById('sidebarOverlay');
+if (overlayEl) {
+  overlayEl.addEventListener('click', function() {
+    document.body.classList.remove('sidebar-open');
+  });
+}
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) {
+    document.body.classList.remove('sidebar-open');
   }
 });
 
@@ -438,16 +564,21 @@ fetch('agent_sidebar.html')
     }
     console.log('✅ Agent sidebar loaded successfully');
     
-    // Set active state for current page
-    const links = document.querySelectorAll('.sidebar-link');
+    var links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
       link.classList.remove('active');
       if (link.getAttribute('href') === 'agent_listings.html') {
         link.classList.add('active');
       }
     });
-    
     setupLogoutButton();
+    links.forEach(link => {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 768) {
+          document.body.classList.remove('sidebar-open');
+        }
+      });
+    });
   })
   .catch(error => {
     console.error('❌ Error loading agent sidebar:', error);

@@ -31,7 +31,11 @@
         .container {
             margin-left: 280px;
             padding-top: 15px;
+            padding-right: 24px;
+            padding-bottom: 24px;
         }
+        body { overflow-x: hidden; }
+        .sidebar-overlay { display: none; }
         .mobile-menu-toggle {
             display: none;
             position: fixed;
@@ -466,28 +470,109 @@
         }
 
         @media (max-width: 1024px) {
-            .container { margin-left: 240px; padding: 25px; padding-top: 15px; }
+            .container { margin-left: 0; padding: 24px; padding-top: 70px; }
             .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
-            .hero-stats { gap: 20px; }
-            .table-header { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .search-box { width: 100%; }
-            .table-controls { width: 100%; }
-            .hero-section { padding: 24px 30px; }
+            .hero-stats { gap: 20px; flex-wrap: wrap; }
+            .table-header { flex-direction: column; gap: 15px; align-items: stretch; }
+            .search-box { width: 100%; max-width: 100%; }
+            .table-controls { width: 100%; flex-wrap: wrap; }
+            .hero-section { padding: 24px 28px; margin-bottom: 30px; }
         }
         @media (max-width: 768px) {
-            .container { margin-left: 0; padding: 20px; padding-top: 60px; }
+            .container { margin-left: 0; padding: 16px; padding-top: 56px; }
             .mobile-menu-toggle { display: flex !important; }
-            .hero-section h1 { font-size: 1.8rem; }
-            .hero-section { padding: 22px 24px; }
-            table { display: block; overflow-x: auto; white-space: nowrap; }
-            .pagination { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .confirmation-content { padding: 20px; width: 95%; }
-            .confirmation-actions { flex-direction: column; }
-            .confirmation-btn { width: 100%; }
+            .hero-section h1 { font-size: 1.6rem; }
+            .hero-section { padding: 16px 18px; margin-bottom: 24px; }
+            .hero-section p { font-size: 0.9rem; margin-bottom: 14px; }
+            .hero-stats { flex-direction: column; gap: 14px; margin-top: 18px; }
+            .hero-stat-item { width: 100%; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
+            .hero-stat-item:last-child { border-bottom: none; }
+            .hero-stat-value { font-size: 1.3rem; }
+            .hero-stat-label { font-size: 0.85rem; }
+            .hero-stat-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+            .table-header { padding: 18px; flex-direction: column; align-items: stretch; gap: 12px; }
+            .table-controls { flex-direction: column; gap: 10px; }
+            .search-box { width: 100%; min-height: 44px; }
+            .add-button, .refresh-btn { width: 100%; justify-content: center; min-height: 44px; }
+            .table-container { border-radius: var(--border-radius-sm); margin-bottom: 20px; }
+            /* Mobile: table rows as cards — name + actions only */
+            .table-container table { display: block; overflow-x: visible; }
+            .table-container thead { display: none; }
+            .table-container tbody tr {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                border: 1px solid var(--border);
+                border-radius: var(--border-radius-sm);
+                margin-bottom: 12px;
+                padding: 16px;
+                background: var(--bg-white);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            }
+            .table-container tbody td {
+                display: block;
+                padding: 0;
+                border: none;
+                font-size: 14px;
+            }
+            /* Hide Contact, Status, Experience, Specializations, Joined on mobile */
+            .table-container tbody td[data-label="Contact"],
+            .table-container tbody td[data-label="Status"],
+            .table-container tbody td[data-label="Experience"],
+            .table-container tbody td[data-label="Specializations"],
+            .table-container tbody td[data-label="Joined"] {
+                display: none !important;
+            }
+            .table-container tbody td[data-label="Agent"] {
+                flex: 0 1 auto;
+                padding: 0;
+            }
+            /* Agent cell: show only name (and avatar) on mobile */
+            .table-container td[data-label="Agent"] .agent-title,
+            .table-container td[data-label="Agent"] .agent-info > div:not(.agent-name) {
+                display: none !important;
+            }
+            .table-container tbody td[data-label="Actions"] {
+                flex: 0 0 auto;
+                padding: 0;
+            }
+            .table-container .agent-row-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .table-container .agent-row-actions .action-btn { flex: 1; min-width: 120px; justify-content: center; }
+            .agent-avatar { width: 40px; height: 40px; font-size: 14px; }
+            .action-btn { padding: 12px 14px; min-height: 44px; }
+            .pagination { flex-direction: column; gap: 12px; align-items: stretch; padding: 16px; }
+            .page-btn { min-height: 44px; }
+            .confirmation-content { padding: 20px; width: 95%; max-width: 100%; }
+            .confirmation-actions { flex-direction: column; gap: 10px; }
+            .confirmation-btn { width: 100%; min-height: 44px; }
+            /* Mobile sidebar */
+            .sidebar { position: fixed; top: 0; left: 0; width: 260px; max-width: 80%; height: 100vh; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000; }
+            .sidebar-overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            body.sidebar-open { overflow: hidden; }
+            body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+            body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
         }
         @media (max-width: 480px) {
-            .container { padding: 15px; padding-top: 58px; }
-            .hero-section { padding: 20px 18px; }
+            .container { padding: 12px; padding-top: 54px; }
+            .mobile-menu-toggle { top: 12px; left: 12px; width: 44px; height: 44px; font-size: 20px; }
+            .hero-section { padding: 14px 14px; margin-bottom: 20px; }
+            .hero-section h1 { font-size: 1.35rem; }
+            .hero-section p { font-size: 0.85rem; }
+            .hero-stat-value { font-size: 1.1rem; }
+            .hero-stat-label { font-size: 0.8rem; }
+            .hero-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+            .table-container tbody tr { padding: 14px; margin-bottom: 10px; }
+            .table-container .agent-row-actions { flex-direction: column; }
+            .table-container .agent-row-actions .action-btn { min-width: 100%; }
+            .table-header { padding: 14px; }
+            .section-title { font-size: 1.15rem; }
+            .agent-avatar { width: 36px; height: 36px; font-size: 12px; }
         }
     </style>
 </head>
@@ -497,6 +582,7 @@
 
     <!-- Sidebar Container -->
     <div id="sidebar-container"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Confirmation Modal -->
     <div class="confirmation-modal" id="confirmationModal">
@@ -577,13 +663,21 @@
 
     <script src="../sidebar-user.js"></script>
     <script>
-        // Mobile menu functionality
-        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-                    'translateX(-100%)' : 'translateX(0px)';
-            }
+        // Mobile menu: toggle body class so sidebar slides in (works before sidebar loads)
+        var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function() {
+                document.body.classList.toggle('sidebar-open');
+            });
+        }
+        var overlayEl = document.getElementById('sidebarOverlay');
+        if (overlayEl) {
+            overlayEl.addEventListener('click', function() {
+                document.body.classList.remove('sidebar-open');
+            });
+        }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
         });
 
         // Load sidebar
@@ -961,7 +1055,7 @@
                     : 'None';
                 
                 row.innerHTML = `
-                    <td>
+                    <td data-label="Agent">
                         <div class="agent-cell">
                             <div class="agent-avatar">${avatarHtml}</div>
                             <div class="agent-info">
@@ -971,18 +1065,18 @@
                             </div>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Contact">
                         <div style="margin-bottom: 4px;">${agent.email || 'Email not provided'}</div>
                         <div style="color: var(--text-light); font-size: 14px;">${agent.phone || 'Phone not provided'}</div>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
-                    <td>${experienceText}</td>
-                    <td>${specialtiesText}</td>
-                    <td>${formattedDate}</td>
-                    <td>
-                        <div style="display: flex; gap: 8px;">
+                    <td data-label="Experience">${experienceText}</td>
+                    <td data-label="Specializations">${specialtiesText}</td>
+                    <td data-label="Joined">${formattedDate}</td>
+                    <td data-label="Actions">
+                        <div class="agent-row-actions">
                             ${agent.status === 'pending' ? 
                                 `<button class="action-btn" onclick="resendInvitation('${agent.id}', '${agent.email}')">
                                     <span>📧</span> Resend

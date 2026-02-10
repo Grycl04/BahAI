@@ -583,6 +583,7 @@
         }
         body.sidebar-open .sidebar {
             transform: translateX(0);
+            z-index: 1001;
         }
         body.sidebar-open .sidebar-overlay {
             opacity: 1;
@@ -809,20 +810,21 @@
 <!-- Sidebar Loader -->
 <script src="../sidebar-user.js"></script>
 <script>
-// Mobile menu functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (!sidebar) return;
-  // Toggle body class; CSS handles slide-in/out on mobile breakpoints
-  document.body.classList.toggle('sidebar-open');
-});
+// Mobile menu functionality - toggle works even before sidebar HTML has loaded
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
 
 // Close sidebar when tapping on overlay (mobile)
-document.getElementById('sidebarOverlay').addEventListener('click', function () {
-  if (document.body.classList.contains('sidebar-open')) {
+var overlayEl = document.getElementById('sidebarOverlay');
+if (overlayEl) {
+  overlayEl.addEventListener('click', function () {
     document.body.classList.remove('sidebar-open');
-  }
-});
+  });
+}
 
 // Ensure sidebar is reset when resizing back to desktop
 window.addEventListener('resize', function () {
@@ -989,10 +991,12 @@ async function loadAllListings() {
           !data.status || data.status === true || data.status === 'true') {
         allListings.push(listing);
         
-        // Collect user IDs for lookup
+        // Collect user IDs for lookup (include agent so we can fetch from agents collection)
+        if (data.agentId) userIds.add(data.agentId);
         if (data.userId) userIds.add(data.userId);
         if (data.ownerId) userIds.add(data.ownerId);
         if (data.brokerId) userIds.add(data.brokerId);
+        if (data.listedBy) userIds.add(data.listedBy);
       }
     });
     
@@ -1016,7 +1020,22 @@ async function loadAllListings() {
   }
 }
 
-// Load user data for multiple user IDs
+// Extract profile photo URL from user/agent data (all known field names)
+function getPhotoFromData(data) {
+  if (!data || typeof data !== 'object') return null;
+  const url = data.photoURL || data.profilePhotoURL || data.profilePhoto || data.profileImage || data.imageURL || data.photoUrl || data.imageUrl || data.avatarURL || data.avatar || null;
+  if (url && typeof url === 'string' && url.trim().length > 0) return url.trim();
+  for (const key of Object.keys(data)) {
+    const k = key.toLowerCase();
+    if ((k.includes('photo') || k.includes('image') || k.includes('avatar')) && typeof data[key] === 'string') {
+      const v = data[key].trim();
+      if (v.length > 10 && (v.startsWith('http') || v.startsWith('//'))) return v;
+    }
+  }
+  return null;
+}
+
+// Load user data for multiple user IDs (agents first, then brokers, then users)
 async function loadUserData(userIds) {
   userMap.clear();
   
@@ -1029,38 +1048,62 @@ async function loadUserData(userIds) {
   
   const userPromises = userIds.map(async (userId) => {
     try {
-      let userData = null;
+      // Try agents collection first (so listing cards get agent profile/photo)
+      let agentData = null;
+      const agentDoc = await getDoc(doc(db, "agents", userId));
+      if (agentDoc.exists()) {
+        agentData = agentDoc.data();
+      } else {
+        const agentsQuery = query(collection(db, "agents"), where("authUid", "==", userId));
+        const agentSnap = await getDocs(agentsQuery);
+        if (!agentSnap.empty) agentData = agentSnap.docs[0].data();
+      }
+      if (agentData) {
+        const displayName = agentData.fullName || agentData.displayName || agentData.name ||
+          (agentData.firstName && agentData.lastName ? `${agentData.firstName} ${agentData.lastName}`.trim() : null) ||
+          `User ${userId.substring(0, 8)}`;
+        userMap.set(userId, {
+          displayName: displayName,
+          email: agentData.email || 'Email not available',
+          phone: agentData.phone || agentData.phoneNumber || 'Phone not available',
+          role: agentData.role || 'agent',
+          photoURL: getPhotoFromData(agentData)
+        });
+        return;
+      }
+      // Brokers
       const brokerDoc = await getDoc(doc(db, "brokers", userId));
       if (brokerDoc.exists()) {
-        userData = brokerDoc.data();
+        const userData = brokerDoc.data();
         userMap.set(userId, {
           displayName: userData.fullName || userData.name || userData.displayName || `User ${userId.substring(0, 8)}`,
           email: userData.email || 'Email not available',
           phone: userData.phone || userData.phoneNumber || 'Phone not available',
           role: userData.role || 'broker',
-          photoURL: userData.photoURL || userData.profilePhoto || userData.profileImage || userData.imageURL || null
+          photoURL: getPhotoFromData(userData)
         });
-      } else {
-        const userDoc = await getDoc(doc(db, "users", userId));
-        if (userDoc.exists()) {
-          userData = userDoc.data();
-          userMap.set(userId, {
-            displayName: userData.fullName || userData.displayName || userData.name || `User ${userId.substring(0, 8)}`,
-            email: userData.email || 'Email not available',
-            phone: userData.phone || userData.phoneNumber || 'Phone not available',
-            role: userData.role || userData.userType || 'user',
-            photoURL: userData.photoURL || userData.profilePhotoURL || null
-          });
-        } else {
-          userMap.set(userId, {
-            displayName: `User ${userId.substring(0, 8)}`,
-            email: 'Email not available',
-            phone: 'Phone not available',
-            role: 'user',
-            photoURL: null
-          });
-        }
+        return;
       }
+      // Users
+      const userDoc = await getDoc(doc(db, "users", userId));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userMap.set(userId, {
+          displayName: userData.fullName || userData.displayName || userData.name || `User ${userId.substring(0, 8)}`,
+          email: userData.email || 'Email not available',
+          phone: userData.phone || userData.phoneNumber || 'Phone not available',
+          role: userData.role || userData.userType || 'user',
+          photoURL: getPhotoFromData(userData)
+        });
+        return;
+      }
+      userMap.set(userId, {
+        displayName: `User ${userId.substring(0, 8)}`,
+        email: 'Email not available',
+        phone: 'Phone not available',
+        role: 'user',
+        photoURL: null
+      });
     } catch (error) {
       console.error(`Error loading user ${userId}:`, error);
       userMap.set(userId, {
@@ -1087,8 +1130,8 @@ function displayListings(listings) {
   }
   
   container.innerHTML = listings.map(listing => {
-    // Get user information
-    const userId = listing.userId || listing.ownerId || listing.brokerId || 'unknown';
+    // Get user/agent ID (prefer agent so listing shows assigned agent profile)
+    const userId = listing.agentId || listing.userId || listing.ownerId || listing.brokerId || listing.listedBy || 'unknown';
     const userInfo = userMap.get(userId) || {
       displayName: `User ${userId.substring(0, 8)}`,
       email: 'N/A',

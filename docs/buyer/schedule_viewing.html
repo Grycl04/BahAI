@@ -642,6 +642,7 @@ async function initPage() {
   // Wait for authentication
   await new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
+      if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
       if (!user) {
         showError('Please log in to schedule a viewing');
         setTimeout(() => {
@@ -778,6 +779,9 @@ async function checkExistingSchedules() {
       if (isBroker && scheduleData.status === 'pending') {
         enableBrokerActions(scheduleData);
       }
+    } else if (isBroker) {
+      // Broker has no existing schedule - allow creating one
+      document.getElementById('submitBtn').innerHTML = '<i class="fas fa-calendar-plus"></i> Schedule Viewing';
     }
     
   } catch (error) {
@@ -927,7 +931,11 @@ function setupEventListeners() {
   // Submit button
   document.getElementById('submitBtn').addEventListener('click', async function() {
     if (isBroker) {
-      await confirmSchedule();
+      if (viewingScheduleId) {
+        await confirmSchedule();
+      } else {
+        await brokerCreateSchedule();
+      }
     } else {
       await submitScheduleRequest();
     }
@@ -999,6 +1007,61 @@ async function submitScheduleRequest() {
     showError('Failed to submit request: ' + error.message);
     
     // Reset button
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  }
+}
+
+// Create schedule (broker/agent initiating - no existing schedule)
+async function brokerCreateSchedule() {
+  if (!selectedDate || !selectedTime) {
+    showError('Please select both date and time');
+    return;
+  }
+  if (!buyerId) {
+    showError('Missing buyer information');
+    return;
+  }
+  
+  const notes = document.getElementById('notes').value.trim();
+  const submitBtn = document.getElementById('submitBtn');
+  const originalText = submitBtn.innerHTML;
+  
+  submitBtn.innerHTML = '<div class="loading"></div> Creating...';
+  submitBtn.disabled = true;
+  
+  try {
+    const conversationId = [buyerId, currentUser.uid].sort().join('_');
+    const scheduleData = {
+      buyerId: buyerId,
+      brokerId: currentUser.uid,
+      propertyId: propertyId,
+      proposedDate: selectedDate,
+      proposedTime: selectedTime,
+      notes: notes || null,
+      status: 'confirmed',
+      conversationId: conversationId,
+      createdAt: serverTimestamp(),
+      confirmedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    
+    const scheduleRef = await addDoc(collection(db, 'schedules'), scheduleData);
+    viewingScheduleId = scheduleRef.id;
+    
+    await sendScheduleNotification(conversationId, 'confirmed', notes);
+    showToast('Viewing scheduled successfully!');
+    
+    setTimeout(() => {
+      if (window.opener) {
+        window.opener.postMessage({ type: 'schedule_updated', scheduleId: viewingScheduleId }, '*');
+      }
+      window.close();
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error creating schedule:', error);
+    showError('Failed to create schedule: ' + error.message);
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
   }

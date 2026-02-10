@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Schedule Management - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,10 +35,13 @@
     }
 
     /* Layout - push main content right of fixed sidebar */
+    body { overflow-x: hidden; }
     .container {
       margin-left: 280px;
+      padding: 30px;
       padding-top: 15px;
     }
+    #pageSidebarOverlay { display: none; }
     .mobile-menu-toggle {
       display: none;
       position: fixed;
@@ -802,49 +805,93 @@
       background: var(--info);
     }
 
-    /* Responsive - same as broker dashboard */
+    /* Responsive - same as broker schedule management + mobile sidebar */
     @media (max-width: 1024px) {
-      .container { margin-left: 240px; padding: 25px; padding-top: 15px; }
+      .container { margin-left: 0; padding: 24px; padding-top: 70px; }
       .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
       .hero-stats { gap: 20px; }
       .hero-section { padding: 24px 30px; }
     }
     @media (max-width: 768px) {
-      .container { margin-left: 0; padding: 20px; padding-top: 60px; }
-      .mobile-menu-toggle { display: flex !important; }
+      html { font-size: 14px; }
+      .container { margin-left: 0; padding: 16px; padding-top: 56px; }
+      .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
       .hero-section h1 { font-size: 1.8rem; }
       .hero-section { padding: 22px 24px; }
-      .calendar-container { padding: 15px; }
-      .schedules-list-container { padding: 15px; }
+      .section-title { font-size: 1.25rem; }
+      .calendar-container { padding: 12px; min-height: 400px; }
+      .fc .fc-toolbar { flex-direction: column; gap: 10px; }
+      .fc .fc-toolbar-chunk { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+      .fc .fc-toolbar-title { font-size: 1.2rem; }
+      .fc .fc-button { padding: 6px 10px; font-size: 13px; }
+      .schedules-list-container { padding: 16px; }
+      .schedules-header { flex-direction: column; align-items: stretch; gap: 12px; }
+      .schedules-header h3 { font-size: 1.25rem; }
+      .filter-buttons { width: 100%; flex-wrap: wrap; }
+      .filter-btn { flex: 1; min-width: 80px; justify-content: center; padding: 10px 12px; font-size: 13px; }
+      .schedule-item { padding: 16px; max-width: 100%; }
       .schedule-date-time { flex-direction: column; align-items: flex-start; gap: 8px; }
       .schedule-item-header { flex-direction: column; align-items: flex-start; }
+      .schedule-date { font-size: 1.1rem; }
+      .schedule-time { font-size: 14px; }
+      /* Mobile sidebar: off-screen by default, slide in with overlay */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        max-width: 80%;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+      body.sidebar-open { overflow: hidden; }
+      #pageSidebarOverlay {
+        display: block;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      body.sidebar-open #pageSidebarOverlay { opacity: 1; pointer-events: auto; }
+      .sidebar .sidebar-overlay { display: none !important; }
       /* Schedule modal - responsive stacking */
       #scheduleModal .modal { max-width: 100%; }
       #scheduleModal .modal-header { padding: 24px 20px 20px; }
       #scheduleModal .modal-header h3 { font-size: 20px; }
       #scheduleModal .modal-body { padding: 0 20px 24px; }
-      #scheduleModal .modal-sections-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
+      #scheduleModal .modal-sections-grid { grid-template-columns: 1fr; gap: 20px; }
       #scheduleModal .modal-section.full-width { grid-column: 1; }
       #scheduleModal .modal-body > .modal-section { margin-top: 20px; }
-      #scheduleModal .modal-actions {
-        flex-direction: column;
-        padding: 20px;
-      }
+      #scheduleModal .modal-actions { flex-direction: column; padding: 20px; }
       #scheduleModal .modal-btn { width: 100%; justify-content: center; }
     }
     @media (max-width: 480px) {
-      .container { padding: 15px; padding-top: 58px; }
+      html { font-size: 13px; }
+      .container { padding: 12px; padding-top: 54px; }
+      .mobile-menu-toggle { top: 12px; left: 12px; width: 44px; height: 44px; font-size: 20px; }
       .hero-section { padding: 20px 18px; }
-      .schedules-header { flex-direction: column; align-items: flex-start; }
-      .filter-buttons { width: 100%; }
-      .filter-btn { flex: 1; justify-content: center; }
+      .section-title { font-size: 1.1rem; }
+      .calendar-container { padding: 10px; min-height: 350px; }
+      .fc .fc-toolbar-title { font-size: 1rem; }
+      .fc .fc-button { padding: 6px 8px; font-size: 12px; }
+      .schedules-header { flex-direction: column; align-items: stretch; }
+      .filter-buttons { flex-direction: column; }
+      .filter-btn { width: 100%; min-width: 0; min-height: 44px; }
+      .schedule-item { padding: 14px; }
+      .schedule-date { font-size: 1rem; }
+      .schedule-time { font-size: 13px; }
       .schedule-details { grid-template-columns: 1fr; }
       .schedule-actions { flex-direction: column; }
-      .action-btn { width: 100%; justify-content: center; }
-      /* Schedule modal - compact on small screens */
+      .action-btn { width: 100%; justify-content: center; min-height: 44px; }
+      .sidebar { width: 260px; max-width: 85%; }
+      /* Schedule modal - compact */
       #scheduleModal.modal-overlay { padding: 16px; }
       #scheduleModal .modal-header { padding: 20px 16px 16px; }
       #scheduleModal .modal-header h3 { font-size: 18px; }
@@ -862,6 +909,7 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="pageSidebarOverlay" aria-hidden="true"></div>
 
 <!-- Main - same layout as broker dashboard -->
 <div class="container">
@@ -929,24 +977,27 @@
 <!-- Sidebar Loader -->
 <script src="../sidebar-user.js"></script>
 <script>
-// Mobile menu functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-      'translateX(-100%)' : 'translateX(0px)';
-  }
+// Mobile menu: toggle body class so sidebar slides in (same as broker / agent dashboard)
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
+var overlayEl = document.getElementById('pageSidebarOverlay');
+if (overlayEl) {
+  overlayEl.addEventListener('click', function() {
+    document.body.classList.remove('sidebar-open');
+  });
+}
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
 });
 
 // Close sidebar when clicking on a link (mobile)
 document.addEventListener('click', function(e) {
-  if (window.innerWidth <= 1024) {
-    if (e.target.closest('.sidebar-link')) {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.style.transform = 'translateX(-100%)';
-      }
-    }
+  if (window.innerWidth <= 768 && e.target.closest('.sidebar-link')) {
+    document.body.classList.remove('sidebar-open');
   }
 });
 
@@ -958,7 +1009,7 @@ window.loadSidebarForSchedulePage = function() {
       document.getElementById('sidebar-container').innerHTML = html;
       if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
       const links = document.querySelectorAll('.sidebar-link');
-      links.forEach(link => {
+      links.forEach(function(link) {
         if (link.getAttribute('href') === 'agent_schedule_management.html') {
           link.classList.add('active');
         }
@@ -982,16 +1033,6 @@ function setupLogoutButton() {
     }
   });
 }
-
-// Handle window resize
-window.addEventListener('resize', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (window.innerWidth > 1024 && sidebar) {
-    sidebar.style.transform = 'translateX(0)';
-  } else if (window.innerWidth <= 1024 && sidebar) {
-    sidebar.style.transform = 'translateX(-100%)';
-  }
-});
 </script>
 
 <script type="module">

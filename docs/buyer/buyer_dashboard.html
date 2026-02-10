@@ -1628,64 +1628,102 @@ function closeMessageModal() {
 
 // --- MAIN APPLICATION LOGIC ---
 
-// Property category and type mappings based on transaction type
-const PROPERTY_CATEGORIES = {
-    'rent': [
-        { category: 'Residential Property', types: ['Apartment', 'Condominium', 'Room / Bedspace', 'House', 'Dormitory'] },
-        { category: 'Commercial Property', types: ['Office Unit', 'Retail Space / Shop', 'Food Stall / Kiosk'] },
-        { category: 'Industrial Property', types: ['Warehouse', 'Factory', 'Storage Unit'] }
-    ],
-    'lease': [
-        { category: 'Commercial Property', types: ['Office Floor', 'Commercial Building', 'Warehouse'] },
-        { category: 'Land / Lot', types: ['Agricultural Lot', 'Commercial Lot', 'Industrial Lot'] },
-        { category: 'Special Purpose Property', types: ['Resort Property', 'Event Venue', 'School Property', 'Sports Facility'] }
-    ],
-    'sale': [
-        { category: 'Residential Property', types: ['House', 'Townhouse', 'Condominium', 'Apartment'] },
-        { category: 'Commercial Property', types: ['Office Space', 'Retail Space / Shop', 'Commercial Building'] },
-        { category: 'Land / Lot', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Lot'] }
-    ]
-};
-
-// Define the 6 categories with their property types
+// Update the BATANGAS_PROPERTY_CATEGORIES array with more precise categorization
 const BATANGAS_PROPERTY_CATEGORIES = [
     {
-        name: 'Residential Property',
+        name: 'Residential',
         icon: '🏠',
         description: 'Properties intended for living or dwelling',
-        propertyTypes: ['House', 'Apartment', 'Condominium', 'Townhouse', 'Dormitory', 'Room / Bedspace', 'Bungalow', 'Duplex']
+        propertyTypes: [
+            'apartment', 'boarding_house', 'condo', 'room', 'townhouse', 'house', 'dormitory',
+            'bungalow', 'duplex', 'village_lot'
+        ],
+        keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 'townhouse', 
+                  'dormitory', 'room', 'bedspace', 'home', 'villa', 'bungalow', 'duplex'],
+        excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 'agricultural', 
+                         'warehouse', 'factory', 'office', 'retail', 'shop', 'establishment']
     },
     {
-        name: 'Commercial Property',
+        name: 'Commercial',
         icon: '🏢',
         description: 'Properties used for business and income generation',
-        propertyTypes: ['Office Unit', 'Office Floor', 'Office Space', 'Retail Space / Shop', 'Commercial Building', 'Food Stall / Kiosk', 'Showroom']
+        propertyTypes: [
+            'office_unit', 'retail_space', 'food_stall', 'shop', 'showroom',
+            'commercial_building', 'office_space', 'warehouse',
+            'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 
+            'showroom_lease', 'warehouse_lease'
+        ],
+        keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 
+                  'mall', 'business', 'establishment', 'showroom', 'warehouse'],
+        excludeKeywords: ['residential', 'house', 'apartment', 'condo', 'land', 'lot']
     },
     {
-        name: 'Industrial Property',
+        name: 'Industrial',
         icon: '🏭',
         description: 'Properties for storage, production, and logistics',
-        propertyTypes: ['Warehouse', 'Factory', 'Storage Unit', 'Workshop']
+        propertyTypes: [
+            'warehouse', 'storage_unit', 'factory', 'workshop'
+        ],
+        keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 
+                  'plant', 'facility', 'workshop'],
+        excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 'office', 'retail']
     },
     {
         name: 'Land / Lot',
         icon: '🌳',
         description: 'Undeveloped or semi-developed land for future use',
-        propertyTypes: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Development Land', 'Vacant Lot', 'Beachfront Property']
-    },
-    {
-        name: 'Special Purpose Property',
-        icon: '🎯',
-        description: 'Properties with specific or institutional functions',
-        propertyTypes: ['Resort Property', 'Event Venue', 'School Property', 'Sports Facility', 'Parking Area', 'Hospitality Property']
+        propertyTypes: [
+            'residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 
+            'beachfront', 'development_land', 'vacant_lot'
+        ],
+        keywords: ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 
+                  'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 'raw land'],
+        excludeKeywords: ['house', 'apartment', 'building', 'commercial', 'office', 'retail']
     },
     {
         name: 'Condominium',
         icon: '🏙️',
         description: 'Condominium units and complexes',
-        propertyTypes: ['Condominium Unit', 'Penthouse', 'Studio Unit', 'Loft Unit']
+        propertyTypes: [
+            'condo', 'condo_unit', 'penthouse', 'studio', 'loft'
+        ],
+        keywords: ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'],
+        excludeKeywords: ['house', 'apartment', 'townhouse', 'duplex', 'villa']
+    },
+    {
+        name: 'Special Purpose',
+        icon: '🎯',
+        description: 'Properties with specific or institutional functions',
+        propertyTypes: [
+            'resort_property', 'event_venue', 'parking_area', 'school_property', 
+            'hospitality', 'sports_facility'
+        ],
+        keywords: ['resort', 'event', 'venue', 'school', 'sports', 'facility', 
+                  'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn', 
+                  'parking', 'hospitality', 'tourism', 'recreational'],
+        excludeKeywords: ['house', 'apartment', 'condo', 'office', 'retail', 'warehouse']
     }
 ];
+
+// Property category and type mappings based on transaction type (for dropdowns)
+const PROPERTY_CATEGORIES = {
+    'rent': [
+        { category: 'Residential', types: ['Apartment', 'Boarding House', 'Condo', 'Room', 'Townhouse', 'House', 'Dormitory'] },
+        { category: 'Commercial', types: ['Office Unit', 'Retail Space', 'Food Stall', 'Shop', 'Showroom'] },
+        { category: 'Industrial', types: ['Warehouse', 'Storage Unit', 'Factory', 'Workshop'] }
+    ],
+    'sale': [
+        { category: 'Residential', types: ['House', 'Townhouse', 'Bungalow', 'Duplex', 'Village Lot'] },
+        { category: 'Commercial', types: ['Commercial Building', 'Office Space', 'Retail Space', 'Warehouse', 'Showroom'] },
+        { category: 'Land', types: ['Residential Lot', 'Commercial Lot', 'Agricultural Land', 'Industrial Lot', 'Beachfront'] },
+        { category: 'Condo', types: ['Condo Unit', 'Penthouse', 'Studio', 'Loft'] }
+    ],
+    'lease': [
+        { category: 'Commercial', types: ['Office Floor', 'Retail Space (Lease)', 'Building Lease', 'Commercial Unit', 'Showroom Lease', 'Warehouse Lease'] },
+        { category: 'Land', types: ['Commercial Lot', 'Agricultural Land', 'Development Land', 'Industrial Lot', 'Residential Lot', 'Vacant Lot'] },
+        { category: 'Special', types: ['Resort Property', 'Event Venue', 'Parking Area', 'School Property', 'Hospitality', 'Sports Facility'] }
+    ]
+};
 
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
@@ -2004,6 +2042,7 @@ function resetFilters() {
 
 // --- CATEGORIES FUNCTIONS ---
 
+// Update the loadCategories() function with better matching logic
 async function loadCategories() {
     const container = document.getElementById('categoriesContainer');
 
@@ -2034,7 +2073,7 @@ async function loadCategories() {
                 // First, check if property type matches any of this category's property types
                 for (const type of category.propertyTypes) {
                     const typeLower = type.toLowerCase();
-                    // Direct property type match
+                    // Exact property type match (e.g., propertyType === 'house')
                     if (propertyType === typeLower || propertyType.includes(typeLower)) {
                         matchesCategory = true;
                         break;
@@ -2043,55 +2082,49 @@ async function loadCategories() {
 
                 // If no direct match, check using category-specific keywords
                 if (!matchesCategory) {
-                    switch(category.name) {
-                        case 'Residential Property':
-                            const residentialKeywords = ['house', 'apartment', 'condo', 'condominium', 'townhouse', 'dormitory', 'room', 'bedspace', 'residential', 'home', 'villa', 'bungalow', 'duplex'];
-                            matchesCategory = residentialKeywords.some(keyword => 
-                                searchText.includes(keyword) || 
-                                propertyType.includes(keyword) || 
-                                propertyCategory.includes(keyword)
-                            );
+                    for (const keyword of category.keywords) {
+                        const keywordLower = keyword.toLowerCase();
+                        // Check if keyword appears in search text
+                        if (searchText.includes(keywordLower)) {
+                            matchesCategory = true;
                             break;
-                        case 'Commercial Property':
-                            const commercialKeywords = ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 'mall', 'business', 'establishment', 'showroom'];
-                            matchesCategory = commercialKeywords.some(keyword => 
-                                searchText.includes(keyword) || 
-                                propertyType.includes(keyword) || 
-                                propertyCategory.includes(keyword)
-                            );
-                            break;
-                        case 'Industrial Property':
-                            const industrialKeywords = ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 'plant', 'facility', 'workshop'];
-                            matchesCategory = industrialKeywords.some(keyword => 
-                                searchText.includes(keyword) || 
-                                propertyType.includes(keyword) || 
-                                propertyCategory.includes(keyword)
-                            );
-                            break;
-                        case 'Land / Lot':
-                            const landKeywords = ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 'property', 'vacant', 'empty', 'beachfront'];
-                            matchesCategory = landKeywords.some(keyword => 
-                                searchText.includes(keyword) || 
-                                propertyType.includes(keyword) || 
-                                propertyCategory.includes(keyword)
-                            );
-                            break;
-                        case 'Special Purpose Property':
-                            const specialKeywords = ['resort', 'event', 'venue', 'school', 'sports', 'facility', 'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn', 'parking', 'hospitality'];
-                            matchesCategory = specialKeywords.some(keyword => 
-                                searchText.includes(keyword) || 
-                                propertyType.includes(keyword) || 
-                                propertyCategory.includes(keyword)
-                            );
-                            break;
-                        case 'Condominium':
-                            const condoKeywords = ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'];
-                            matchesCategory = condoKeywords.some(keyword => 
-                                searchText.includes(keyword) || 
-                                propertyType.includes(keyword) || 
-                                propertyCategory.includes(keyword)
-                            );
-                            break;
+                        }
+                    }
+                }
+
+                // EXCLUSION CHECK: Make sure property doesn't match exclusion keywords
+                if (matchesCategory && category.excludeKeywords) {
+                    for (const excludeKeyword of category.excludeKeywords) {
+                        const excludeLower = excludeKeyword.toLowerCase();
+                        if (searchText.includes(excludeLower)) {
+                            // If it matches an exclusion keyword, double-check
+                            // Only exclude if it's a strong match for another category
+                            let shouldExclude = false;
+                            
+                            // Special logic for residential vs commercial
+                            if (category.name === 'Residential' && 
+                                (searchText.includes('commercial') || searchText.includes('office'))) {
+                                shouldExclude = true;
+                            }
+                            // Special logic for land vs building
+                            if (category.name === 'Land / Lot' && 
+                                (searchText.includes('house') || searchText.includes('building') || 
+                                 searchText.includes('apartment') || searchText.includes('condo'))) {
+                                shouldExclude = true;
+                            }
+                            // Special logic for special purpose
+                            if (category.name === 'Special Purpose' && 
+                                (searchText.includes('house') || searchText.includes('apartment') || 
+                                 searchText.includes('condo') || searchText.includes('office') || 
+                                 searchText.includes('warehouse'))) {
+                                shouldExclude = true;
+                            }
+                            
+                            if (shouldExclude) {
+                                matchesCategory = false;
+                                break;
+                            }
+                        }
                     }
                 }
 
@@ -2119,12 +2152,20 @@ async function loadCategories() {
                 <div class="category-count">${category.count} Properties</div>
                 <div style="margin-top: 12px; font-size: 13px; color: ${selectedCategory === category.name ? 'rgba(255,255,255,0.9)' : 'var(--text-light)'}">
                     <div style="margin-bottom: 8px; font-style: italic;">${category.description}</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;">
+                        ${category.propertyTypes.slice(0, 5).map(type => 
+                            `<span style="background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #8b6914;">${type.replace(/_/g, ' ')}</span>`
+                        ).join('')}
+                        ${category.propertyTypes.length > 5 ? 
+                            `<span style="background: rgba(212, 175, 55, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #8b6914;">+${category.propertyTypes.length - 5} more</span>` : 
+                            ''}
+                    </div>
                 </div>
                 <div class="category-browse">Browse <span aria-hidden="true">→</span></div>
             </div>
         `).join('');
 
-        // Add event listeners to category cards - entire card clickable
+        // Add event listeners to category cards
         document.querySelectorAll('.category-card[data-category]').forEach(card => {
             const handleSelect = function() {
                 const categoryName = this.getAttribute('data-category');
@@ -2344,7 +2385,7 @@ async function checkSavedStatus(listings) {
     }
 }
 
-// Display filtered listings - DASHBOARD ONLY SHOWS ALL ACTIVE PROPERTIES
+// Also update the displayFilteredListings() function with better filtering
 function displayFilteredListings() {
     // Filter only active listings
     let filtered = allListings.filter(listing => {
@@ -2365,50 +2406,73 @@ function displayFilteredListings() {
                 const listingDescription = (listing.description || '').toLowerCase();
                 const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
 
-                // Check if property matches any of the category's property types
+                // Check if property matches this category
+                let matchesCategory = false;
+
+                // First, check if property type matches any of the category's property types
                 for (const type of categoryData.propertyTypes) {
                     const typeLower = type.toLowerCase();
-                    // Direct match
-                    if (propertyType === typeLower || propertyCategory === typeLower) {
-                        return true;
-                    }
-                    // Partial match
-                    if (propertyType.includes(typeLower) || typeLower.includes(propertyType)) {
-                        return true;
-                    }
-                    // Keyword match in search text
-                    if (searchText.includes(typeLower)) {
-                        return true;
+                    // Direct property type match
+                    if (propertyType === typeLower || propertyType.includes(typeLower)) {
+                        matchesCategory = true;
+                        break;
                     }
                 }
 
-                // Special keyword matching for each category
-                if (selectedCategory === 'Residential Property') {
-                    const residentialKeywords = ['house', 'apartment', 'condo', 'condominium', 'townhouse', 'dormitory', 'room', 'bedspace', 'residential', 'home', 'villa'];
-                    return residentialKeywords.some(keyword => searchText.includes(keyword));
+                // If no direct match, check using category-specific keywords
+                if (!matchesCategory) {
+                    for (const keyword of categoryData.keywords) {
+                        if (searchText.includes(keyword.toLowerCase())) {
+                            matchesCategory = true;
+                            break;
+                        }
+                    }
                 }
 
-                if (selectedCategory === 'Commercial Property') {
-                    const commercialKeywords = ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 'mall', 'business', 'establishment'];
-                    return commercialKeywords.some(keyword => searchText.includes(keyword));
+                // EXCLUSION CHECK: Make sure property doesn't match exclusion keywords
+                if (matchesCategory && categoryData.excludeKeywords) {
+                    for (const excludeKeyword of categoryData.excludeKeywords) {
+                        if (searchText.includes(excludeKeyword.toLowerCase())) {
+                            // Special exclusion logic for different categories
+                            if (selectedCategory === 'Special Purpose') {
+                                // Special Purpose should NOT include regular houses, apartments, condos, offices, warehouses
+                                if (searchText.includes('house') || 
+                                    searchText.includes('apartment') || 
+                                    searchText.includes('condo') || 
+                                    searchText.includes('office') || 
+                                    searchText.includes('warehouse') ||
+                                    searchText.includes('commercial unit')) {
+                                    matchesCategory = false;
+                                    break;
+                                }
+                            }
+                            if (selectedCategory === 'Land / Lot') {
+                                // Land/Lot should NOT include buildings
+                                if (searchText.includes('house') || 
+                                    searchText.includes('apartment') || 
+                                    searchText.includes('building') || 
+                                    searchText.includes('condo') || 
+                                    searchText.includes('villa')) {
+                                    matchesCategory = false;
+                                    break;
+                                }
+                            }
+                            if (selectedCategory === 'Residential') {
+                                // Residential should NOT include commercial/industrial properties
+                                if (searchText.includes('commercial') || 
+                                    searchText.includes('office') || 
+                                    searchText.includes('retail') || 
+                                    searchText.includes('warehouse') ||
+                                    searchText.includes('factory')) {
+                                    matchesCategory = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
 
-                if (selectedCategory === 'Industrial Property') {
-                    const industrialKeywords = ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 'plant', 'facility'];
-                    return industrialKeywords.some(keyword => searchText.includes(keyword));
-                }
-
-                if (selectedCategory === 'Land / Lot') {
-                    const landKeywords = ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 'property', 'vacant', 'empty'];
-                    return landKeywords.some(keyword => searchText.includes(keyword));
-                }
-
-                if (selectedCategory === 'Special Purpose Property') {
-                    const specialKeywords = ['resort', 'event', 'venue', 'school', 'sports', 'facility', 'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn'];
-                    return specialKeywords.some(keyword => searchText.includes(keyword));
-                }
-
-                return false;
+                return matchesCategory;
             });
         }
     }
@@ -2773,16 +2837,16 @@ function setupEventListeners() {
             const advToggle = document.getElementById('advancedFiltersToggle');
             if (id === 'houses-sale') {
                 tt.value = 'sale'; updateCategoryDropdown();
-                cat.value = 'Residential Property'; updateTypeDropdown();
+                cat.value = 'Residential'; updateTypeDropdown();
                 typ.value = 'House'; loc.value = ''; if (name) name.value = ''; if (maxP) maxP.value = '';
             } else if (id === 'apartments-rent') {
                 tt.value = 'rent'; updateCategoryDropdown();
-                cat.value = 'Residential Property'; updateTypeDropdown();
+                cat.value = 'Residential'; updateTypeDropdown();
                 typ.value = 'Apartment'; loc.value = ''; if (name) name.value = ''; if (maxP) maxP.value = '';
             } else if (id === 'lots-batangas') {
                 tt.value = 'sale'; updateCategoryDropdown();
-                cat.value = 'Land / Lot'; updateTypeDropdown();
-                typ.value = ''; loc.value = ''; if (name) name.value = ''; if (maxP) maxP.value = '';
+                cat.value = 'Land'; updateTypeDropdown();
+                typ.value = 'Residential Lot'; loc.value = ''; if (name) name.value = ''; if (maxP) maxP.value = '';
             } else if (id === 'under-3m') {
                 if (maxP) maxP.value = '3000000';
                 loc.value = ''; tt.value = ''; updateCategoryDropdown();
@@ -3245,6 +3309,73 @@ function setupRecommendationsEventListeners() {
         });
     }
 }
+
+// Add this debugging function to see what's being classified
+function debugCategoryClassification() {
+    console.log('=== DEBUGGING CATEGORY CLASSIFICATION ===');
+    
+    const activeListings = allListings.filter(listing => 
+        listing.status === 'active' ||
+        listing.status === 'available' ||
+        listing.status === 'Active' ||
+        (listing.status === undefined && listing.isActive !== false)
+    );
+    
+    activeListings.forEach(listing => {
+        const propertyType = (listing.propertyType || '').toLowerCase();
+        const propertyCategory = (listing.propertyCategory || '').toLowerCase();
+        const listingTitle = (listing.title || '').toLowerCase();
+        const listingDescription = (listing.description || '').toLowerCase();
+        const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
+        
+        const categories = [];
+        
+        BATANGAS_PROPERTY_CATEGORIES.forEach(cat => {
+            let matchesCategory = false;
+            
+            // Check property types
+            for (const type of cat.propertyTypes) {
+                if (propertyType === type.toLowerCase() || propertyType.includes(type.toLowerCase())) {
+                    matchesCategory = true;
+                    break;
+                }
+            }
+            
+            // Check keywords
+            if (!matchesCategory) {
+                for (const keyword of cat.keywords) {
+                    if (searchText.includes(keyword.toLowerCase())) {
+                        matchesCategory = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Check exclusions
+            if (matchesCategory && cat.excludeKeywords) {
+                for (const excludeKeyword of cat.excludeKeywords) {
+                    if (searchText.includes(excludeKeyword.toLowerCase())) {
+                        matchesCategory = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (matchesCategory) {
+                categories.push(cat.name);
+            }
+        });
+        
+        console.log(`Listing: ${listing.title || 'No Title'} (ID: ${listing.id})`);
+        console.log(`  Property Type: ${listing.propertyType || 'None'}`);
+        console.log(`  Categories: ${categories.join(', ') || 'None'}`);
+        console.log(`  Search Text: ${searchText.substring(0, 100)}...`);
+        console.log('---');
+    });
+}
+
+// Call this function after loading listings to debug
+// debugCategoryClassification();
 
 // --- INITIALIZATION ---
 
