@@ -4,8 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>KYC Verification - BahAI Real Estate</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -1130,6 +1128,7 @@ setupPreview("proofAddress", "previewAddress");
 // Image preprocessing function
 function preprocessImage(file) {
     return new Promise((resolve, reject) => {
+        // Check file size first
         if (file.size > 5 * 1024 * 1024) {
             reject(new Error("File size exceeds 5MB"));
             return;
@@ -1139,97 +1138,43 @@ function preprocessImage(file) {
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-                // Get EXIF orientation data
-                EXIF.getData(img, function() {
-                    const orientation = EXIF.getTag(this, 'Orientation') || 1;
-                    console.log("EXIF Orientation:", orientation);
-                    
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Set canvas dimensions based on orientation
-                    if (orientation >= 5 && orientation <= 😎 {
-                        // For orientations 5-8, width and height are swapped
-                        canvas.width = img.height;
-                        canvas.height = img.width;
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate dimensions (max 1920px for largest side, maintain aspect ratio)
+                let width = img.width;
+                let height = img.height;
+                const maxDimension = 1920;
+                
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = Math.round((height / width) * maxDimension);
+                        width = maxDimension;
                     } else {
-                        canvas.width = img.width;
-                        canvas.height = img.height;
+                        width = Math.round((width / height) * maxDimension);
+                        height = maxDimension;
                     }
-                    
-                    // Apply rotation based on EXIF orientation
-                    switch(orientation) {
-                        case 2: // Horizontal flip
-                            ctx.translate(canvas.width, 0);
-                            ctx.scale(-1, 1);
-                            break;
-                        case 3: // 180° rotated
-                            ctx.translate(canvas.width, canvas.height);
-                            ctx.rotate(Math.PI);
-                            break;
-                        case 4: // Vertical flip
-                            ctx.translate(0, canvas.height);
-                            ctx.scale(1, -1);
-                            break;
-                        case 5: // 90° rotated + flipped
-                            ctx.translate(canvas.width, 0);
-                            ctx.scale(-1, 1);
-                            ctx.rotate(90 * Math.PI / 180);
-                            break;
-                        case 6: // 90° rotated (clockwise) - COMMON FOR MOBILE SELFIES
-                            ctx.translate(canvas.width, 0);
-                            ctx.rotate(90 * Math.PI / 180);
-                            break;
-                        case 7: // 90° rotated + flipped
-                            ctx.translate(0, canvas.height);
-                            ctx.scale(1, -1);
-                            ctx.rotate(90 * Math.PI / 180);
-                            break;
-                        case 8: // 270° rotated (counter-clockwise)
-                            ctx.translate(0, canvas.height);
-                            ctx.rotate(-90 * Math.PI / 180);
-                            break;
-                        default: // Orientation 1 - normal
-                            break;
-                    }
-                    
-                    // Draw image with corrected orientation
-                    ctx.drawImage(img, 0, 0, img.width, img.height);
-                    
-                    // Now resize if needed while preserving corrected orientation
-                    let finalWidth = canvas.width;
-                    let finalHeight = canvas.height;
-                    const maxDimension = 1920;
-                    
-                    if (finalWidth > maxDimension || finalHeight > maxDimension) {
-                        if (finalWidth > finalHeight) {
-                            finalHeight = Math.round((finalHeight / finalWidth) * maxDimension);
-                            finalWidth = maxDimension;
-                        } else {
-                            finalWidth = Math.round((finalWidth / finalHeight) * maxDimension);
-                            finalHeight = maxDimension;
-                        }
-                        
-                        // Create resized canvas
-                        const resizedCanvas = document.createElement('canvas');
-                        resizedCanvas.width = finalWidth;
-                        resizedCanvas.height = finalHeight;
-                        const resizedCtx = resizedCanvas.getContext('2d');
-                        resizedCtx.drawImage(canvas, 0, 0, finalWidth, finalHeight);
-                        
-                        // Convert to blob
-                        resizedCanvas.toBlob((blob) => {
-                            console.log(Orientation fixed: ${orientation}, final size: ${finalWidth}x${finalHeight});
-                            resolve(blob);
-                        }, 'image/jpeg', 0.95);
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Enable high-quality image smoothing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Draw image
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to high-quality JPEG blob
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        console.log(`Image processed: ${width}x${height}, ${(blob.size / 1024).toFixed(2)}KB`);
+                        resolve(blob);
                     } else {
-                        // Use original corrected canvas
-                        canvas.toBlob((blob) => {
-                            console.log(Orientation fixed: ${orientation}, size: ${finalWidth}x${finalHeight});
-                            resolve(blob);
-                        }, 'image/jpeg', 0.95);
+                        reject(new Error("Failed to process image"));
                     }
-                });
+                }, 'image/jpeg', 0.95); // 95% quality
             };
             img.onerror = () => reject(new Error("Failed to load image"));
             img.src = e.target.result;
@@ -1242,7 +1187,7 @@ function preprocessImage(file) {
 // Upload to Firebase Storage
 async function uploadToStorage(file, path, onProgress) {
     try {
-        console.log(Starting upload: ${path});
+        console.log(`Starting upload: ${path}`);
         
         // Preprocess image (unless it's a PDF)
         let fileToUpload = file;
@@ -1255,15 +1200,15 @@ async function uploadToStorage(file, path, onProgress) {
         
         // Upload file
         const snapshot = await uploadBytes(storageRef, fileToUpload);
-        console.log(Upload complete: ${path});
+        console.log(`Upload complete: ${path}`);
         
         // Get download URL
         const downloadURL = await getDownloadURL(snapshot.ref);
-        console.log(Download URL obtained: ${downloadURL.substring(0, 50)}...);
+        console.log(`Download URL obtained: ${downloadURL.substring(0, 50)}...`);
         
         return downloadURL;
     } catch (error) {
-        console.error(Upload error for ${path}:, error);
+        console.error(`Upload error for ${path}:`, error);
         throw error;
     }
 }
@@ -1297,7 +1242,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         });
         
         if (!response.ok) {
-            throw new Error(Face++ API error: ${response.status});
+            throw new Error(`Face++ API error: ${response.status}`);
         }
         
         const result = await response.json();
@@ -1317,7 +1262,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         
         // Show verification results
         verificationResults.classList.add("show");
-        faceScore.textContent = ${confidence.toFixed(2)}%;
+        faceScore.textContent = `${confidence.toFixed(2)}%`;
         faceScore.className = confidence >= 70 ? "verification-value verification-pass" : "verification-value verification-fail";
         
         if (confidence >= 70) {
@@ -1328,7 +1273,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
             verificationResult.className = "verification-value verification-fail";
         }
         
-        processingTime.textContent = ${processingTimeMs}ms;
+        processingTime.textContent = `${processingTimeMs}ms`;
         
         return {
             success: true,
@@ -1348,7 +1293,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         faceScore.textContent = "API Error";
         verificationResult.textContent = "Manual Review";
         verificationResult.className = "verification-value verification-pass";
-        processingTime.textContent = ${processingTimeMs}ms;
+        processingTime.textContent = `${processingTimeMs}ms`;
         
         return {
             success: false,
@@ -1375,7 +1320,7 @@ async function urlToBase64(url) {
             };
             reader.onerror = reject;
             reader.readAsDataURL(blob);
-        }); // ✅ Added missing closing parenthesis and bracket
+        }); 
     } catch (error) {
         console.error("Error converting URL to base64:", error);
         throw error;
@@ -1416,7 +1361,7 @@ function setupPreview(inputId, previewId) {
                 img.onload = () => {
                     const info = document.createElement('div');
                     info.className = 'image-info';
-                    info.innerHTML = ${img.naturalWidth}x${img.naturalHeight} | ${(file.size / 1024).toFixed(2)} KB;
+                    info.innerHTML = `${img.naturalWidth}x${img.naturalHeight} | ${(file.size / 1024).toFixed(2)} KB`;
                     
                     // Quality indicator
                     const quality = document.createElement('div');
@@ -1527,7 +1472,7 @@ function showRoleSpecificContent(role) {
 }
 
 function updateStatusDisplay(status) {
-    statusBadge.className = status-badge status-${status};
+    statusBadge.className = `status-badge status-${status}`;
     
     switch(status) {
         case "not_submitted":
@@ -1606,7 +1551,7 @@ kycForm.addEventListener("submit", async (e) => {
         updateProgress(20, "Uploading Government ID...");
         const govIdUrl = await uploadToStorage(
             govIdFile,
-            kyc/${userId}/gov_id_${timestamp}.jpg
+            `kyc/${userId}/gov_id_${timestamp}.jpg`
         );
         kycData.kycDocuments.governmentId = govIdUrl;
         console.log("Government ID uploaded:", govIdUrl);
@@ -1617,7 +1562,7 @@ kycForm.addEventListener("submit", async (e) => {
             updateProgress(35, "Uploading ID Back...");
             const govIdBackUrl = await uploadToStorage(
                 govIdBackFile,
-                kyc/${userId}/gov_id_back_${timestamp}.jpg
+                `kyc/${userId}/gov_id_back_${timestamp}.jpg`
             );
             kycData.kycDocuments.governmentIdBack = govIdBackUrl;
             console.log("Government ID Back uploaded:", govIdBackUrl);
@@ -1627,7 +1572,7 @@ kycForm.addEventListener("submit", async (e) => {
         updateProgress(50, "Uploading Selfie...");
         const selfieUrl = await uploadToStorage(
             selfieFile,
-            kyc/${userId}/selfie_${timestamp}.jpg
+            `kyc/${userId}/selfie_${timestamp}.jpg`
         );
         kycData.kycDocuments.selfieWithId = selfieUrl;
         console.log("Selfie uploaded:", selfieUrl);
@@ -1647,7 +1592,7 @@ kycForm.addEventListener("submit", async (e) => {
             updateProgress(65, "Uploading PRC Document...");
             const prcDocUrl = await uploadToStorage(
                 prcDocFile,
-                kyc/${userId}/prc_${timestamp}.jpg
+                `kyc/${userId}/prc_${timestamp}.jpg`
             );
             kycData.prcLicenseNumber = prcLicense;
             kycData.kycDocuments.prcDocument = prcDocUrl;
@@ -1664,7 +1609,7 @@ kycForm.addEventListener("submit", async (e) => {
                 updateProgress(75, "Uploading Broker Endorsement...");
                 const endorsementUrl = await uploadToStorage(
                     endorsementFile,
-                    kyc/${userId}/broker_endorsement_${timestamp}.jpg
+                    `kyc/${userId}/broker_endorsement_${timestamp}.jpg`
                 );
                 kycData.kycDocuments.brokerEndorsement = endorsementUrl;
                 console.log("Broker Endorsement uploaded:", endorsementUrl);
@@ -1678,7 +1623,7 @@ kycForm.addEventListener("submit", async (e) => {
                 updateProgress(75, "Uploading Proof of Address...");
                 const proofAddressUrl = await uploadToStorage(
                     proofAddressFile,
-                    kyc/${userId}/proof_address_${timestamp}.jpg
+                    `kyc/${userId}/proof_address_${timestamp}.jpg`
                 );
                 kycData.kycDocuments.proofOfAddress = proofAddressUrl;
                 console.log("Proof of Address uploaded:", proofAddressUrl);
@@ -1738,7 +1683,7 @@ kycForm.addEventListener("submit", async (e) => {
 
     } catch (error) {
         console.error("Error submitting KYC:", error);
-        showMessage(❌ Failed to submit documents: ${error.message}, "error");
+        showMessage(`❌ Failed to submit documents: ${error.message}`, "error");
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
         progressContainer.classList.add("hidden");
@@ -1753,8 +1698,8 @@ function showMessage(text, type) {
         case 'warning': icon = '<i class="fas fa-exclamation-triangle"></i>'; break;
     }
     
-    messageBox.innerHTML = ${icon} ${text};
-    messageBox.className = message-box ${type};
+    messageBox.innerHTML = `${icon} ${text}`;
+    messageBox.className = `message-box ${type}`;
     
     setTimeout(() => {
         messageBox.className = 'message-box';
