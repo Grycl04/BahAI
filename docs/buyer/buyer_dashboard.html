@@ -851,6 +851,8 @@ import {
     setDoc
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+
+
 // Make signOut available globally for the logout button
 window.performLogout = async function() {
     try {
@@ -2953,69 +2955,6 @@ function initializeDropdowns() {
     }
 }
 
-// Add demo prompts to the chat interface
-function addDemoPrompts() {
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    
-    if (!chatInput || !chatMessages) return;
-    
-    // Add demo prompts section if it doesn't exist
-    if (!document.querySelector('.demo-prompts')) {
-        const demoSection = document.createElement('div');
-        demoSection.className = 'demo-prompts';
-        demoSection.style.cssText = `
-            margin-top: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border-radius: 12px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            animation: fadeIn 0.5s ease;
-        `;
-        
-        demoSection.innerHTML = `
-            <div style="font-size: 14px; color: var(--text-dark); font-weight: 600; margin-bottom: 10px;">
-                <i class="fas fa-lightbulb"></i> Try these quick prompts:
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <button class="demo-prompt-btn" data-prompt="Find apartments in Batangas City">
-                    🏢 Find apartments
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Find houses in Lipa City">
-                    🏠 Find houses
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Tell me about Batangas City">
-                    ℹ️ About Batangas
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Properties that accept bank financing">
-                    💰 Bank financing
-                </button>
-                <button class="demo-prompt-btn" data-prompt="Find condos in Tanauan City">
-                    🏙️ Find condos
-                </button>
-            </div>
-        `;
-        
-        chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
-        
-        // Add event listeners to demo prompt buttons
-        setTimeout(() => {
-            document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const prompt = this.getAttribute('data-prompt');
-                    chatInput.value = prompt;
-                    chatInput.focus();
-                    
-                    // Highlight the button briefly
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = '';
-                    }, 150);
-                });
-            });
-        }, 100);
-    }
-}
 
 // Function to show chatbot error state
 function showChatbotError() {
@@ -3124,8 +3063,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('🤖 Initializing AI chatbot...');
                 initChatbot();
                 
-                // Add sample demo prompts for easy testing
-                addDemoPrompts();
             } else {
                 console.warn('⚠️ initChatbot function not found. Make sure ai_chatbot.js is loaded.');
                 

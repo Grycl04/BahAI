@@ -7,21 +7,138 @@ const getBackendUrl = () => {
     
     console.log("🌐 Detected hostname:", hostname, "Port:", port);
     
-    // Check if we're on your frontend domain
-    if (hostname.includes('render.com') || 
-        hostname.includes('bahai-frontend') ||
-        hostname.includes('bahai')) {
+    // Check if we're in local development
+    const isLocal = hostname === 'localhost' || 
+                    hostname === '127.0.0.1' || 
+                    hostname.startsWith('192.168.') ||
+                    hostname.startsWith('10.0.') ||
+                    (hostname === '' && port !== '');
+    
+    // Check for Live Server (common ports)
+    const isLiveServer = port === '5500' || port === '5501' || port === '8080' || port === '3000';
+    
+    // Check if it's a development domain
+    const isDev = hostname.includes('.local') || 
+                  hostname.includes('dev-') || 
+                  hostname.includes('-dev.');
+    
+    if (isLocal || isLiveServer || isDev) {
+        console.log("🚀 Using LOCAL backend (localhost:10000)");
+        return "http://localhost:10000/api/chat";
+    } else {
         console.log("☁️ Using PRODUCTION backend (Render)");
         return "https://bahai.onrender.com/api/chat";
-    } else {
-        // For local development
-        console.log("🚀 Using LOCAL backend (localhost:5000)");
-        return "http://localhost:5000/api/chat";
     }
 };
 
-// Initialize chatbot in your dashboard
+// ============================================
+// PROMPT DEFINITIONS - NO HARDCODED HTML
+// ============================================
+
+// PHASE 1: Initial "Try these quick prompts" - Exactly like the hardcoded HTML
+const INITIAL_PROMPTS = [
+    { 
+        displayText: "Find apartments", 
+        fullPrompt: "Find apartments in Batangas City", 
+        emoji: "🏢", 
+        id: "init1" 
+    },
+    { 
+        displayText: "Find houses", 
+        fullPrompt: "Find houses in Lipa City", 
+        emoji: "🏠", 
+        id: "init2" 
+    },
+    { 
+        displayText: "About Batangas", 
+        fullPrompt: "Tell me about Batangas City", 
+        emoji: "ℹ️", 
+        id: "init3" 
+    },
+    { 
+        displayText: "Bank financing", 
+        fullPrompt: "Properties that accept bank financing", 
+        emoji: "💰", 
+        id: "init4" 
+    },
+    { 
+        displayText: "Find condos", 
+        fullPrompt: "Find condos in Tanauan City", 
+        emoji: "🏙️", 
+        id: "init5" 
+    }
+];
+
+// PHASE 2: All 10 quick prompts - 4 shown randomly
+const ALL_QUICK_PROMPTS = [
+    { 
+        displayText: "Apartments in Batangas City", 
+        fullPrompt: "Find apartments in Batangas City", 
+        emoji: "🏢", 
+        id: "q1" 
+    },
+    { 
+        displayText: "Houses under 3M, 3 bedrooms", 
+        fullPrompt: "Show me houses under 3M with 3 bedrooms", 
+        emoji: "🏠", 
+        id: "q2" 
+    },
+    { 
+        displayText: "Family properties in Lipa", 
+        fullPrompt: "Family properties in Lipa City", 
+        emoji: "👨‍👩‍👧‍👦", 
+        id: "q3" 
+    },
+    { 
+        displayText: "Near hospitals in Tanauan", 
+        fullPrompt: "Properties near hospitals in Tanauan City", 
+        emoji: "🏥", 
+        id: "q4" 
+    },
+    { 
+        displayText: "Apartments with parking", 
+        fullPrompt: "Apartments with parking in Batangas", 
+        emoji: "🚗", 
+        id: "q5" 
+    },
+    { 
+        displayText: "Ready for students Batangas", 
+        fullPrompt: "Properties ready for students in Batangas", 
+        emoji: "🎓", 
+        id: "q6" 
+    },
+    { 
+        displayText: "Pag-IBIG financing", 
+        fullPrompt: "Properties that accept Pag-IBIG financing", 
+        emoji: "💰", 
+        id: "q7" 
+    },
+    { 
+        displayText: "Steps to buy condo", 
+        fullPrompt: "What are the steps to buy a condo?", 
+        emoji: "📋", 
+        id: "q8" 
+    },
+    { 
+        displayText: "About Nasugbu", 
+        fullPrompt: "Tell me about Nasugbu", 
+        emoji: "📍", 
+        id: "q9" 
+    },
+    { 
+        displayText: "For single professionals", 
+        fullPrompt: "Properties for single professionals in Batangas", 
+        emoji: "🎯", 
+        id: "q10" 
+    }
+];
+
+// ============================================
+// MAIN CHATBOT INITIALIZATION
+// ============================================
+
 export function initChatbot() {
+    console.trace("🔍 initChatbot called from:", new Error().stack);
     console.log("🤖 AI Chatbot Initializing...");
     
     const chatMessages = document.getElementById('chatMessages');
@@ -31,14 +148,19 @@ export function initChatbot() {
         return;
     }
     
-    // FIX: Ensure chat input area exists even before prompts are clicked
+    // Initialize prompt phase tracker
+    window.chatbotPhase = {
+        showInitialPrompts: true,  // Start with "Try these quick prompts"
+        initialPromptsUsed: false  // Track if user has interacted
+    };
+    
+    // Ensure chat input area exists
     const chatContainer = chatMessages.closest('.chatbot-container');
     if (chatContainer) {
         // Check if chat input already exists
         let existingInput = chatContainer.querySelector('.chat-input');
         if (!existingInput) {
             console.log("🛠️ Creating chat input area...");
-            // Create the chat input area
             const chatInputDiv = document.createElement('div');
             chatInputDiv.className = 'chat-input';
             chatInputDiv.id = 'chatInputContainer';
@@ -50,29 +172,29 @@ export function initChatbot() {
                 <button id="voiceInputBtn" class="voice-btn"><i class="fas fa-microphone"></i></button>
             `;
             chatContainer.appendChild(chatInputDiv);
-        } else {
-            console.log("✅ Chat input area already exists");
         }
     }
     
     // Show backend info for debugging
-    const backendUrl = getBackendUrl();
-    console.log("🌐 Backend URL:", backendUrl);
+    console.log("🌐 Backend URL:", getBackendUrl());
     
     // Show welcome message on first load
     showWelcomeMessage();
     
-    // FIX: Attach event listeners
+    // Attach event listeners and add INITIAL prompts
     setTimeout(() => {
         attachChatListeners();
-        // Add demo prompts
-        addDemoPrompts();
+        // PHASE 1: Add "Try these quick prompts"
+        addInitialPrompts();
     }, 500);
     
     console.log("✅ AI Chatbot Initialized!");
 }
 
-// Create a separate function for attaching listeners
+// ============================================
+// CHAT LISTENERS
+// ============================================
+
 function attachChatListeners() {
     const chatInput = document.getElementById('chatInput');
     const sendChatBtn = document.getElementById('sendChatBtn');
@@ -110,6 +232,11 @@ function attachChatListeners() {
     window.sendChatBtn.addEventListener('click', async () => {
         const message = window.chatInput.value.trim();
         if (message) {
+            // Mark that user has sent a message - switch to quick prompts phase
+            if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
+                window.chatbotPhase.showInitialPrompts = false;
+                window.chatbotPhase.initialPromptsUsed = true;
+            }
             await processChatMessage(message);
             window.chatInput.value = '';
         }
@@ -121,15 +248,23 @@ function attachChatListeners() {
             e.preventDefault();
             const message = window.chatInput.value.trim();
             if (message) {
+                // Mark that user has sent a message - switch to quick prompts phase
+                if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
+                    window.chatbotPhase.showInitialPrompts = false;
+                    window.chatbotPhase.initialPromptsUsed = true;
+                }
                 await processChatMessage(message);
                 window.chatInput.value = '';
             }
         }
     });
     
-    // Voice input button (optional)
+    // Voice input button
     if (voiceInputBtn) {
-        voiceInputBtn.addEventListener('click', () => {
+        const newVoiceBtn = voiceInputBtn.cloneNode(true);
+        voiceInputBtn.parentNode.replaceChild(newVoiceBtn, voiceInputBtn);
+        
+        newVoiceBtn.addEventListener('click', () => {
             alert("Voice input would require additional setup with Web Speech API");
         });
     }
@@ -137,7 +272,10 @@ function attachChatListeners() {
     console.log("🎯 Chat listeners attached successfully");
 }
 
-// Main function to process chat messages
+// ============================================
+// PROCESS CHAT MESSAGES
+// ============================================
+
 export async function processChatMessage(userMessage) {
     const chatInput = document.getElementById('chatInput');
     const sendChatBtn = document.getElementById('sendChatBtn');
@@ -171,9 +309,10 @@ export async function processChatMessage(userMessage) {
         let backendUrl = getBackendUrl();
         
         try {
-            // Call backend with timeout
+            // Call backend with environment-specific timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for Render
+            const timeoutId = setTimeout(() => controller.abort(), 
+                backendUrl.includes('localhost') ? 10000 : 25000);
             
             console.log("🌐 Attempting to connect to:", backendUrl);
             
@@ -203,7 +342,6 @@ export async function processChatMessage(userMessage) {
                 data = JSON.parse(cleanText);
             } catch (parseError) {
                 console.error("❌ JSON parse error:", parseError);
-                // Create a fallback response
                 data = {
                     success: false,
                     response: `I received your query: "${userMessage}", but there was an issue processing the response.`,
@@ -219,68 +357,59 @@ export async function processChatMessage(userMessage) {
             // Remove typing indicator first
             if (typingMessage) typingMessage.remove();
             
-            // Show user-friendly error based on error type
-            if (fetchError.name === 'AbortError') {
-                addMessageToChat(
-                    "⏱️ The request timed out. This is common with free hosting services when they're starting up. Please try again in a few moments or use the search filters above to find properties immediately.",
-                    'bot'
-                );
-            } else {
-                // Try alternative endpoint
-                const alternativeUrl = backendUrl.includes('localhost') 
-                    ? "https://bahai.onrender.com/api/chat" 
-                    : "http://localhost:10000/api/chat";
+            // Try alternative endpoint if the primary fails
+            const alternativeUrl = backendUrl.includes('localhost') 
+                ? "https://bahai.onrender.com/api/chat" 
+                : "http://localhost:10000/api/chat";
+            
+            console.log("🔄 Trying alternative endpoint:", alternativeUrl);
+            
+            try {
+                const alternativeController = new AbortController();
+                const alternativeTimeout = setTimeout(() => alternativeController.abort(), 15000);
                 
-                console.log("🔄 Trying alternative endpoint:", alternativeUrl);
+                const fallbackResponse = await fetch(alternativeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: alternativeController.signal,
+                    mode: 'cors'
+                });
                 
-                try {
-                    const alternativeController = new AbortController();
-                    const alternativeTimeout = setTimeout(() => alternativeController.abort(), 10000);
-                    
-                    const fallbackResponse = await fetch(alternativeUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(requestData),
-                        signal: alternativeController.signal,
-                        mode: 'cors'
-                    });
-                    
-                    clearTimeout(alternativeTimeout);
-                    
-                    if (fallbackResponse.ok) {
-                        const text = await fallbackResponse.text();
-                        const cleanText = text.replace(/undefined/g, 'null');
-                        data = JSON.parse(cleanText);
-                        console.log("✅ Connected to alternative endpoint");
-                    } else {
-                        throw new Error(`Alternative endpoint failed: ${fallbackResponse.status}`);
-                    }
-                } catch (fallbackError) {
-                    console.error('❌ Fallback also failed:', fallbackError);
-                    
-                    // Use comprehensive fallback response
-                    data = {
-                        success: true,
-                        response: `I received your query: **"${userMessage}"**\n\n📢 **Important Notice:** The AI service is temporarily experiencing high load or starting up (common with free hosting).\n\n🔍 **In the meantime, here's what you can do:**\n\n1️⃣ **Use the search filters above** - Find properties by location, type, and price\n2️⃣ **Browse by category** - Check out the property category cards below\n3️⃣ **Try these quick searches:**\n   • "Apartments in Batangas City"\n   • "Houses under ₱3M"\n   • "Properties with 3 bedrooms"\n\n💡 **Tip:** The AI service usually becomes available within 30-60 seconds of first access.`,
-                        properties: [],
-                        intent: 'fallback',
-                        properties_found: 0
-                    };
+                clearTimeout(alternativeTimeout);
+                
+                if (fallbackResponse.ok) {
+                    const text = await fallbackResponse.text();
+                    const cleanText = text.replace(/undefined/g, 'null');
+                    data = JSON.parse(cleanText);
+                    console.log("✅ Connected to alternative endpoint");
+                } else {
+                    throw new Error(`Alternative endpoint failed: ${fallbackResponse.status}`);
                 }
+            } catch (fallbackError) {
+                console.error('❌ Fallback also failed:', fallbackError);
+                
+                // Use fallback response
+                const isProduction = !backendUrl.includes('localhost');
+                
+                data = {
+                    success: true,
+                    response: isProduction ? 
+                        `I received your query: **"${userMessage}"**\n\n📢 **The AI service is starting up...**\n\nThis is normal with free hosting - it takes 30-60 seconds for the first request.\n\n🔍 **While you wait, you can:**\n\n• **Use the search filters above** - Find properties by location, type, and price\n• **Browse by category** - Check out the property category cards below\n• **Try these quick searches:**\n  • "Apartments in Batangas City"\n  • "Houses under ₱3M"\n  • "Properties with 3 bedrooms"\n\n💡 **Tip:** The AI service will respond automatically once it's ready!` :
+                        `I received your query: **"${userMessage}"**\n\n❌ **Could not connect to local backend.**\n\nPlease make sure your Python backend is running on http://localhost:10000\n\n🔍 **Commands to start the backend:**\n\`\`\`bash\ncd your-backend-folder\npython app.py\n\`\`\``,
+                    properties: [],
+                    intent: 'fallback',
+                    properties_found: 0
+                };
             }
         }
         
         // Remove typing indicator if still exists
         if (typingMessage && typingMessage.parentNode) {
             typingMessage.remove();
-        }
-        
-        // Remove demo prompts when user sends a message
-        const demoPrompts = document.querySelector('.demo-prompts-container');
-        if (demoPrompts) {
-            demoPrompts.remove();
         }
         
         // Display response
@@ -297,8 +426,18 @@ export async function processChatMessage(userMessage) {
             displayPropertiesInChat(data.properties);
         }
         
-        // Show demo prompts again after response
-        setTimeout(addDemoPrompts, 500);
+        // Show appropriate prompts based on phase
+        setTimeout(() => {
+            // If we're still in initial phase but user just sent a message, switch to quick prompts
+            if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
+                window.chatbotPhase.showInitialPrompts = false;
+                window.chatbotPhase.initialPromptsUsed = true;
+                addQuickPrompts();
+            } else {
+                // Otherwise just show quick prompts
+                addQuickPrompts();
+            }
+        }, 500);
         
         // Try to log (non-critical)
         try {
@@ -318,12 +457,12 @@ export async function processChatMessage(userMessage) {
         
         // Show user-friendly error
         addMessageToChat(
-            "I'm having trouble connecting right now. 😔\n\nYou can still:\n• Use the search filters above 🔍\n• Browse property categories 🏠\n• Try again in a moment ⏳\n\nThe backend might be starting up (this is normal with free hosting).",
+            "I'm having trouble connecting right now. 😔\n\n**You can still:**\n• Use the search filters above 🔍\n• Browse property categories 🏠\n• Try again in a moment ⏳",
             'bot'
         );
         
-        // Show demo prompts again after error
-        setTimeout(addDemoPrompts, 500);
+        // Show quick prompts after error
+        setTimeout(addQuickPrompts, 500);
     } finally {
         // Re-enable input
         const chatInput = document.getElementById('chatInput');
@@ -340,7 +479,10 @@ export async function processChatMessage(userMessage) {
     }
 }
 
-// Add messages to chat UI
+// ============================================
+// UI HELPERS
+// ============================================
+
 function addMessageToChat(message, sender) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
@@ -368,7 +510,6 @@ function addMessageToChat(message, sender) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Add typing indicator
 function addTypingIndicator() {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return null;
@@ -383,8 +524,8 @@ function addTypingIndicator() {
                 <span></span>
                 <span></span>
             </div>
-            <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                Connecting to AI service... This might take a moment on first access.
+            <p style="font-size: 12px; color: #666; margin-top: 8px; margin-bottom: 0;">
+                <i class="fas fa-clock"></i> Processing your request...
             </p>
         </div>
     `;
@@ -393,7 +534,21 @@ function addTypingIndicator() {
     return typingDiv;
 }
 
-// Display properties in chat
+function getDisplayPrice(property) {
+    if (!property) return 'Price on inquiry';
+    
+    if (property.monthlyRent) {
+        return `₱${Number(property.monthlyRent).toLocaleString()}/month`;
+    } else if (property.annualRent) {
+        return `₱${Number(property.annualRent).toLocaleString()}/year`;
+    } else if (property.salePrice) {
+        return `₱${Number(property.salePrice).toLocaleString()}`;
+    } else if (property.pricing) {
+        return `₱${Number(property.pricing).toLocaleString()}`;
+    }
+    return 'Price on inquiry';
+}
+
 function displayPropertiesInChat(properties) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages || !properties || properties.length === 0) return;
@@ -402,8 +557,8 @@ function displayPropertiesInChat(properties) {
     propertiesDiv.className = 'chat-properties-container';
     
     let html = `
-        <div style="margin-bottom: 10px; font-weight: 600; color: var(--text-dark);">
-            🏠 Found ${properties.length} matching properties:
+        <div style="margin-bottom: 12px; font-weight: 600; color: var(--text-dark);">
+            🏠 Found ${properties.length} matching propert${properties.length > 1 ? 'ies' : 'y'}:
         </div>
         <div class="properties-grid">
     `;
@@ -421,20 +576,20 @@ function displayPropertiesInChat(properties) {
         html += `
             <div class="property-card-chat">
                 <div class="property-image">
-                    <img src="${photo}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x200/0b2e52/white?text=Property'">
+                    <img src="${photo}" alt="${title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/0b2e52/white?text=Property'">
                 </div>
                 <div class="property-info">
                     <h4>${title.length > 40 ? title.substring(0, 40) + '...' : title}</h4>
                     <p class="location">📍 ${location.length > 30 ? location.substring(0, 30) + '...' : location}</p>
                     <div class="details">
-                        ${bedrooms ? `<span>🛏️ ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>` : ''}
+                        ${bedrooms !== 'N/A' ? `<span>🛏️ ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}</span>` : ''}
                         ${area && area !== 'N/A' ? `<span>📐 ${area} sqm</span>` : ''}
                     </div>
                     <p class="price">${price}</p>
-                    <a href="new_property_details.html?id=${prop.id || prop.property_id || ''}" 
+                    <a href="property_details.html?id=${prop.id || prop.property_id || ''}" 
                        target="_blank" 
                        class="view-btn">
-                        View Details
+                        View Details <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -445,10 +600,10 @@ function displayPropertiesInChat(properties) {
     
     if (properties.length > 3) {
         html += `
-            <p style="text-align: center; margin-top: 15px;">
+            <p style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
                 <a href="search_results.html" 
-                   style="color: #0b6e4f; text-decoration: underline; font-weight: 600;">
-                    🔍 View all ${properties.length} properties in search results →
+                   style="color: #0b6e4f; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                    🔍 View all ${properties.length} properties in search results <i class="fas fa-arrow-right"></i>
                 </a>
             </p>
         `;
@@ -460,269 +615,213 @@ function displayPropertiesInChat(properties) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Helper function to format price
-function getDisplayPrice(property) {
-    if (!property) return 'Price on inquiry';
-    
-    if (property.monthlyRent) {
-        return `₱${property.monthlyRent.toLocaleString()}/month`;
-    } else if (property.annualRent) {
-        return `₱${property.annualRent.toLocaleString()}/year`;
-    } else if (property.salePrice) {
-        return `₱${property.salePrice.toLocaleString()}`;
-    } else if (property.pricing) {
-        return `₱${property.pricing.toLocaleString()}`;
-    }
-    return 'Price on inquiry';
-}
-
-// Log chat interactions (optional)
 async function logChatInteraction(query, response, user) {
     try {
         if (!user) return;
         
-        // Import Firestore inside function to avoid initialization issues
         const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
         const { getApp } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js");
         
-        // Get initialized app and Firestore
         const app = getApp();
         const db = getFirestore(app);
         
         await addDoc(collection(db, 'chatbot_logs'), {
             userId: user.uid,
             query: query,
-            intent: response.intent || 'unknown',
-            entities: response.entities || {},
-            response: response.response?.substring(0, 200) || '',
-            propertiesFound: response.properties_found || 0,
+            intent: response?.intent || 'unknown',
+            entities: response?.entities || {},
+            response: response?.response?.substring(0, 200) || '',
+            propertiesFound: response?.properties_found || 0,
             timestamp: new Date(),
-            modelUsed: response.model_used || 'unknown',
-            confidence: response.confidence || 0,
-            success: response.success || false
+            modelUsed: response?.model_used || 'unknown',
+            confidence: response?.confidence || 0,
+            success: response?.success || false
         });
         
         console.log('✅ Chat interaction logged');
     } catch (error) {
         console.log('Could not log chat interaction (non-critical):', error.message);
-        // This is non-critical, so don't throw error
     }
 }
 
-function addDemoPrompts() {
-    // Remove ALL existing prompt sections
-    const existingPromptSections = document.querySelectorAll('.demo-prompts-container, .demo-prompts, .quick-prompts-section, .ai-quick-questions');
-    existingPromptSections.forEach(section => section.remove());
+// ============================================
+// PHASE 1: INITIAL PROMPTS - "Try these quick prompts"
+// EXACTLY like the hardcoded HTML version
+// ============================================
+
+function addInitialPrompts() {
+    // Remove any existing prompt containers
+    const existingPrompts = document.querySelector('.demo-prompts-container');
+    if (existingPrompts) existingPrompts.remove();
     
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
     
-    // Your original 10 questions
-    const ALL_PROMPTS = [
-        { text: "Apartments in Batangas City", emoji: "🏢", id: "q1" },
-        { text: "Houses under 3M, 3 bedrooms", emoji: "🏠", id: "q2" },
-        { text: "Family properties in Lipa", emoji: "👨‍👩‍👧‍👦", id: "q3" },
-        { text: "Near hospitals in Tanauan", emoji: "🏥", id: "q4" },
-        { text: "Apartments with parking", emoji: "🚗", id: "q5" },
-        { text: "Ready for students Batangas", emoji: "🎓", id: "q6" },
-        { text: "Pag-IBIG financing", emoji: "💰", id: "q7" },
-        { text: "Steps to buy condo", emoji: "📋", id: "q8" },
-        { text: "About Nasugbu", emoji: "📍", id: "q9" },
-        { text: "For single professionals", emoji: "🎯", id: "q10" }
-    ];
-    
-    // The 5 initial "Try these" prompts
-    const INITIAL_PROMPTS = [
-        { text: "Find apartments", emoji: "🏢", id: "init1" },
-        { text: "Find houses", emoji: "🏠", id: "init2" },
-        { text: "About Batangas", emoji: "📍", id: "init3" },
-        { text: "Bank financing", emoji: "💰", id: "init4" },
-        { text: "Find condos", emoji: "🏙️", id: "init5" }
-    ];
-    
-    // Initialize global tracking
-    if (!window.promptTracker) {
-        window.promptTracker = {
-            usedQuestions: new Set(),
-            showInitial: true,
-            allQuestions: ALL_PROMPTS,
-            initialPrompts: INITIAL_PROMPTS,
-            usedInitialPrompts: new Set() // Track used initial prompts
+    // Reset phase tracker
+    if (!window.chatbotPhase) {
+        window.chatbotPhase = {
+            showInitialPrompts: true,
+            initialPromptsUsed: false
         };
     }
     
-    let selectedPrompts;
-    let titleText;
-    let showCount = false;
-    let showShuffleButton = false;
-    let gridColumns = "repeat(3, 1fr)";
-    
-    if (window.promptTracker.showInitial) {
-        // FIRST LOAD: Show ONLY the 5 initial "Try these" prompts
-        titleText = "Try these quick prompts";
-        showCount = false;
-        showShuffleButton = false;
-        gridColumns = "repeat(3, 1fr)";
-        
-        // Get available initial prompts (not used yet)
-        const availableInitialPrompts = window.promptTracker.initialPrompts.filter(
-            p => !window.promptTracker.usedInitialPrompts.has(p.id)
-        );
-        
-        if (availableInitialPrompts.length === 0) {
-            // All initial prompts used, switch to quick prompts
-            window.promptTracker.showInitial = false;
-            window.promptTracker.usedInitialPrompts.clear();
-            // Recursively call to show quick prompts
-            addDemoPrompts();
-            return;
-        }
-        
-        selectedPrompts = availableInitialPrompts.slice(0, 5);
-    } else {
-        // AFTER FIRST USE: Show 4 random questions from your 10 questions
-        titleText = "Quick Prompts";
-        showCount = true;
-        showShuffleButton = true;
-        gridColumns = "repeat(2, 1fr)";
-        
-        // Get available questions (not used yet)
-        const availableQuestions = window.promptTracker.allQuestions.filter(
-            q => !window.promptTracker.usedQuestions.has(q.id)
-        );
-        
-        // If less than 4 available, reset used questions
-        if (availableQuestions.length < 4) {
-            window.promptTracker.usedQuestions.clear();
-            selectedPrompts = window.promptTracker.allQuestions
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 4);
-        } else {
-            // Shuffle and take 4 random questions
-            selectedPrompts = availableQuestions
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 4);
-        }
-        
-        // Mark these 4 as used
-        selectedPrompts.forEach(q => window.promptTracker.usedQuestions.add(q.id));
+    // Only show initial prompts if we're in the initial phase
+    if (!window.chatbotPhase.showInitialPrompts) {
+        addQuickPrompts();
+        return;
     }
     
     const demoSection = document.createElement('div');
-    demoSection.className = 'demo-prompts-container';
+    demoSection.className = 'demo-prompts-container initial-prompts';
     demoSection.innerHTML = `
         <div class="demo-prompts-title">
-            <i class="fas fa-bolt"></i> ${titleText}
-            ${showCount ? `
-                <span class="prompt-count-badge">
-                    ${window.promptTracker.usedQuestions.size}/10 Questions
-                </span>
-            ` : ''}
+            <i class="fas fa-lightbulb" style="color: #667eea;"></i> Try these quick prompts
         </div>
-        <div class="demo-prompts-buttons" style="grid-template-columns: ${gridColumns};">
-            ${selectedPrompts.map(prompt => `
-                <button class="demo-prompt-btn" data-prompt="${prompt.text}" data-id="${prompt.id}" 
-                        title="Click to use: ${prompt.text}">
+        <div class="demo-prompts-buttons" style="grid-template-columns: repeat(3, 1fr);">
+            ${INITIAL_PROMPTS.map(prompt => `
+                <button class="demo-prompt-btn initial-prompt-btn" 
+                        data-full-prompt="${prompt.fullPrompt}" 
+                        data-id="${prompt.id}"
+                        title="${prompt.fullPrompt}">
                     <span class="prompt-icon">${prompt.emoji}</span>
-                    <span class="prompt-text">${prompt.text}</span>
+                    <span class="prompt-text">${prompt.displayText}</span>
                 </button>
             `).join('')}
         </div>
-        ${showShuffleButton ? `
-            <div class="prompts-footer">
-                <div class="prompts-info">
-                    <i class="fas fa-sync-alt fa-xs"></i> Prompts shuffle after use
-                </div>
-                <button id="refreshPrompts" class="shuffle-button">
-                    <i class="fas fa-random"></i> New set
-                </button>
-            </div>
-        ` : ''}
     `;
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
-    // Add event listeners to prompt buttons
+    // Add event listeners to initial prompt buttons
     setTimeout(() => {
-        document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const prompt = this.getAttribute('data-prompt');
-                const promptId = this.getAttribute('data-id');
+        document.querySelectorAll('.initial-prompt-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const fullPrompt = this.getAttribute('data-full-prompt');
                 const chatInput = document.getElementById('chatInput');
                 
-                if (chatInput) {
-                    chatInput.value = prompt;
+                if (chatInput && fullPrompt) {
+                    // Set the FULL expanded prompt in the input field
+                    chatInput.value = fullPrompt;
                     chatInput.focus();
-                    
-                    // Track used prompts
-                    if (window.promptTracker.showInitial) {
-                        // Mark initial prompt as used
-                        window.promptTracker.usedInitialPrompts.add(promptId);
-                        
-                        // If all initial prompts are used, switch to quick prompts next time
-                        if (window.promptTracker.usedInitialPrompts.size >= window.promptTracker.initialPrompts.length) {
-                            window.promptTracker.showInitial = false;
-                        }
-                    } else {
-                        // Mark question as used
-                        if (promptId && promptId.startsWith('q')) {
-                            window.promptTracker.usedQuestions.add(promptId);
-                        }
-                    }
-                    
-                    // Auto-send after a brief delay
-                    setTimeout(() => {
-                        processChatMessage(prompt);
-                        chatInput.value = '';
-                        
-                        // Update prompts after sending
-                        setTimeout(() => {
-                            addDemoPrompts();
-                        }, 1000);
-                    }, 300);
                     
                     // Visual feedback
                     this.style.transform = 'scale(0.95)';
-                    this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.3)';
+                    this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
                     setTimeout(() => {
                         this.style.transform = '';
                         this.style.boxShadow = '';
-                    }, 300);
+                    }, 200);
+                }
+            });
+        });
+    }, 100);
+}
+
+// ============================================
+// PHASE 2: QUICK PROMPTS - 4 random questions
+// Shown after first interaction
+// ============================================
+
+function addQuickPrompts() {
+    // Remove any existing prompt containers
+    const existingPrompts = document.querySelector('.demo-prompts-container');
+    if (existingPrompts) existingPrompts.remove();
+    
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+    
+    // Shuffle and select 4 random prompts
+    const shuffled = [...ALL_QUICK_PROMPTS].sort(() => Math.random() - 0.5);
+    const selectedPrompts = shuffled.slice(0, 4);
+    
+    const demoSection = document.createElement('div');
+    demoSection.className = 'demo-prompts-container quick-prompts';
+    demoSection.innerHTML = `
+        <div class="demo-prompts-title">
+            <i class="fas fa-bolt" style="color: #667eea;"></i> Quick Prompts
+            <span class="prompt-count-badge">
+                <i class="fas fa-sync-alt"></i> 4 random questions
+            </span>
+        </div>
+        <div class="demo-prompts-buttons" style="grid-template-columns: repeat(2, 1fr);">
+            ${selectedPrompts.map(prompt => `
+                <button class="demo-prompt-btn quick-prompt-btn" 
+                        data-full-prompt="${prompt.fullPrompt}" 
+                        data-id="${prompt.id}"
+                        title="${prompt.fullPrompt}">
+                    <span class="prompt-icon">${prompt.emoji}</span>
+                    <span class="prompt-text">${prompt.displayText}</span>
+                </button>
+            `).join('')}
+        </div>
+        <div class="prompts-footer">
+            <div class="prompts-info">
+                <i class="fas fa-info-circle"></i> New set every time
+            </div>
+            <button id="refreshPrompts" class="shuffle-button">
+                <i class="fas fa-redo-alt"></i> New set
+            </button>
+        </div>
+    `;
+    
+    chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
+    
+    // Add event listeners to quick prompt buttons
+    setTimeout(() => {
+        document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const fullPrompt = this.getAttribute('data-full-prompt');
+                const chatInput = document.getElementById('chatInput');
+                
+                if (chatInput && fullPrompt) {
+                    // Set the FULL expanded prompt in the input field
+                    chatInput.value = fullPrompt;
+                    chatInput.focus();
+                    
+                    // Visual feedback
+                    this.style.transform = 'scale(0.95)';
+                    this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.boxShadow = '';
+                    }, 200);
                 }
             });
         });
         
-        // Add shuffle button functionality
+        // Add refresh button functionality
         const refreshBtn = document.getElementById('refreshPrompts');
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', (e) => {
+            const newRefreshBtn = refreshBtn.cloneNode(true);
+            refreshBtn.parentNode.replaceChild(newRefreshBtn, refreshBtn);
+            
+            newRefreshBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Get new random set
-                if (!window.promptTracker.showInitial) {
-                    addDemoPrompts();
-                }
+                // Generate new random prompts
+                addQuickPrompts();
                 
                 // Button feedback
-                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                newRefreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
                 setTimeout(() => {
-                    refreshBtn.innerHTML = '<i class="fas fa-random"></i> New set';
+                    newRefreshBtn.innerHTML = '<i class="fas fa-redo-alt"></i> New set';
                 }, 500);
             });
-        }
-        
-        // Ensure chat input is visible
-        const chatInput = document.getElementById('chatInput');
-        if (chatInput) {
-            chatInput.style.display = 'block';
-            chatInput.style.visibility = 'visible';
-            chatInput.style.opacity = '1';
         }
     }, 100);
 }
 
-// Show welcome message on first load
+// ============================================
+// WELCOME MESSAGE
+// ============================================
+
 function showWelcomeMessage() {
     const chatMessages = document.getElementById('chatMessages');
     if (chatMessages && chatMessages.children.length === 0) {
@@ -737,42 +836,33 @@ function showWelcomeMessage() {
         }
         
         setTimeout(() => {
+            const isProduction = !window.location.hostname.includes('localhost') && 
+                               !window.location.hostname.includes('127.0.0.1');
+            
             const welcomeMessage = `
                 <div class="welcome-message">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
                         <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                            display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                            display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);">
                             🤖
                         </div>
                         <div>
-                            <h4 style="margin: 0; color: var(--text-dark);">AI Property Assistant</h4>
+                            <h4 style="margin: 0; color: var(--text-dark); font-size: 18px;">AI Property Assistant</h4>
                             <p style="margin: 0; font-size: 12px; color: #666;">Specialized in Batangas Properties</p>
                         </div>
                     </div>
                     <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
-                        Hello! I'm your AI property assistant for Batangas. I can help you with:
+                        Hello! I'm your AI assistant for Batangas real estate. Try clicking one of the quick prompts below, then click Send when you're ready!
                     </p>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
-                            <div style="font-weight: 600; color: #667eea;">🔍</div>
-                            <div style="font-size: 11px; margin-top: 5px;">Find properties</div>
-                        </div>
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
-                            <div style="font-weight: 600; color: #667eea;">💰</div>
-                            <div style="font-size: 11px; margin-top: 5px;">Financing info</div>
-                        </div>
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
-                            <div style="font-weight: 600; color: #667eea;">📍</div>
-                            <div style="font-size: 11px; margin-top: 5px;">Location details</div>
-                        </div>
-                        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);">
-                            <div style="font-weight: 600; color: #667eea;">🏠</div>
-                            <div style="font-size: 11px; margin-top: 5px;">Property features</div>
-                        </div>
-                    </div>
-                    <p style="color: #666; font-size: 12px; font-style: italic; margin-top: 15px; padding: 10px; background: rgba(102, 126, 234, 0.05); border-radius: 8px;">
-                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> On first use, the AI service may take 30-60 seconds to start (free hosting). Try the quick prompts below!
-                    </p>
+                    ${isProduction ? `
+                        <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
+                            <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
+                        </p>
+                    ` : `
+                        <p style="color: #004085; background-color: #cce5ff; border: 1px solid #b8daff; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
+                            <i class="fas fa-code"></i> <strong>Development Mode:</strong> Make sure your backend is running at http://localhost:10000
+                        </p>
+                    `}
                 </div>
             `;
             
@@ -780,15 +870,62 @@ function showWelcomeMessage() {
             welcomeDiv.className = 'message bot';
             welcomeDiv.innerHTML = `
                 <div class="avatar">🤖</div>
-                <div class="content">${welcomeMessage}</div>
+                <div class="content" style="background: white; padding: 0; overflow: hidden;">
+                    ${welcomeMessage}
+                </div>
             `;
             chatMessages.appendChild(welcomeDiv);
         }, 300);
     }
 }
 
-// Add CSS for chatbot styling
+// ============================================
+// KEEP BACKEND ALIVE (for Render free tier)
+// ============================================
+
+function keepBackendAlive() {
+    // Only ping in production
+    if (!window.location.hostname.includes('localhost') && 
+        !window.location.hostname.includes('127.0.0.1')) {
+        
+        console.log("⏰ Setting up keep-alive for production backend...");
+        
+        // Initial ping after page load
+        setTimeout(() => {
+            fetch('https://bahai.onrender.com/api/health', { 
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if (res.ok) console.log('✅ Backend pinged successfully');
+            })
+            .catch(err => console.log('⚠️ Backend ping failed:', err.message));
+        }, 2000);
+        
+        // Regular pings every 5 minutes
+        setInterval(() => {
+            fetch('https://bahai.onrender.com/api/health', { 
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if (res.ok) console.log('✅ Backend keep-alive successful');
+            })
+            .catch(err => console.log('⚠️ Keep-alive failed:', err.message));
+        }, 5 * 60 * 1000);
+    }
+}
+
+// ============================================
+// STYLES
+// ============================================
+
 const chatbotStyles = document.createElement('style');
+chatbotStyles.id = 'chatbot-styles';
 chatbotStyles.textContent = `
     /* Chat messages styling */
     .chat-messages {
@@ -796,7 +933,7 @@ chatbotStyles.textContent = `
         overflow-y: auto;
         padding: 15px;
         background: #f8f9fa;
-        border-radius: 10px;
+        border-radius: 12px;
         margin-bottom: 15px;
         border: 1px solid #e9ecef;
         scroll-behavior: smooth;
@@ -824,6 +961,7 @@ chatbotStyles.textContent = `
         margin: 0 10px;
         flex-shrink: 0;
         color: white;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
     
     .message.user .avatar {
@@ -835,8 +973,9 @@ chatbotStyles.textContent = `
         padding: 12px 16px;
         border-radius: 18px;
         background: white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         line-height: 1.5;
+        font-size: 14px;
     }
     
     .message.user .content {
@@ -846,11 +985,8 @@ chatbotStyles.textContent = `
     
     .message.bot .content {
         background: white;
-        color: #333;
-    }
-    
-    .message .content strong {
-        color: inherit;
+        color: #2c3e50;
+        border: 1px solid rgba(102, 126, 234, 0.1);
     }
     
     /* Chat input area */
@@ -866,7 +1002,7 @@ chatbotStyles.textContent = `
         border: 2px solid #e9ecef;
         border-radius: 10px;
         font-size: 15px;
-        transition: border-color 0.3s;
+        transition: all 0.3s;
         font-family: inherit;
     }
     
@@ -877,8 +1013,9 @@ chatbotStyles.textContent = `
     }
     
     .chat-input input:disabled {
-        background: #f8f9fa;
+        background: #f1f3f5;
         cursor: not-allowed;
+        opacity: 0.7;
     }
     
     .chat-input button {
@@ -894,6 +1031,7 @@ chatbotStyles.textContent = `
         display: flex;
         align-items: center;
         gap: 8px;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
     
     .chat-input button:hover:not(:disabled) {
@@ -904,49 +1042,59 @@ chatbotStyles.textContent = `
     .chat-input button:disabled {
         opacity: 0.7;
         cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
     
     .chat-input .voice-btn {
         padding: 12px;
-        background: #f8f9fa;
+        background: white;
         border: 2px solid #e9ecef;
         color: #666;
+        box-shadow: none;
+    }
+    
+    .chat-input .voice-btn:hover {
+        background: #f8f9fa;
+        border-color: #667eea;
+        color: #667eea;
     }
     
     /* Property cards in chat */
     .chat-properties-container {
         margin: 15px 0;
         padding: 15px;
-        background: #f8f9fa;
-        border-radius: 10px;
+        background: white;
+        border-radius: 12px;
         border: 1px solid #e9ecef;
         animation: slideIn 0.5s ease;
     }
     
     .properties-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
         gap: 15px;
         margin-top: 10px;
     }
     
     .property-card-chat {
         background: white;
-        border-radius: 8px;
+        border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
         border: 1px solid #e9ecef;
     }
     
     .property-card-chat:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
     }
     
     .property-card-chat .property-image {
-        height: 150px;
+        height: 160px;
         overflow: hidden;
+        background: #f8f9fa;
     }
     
     .property-card-chat .property-image img {
@@ -967,15 +1115,16 @@ chatbotStyles.textContent = `
     .property-card-chat h4 {
         margin: 0 0 8px 0;
         font-size: 16px;
-        color: #333;
+        color: #2c3e50;
         line-height: 1.3;
+        font-weight: 600;
     }
     
     .property-card-chat .location {
-        font-size: 14px;
+        font-size: 13px;
         color: #666;
         margin: 0 0 10px 0;
-        line-height: 1.3;
+        line-height: 1.4;
     }
     
     .property-card-chat .details {
@@ -987,44 +1136,48 @@ chatbotStyles.textContent = `
     }
     
     .property-card-chat .price {
-        font-weight: bold;
+        font-weight: 700;
         color: #0b6e4f;
-        margin: 10px 0;
-        font-size: 16px;
+        margin: 12px 0;
+        font-size: 17px;
     }
     
     .property-card-chat .view-btn {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
         background: linear-gradient(135deg, #0b6e4f 0%, #0d8a63 100%);
         color: white;
         padding: 8px 15px;
-        border-radius: 5px;
+        border-radius: 6px;
         text-decoration: none;
         font-size: 14px;
+        font-weight: 500;
         transition: all 0.3s;
-        border: none;
-        cursor: pointer;
-        text-align: center;
         width: 100%;
         box-sizing: border-box;
+        border: none;
+        cursor: pointer;
     }
     
     .property-card-chat .view-btn:hover {
         background: #094d38;
         transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(11, 110, 79, 0.3);
     }
     
     /* Typing indicator */
     .typing-indicator .typing {
         display: flex;
-        gap: 4px;
+        gap: 5px;
         margin-bottom: 5px;
     }
     
     .typing-indicator .typing span {
         width: 8px;
         height: 8px;
-        background: #ccc;
+        background: #a0a0a0;
         border-radius: 50%;
         animation: typing 1.4s infinite;
     }
@@ -1039,89 +1192,89 @@ chatbotStyles.textContent = `
     
     /* Welcome message styling */
     .welcome-message {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
         padding: 20px;
-        border-radius: 12px;
-        border: 1px solid rgba(102, 126, 234, 0.1);
     }
     
     .welcome-message h4 {
-        color: var(--text-dark) !important;
+        color: #2c3e50 !important;
         font-size: 18px;
         margin-bottom: 5px !important;
     }
     
     .welcome-message p {
-        line-height: 1.5;
+        line-height: 1.6;
+        color: #4a5568;
     }
     
-    /* DEMO PROMPTS - COMPACT STYLING */
+    /* DEMO PROMPTS - TWO PHASES */
     .demo-prompts-container {
-        margin-top: 10px;
-        padding: 12px;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-        border-radius: 8px;
-        border: 1px solid rgba(102, 126, 234, 0.1);
+        margin-top: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
         animation: fadeIn 0.3s ease;
-        max-height: 160px;
-        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
     
     .demo-prompts-title {
-        font-size: 13px;
-        color: var(--text-dark);
+        font-size: 14px;
+        color: #2c3e50;
         font-weight: 600;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
     
     .prompt-count-badge {
         font-size: 11px;
-        background: rgba(102, 126, 234, 0.15);
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-weight: 600;
+        background: rgba(102, 126, 234, 0.1);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 500;
         color: #667eea;
-        margin-left: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
     
     .demo-prompts-buttons {
         display: grid;
-        gap: 6px;
-        margin-bottom: 8px;
+        gap: 8px;
+        margin-bottom: 12px;
     }
     
     .demo-prompt-btn {
-        background: white;
-        border: 1px solid rgba(102, 126, 234, 0.15);
-        border-radius: 6px;
-        padding: 8px 10px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 10px 12px;
         cursor: pointer;
         text-align: left;
         transition: all 0.2s;
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: #333;
+        gap: 10px;
+        font-size: 13px;
+        color: #2c3e50;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        height: 36px;
+        height: 44px;
     }
     
     .demo-prompt-btn:hover {
-        background: rgba(102, 126, 234, 0.08);
+        background: white;
         border-color: rgba(102, 126, 234, 0.3);
-        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
     }
     
     .demo-prompt-btn .prompt-icon {
-        font-size: 13px;
+        font-size: 16px;
         flex-shrink: 0;
-        width: 18px;
+        width: 22px;
         text-align: center;
     }
     
@@ -1136,9 +1289,9 @@ chatbotStyles.textContent = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(102, 126, 234, 0.1);
+        margin-top: 10px;
+        padding-top: 12px;
+        border-top: 1px solid #e9ecef;
     }
     
     .prompts-info {
@@ -1146,38 +1299,38 @@ chatbotStyles.textContent = `
         color: #888;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
     }
     
     .shuffle-button {
-        font-size: 11px;
-        background: rgba(102, 126, 234, 0.1);
+        font-size: 12px;
+        background: rgba(102, 126, 234, 0.08);
         border: 1px solid rgba(102, 126, 234, 0.2);
         color: #667eea;
         cursor: pointer;
-        padding: 4px 10px;
-        border-radius: 12px;
+        padding: 6px 14px;
+        border-radius: 20px;
         font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         transition: all 0.2s;
     }
     
     .shuffle-button:hover {
         background: rgba(102, 126, 234, 0.15);
-        border-color: rgba(102, 126, 234, 0.3);
+        border-color: rgba(102, 126, 234, 0.4);
     }
     
     /* Animations */
     @keyframes typing {
         0%, 60%, 100% {
             transform: translateY(0);
-            background: #ccc;
+            background: #a0a0a0;
         }
         30% {
             transform: translateY(-5px);
-            background: #0b6e4f;
+            background: #667eea;
         }
     }
     
@@ -1206,45 +1359,33 @@ chatbotStyles.textContent = `
         border-radius: 3px;
     }
     
-    .chat-messages::-webkit-scrollbar-thumb:hover {
+    .chat-messages::-webkitScrollbar-thumb:hover {
         background: #a8a8a8;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .message .content {
+            max-width: 85%;
+        }
+        
+        .properties-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .demo-prompts-buttons {
+            grid-template-columns: 1fr !important;
+        }
     }
 `;
 
+// ============================================
+// INITIALIZE
+// ============================================
+
 // Add styles to document
 if (!document.querySelector('#chatbot-styles')) {
-    chatbotStyles.id = 'chatbot-styles';
     document.head.appendChild(chatbotStyles);
-}
-
-// Function to ping backend and keep it awake (for Render free tier)
-function keepBackendAlive() {
-    // Only ping in production
-    if (window.location.hostname.includes('render.com') || 
-        window.location.hostname.includes('bahai-frontend')) {
-        
-        // Initial ping after page load
-        setTimeout(() => {
-            fetch('https://bahai.onrender.com/api/health', { 
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache'
-            })
-            .then(res => console.log('✅ Backend pinged successfully'))
-            .catch(err => console.log('⚠️ Backend ping failed:', err.message));
-        }, 2000);
-        
-        // Regular pings every 5 minutes
-        setInterval(() => {
-            fetch('https://bahai.onrender.com/api/health', { 
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache'
-            })
-            .then(() => console.log('✅ Backend kept alive'))
-            .catch(err => console.log('⚠️ Keep-alive failed:', err.message));
-        }, 5 * 60 * 1000); // Every 5 minutes
-    }
 }
 
 // Start keep-alive when DOM is loaded
@@ -1259,3 +1400,5 @@ window.processChatMessage = processChatMessage;
 window.initChatbot = initChatbot;
 
 console.log("🚀 AI Chatbot Script Loaded Successfully!");
+console.log("📝 Initial Promots Ready:", INITIAL_PROMPTS.length);
+console.log("📝 Quick Prompts Ready:", ALL_QUICK_PROMPTS.length);
