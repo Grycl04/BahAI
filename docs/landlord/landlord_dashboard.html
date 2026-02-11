@@ -9,11 +9,11 @@
 <link rel="stylesheet" href="../buyer/style.css">
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #667eea 100%);
-        --primary-light: #667eea;
-        --primary-dark: #764ba2;
-        --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+        --primary-light: #1e3a5f;
+        --primary-dark: #071e38;
+        --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
         --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         --border-radius: 16px;
@@ -21,11 +21,52 @@
         --border-radius-lg: 24px;
         --text-dark: #1a202c;
         --text-light: #718096;
-        --bg-light: #f8fafc;
-        --border: #e2e8f0;
     }
 
-    /* Hero Section - Enhanced design */
+    body {
+      background: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--border-radius-sm);
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--card-hover-shadow);
+    }
+
+    /* Mobile overlay (activated in mobile breakpoint like broker dashboard) */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .container {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Hero Section - same as broker dashboard */
     .hero-section {
         background: var(--primary-gradient);
         color: white;
@@ -38,38 +79,15 @@
     .hero-section::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>');
         background-size: cover;
         opacity: 0.1;
     }
-    .hero-section h1 {
-        font-size: 2.8rem;
-        font-weight: 700;
-        margin-bottom: 15px;
-        line-height: 1.2;
-        max-width: 800px;
-    }
-    .hero-section p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-        max-width: 600px;
-        margin-bottom: 20px;
-    }
-    .hero-stats {
-        display: flex;
-        gap: 30px;
-        margin-top: 30px;
-        flex-wrap: wrap;
-    }
-    .hero-stat-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+    .hero-section h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 15px; line-height: 1.2; max-width: 800px; }
+    .hero-section p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin-bottom: 20px; }
+    .hero-stats { display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap; }
+    .hero-stat-item { display: flex; align-items: center; gap: 10px; }
     .hero-stat-icon {
         font-size: 1.5rem;
         background: rgba(255,255,255,0.2);
@@ -80,22 +98,10 @@
         align-items: center;
         justify-content: center;
     }
-    .hero-stat-value { 
-        font-size: 1.5rem; 
-        font-weight: 700; 
-    }
-    .hero-stat-label { 
-        font-size: 0.9rem; 
-        opacity: 0.8; 
-    }
-    .hero-actions { 
-        margin-top: 25px; 
-        display: flex; 
-        gap: 15px; 
-        flex-wrap: wrap; 
-    }
+    .hero-stat-value { font-size: 1.5rem; font-weight: 700; }
+    .hero-stat-label { font-size: 0.9rem; opacity: 0.8; }
 
-    /* Search / Filter Section */
+    /* Search Section - same as broker dashboard */
     .search-section {
         background: white;
         border-radius: var(--border-radius);
@@ -113,21 +119,14 @@
         align-items: center;
         gap: 12px;
     }
-    .search-title i { 
-        color: var(--primary-light); 
-        font-size: 1.2rem; 
-    }
+    .search-title i { color: #d4af37; font-size: 1.2rem; }
     .search-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 25px;
         margin-bottom: 30px;
     }
-    .search-group { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 8px; 
-    }
+    .search-group { display: flex; flex-direction: column; gap: 8px; }
     .search-label {
         font-size: 0.9rem;
         font-weight: 500;
@@ -146,8 +145,8 @@
     }
     .search-select:focus, .search-input:focus {
         outline: none;
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #d4af37;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
     .search-actions {
         display: flex;
@@ -174,7 +173,7 @@
     }
     .search-button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
     }
     .reset-button {
         background: white;
@@ -194,11 +193,11 @@
     }
     .reset-button:hover {
         background: #f9fafb;
-        border-color: var(--primary-light);
+        border-color: #d4af37;
         transform: translateY(-2px);
     }
 
-    /* Section title */
+    /* Section title - same as broker */
     .section-title {
         font-size: 1.5rem;
         font-weight: 600;
@@ -208,14 +207,17 @@
         align-items: center;
         gap: 12px;
     }
-    .section-title i { 
-        color: var(--primary-light); 
-        font-size: 1.3rem; 
-    }
+    .section-title i { color: #d4af37; font-size: 1.3rem; }
 
-    /* Properties section & listings grid */
-    .properties-section { 
-        margin-bottom: 40px; 
+    /* Properties section & listings grid - same as broker */
+    .properties-section { margin-bottom: 40px; }
+    .properties-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
     }
     .listings-grid {
         display: grid;
@@ -223,13 +225,10 @@
         gap: 30px;
         margin-top: 25px;
     }
-    .listing-card-wrapper { 
-        transition: all 0.3s ease; 
-    }
-    .listing-card-wrapper:hover { 
-        transform: translateY(-5px); 
-    }
+    .listing-card-wrapper { transition: all 0.3s ease; }
+    .listing-card-wrapper:hover { transform: translateY(-5px); }
     .listing-card {
+        position: relative;
         background: white;
         border-radius: var(--border-radius);
         overflow: hidden;
@@ -237,12 +236,8 @@
         transition: all 0.3s ease;
         border: 1px solid rgba(0, 0, 0, 0.05);
         height: 100%;
-        display: flex;
-        flex-direction: column;
     }
-    .listing-card:hover { 
-        box-shadow: var(--card-hover-shadow); 
-    }
+    .listing-card:hover { box-shadow: var(--card-hover-shadow); }
     .listing-card-image-container {
         position: relative;
         height: 220px;
@@ -254,15 +249,23 @@
         object-fit: cover;
         transition: transform 0.5s ease;
     }
-    .listing-card:hover .listing-image { 
-        transform: scale(1.05); 
+    .listing-card:hover .listing-image { transform: scale(1.05); }
+    .listing-type-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: white;
+        z-index: 2;
     }
-    .listing-content { 
-        padding: 25px; 
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
+    .listing-type-badge.rent { background: #10b981; }
+    .listing-type-badge.lease { background: #10b981; }
+    .listing-type-badge.sale { background: #3b82f6; }
+    .listing-content { padding: 25px; }
     .listing-header {
         display: flex;
         justify-content: space-between;
@@ -304,11 +307,7 @@
         flex-shrink: 0;
         max-width: 45%;
     }
-    .listing-header > div:first-child { 
-        flex: 1; 
-        min-width: 0; 
-        overflow: hidden; 
-    }
+    .listing-header > div:first-child { flex: 1; min-width: 0; overflow: hidden; }
     .listing-details {
         display: flex;
         gap: 20px;
@@ -332,6 +331,7 @@
     .broker-avatar {
         width: 40px;
         height: 40px;
+        min-width: 40px;
         border-radius: 50%;
         background: var(--primary-gradient);
         color: white;
@@ -340,12 +340,15 @@
         justify-content: center;
         font-weight: 600;
         font-size: 0.9rem;
+        overflow: hidden;
         flex-shrink: 0;
     }
-    .broker-info { 
-        flex: 1; 
-        min-width: 0;
+    .broker-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
+    .broker-info { flex: 1; }
     .broker-name {
         font-weight: 600;
         color: var(--text-dark);
@@ -368,15 +371,20 @@
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
-        margin-top: auto;
-        align-self: flex-start;
+        margin-bottom: 20px;
     }
-    .status-active, .listing-status.status-active {
-        background: var(--secondary-gradient) !important;
+    .status-active, .listing-status.status-active,
+    .status-available, .listing-status.status-available {
+        background: #10b981 !important;
         color: white !important;
     }
     .status-pending, .listing-status.status-pending {
         background: var(--accent-gradient) !important;
+        color: white !important;
+    }
+    .status-sold, .listing-status.status-sold,
+    .status-rented, .listing-status.status-rented {
+        background: #ef4444 !important;
         color: white !important;
     }
     .card-link-overlay {
@@ -407,7 +415,7 @@
     }
     .add-button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
     }
     .loading-state, .error-state, .empty-state {
         grid-column: 1 / -1;
@@ -417,19 +425,11 @@
         border-radius: var(--border-radius);
         box-shadow: var(--card-shadow);
     }
-    .empty-state-icon { 
-        font-size: 64px; 
-        margin-bottom: 20px; 
-        opacity: 0.5; 
-    }
-    .empty-state h3 { 
-        font-size: 20px; 
-        margin-bottom: 10px; 
-        color: var(--text-dark); 
-    }
+    .empty-state-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+    .empty-state h3 { font-size: 20px; margin-bottom: 10px; color: var(--text-dark); }
     .spinner {
-        border: 4px solid rgba(102, 126, 234, 0.2);
-        border-top: 4px solid var(--primary-light);
+        border: 4px solid rgba(212, 175, 55, 0.2);
+        border-top: 4px solid #d4af37;
         border-radius: 50%;
         width: 50px;
         height: 50px;
@@ -440,54 +440,99 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    .error-icon { 
-        font-size: 48px; 
-        margin-bottom: 20px; 
-        color: #ef4444; 
+    .error-icon { font-size: 48px; margin-bottom: 20px; color: #ef4444; }
+
+    /* Tablet */
+    @media (max-width: 1024px) {
+        .container { margin-left: 0; padding: 24px; padding-top: 70px; }
+        .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; }
+        .hero-stats { gap: 20px; flex-wrap: wrap; }
+        .hero-section { padding: 24px 28px; }
+        .hero-section h1 { font-size: 2.2rem; }
+        .hero-section p { font-size: 1rem; max-width: 100%; }
+        .search-section { padding: 24px 22px; }
+        .search-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+        .search-button, .reset-button { min-width: 0; padding-inline: 20px; }
+        .listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+        .listing-card-image-container { height: 210px; }
+        .listing-details { gap: 16px; }
+        .listing-details .detail { flex: 1 1 45%; min-width: 150px; }
     }
 
-    /* Responsive Design */
-    @media (max-width: 1024px) {
-        .container { 
-            margin-left: 0; 
-            padding: 25px; 
-        }
-        .mobile-menu-toggle { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        .listings-grid { 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 20px; 
-        }
-        .hero-stats { 
-            gap: 20px; 
-        }
-    }
+    /* Large Mobile */
+    /* Large Mobile - sidebar hidden / overlay (match broker dashboard) */
     @media (max-width: 768px) {
-        .container { 
-            padding: 20px; 
+        .container { margin-left: 0; padding: 16px; padding-top: 56px; }
+        .mobile-menu-toggle { display: flex !important; }
+        .listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+        .hero-section h1 { font-size: 1.6rem; }
+        .hero-section { padding: 16px 18px; margin-bottom: 20px; }
+        .hero-section p { font-size: 0.9rem; margin-bottom: 14px; }
+        .hero-stats { flex-direction: column; gap: 14px; margin-top: 18px; }
+        .hero-stat-item { width: 100%; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+        .hero-stat-item:last-child { border-bottom: none; }
+        .hero-stat-value { font-size: 1.3rem; }
+        .hero-stat-label { font-size: 0.85rem; }
+        .hero-stat-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+        .search-section { padding: 18px 16px; margin-bottom: 20px; }
+        .search-grid { grid-template-columns: 1fr; gap: 14px; margin-bottom: 18px; }
+        .search-title { font-size: 1.1rem; margin-bottom: 18px; }
+        .search-actions { flex-direction: column; align-items: stretch; margin-top: 24px; gap: 12px; }
+        .search-button, .reset-button { width: 100%; min-width: unset; justify-content: center; }
+        .properties-section { margin-bottom: 30px; }
+        .properties-section-header { flex-direction: column; align-items: stretch; gap: 15px; }
+        .properties-section-header .search-button { width: 100%; justify-content: center; }
+
+        /* Sidebar slides over content on mobile */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            max-width: 80%;
+            height: 100vh;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
-        .listings-grid { 
-            grid-template-columns: 1fr; 
-            gap: 15px; 
-        }
-        .hero-section h1 { 
-            font-size: 1.8rem; 
-        }
-        .hero-section { 
-            padding: 30px 24px; 
-        }
-        .search-grid {
-            grid-template-columns: 1fr;
-        }
-        .search-actions {
-            flex-direction: column;
-        }
-        .search-button, .reset-button {
-            min-width: 100%;
-        }
+        body.sidebar-open { overflow: hidden; }
+        body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+        body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+
+        .section-title { font-size: 1.25rem; }
+        .listing-content { padding: 10px; }
+        .listing-header { flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; }
+        .listing-price { text-align: left; max-width: none; width: 100%; }
+        .listing-details { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; }
+        .listing-card-image-container { height: 150px; }
+        .listing-type-badge { padding: 4px 10px; font-size: 10px; border-radius: 16px; top: 8px; left: 8px; }
+        /* Match broker dashboard: hide profile row to shorten cards on mobile */
+        .listing-broker { display: none; }
+    }
+
+    /* Small Mobile */
+    /* Small Mobile (match broker dashboard) */
+    @media (max-width: 480px) {
+        .container { padding: 12px; padding-top: 54px; }
+        .mobile-menu-toggle { top: 12px; left: 12px; width: 44px; height: 44px; font-size: 20px; }
+        .hero-section { padding: 14px 14px; margin-bottom: 18px; }
+        .hero-section h1 { font-size: 1.35rem; }
+        .hero-section p { font-size: 0.85rem; margin-bottom: 12px; }
+        .hero-stat-value { font-size: 1.1rem; }
+        .hero-stat-label { font-size: 0.78rem; }
+        .hero-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+        .search-section { padding: 14px 12px; margin-bottom: 18px; }
+        .search-title { font-size: 1rem; margin-bottom: 16px; }
+        .search-button, .reset-button { padding: 12px 12px; font-size: 0.9rem; }
+        .section-title { font-size: 1.15rem; }
+        .section-title i { font-size: 1.1rem; }
+        .listing-content { padding: 12px; }
+        .listing-title { font-size: 0.95rem; line-height: 1.25; max-height: 3.1em; }
+        .listing-price { font-size: 0.95rem; }
+        .listing-details { gap: 8px; margin-bottom: 10px; padding-bottom: 10px; }
+        .detail { font-size: 0.8rem; flex: 1 1 100%; }
+        .listing-type-badge { padding: 3px 8px; font-size: 9px; border-radius: 14px; top: 6px; left: 6px; }
+        .listing-card-image-container { height: 120px; }
     }
 </style>
 </head>
@@ -495,16 +540,17 @@
 <body>
 <!-- Mobile Menu Toggle -->
 <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
 
-<!-- Main Container -->
+<!-- Main -->
 <div class="container">
-  <!-- Hero Section -->
+  <!-- Hero Section - same design as broker dashboard -->
   <div class="hero-section">
     <h1>Landlord Dashboard</h1>
-    <p>Manage your properties and view all listings from brokers across the platform</p>
+    <p>Manage your listings and browse all property listings from brokers and owners across the platform</p>
     <div class="hero-stats">
       <div class="hero-stat-item">
         <div class="hero-stat-icon"><i class="fas fa-building"></i></div>
@@ -516,8 +562,8 @@
       <div class="hero-stat-item">
         <div class="hero-stat-icon"><i class="fas fa-users"></i></div>
         <div>
-<div class="hero-stat-value" id="totalLandlords">0</div>
-    <div class="hero-stat-label">Active Landlords</div>
+          <div class="hero-stat-value" id="totalBrokers">0</div>
+          <div class="hero-stat-label">Active Brokers</div>
         </div>
       </div>
       <div class="hero-stat-item">
@@ -537,7 +583,7 @@
     </div>
   </div>
 
-  <!-- Search / Filter Section -->
+  <!-- Filter Section - same design as broker dashboard -->
   <div class="search-section">
     <div class="search-title">
       <i class="fas fa-filter"></i>
@@ -603,9 +649,9 @@
     </div>
   </div>
 
-  <!-- All Properties Section -->
+  <!-- All Properties Section - same design as broker dashboard -->
   <div class="properties-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+    <div class="properties-section-header">
       <div>
         <h2 class="section-title">
           <i class="fas fa-building"></i>
@@ -620,22 +666,37 @@
       </a>
     </div>
     <div class="listings-grid" id="listingsContainer">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading properties...</p>
-      </div>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading properties...</p>
     </div>
+  </div>
   </div>
 </div>
 
 <!-- Sidebar Loader -->
+<script src="../sidebar-user.js"></script>
 <script>
-// Mobile menu functionality
-document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-      'translateX(-100%)' : 'translateX(0px)';
+// Mobile menu functionality - match broker dashboard (toggle body class)
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
+
+// Close sidebar when tapping on overlay (mobile)
+var overlayEl = document.getElementById('sidebarOverlay');
+if (overlayEl) {
+  overlayEl.addEventListener('click', function () {
+    document.body.classList.remove('sidebar-open');
+  });
+}
+
+// Ensure sidebar is reset when resizing back to desktop
+window.addEventListener('resize', function () {
+  if (window.innerWidth > 768) {
+    document.body.classList.remove('sidebar-open');
   }
 });
 
@@ -644,41 +705,39 @@ fetch('sidebar.html')
   .then(response => response.text())
   .then(html => {
     document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile();
+    }
     const links = document.querySelectorAll('.sidebar-link');
     links.forEach(link => {
       if (link.getAttribute('href') === 'landlord_dashboard.html') {
         link.classList.add('active');
       }
     });
-    
-    // Firebase logout handler
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (confirm("Are you sure you want to log out?")) {
-          try {
-            const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js");
-            const auth = getAuth();
-            
-            await signOut(auth);
-            console.log("✅ User signed out from Firebase");
-            
-            localStorage.removeItem('user');
-            sessionStorage.clear();
-            
-            window.location.href = "../login.html";
-          } catch (error) {
-            console.error("❌ Firebase logout error:", error);
-            window.location.href = "../login.html";
-          }
-        }
-      });
-    }
+    setupLogoutButton();
   })
   .catch(error => console.error('Error loading sidebar:', error));
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) {
+    setTimeout(setupLogoutButton, 100);
+    return;
+  }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') {
+        window.performLogout();
+      } else {
+        window.location.href = "../login.html";
+      }
+    }
+  });
+}
 </script>
 
 <!-- Load Google Maps API -->
@@ -687,10 +746,12 @@ fetch('sidebar.html')
 <!-- Firebase Script -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { 
   getFirestore, 
   collection, 
+  query, 
+  where, 
   getDocs, 
   getDoc, 
   doc 
@@ -712,6 +773,34 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
 let allListings = [];
 let userMap = new Map();
+
+// Helper to safely extract a photo url from various profile shapes
+function getPhotoFromData(data) {
+  if (!data || typeof data !== 'object') return null;
+  const url =
+    data.photoURL ||
+    data.profilePhotoURL ||
+    data.profilePhoto ||
+    data.profileImage ||
+    data.imageURL ||
+    data.photoUrl ||
+    data.imageUrl ||
+    data.avatarURL ||
+    data.avatar ||
+    null;
+
+  if (url && typeof url === 'string' && url.trim().length > 0) return url.trim();
+
+  // Fallback: any key that looks like photo/image/avatar
+  for (const key of Object.keys(data)) {
+    const k = key.toLowerCase();
+    if ((k.includes('photo') || k.includes('image') || k.includes('avatar')) && typeof data[key] === 'string') {
+      const v = data[key].trim();
+      if (v.length > 10 && (v.startsWith('http') || v.startsWith('//'))) return v;
+    }
+  }
+  return null;
+}
 
 // Helper function to get role display text
 function getRoleDisplayText(role) {
@@ -764,7 +853,7 @@ function getListingTypeDisplay(listing) {
   }
 }
 
-// Main function to load ALL listings
+// Main function to load ALL listings (same as broker dashboard)
 async function loadAllListings() {
   const container = document.getElementById('listingsContainer');
   container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading properties...</p></div>';
@@ -772,7 +861,7 @@ async function loadAllListings() {
   try {
     console.log('🔍 Fetching all properties...');
     
-    // Query ALL properties from Firestore
+    // Query ALL properties from Firestore (no filter)
     const propertiesRef = collection(db, "properties");
     const snapshot = await getDocs(propertiesRef);
     
@@ -793,9 +882,11 @@ async function loadAllListings() {
         allListings.push(listing);
         
         // Collect user IDs for lookup
+        if (data.agentId) userIds.add(data.agentId);
         if (data.userId) userIds.add(data.userId);
         if (data.ownerId) userIds.add(data.ownerId);
         if (data.brokerId) userIds.add(data.brokerId);
+        if (data.listedBy) userIds.add(data.listedBy);
       }
     });
     
@@ -819,7 +910,7 @@ async function loadAllListings() {
   }
 }
 
-// Load user data for multiple user IDs
+// Load user data for multiple user IDs (same as broker - includes photoURL)
 async function loadUserData(userIds) {
   userMap.clear();
   
@@ -832,30 +923,71 @@ async function loadUserData(userIds) {
   
   const userPromises = userIds.map(async (userId) => {
     try {
+      let userData = null;
+      // Try agents collection first (so listing cards get agent profile/photo)
+      let agentData = null;
+      const agentDoc = await getDoc(doc(db, "agents", userId));
+      if (agentDoc.exists()) {
+        agentData = agentDoc.data();
+      } else {
+        // Some records store authUid instead of using doc id
+        const agentsQuery = query(collection(db, "agents"), where("authUid", "==", userId));
+        const agentSnapshot = await getDocs(agentsQuery);
+        if (!agentSnapshot.empty) agentData = agentSnapshot.docs[0].data();
+      }
+
+      if (agentData) {
+        userMap.set(userId, {
+          displayName: agentData.fullName || agentData.name || agentData.displayName || `Agent ${userId.substring(0, 8)}`,
+          email: agentData.email || 'Email not available',
+          phone: agentData.phone || agentData.phoneNumber || 'Phone not available',
+          role: agentData.role || agentData.userType || 'agent',
+          photoURL: getPhotoFromData(agentData)
+        });
+        return;
+      }
+
+      const brokerDoc = await getDoc(doc(db, "brokers", userId));
+      if (brokerDoc.exists()) {
+        userData = brokerDoc.data();
+        userMap.set(userId, {
+          displayName: userData.fullName || userData.name || userData.displayName || `User ${userId.substring(0, 8)}`,
+          email: userData.email || 'Email not available',
+          phone: userData.phone || userData.phoneNumber || 'Phone not available',
+          role: userData.role || 'broker',
+          photoURL: getPhotoFromData(userData)
+        });
+        return;
+      }
+
       const userDoc = await getDoc(doc(db, "users", userId));
       if (userDoc.exists()) {
-        const userData = userDoc.data();
+        userData = userDoc.data();
         userMap.set(userId, {
           displayName: userData.fullName || userData.displayName || userData.name || `User ${userId.substring(0, 8)}`,
           email: userData.email || 'Email not available',
           phone: userData.phone || userData.phoneNumber || 'Phone not available',
-          role: userData.role || userData.userType || 'user'
+          role: userData.role || userData.userType || 'user',
+          photoURL: getPhotoFromData(userData)
         });
-      } else {
-        userMap.set(userId, {
-          displayName: `User ${userId.substring(0, 8)}`,
-          email: 'Email not available',
-          phone: 'Phone not available',
-          role: 'user'
-        });
+        return;
       }
+
+      userMap.set(userId, {
+        displayName: `User ${userId.substring(0, 8)}`,
+        email: 'Email not available',
+        phone: 'Phone not available',
+        role: 'user',
+        photoURL: null
+      });
     } catch (error) {
       console.error(`Error loading user ${userId}:`, error);
       userMap.set(userId, {
         displayName: `User ${userId.substring(0, 8)}`,
         email: 'Email not available',
         phone: 'Phone not available',
-        role: 'user'
+        role: 'user',
+        photoURL: null
       });
     }
   });
@@ -864,7 +996,7 @@ async function loadUserData(userIds) {
   console.log(`✅ Loaded ${userMap.size} user profiles`);
 }
 
-// Display listings in the grid
+// Display listings in the grid (same card structure as broker dashboard)
 function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
   
@@ -874,20 +1006,20 @@ function displayListings(listings) {
   }
   
   container.innerHTML = listings.map(listing => {
-    // Get user information
-    const userId = listing.userId || listing.ownerId || listing.brokerId || 'unknown';
+    const userId = listing.agentId || listing.userId || listing.ownerId || listing.brokerId || listing.listedBy || 'unknown';
     const userInfo = userMap.get(userId) || {
       displayName: `User ${userId.substring(0, 8)}`,
       email: 'N/A',
       phone: 'N/A',
-      role: 'user'
+      role: 'user',
+      photoURL: null
     };
     
-    // Get price information
     const priceInfo = getPriceInfo(listing);
     const listingType = getListingTypeDisplay(listing);
+    const rawType = (listing.type || listing.listingType || 'rent').toLowerCase();
+    const badgeClass = (rawType === 'sale') ? 'sale' : (rawType === 'rent' || rawType === 'lease') ? 'rent' : 'sale';
     
-    // Get property image
     let imageUrl = 'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
     if (listing.photos && listing.photos.length > 0) {
       imageUrl = listing.photos[0];
@@ -897,19 +1029,20 @@ function displayListings(listings) {
       imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${listing.latitude},${listing.longitude}&zoom=15&size=400x200&markers=color:red%7C${listing.latitude},${listing.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
     }
     
-    // Get user initials for avatar
     const initials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'UU';
+    const avatarHtml = (userInfo.photoURL)
+      ? `<img src="${(userInfo.photoURL || '').replace(/"/g, '&quot;')}" alt="${(userInfo.displayName || '').replace(/"/g, '&quot;')}" onerror="this.parentElement.innerHTML='${initials}'">`
+      : initials;
     
-    // Normalize status text
     let statusText = listing.status || 'active';
     let statusClass = 'status-active';
     let showStatus = false;
 
     if (statusText.toLowerCase() === 'active' || statusText.toLowerCase() === 'available' || 
         statusText.toLowerCase() === 'published' || statusText === true || statusText === 'true') {
-      statusText = 'Available';
-      statusClass = 'status-active';
-      showStatus = true;
+      statusText = '';
+      statusClass = '';
+      showStatus = false;
     } else if (statusText.toLowerCase() === 'pending') {
       statusClass = 'status-pending';
       showStatus = true;
@@ -920,8 +1053,9 @@ function displayListings(listings) {
     return `
     <div class="listing-card-wrapper">
       <div class="listing-card" data-listing-id="${listing.id}">
-        <a href="../broker/property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${listing.title}"></a>
+        <a href="property_details.html?id=${listing.id}" class="card-link-overlay" aria-label="View ${listing.title}"></a>
         <div class="listing-card-image-container">
+          <span class="listing-type-badge ${badgeClass}">${listingType}</span>
           <img src="${imageUrl}" alt="${listing.title}" class="listing-image">
         </div>
         <div class="listing-content">
@@ -933,9 +1067,7 @@ function displayListings(listings) {
           </div>
           <div class="listing-location">
             <i class="fas fa-map-marker-alt" style="flex-shrink: 0;"></i>
-            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              ${listing.address || listing.location || 'Location not specified'} · ${listingType}
-            </span>
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${listing.address || listing.location || 'Location not specified'} · ${listingType}</span>
           </div>
           <div class="listing-details">
             <div class="detail"><i class="fas fa-bed"></i> ${listing.bedrooms || 0} beds</div>
@@ -943,7 +1075,7 @@ function displayListings(listings) {
             <div class="detail"><i class="fas fa-ruler-combined"></i> ${listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A'} ${typeof (listing.floorArea || listing.totalArea) === 'number' ? 'sqm' : ''}</div>
           </div>
           <div class="listing-broker">
-            <div class="broker-avatar">${initials}</div>
+            <div class="broker-avatar">${avatarHtml}</div>
             <div class="broker-info">
               <div class="broker-name">${userInfo.displayName}</div>
               <div class="broker-contact">
@@ -992,22 +1124,10 @@ function displayError(error) {
   `;
 }
 
+// Update dashboard statistics
 function updateStats(listings) {
   const total = listings.length;
-  
-  // Count landlords (users with landlord/seller roles)
-  const landlordIds = new Set();
-  listings.forEach(listing => {
-    const userId = listing.userId || listing.ownerId || listing.brokerId;
-    if (userId && userMap.has(userId)) {
-      const userRole = userMap.get(userId).role;
-      // Count users with landlord/seller/owner roles
-      if (['landlord', 'seller', 'owner'].includes(userRole)) {
-        landlordIds.add(userId);
-      }
-    }
-  });
-  const totalLandlords = landlordIds.size;
+  const uniqueUsers = new Set(listings.map(l => l.agentId || l.userId || l.ownerId || l.brokerId || l.listedBy)).size;
   
   // Calculate average price
   const prices = listings.map(listing => {
@@ -1045,7 +1165,7 @@ function updateStats(listings) {
   }).length;
   
   document.getElementById('totalListings').textContent = total;
-  document.getElementById('totalLandlords').textContent = totalLandlords;
+  document.getElementById('totalBrokers').textContent = uniqueUsers;
   document.getElementById('averagePrice').textContent = `₱${averagePrice.toLocaleString()}`;
   document.getElementById('newToday').textContent = newToday;
   const countEl = document.getElementById('propertiesCount');
@@ -1096,11 +1216,11 @@ function applyFilters() {
       </div>
     `;
     const countEl = document.getElementById('propertiesCount');
-    if (countEl) countEl.textContent = '0 properties match filters';
+    if (countEl) countEl.textContent = 'No properties match your filters';
   } else {
     displayListings(filtered);
     const countEl = document.getElementById('propertiesCount');
-    if (countEl) countEl.textContent = `${filtered.length} propert${filtered.length === 1 ? 'y' : 'ies'} match your filters`;
+    if (countEl) countEl.textContent = `${filtered.length} propert${filtered.length === 1 ? 'y' : 'ies'} matching filters`;
   }
 }
 
@@ -1115,15 +1235,46 @@ document.getElementById('resetFilters').addEventListener('click', function() {
   updateStats(allListings);
 });
 
+// Load current landlord profile from users collection and update sidebar (landlords are in users, NOT brokers)
+async function loadCurrentUserProfile(user) {
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) return;
+    const userData = userSnap.data();
+    const profileData = {
+      fullName: userData.fullName || userData.displayName || userData.name || ((userData.firstName || '') + ' ' + (userData.lastName || '')).trim() || user.email?.split('@')[0] || 'Property Owner',
+      email: userData.email || user.email,
+      role: userData.role || 'landlord',
+      photoURL: userData.photoURL || userData.profilePhotoURL || userData.profilePhoto || userData.profileImage || user.photoURL
+    };
+    try { localStorage.setItem('userData', JSON.stringify(profileData)); } catch (e) {}
+    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile(profileData);
+  } catch (e) { console.warn('Could not load landlord profile:', e); }
+}
+
 // Initialize on page load
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "../login.html";
   } else {
     console.log('👤 Landlord authenticated:', user.uid);
+    await loadCurrentUserProfile(user);
     loadAllListings();
   }
 });
+
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userData');
+    window.location.href = "../login.html";
+  } catch (e) {
+    console.error('Logout error:', e);
+    window.location.href = "../login.html";
+  }
+};
 </script>
 
 </body>

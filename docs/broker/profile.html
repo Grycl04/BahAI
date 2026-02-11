@@ -2100,7 +2100,7 @@ function hideLoading() {
 window.performLogout = async function() {
     try {
         await signOut(auth);
-        window.location.href = "login.html";
+        window.location.href = "../login.html";
     } catch (error) {
         console.error("Logout error:", error);
         alert("Error logging out. Please try again.");

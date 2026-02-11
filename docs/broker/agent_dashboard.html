@@ -851,26 +851,66 @@
     </div>
   </div>
 
-  <!-- Search / Filter Section - same design as broker dashboard -->
+  <!-- Search / Filter Section - UPDATED TO MATCH BROKER_DASHBOARD -->
   <div class="search-section">
     <div class="search-title">
       <i class="fas fa-filter"></i>
       Filter Properties
     </div>
     <div class="search-grid">
+      <!-- Location Dropdown (All Batangas Cities & Municipalities) -->
       <div class="search-group">
-        <label class="search-label"><i class="fas fa-home"></i> Property Type</label>
-        <select class="search-select" id="filterType">
-          <option value="">All Types</option>
-          <option value="House">House</option>
-          <option value="Condo">Condo</option>
-          <option value="Apartment">Apartment</option>
-          <option value="Land">Land</option>
-          <option value="Commercial">Commercial</option>
-        </select>
-      </div>
+        <label class="search-label">
+          <i class="fas fa-map-marker-alt"></i>
+          Location
+        </label>
+<select class="search-select" id="filterLocation">
+    <option value="">All Locations</option>
+    <!-- Cities (alphabetical) -->
+    <option value="Batangas City">Batangas City</option>
+    <option value="Calaca City">Calaca City</option>
+    <option value="Lipa City">Lipa City</option>
+    <option value="Sto. Tomas City">Sto. Tomas City</option>
+    <option value="Tanauan City">Tanauan City</option>
+    <!-- Municipalities (alphabetical) -->
+    <option value="Agoncillo">Agoncillo</option>
+    <option value="Alitagtag">Alitagtag</option>
+    <option value="Balayan">Balayan</option>
+    <option value="Balete">Balete</option>
+    <option value="Bauan">Bauan</option>
+    <option value="Calatagan">Calatagan</option>
+    <option value="Cuenca">Cuenca</option>
+    <option value="Ibaan">Ibaan</option>
+    <option value="Laurel">Laurel</option>
+    <option value="Lemery">Lemery</option>
+    <option value="Lian">Lian</option>
+    <option value="Lobo">Lobo</option>
+    <option value="Mabini">Mabini</option>
+    <option value="Malvar">Malvar</option>
+    <option value="Mataasnakahoy">Mataasnakahoy</option>
+    <option value="Nasugbu">Nasugbu</option>
+    <option value="Padre Garcia">Padre Garcia</option>
+    <option value="Rosario">Rosario</option>
+    <option value="San Jose">San Jose</option>
+    <option value="San Juan">San Juan</option>
+    <option value="San Luis">San Luis</option>
+    <option value="San Nicolas">San Nicolas</option>
+    <option value="San Pascual">San Pascual</option>
+    <option value="Santa Teresita">Santa Teresita</option>
+    <option value="Taal">Taal</option>
+    <option value="Talisay">Talisay</option>
+    <option value="Taysan">Taysan</option>
+    <option value="Tingloy">Tingloy</option>
+    <option value="Tuy">Tuy</option>
+</select>
+</div>
+
+      <!-- Listing Type -->
       <div class="search-group">
-        <label class="search-label"><i class="fas fa-handshake"></i> Listing Type</label>
+        <label class="search-label">
+          <i class="fas fa-handshake"></i>
+          Listing Type
+        </label>
         <select class="search-select" id="filterListingType">
           <option value="">All Listings</option>
           <option value="sale">For Sale</option>
@@ -878,24 +918,50 @@
           <option value="lease">For Lease</option>
         </select>
       </div>
+
+      <!-- Property Categories (from buyer dashboard) -->
       <div class="search-group">
-        <label class="search-label"><i class="fas fa-peso-sign"></i> Price Range</label>
+        <label class="search-label">
+          <i class="fas fa-th-large"></i>
+          Property Category
+        </label>
+        <select class="search-select" id="filterCategory">
+          <option value="">All Categories</option>
+          <option value="Residential">Residential</option>
+          <option value="Commercial">Commercial</option>
+          <option value="Land / Lot">Land / Lot</option>
+          <option value="Condominium">Condominium</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Special Purpose">Special Purpose</option>
+        </select>
+      </div>
+
+      <!-- Price Range -->
+      <div class="search-group">
+        <label class="search-label">
+          <i class="fas fa-peso-sign"></i>
+          Price Range
+        </label>
         <select class="search-select" id="filterPrice">
           <option value="">Any Price</option>
           <option value="0-1000000">Under ₱1M</option>
           <option value="1000000-5000000">₱1M - ₱5M</option>
           <option value="5000000-10000000">₱5M - ₱10M</option>
-          <option value="10000000-999999999">Over ₱10M</option>
+          <option value="10000000-20000000">₱10M - ₱20M</option>
+          <option value="20000000-50000000">₱20M - ₱50M</option>
+          <option value="50000000-999999999">Over ₱50M</option>
         </select>
-      </div>
-      <div class="search-group">
-        <label class="search-label"><i class="fas fa-map-marker-alt"></i> Location</label>
-        <input type="text" class="search-input" id="filterLocation" placeholder="Enter location...">
       </div>
     </div>
     <div class="search-actions">
-      <button class="search-button" id="applyFilters"><i class="fas fa-search"></i> Search Properties</button>
-      <button class="reset-button" id="resetFilters"><i class="fas fa-redo"></i> Reset Filters</button>
+      <button class="search-button" id="applyFilters">
+        <i class="fas fa-search"></i>
+        Search Properties
+      </button>
+      <button class="reset-button" id="resetFilters">
+        <i class="fas fa-redo"></i>
+        Reset Filters
+      </button>
     </div>
   </div>
 
@@ -1075,6 +1141,83 @@ function getStatusDisplay(status) {
   const statusStr = (status || '').toString().toLowerCase();
   if (statusStr.includes('available') || statusStr === 'active' || statusStr === 'published') return 'Available';
   return statusStr.charAt(0).toUpperCase() + statusStr.slice(1);
+}
+
+// Category filter helper function - FROM BROKER_DASHBOARD
+function propertyBelongsToCategory(listing, category) {
+  const propertyType = (listing.propertyType || '').toLowerCase();
+  const propertyCategory = (listing.propertyCategory || '').toLowerCase();
+  const listingTitle = (listing.title || '').toLowerCase();
+  const listingDescription = (listing.description || '').toLowerCase();
+  const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
+
+  // Define categories similar to buyer dashboard
+  const categories = {
+    'Residential': {
+      propertyTypes: ['house', 'townhouse', 'bungalow', 'duplex', 'village_lot', 'apartment', 'boarding_house', 'room', 'dormitory'],
+      keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 'townhouse', 'dormitory', 'room', 'bedspace', 'home', 'villa', 'bungalow', 'duplex', 'boarding', 'dorm'],
+      excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 'agricultural', 'warehouse', 'factory', 'office', 'retail', 'shop', 'establishment']
+    },
+    'Commercial': {
+      propertyTypes: ['commercial_building', 'office_space', 'retail_space', 'warehouse', 'showroom', 'office_unit', 'food_stall', 'shop', 'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 'showroom_lease', 'warehouse_lease'],
+      keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 'mall', 'business', 'establishment', 'showroom', 'warehouse', 'building', 'floor', 'space'],
+      excludeKeywords: ['residential', 'house', 'apartment', 'condo', 'land', 'lot']
+    },
+    'Land / Lot': {
+      propertyTypes: ['residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 'beachfront', 'development_land', 'vacant_lot'],
+      keywords: ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 'raw land', 'development', 'industrial', 'commercial'],
+      excludeKeywords: ['house', 'apartment', 'building', 'condo', 'villa']
+    },
+    'Condominium': {
+      propertyTypes: ['condo_unit', 'penthouse', 'studio', 'loft', 'condo'],
+      keywords: ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'],
+      excludeKeywords: ['house', 'apartment', 'townhouse', 'duplex', 'villa']
+    },
+    'Industrial': {
+      propertyTypes: ['warehouse', 'storage_unit', 'factory', 'workshop'],
+      keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 'plant', 'facility', 'workshop', 'production'],
+      excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 'office', 'retail', 'shop']
+    },
+    'Special Purpose': {
+      propertyTypes: ['resort_property', 'event_venue', 'parking_area', 'school_property', 'hospitality', 'sports_facility'],
+      keywords: ['resort', 'event', 'venue', 'school', 'sports', 'facility', 'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn', 'parking', 'hospitality', 'tourism', 'recreational'],
+      excludeKeywords: ['house', 'apartment', 'condo', 'office', 'retail', 'warehouse']
+    }
+  };
+
+  const catData = categories[category];
+  if (!catData) return false;
+
+  // Check property types first (exact matches)
+  for (const type of catData.propertyTypes) {
+    const typeLower = type.toLowerCase();
+    if (propertyType === typeLower || propertyType.includes(typeLower)) {
+      return true;
+    }
+  }
+
+  // Check keywords
+  for (const keyword of catData.keywords) {
+    if (searchText.includes(keyword.toLowerCase())) {
+      // Check exclusions
+      if (catData.excludeKeywords) {
+        let shouldExclude = false;
+        for (const excludeKeyword of catData.excludeKeywords) {
+          if (searchText.includes(excludeKeyword.toLowerCase())) {
+            shouldExclude = true;
+            break;
+          }
+        }
+        if (!shouldExclude) {
+          return true;
+        }
+      } else {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 // Update dashboard statistics
@@ -1475,17 +1618,23 @@ function displayError(error) {
   `;
 }
 
-// Apply filters to listings
+// Apply filters to listings - UPDATED TO MATCH BROKER_DASHBOARD LOGIC
 function applyFilters() {
-  const typeFilter = document.getElementById('filterType').value.toLowerCase();
+  const locationFilter = document.getElementById('filterLocation').value;
   const listingTypeFilter = document.getElementById('filterListingType').value.toLowerCase();
+  const categoryFilter = document.getElementById('filterCategory').value;
   const priceFilter = document.getElementById('filterPrice').value;
-  const locationFilter = document.getElementById('filterLocation').value.toLowerCase();
   
   const filtered = allListings.filter(listing => {
-    // Property type filter
-    if (typeFilter && listing.propertyType && !listing.propertyType.toLowerCase().includes(typeFilter)) {
-      return false;
+    // Location filter - MATCHES BROKER DASHBOARD LOGIC
+    if (locationFilter) {
+      const locationMatch = 
+        (listing.location || "").includes(locationFilter) ||
+        (listing.city || "").includes(locationFilter) ||
+        (listing.province || "").includes(locationFilter) ||
+        (listing.address || "").includes(locationFilter);
+      
+      if (!locationMatch) return false;
     }
     
     // Listing type filter
@@ -1494,17 +1643,18 @@ function applyFilters() {
       if (listingType !== listingTypeFilter) return false;
     }
     
+    // Category filter
+    if (categoryFilter) {
+      if (!propertyBelongsToCategory(listing, categoryFilter)) {
+        return false;
+      }
+    }
+    
     // Price filter
     if (priceFilter) {
       const [min, max] = priceFilter.split('-').map(Number);
       const priceInfo = getPriceInfo(listing);
       if (priceInfo.price < min || priceInfo.price > max) return false;
-    }
-    
-    // Location filter
-    if (locationFilter) {
-      const location = (listing.address || listing.location || '').toLowerCase();
-      if (!location.includes(locationFilter)) return false;
     }
     
     return true;
@@ -1518,20 +1668,28 @@ function applyFilters() {
         <p>Try adjusting your search criteria to see more results.</p>
       </div>
     `;
+    const countEl = document.getElementById('propertiesCount');
+    if (countEl) countEl.textContent = '0 properties match filters';
   } else {
     displayListings(filtered);
+    const countEl = document.getElementById('propertiesCount');
+    if (countEl) countEl.textContent = `${filtered.length} propert${filtered.length === 1 ? 'y' : 'ies'} match your filters`;
   }
+}
+
+// Reset filters function - UPDATED
+function resetFilters() {
+  document.getElementById('filterLocation').value = '';
+  document.getElementById('filterListingType').value = '';
+  document.getElementById('filterCategory').value = '';
+  document.getElementById('filterPrice').value = '';
+  displayListings(allListings);
+  updateStats(allListings);
 }
 
 // Event Listeners
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
-document.getElementById('resetFilters').addEventListener('click', function() {
-  document.getElementById('filterType').value = '';
-  document.getElementById('filterListingType').value = '';
-  document.getElementById('filterPrice').value = '';
-  document.getElementById('filterLocation').value = '';
-  displayListings(allListings);
-});
+document.getElementById('resetFilters').addEventListener('click', resetFilters);
 
 // Load agent profile for sidebar (agents collection first, then users)
 async function loadAgentProfile(user) {
