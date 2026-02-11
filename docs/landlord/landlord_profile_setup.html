@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Edit Profile - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../buyer/style.css">
+<style>
+    :root {
+      --primary: #0b2e52;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --primary-light: #1e3a5f;
+      --primary-dark: #071e38;
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --border-radius: 16px;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: var(--text-dark);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1001;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .mobile-menu-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Mobile back button - inline with burger menu, on the right */
+    .mobile-back-button {
+      display: none;
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1001;
+      background: rgba(15, 23, 42, 0.9);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      font-size: 16px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-lg);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .mobile-back-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .container {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--card-shadow);
+      text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-header p {
+      color: var(--text-light);
+      font-size: 16px;
+    }
+
+    /* Profile Photo Section - matches broker */
+    .form-container {
+      background: var(--bg-white);
+      padding: 30px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .section-header i {
+      font-size: 22px;
+      color: var(--primary);
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-top: 5px;
+    }
+
+    .profile-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .profile-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+    }
+
+    .profile-photo-upload {
+      width: 160px;
+      height: 160px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 4px solid var(--bg-white);
+      box-shadow: var(--shadow-lg);
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .profile-photo-upload:hover::after {
+      content: 'Change Photo';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .profile-photo-upload img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      font-size: 60px;
+      font-weight: bold;
+    }
+
+    .profile-details {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 5px;
+    }
+
+    .profile-title {
+      font-size: 18px;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .file-upload {
+      position: relative;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    .file-upload input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-upload-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: var(--bg-light);
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-upload-label:hover {
+      border-color: var(--primary);
+      background: rgba(11, 46, 82, 0.05);
+    }
+
+    .form-hint {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 6px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 15px;
+    }
+
+    .required::after {
+      content: '*';
+      color: var(--danger);
+      margin-left: 4px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      background: var(--bg-white);
+      color: var(--text-dark);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.1);
+    }
+
+    textarea.form-control {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 40px;
+      padding-top: 25px;
+      border-top: 2px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      border: none;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--bg-light);
+      color: var(--text-dark);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      z-index: 10000;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast-success {
+      background: var(--success);
+    }
+
+    .toast-error {
+      background: var(--danger);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+      from { transform: translateX(-50%) translateY(0); opacity: 1; }
+      to { transform: translateX(-50%) translateY(100%); opacity: 0; }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .spinner {
+      border: 4px solid var(--bg-light);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        margin-left: 0;
+        padding: 25px;
+        padding-top: 70px;
+      }
+      .mobile-menu-toggle,
+      .mobile-back-button {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        padding-top: 56px;
+      }
+      .page-header h1 { font-size: 24px; }
+      .profile-photo-upload { width: 120px; height: 120px; }
+      .profile-name { font-size: 24px; }
+      /* Sidebar slides over content on mobile */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        max-width: 80%;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      .sidebar-overlay {
+        display: block;
+      }
+      body.sidebar-open { overflow: hidden; }
+      body.sidebar-open .sidebar {
+        transform: translateX(0);
+        z-index: 1001;
+      }
+      body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+        padding-top: 54px;
+      }
+      .mobile-menu-toggle {
+        top: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+      .mobile-back-button {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+      }
+    }
+</style>
+</head>
+<body>
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+<button class="mobile-back-button" id="mobileBackButton" aria-label="Back to profile"><i class="fas fa-arrow-left"></i></button>
+<div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Edit Profile</h1>
+    <p>Update your profile information to connect with tenants and buyers</p>
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+    <p>Saving profile changes...</p>
+  </div>
+
+  <!-- Profile Photo Section -->
+  <div class="form-container">
+    <div class="section-header">
+      <i class="fas fa-camera"></i>
+      <div>
+        <h2>Profile Photo</h2>
+        <p class="section-subtitle">Upload a photo to help tenants and buyers recognize you</p>
+      </div>
+    </div>
+
+    <div class="profile-main">
+      <div class="profile-photo-upload" id="profilePhotoUpload">
+        <div class="profile-photo-placeholder" id="profilePhotoPlaceholder"></div>
+        <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+      </div>
+
+      <div class="profile-details">
+        <h3 class="profile-name" id="landlordName">Your Name</h3>
+        <div class="profile-title">Property Owner</div>
+
+        <div style="margin-top: 20px;">
+          <div class="file-upload">
+            <input type="file" id="photoUpload" accept="image/*">
+            <label for="photoUpload" class="file-upload-label">
+              <i class="fas fa-upload"></i>
+              <span>Upload New Photo</span>
+            </label>
+          </div>
+          <p class="form-hint">Recommended: Square photo, at least 400x400 pixels</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Basic Information Form -->
+  <form id="profileForm">
+    <div class="form-container">
+      <div class="section-header">
+        <i class="fas fa-user"></i>
+        <div>
+          <h2>Basic Information</h2>
+          <p class="section-subtitle">Your contact and profile details</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="fullName" class="required">Full Name</label>
+          <input type="text" id="fullName" class="form-control" required placeholder="John Doe">
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="required">Email Address</label>
+          <input type="email" id="email" class="form-control" required placeholder="john@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" class="form-control" placeholder="+63 912 345 6789">
+        </div>
+
+        <div class="form-group">
+          <label for="location">Location</label>
+          <input type="text" id="location" class="form-control" placeholder="City or area">
+        </div>
+
+        <div class="form-group full-width">
+          <label for="bio">Bio</label>
+          <textarea id="bio" class="form-control" placeholder="Tell potential tenants or buyers about yourself and your properties..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save Profile
+        </button>
+        <a href="profile.html" class="btn btn-secondary">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script src="../sidebar-user.js"></script>
+<script>
+// Mobile sidebar behavior (match other landlord pages)
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+var mobileBackBtn = document.getElementById('mobileBackButton');
+var overlayEl = document.getElementById('sidebarOverlay');
+
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
+
+if (overlayEl) {
+  overlayEl.addEventListener('click', function() {
+    document.body.classList.remove('sidebar-open');
+  });
+}
+
+if (mobileBackBtn) {
+  mobileBackBtn.addEventListener('click', function() {
+    // Prefer history back so flow is preserved; fallback to profile page
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'profile.html';
+    }
+  });
+}
+
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
+});
+
+// Load sidebar
+fetch('sidebar.html')
+  .then(response => response.text())
+  .then(html => {
+    document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
+    const links = document.querySelectorAll('.sidebar-link');
+    links.forEach(link => {
+      if (link.getAttribute('href') === 'profile.html') link.classList.add('active');
+    });
+    setupLogoutButton();
+  })
+  .catch(error => console.error('Error loading sidebar:', error));
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) {
+    setTimeout(setupLogoutButton, 100);
+    return;
+  }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') {
+        window.performLogout();
+      } else {
+        window.location.href = "../login.html";
+      }
+    }
+  });
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+let currentUser = null;
+let currentProfileData = null;
+let profilePhotoFile = null;
+
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    window.location.href = "../login.html";
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+
+function showLoading(show) {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
+function showToast(message, type) {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type || 'success'}`;
+  toast.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i><span>${message}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function initializePhotoUploads() {
+  const profilePhotoUpload = document.getElementById('profilePhotoUpload');
+  const profilePhotoInput = document.getElementById('profilePhotoInput');
+  const photoUpload = document.getElementById('photoUpload');
+
+  function handlePhotoSelect(e) {
+    if (e.target.files && e.target.files[0]) {
+      profilePhotoFile = e.target.files[0];
+      previewProfilePhoto(profilePhotoFile);
+    }
+  }
+
+  profilePhotoUpload.addEventListener('click', function() {
+    profilePhotoInput.click();
+  });
+
+  profilePhotoInput.addEventListener('change', handlePhotoSelect);
+  if (photoUpload) {
+    photoUpload.addEventListener('change', handlePhotoSelect);
+  }
+}
+
+function previewProfilePhoto(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const placeholder = document.getElementById('profilePhotoPlaceholder');
+    placeholder.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    img.alt = 'Profile photo preview';
+    placeholder.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadProfilePhoto(file) {
+  const fileExtension = file.name.split('.').pop();
+  const fileName = `profile_${currentUser.uid}_${Date.now()}.${fileExtension}`;
+  const storageRef = ref(storage, `profile-photos/${fileName}`);
+  await uploadBytes(storageRef, file);
+  return await getDownloadURL(storageRef);
+}
+
+async function loadProfile(userId) {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    const data = userDoc.exists() ? userDoc.data() : {};
+    currentProfileData = data;
+
+    document.getElementById('fullName').value = data.fullName || data.displayName || data.name || '';
+    document.getElementById('landlordName').textContent = data.fullName || data.displayName || data.name || 'Your Name';
+    document.getElementById('email').value = data.email || '';
+    document.getElementById('phone').value = data.phone || data.phoneNumber || '';
+    document.getElementById('location').value = data.location || data.city || data.address || '';
+    document.getElementById('bio').value = data.bio || data.description || data.about || '';
+
+    const photoURL = data.photoURL || data.profilePhotoURL || data.profilePhoto || '';
+    const placeholder = document.getElementById('profilePhotoPlaceholder');
+    if (photoURL) {
+      placeholder.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = photoURL;
+      img.alt = 'Profile photo';
+      img.onerror = function() {
+        this.style.display = 'none';
+        placeholder.textContent = (data.fullName || 'A').charAt(0).toUpperCase();
+      };
+      placeholder.appendChild(img);
+    } else {
+      placeholder.textContent = (data.fullName || data.displayName || 'A').charAt(0).toUpperCase();
+    }
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    showToast('Error loading profile. Please try again.', 'error');
+  }
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname);
+    return;
+  }
+  currentUser = user;
+  initializePhotoUploads();
+  await loadProfile(user.uid);
+});
+
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const user = auth.currentUser;
+  if (!user) {
+    showToast('Please sign in to save your profile.', 'error');
+    return;
+  }
+
+  const btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  showLoading(true);
+
+  try {
+    let photoURL = currentProfileData?.photoURL || currentProfileData?.profilePhotoURL || '';
+    if (profilePhotoFile) {
+      photoURL = await uploadProfilePhoto(profilePhotoFile);
+    }
+
+    const userRef = doc(db, "users", user.uid);
+    const existing = await getDoc(userRef);
+    const existingData = existing.exists() ? existing.data() : {};
+
+    const profileData = {
+      ...existingData,
+      fullName: document.getElementById('fullName').value.trim(),
+      displayName: document.getElementById('fullName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      phoneNumber: document.getElementById('phone').value.trim(),
+      location: document.getElementById('location').value.trim(),
+      city: document.getElementById('location').value.trim(),
+      address: document.getElementById('location').value.trim(),
+      bio: document.getElementById('bio').value.trim(),
+      description: document.getElementById('bio').value.trim(),
+      about: document.getElementById('bio').value.trim(),
+      photoURL: photoURL || null,
+      profilePhotoURL: photoURL || null,
+      role: existingData.role || 'landlord',
+      userType: existingData.userType || 'landlord',
+      updatedAt: new Date()
+    };
+
+    await setDoc(userRef, profileData, { merge: true });
+
+    try {
+      localStorage.setItem('userData', JSON.stringify({
+        fullName: profileData.fullName,
+        email: profileData.email,
+        role: profileData.role,
+        photoURL: profileData.photoURL
+      }));
+    } catch (le) {}
+
+    if (typeof window.updateSidebarUserProfile === 'function') {
+      window.updateSidebarUserProfile({
+        fullName: profileData.fullName,
+        email: profileData.email,
+        role: profileData.role,
+        photoURL: profileData.photoURL
+      });
+    }
+
+    showLoading(false);
+    showToast('Profile saved successfully!');
+    setTimeout(() => { window.location.href = 'profile.html'; }, 800);
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    showLoading(false);
+    showToast('Error saving profile. Please try again.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Save Profile';
+  }
+});
+</script>
+</body>
+</html>

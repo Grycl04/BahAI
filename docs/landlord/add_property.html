@@ -267,6 +267,34 @@
       font-weight: 600;
     }
 
+    /* Mobile listing type dropdown */
+    .listing-type-select-mobile {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .listing-type-select-mobile label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+      display: block;
+      text-align: left;
+    }
+
+    .listing-type-select-mobile select {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-white);
+      display: block;
+    }
+
     .type-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -317,6 +345,17 @@
       color: var(--text-light);
       font-size: 14px;
       line-height: 1.5;
+    }
+
+    /* On smaller screens, prefer dropdown over big cards */
+    @media (max-width: 768px) {
+      .type-grid {
+        display: none;
+      }
+
+      .listing-type-select-mobile {
+        display: block;
+      }
     }
 
     /* ===== FORM SECTION STYLES ===== */
@@ -761,9 +800,18 @@
     }
 
     /* ===== RESPONSIVE DESIGN ===== */
+    /* ===== RESPONSIVE DESIGN (match broker add property) ===== */
     @media (max-width: 1024px) {
-      .main-content { margin-left: 0; padding: 25px; padding-top: 80px; }
-      .mobile-toggle, .mobile-menu-toggle { display: flex; align-items: center; justify-content: center; }
+      .main-content {
+        margin-left: 0;
+        padding: 25px;
+        padding-top: 70px;
+      }
+      .mobile-toggle, .mobile-menu-toggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
       .hero-section h1 { font-size: 1.8rem; }
       .hero-section { padding: 30px 24px; }
       .type-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
@@ -771,7 +819,9 @@
 
     @media (max-width: 768px) {
       .main-content {
+        margin-left: 0;
         padding: 20px;
+        padding-top: 56px;
       }
       
       .card {
@@ -823,6 +873,35 @@
       .full-page-blur-overlay .message {
         font-size: 14px;
       }
+
+      /* Sidebar slides over content on mobile */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        max-width: 80%;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      body.sidebar-open { overflow: hidden; }
+      body.sidebar-open .sidebar { transform: translateX(0); z-index: 1001; }
+      body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
     }
 
     @media (max-width: 480px) {
@@ -867,6 +946,7 @@
   </button>
   
   <div id="sidebar-container"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
   
   <div class="main-content" id="mainContent">
   <div class="hero-section">
@@ -897,15 +977,23 @@
       <div class="form-content">
         <div class="type-selection">
           <h2>Choose Listing Type</h2>
+          <!-- Mobile-friendly dropdown that mirrors the cards (layout-only) -->
+          <div class="listing-type-select-mobile">
+            <label for="listingTypeSelectMobile">Listing Type</label>
+            <select id="listingTypeSelectMobile">
+              <option value="rent">For Rent</option>
+              <option value="lease">For Lease</option>
+            </select>
+          </div>
           <div class="type-grid">
-            <div class="type-card active" onclick="selectType('rent')">
+            <div class="type-card active" data-type="rent" onclick="selectType('rent')">
               <span class="type-icon"><i class="bi bi-house"></i></span>
               <h3>FOR RENT</h3>
               <div class="description">
                 Perfect for residential or commercial spaces available for monthly rental.
               </div>
             </div>
-            <div class="type-card" onclick="selectType('lease')">
+            <div class="type-card" data-type="lease" onclick="selectType('lease')">
               <span class="type-icon"><i class="bi bi-file-text"></i></span>
               <h3>FOR LEASE</h3>
               <div class="description">
@@ -1556,22 +1644,33 @@
   };
 
   // ===== BATANGAS MAP BOUNDS =====
-  const BATANGAS_CENTER = { lat: 13.7564, lng: 121.0583 };
-  const BATANGAS_BOUNDS = {
-    north: 14.15,
-    south: 13.60,
-    east: 121.6,
-    west: 120.3
-  };
+const BATANGAS_BOUNDS = {
+  north: 14.2,    // Northern boundary
+  south: 13.6,    // Southern boundary  
+  east: 121.3,    // Eastern boundary
+  west: 120.5     // Western boundary (extended for Nasugbu)
+};
+
+// Keep the original center or adjust slightly
+const BATANGAS_CENTER = { lat: 13.8, lng: 121.0 }; // Centered on Batangas
 
   // ===== INITIALIZE =====
   document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu (matches broker)
-    document.getElementById('mobileToggle').addEventListener('click', function() {
-      const sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 'translateX(-100%)' : 'translateX(0px)';
-      }
+    // Mobile menu (match broker add property: toggle body class)
+    var mobileToggle = document.getElementById('mobileToggle');
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', function() {
+        document.body.classList.toggle('sidebar-open');
+      });
+    }
+    var overlayEl = document.getElementById('sidebarOverlay');
+    if (overlayEl) {
+      overlayEl.addEventListener('click', function() {
+        document.body.classList.remove('sidebar-open');
+      });
+    }
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
     });
 
     // Load landlord sidebar
@@ -1624,6 +1723,9 @@
     // Initialize forms
     initializeRentForm();
     initializeLeaseForm();
+
+    // Initialize mobile listing type dropdown
+    setupMobileListingTypeSelect();
   });
 
   // ===== RENT PROPERTY TYPE MAPPING =====
@@ -1945,6 +2047,24 @@
         setTimeout(() => initLeaseMapPicker(), 100);
       }
     }
+  }
+
+  // Sync mobile dropdown with card selection (mobile responsiveness)
+  function setupMobileListingTypeSelect() {
+    var selectEl = document.getElementById('listingTypeSelectMobile');
+    if (!selectEl) return;
+
+    // When dropdown changes, trigger the same behavior as clicking a card
+    selectEl.addEventListener('change', function () {
+      var value = this.value; // 'rent' or 'lease'
+      var card = document.querySelector('.type-card[data-type="' + value + '"]');
+      if (card && typeof card.click === 'function') {
+        card.click();
+      } else {
+        // Fallback: call selectType directly if for some reason card is missing
+        selectType(value);
+      }
+    });
   }
 
   // ===== RENT FORM FUNCTIONS =====

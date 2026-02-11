@@ -560,20 +560,6 @@
         </div>
       </div>
       <div class="hero-stat-item">
-        <div class="hero-stat-icon"><i class="fas fa-users"></i></div>
-        <div>
-          <div class="hero-stat-value" id="totalBrokers">0</div>
-          <div class="hero-stat-label">Active Brokers</div>
-        </div>
-      </div>
-      <div class="hero-stat-item">
-        <div class="hero-stat-icon"><i class="fas fa-peso-sign"></i></div>
-        <div>
-          <div class="hero-stat-value" id="averagePrice">₱0</div>
-          <div class="hero-stat-label">Average Price</div>
-        </div>
-      </div>
-      <div class="hero-stat-item">
         <div class="hero-stat-icon"><i class="fas fa-calendar-plus"></i></div>
         <div>
           <div class="hero-stat-value" id="newToday">0</div>
@@ -634,7 +620,43 @@
           <i class="fas fa-map-marker-alt"></i>
           Location
         </label>
-        <input type="text" class="search-input" id="filterLocation" placeholder="Enter location...">
+        <input type="text" class="search-input" id="filterLocation" list="municipalitiesList" placeholder="Type to search municipalities...">
+        <datalist id="municipalitiesList">
+          <option value="Agoncillo">Agoncillo</option>
+          <option value="Alitagtag">Alitagtag</option>
+          <option value="Balayan">Balayan</option>
+          <option value="Balete">Balete</option>
+          <option value="Bauan">Bauan</option>
+          <option value="Calatagan">Calatagan</option>
+          <option value="Cuenca">Cuenca</option>
+          <option value="Ibaan">Ibaan</option>
+          <option value="Laurel">Laurel</option>
+          <option value="Lemery">Lemery</option>
+          <option value="Lian">Lian</option>
+          <option value="Lobo">Lobo</option>
+          <option value="Mabini">Mabini</option>
+          <option value="Malvar">Malvar</option>
+          <option value="Mataasnakahoy">Mataasnakahoy</option>
+          <option value="Nasugbu">Nasugbu</option>
+          <option value="Padre Garcia">Padre Garcia</option>
+          <option value="Rosario">Rosario</option>
+          <option value="San Jose">San Jose</option>
+          <option value="San Juan">San Juan</option>
+          <option value="San Luis">San Luis</option>
+          <option value="San Nicolas">San Nicolas</option>
+          <option value="San Pascual">San Pascual</option>
+          <option value="Santa Teresita">Santa Teresita</option>
+          <option value="Taal">Taal</option>
+          <option value="Talisay">Talisay</option>
+          <option value="Taysan">Taysan</option>
+          <option value="Tingloy">Tingloy</option>
+          <option value="Tuy">Tuy</option>
+          <option value="Batangas City">Batangas City</option>
+          <option value="Lipa City">Lipa City</option>
+          <option value="Tanauan City">Tanauan City</option>
+          <option value="Santo Tomas City">Santo Tomas City</option>
+          <option value="Calaca City">Calaca City</option>
+        </datalist>
       </div>
     </div>
     <div class="search-actions">
@@ -1127,17 +1149,6 @@ function displayError(error) {
 // Update dashboard statistics
 function updateStats(listings) {
   const total = listings.length;
-  const uniqueUsers = new Set(listings.map(l => l.agentId || l.userId || l.ownerId || l.brokerId || l.listedBy)).size;
-  
-  // Calculate average price
-  const prices = listings.map(listing => {
-    const priceInfo = getPriceInfo(listing);
-    return priceInfo.price;
-  }).filter(price => price > 0);
-  
-  const averagePrice = prices.length > 0 
-    ? Math.round(prices.reduce((sum, price) => sum + price, 0) / prices.length)
-    : 0;
   
   // Count new listings from today
   const today = new Date();
@@ -1165,8 +1176,6 @@ function updateStats(listings) {
   }).length;
   
   document.getElementById('totalListings').textContent = total;
-  document.getElementById('totalBrokers').textContent = uniqueUsers;
-  document.getElementById('averagePrice').textContent = `₱${averagePrice.toLocaleString()}`;
   document.getElementById('newToday').textContent = newToday;
   const countEl = document.getElementById('propertiesCount');
   if (countEl) countEl.textContent = `${total} propert${total === 1 ? 'y' : 'ies'} on the platform`;
@@ -1278,4 +1287,4 @@ window.performLogout = async function() {
 </script>
 
 </body>
-</html> 
+</html>

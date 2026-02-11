@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>My Profile - BahAI Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../buyer/style.css">
+<style>
+    :root {
+      --primary: #0b2e52;
+      --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
+      --primary-light: #1e3a5f;
+      --primary-dark: #071e38;
+      --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+      --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --text-dark: #1a202c;
+      --text-light: #718096;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f1f5f9;
+      color: var(--text-dark);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+    .page-header p {
+      color: var(--text-light);
+      font-size: 16px;
+    }
+
+    .profile-header {
+      background: var(--bg-white);
+      padding: 30px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+      border-top: 5px solid var(--primary);
+    }
+
+    .profile-badges {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .profile-badge {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-landlord {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .badge-active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .profile-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .profile-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+    }
+
+    .profile-photo {
+      width: 160px;
+      height: 160px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 4px solid var(--primary);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      flex-shrink: 0;
+    }
+
+    .profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-photo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-gradient);
+      color: white;
+      font-size: 60px;
+      font-weight: bold;
+    }
+
+    .profile-details {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 5px;
+    }
+
+    .profile-title {
+      font-size: 18px;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .profile-title i {
+      color: #d4af37;
+    }
+
+    .profile-location {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-light);
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    .profile-bio {
+      line-height: 1.6;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    /* Profile statistics section (hidden per latest design) */
+    .profile-stats {
+      display: none;
+    }
+
+    .stat-card {
+      background: var(--bg-white);
+      padding: 20px;
+      border-radius: var(--border-radius-sm);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      text-align: center;
+      border-top: 3px solid var(--primary);
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text-dark);
+      border: 2px solid #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+      background: #f9fafb;
+      border-color: var(--primary);
+    }
+
+    .btn-accent {
+      background: var(--accent-gradient);
+      color: white;
+    }
+
+    .profile-content {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 30px;
+    }
+
+    @media (max-width: 1024px) {
+      .profile-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Additional mobile refinements for profile layout */
+    @media (max-width: 768px) {
+      .profile-header {
+        padding: 20px;
+      }
+      .profile-photo {
+        width: 140px;
+        height: 140px;
+      }
+      .profile-name {
+        font-size: 24px;
+      }
+      .profile-title {
+        font-size: 16px;
+      }
+      .profile-location {
+        font-size: 14px;
+      }
+      .profile-card {
+        padding: 20px;
+      }
+      .properties-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .profile-header {
+        padding: 18px;
+        margin-bottom: 20px;
+      }
+      .profile-name {
+        font-size: 20px;
+      }
+      .profile-title {
+        font-size: 14px;
+      }
+      .profile-photo {
+        width: 120px;
+        height: 120px;
+      }
+      .profile-content {
+        gap: 20px;
+      }
+      .profile-card {
+        padding: 18px;
+      }
+      .action-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .properties-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+    }
+
+    .profile-card {
+      background: var(--bg-white);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      margin-bottom: 25px;
+      border-top: 3px solid var(--primary);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .section-header i {
+      font-size: 22px;
+      color: var(--primary);
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .contact-list {
+      list-style: none;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .contact-item:last-child {
+      border-bottom: none;
+    }
+
+    .contact-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(11, 46, 82, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 18px;
+    }
+
+    .contact-label {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 3px;
+    }
+
+    .contact-value {
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+
+    .no-data {
+      color: var(--text-light);
+      font-style: italic;
+      padding: 10px 0;
+    }
+
+    .properties-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+      margin-top: 20px;
+    }
+
+    .listing-card-wrapper {
+      transition: all 0.3s ease;
+    }
+    .listing-card-wrapper:hover {
+      transform: translateY(-5px);
+    }
+    .listing-card {
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      height: 100%;
+      position: relative;
+    }
+    .listing-card:hover {
+      box-shadow: var(--card-hover-shadow);
+    }
+    .listing-card-image-container {
+      position: relative;
+      height: 180px;
+      overflow: hidden;
+    }
+    .listing-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .listing-content {
+      padding: 20px;
+    }
+    .listing-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .listing-price {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+    .listing-location {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-link-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: var(--text-dark);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1001;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 22px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--card-hover-shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .mobile-menu-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        margin-left: 0;
+        padding: 25px;
+        padding-top: 70px;
+      }
+      .mobile-menu-toggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        padding-top: 56px;
+      }
+      /* Sidebar slides over content on mobile */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        max-width: 80%;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      .sidebar-overlay {
+        display: block;
+      }
+      body.sidebar-open { overflow: hidden; }
+      body.sidebar-open .sidebar {
+        transform: translateX(0);
+        z-index: 1001;
+      }
+      body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+        padding-top: 54px;
+      }
+      .mobile-menu-toggle {
+        top: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
+</style>
+</head>
+<body>
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle sidebar">☰</button>
+<div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your profile and view your property listings</p>
+  </div>
+
+  <div id="profileContent">
+    <div class="profile-header">
+      <div class="profile-badges" id="profileBadges">
+        <span class="profile-badge badge-landlord">Property Owner</span>
+        <span class="profile-badge badge-active">Active</span>
+      </div>
+
+      <div class="profile-main">
+        <div class="profile-photo" id="profilePhoto">
+          <div class="profile-photo-placeholder" id="profilePhotoPlaceholder">?</div>
+        </div>
+
+        <div class="profile-details">
+          <h1 class="profile-name" id="profileName">Loading...</h1>
+          <div class="profile-title">
+            <i class="fas fa-home"></i>
+            <span>Property Owner</span>
+          </div>
+          <div class="profile-location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="profileLocation">Location not specified</span>
+          </div>
+          <div class="profile-bio" id="profileBio">
+            <p class="no-data">Add your bio to tell potential tenants or buyers about yourself.</p>
+          </div>
+
+          <div class="profile-stats">
+            <div class="stat-card">
+              <div class="stat-value" id="propertiesCount">0</div>
+              <div class="stat-label">Properties</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="inquiriesCount">0</div>
+              <div class="stat-label">Inquiries</div>
+            </div>
+          </div>
+
+          <div class="profile-actions" id="profileActions">
+            <a href="add_property.html" class="action-btn btn-primary">
+              <i class="fas fa-plus"></i> Add New Property
+            </a>
+            <a href="landlord_profile_setup.html" class="action-btn btn-accent">
+              <i class="fas fa-edit"></i> Edit Profile
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-content">
+      <div class="left-column">
+        <div class="profile-card">
+          <div class="section-header">
+            <i class="fas fa-home"></i>
+            <h2>My Properties</h2>
+          </div>
+          <div class="properties-grid" id="propertiesGrid">
+            <div class="empty-state">
+              <div class="spinner" style="border: 4px solid rgba(11, 46, 82, 0.2); border-top: 4px solid #d4af37; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+              <p>Loading properties...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="profile-card">
+          <div class="section-header">
+            <i class="fas fa-address-card"></i>
+            <h2>Contact Information</h2>
+          </div>
+          <ul class="contact-list">
+            <li class="contact-item">
+              <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+              <div class="contact-details">
+                <div class="contact-label">Email</div>
+                <div class="contact-value" id="contactEmail">Not provided</div>
+              </div>
+            </li>
+            <li class="contact-item">
+              <div class="contact-icon"><i class="fas fa-phone"></i></div>
+              <div class="contact-details">
+                <div class="contact-label">Phone</div>
+                <div class="contact-value" id="contactPhone">Not provided</div>
+              </div>
+            </li>
+            <li class="contact-item">
+              <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+              <div class="contact-details">
+                <div class="contact-label">Location</div>
+                <div class="contact-value" id="contactLocation">Not provided</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../sidebar-user.js"></script>
+<script>
+// Mobile menu: toggle body class so sidebar slides in (match other landlord pages)
+var mobileMenuBtn = document.getElementById('mobileMenuToggle');
+var overlayEl = document.getElementById('sidebarOverlay');
+
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener('click', function() {
+    document.body.classList.toggle('sidebar-open');
+  });
+}
+
+if (overlayEl) {
+  overlayEl.addEventListener('click', function() {
+    document.body.classList.remove('sidebar-open');
+  });
+}
+
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) document.body.classList.remove('sidebar-open');
+});
+
+// Load sidebar
+fetch('sidebar.html')
+  .then(response => response.text())
+  .then(html => {
+    document.getElementById('sidebar-container').innerHTML = html;
+    if (typeof window.updateSidebarUserProfile === 'function') window.updateSidebarUserProfile();
+    const links = document.querySelectorAll('.sidebar-link');
+    links.forEach(link => {
+      if (link.getAttribute('href') === 'profile.html') link.classList.add('active');
+    });
+    setupLogoutButton();
+  })
+  .catch(error => console.error('Error loading sidebar:', error));
+
+function setupLogoutButton() {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) {
+    setTimeout(setupLogoutButton, 100);
+    return;
+  }
+  const newLogoutBtn = logoutBtn.cloneNode(true);
+  logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+  newLogoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("Are you sure you want to log out?")) {
+      if (typeof window.performLogout === 'function') {
+        window.performLogout();
+      } else {
+        window.location.href = "../login.html";
+      }
+    }
+  });
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+  authDomain: "bahai-1b76d.firebaseapp.com",
+  projectId: "bahai-1b76d",
+  storageBucket: "bahai-1b76d.firebasestorage.app",
+  messagingSenderId: "646878644941",
+  appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+window.performLogout = async function() {
+  try {
+    await signOut(auth);
+    window.location.href = "../login.html";
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname);
+    return;
+  }
+
+  await loadProfile(user.uid);
+});
+
+async function loadProfile(userId) {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    const profile = userDoc.exists() ? userDoc.data() : {};
+
+    const fullName = profile.fullName || profile.displayName || profile.name || 'User';
+    const email = profile.email || 'Not provided';
+    const phone = profile.phone || profile.phoneNumber || 'Not provided';
+    const location = profile.location || profile.city || profile.address || 'Location not specified';
+    const bio = profile.bio || profile.description || profile.about || '';
+    const photoURL = profile.photoURL || profile.profilePhotoURL || profile.profileImage || '';
+
+    document.getElementById('profileName').textContent = fullName;
+    document.getElementById('profileLocation').textContent = location;
+    document.getElementById('contactEmail').textContent = email;
+    document.getElementById('contactPhone').textContent = phone;
+    document.getElementById('contactLocation').textContent = location;
+
+    if (bio.trim()) {
+      document.getElementById('profileBio').innerHTML = '<p>' + bio + '</p>';
+    }
+
+    const photoEl = document.getElementById('profilePhoto');
+    const placeholderEl = document.getElementById('profilePhotoPlaceholder');
+    if (photoURL) {
+      placeholderEl.style.display = 'none';
+      const img = document.createElement('img');
+      img.src = photoURL;
+      img.alt = fullName;
+      img.onerror = () => {
+        img.style.display = 'none';
+        placeholderEl.style.display = 'flex';
+        placeholderEl.textContent = (fullName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+      };
+      photoEl.appendChild(img);
+    } else {
+      placeholderEl.textContent = (fullName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    }
+
+    await loadProperties(userId);
+    await loadInquiriesCount(userId);
+  } catch (error) {
+    console.error('Error loading profile:', error);
+  }
+}
+
+async function loadProperties(userId) {
+  try {
+    const q = query(
+      collection(db, "properties"),
+      where("userId", "==", userId)
+    );
+    const snapshot = await getDocs(q);
+    const properties = [];
+    snapshot.forEach(doc => {
+      properties.push({ id: doc.id, ...doc.data() });
+    });
+
+    document.getElementById('propertiesCount').textContent = properties.length;
+
+    const grid = document.getElementById('propertiesGrid');
+    grid.innerHTML = '';
+
+    if (properties.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🏠</div>
+          <h3>No Properties Listed Yet</h3>
+          <p>Start by adding your first property!</p>
+          <a href="add_property.html" class="action-btn btn-primary" style="margin-top: 20px; display: inline-flex;">
+            <i class="fas fa-plus"></i> Add First Property
+          </a>
+        </div>`;
+      return;
+    }
+
+    properties.forEach(property => {
+      const card = createPropertyCard(property);
+      grid.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Error loading properties:', error);
+    document.getElementById('propertiesGrid').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">⚠️</div>
+        <h3>Error Loading Properties</h3>
+        <p>Please try again later.</p>
+      </div>`;
+  }
+}
+
+async function loadInquiriesCount(userId) {
+  try {
+    const q = query(
+      collection(db, "conversations"),
+      where("brokerId", "==", userId)
+    );
+    const snapshot = await getDocs(q);
+    document.getElementById('inquiriesCount').textContent = snapshot.size;
+  } catch (e) {
+    document.getElementById('inquiriesCount').textContent = '0';
+  }
+}
+
+function createPropertyCard(property) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'listing-card-wrapper';
+
+  const title = property.title || 'Untitled Property';
+  const location = property.address || property.location || 'Location not specified';
+  const images = property.photos || property.imageUrls || [];
+  const imageUrl = images.length > 0 ? images[0] : 'https://via.placeholder.com/400x200/0b2e52/white?text=No+Image';
+  const listingType = (property.type || property.listingType || 'sale').toLowerCase();
+
+  let priceText = 'Price on request';
+  if (listingType === 'sale') {
+    const price = property.salePrice || property.pricing || property.price || 0;
+    priceText = price > 0 ? '₱' + parseFloat(price).toLocaleString() : 'Price on request';
+  } else if (listingType === 'rent' || listingType === 'lease') {
+    const price = property.monthlyRent || property.annualRent || property.pricing || 0;
+    const period = listingType === 'lease' ? '/year' : '/month';
+    priceText = price > 0 ? '₱' + parseFloat(price).toLocaleString() + period : 'Price on request';
+  }
+
+  const typeLabel = listingType === 'lease' ? 'For Lease' : listingType === 'rent' ? 'For Rent' : 'For Sale';
+
+  wrapper.innerHTML = `
+    <div class="listing-card">
+      <a href="property_details.html?id=${property.id}" class="card-link-overlay" aria-label="View ${title}"></a>
+      <div class="listing-card-image-container">
+        <img src="${imageUrl}" alt="${title}" class="listing-image" onerror="this.src='https://via.placeholder.com/400x200/0b2e52/white?text=No+Image'">
+      </div>
+      <div class="listing-content">
+        <h3 class="listing-title">${title}</h3>
+        <div class="listing-price">${priceText}</div>
+        <div class="listing-location">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>${location} · ${typeLabel}</span>
+        </div>
+      </div>
+    </div>`;
+
+  return wrapper;
+}
+</script>
+</body>
+</html>
