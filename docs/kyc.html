@@ -48,6 +48,12 @@
       box-sizing: border-box;
     }
 
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     body {
       font-family: 'Inter', Arial, sans-serif;
       background: var(--bg-lighter);
@@ -764,6 +770,10 @@
         padding: 15px;
       }
       
+      .main-container {
+        max-width: 100%;
+      }
+      
       .page-header {
         padding: 20px;
       }
@@ -792,6 +802,7 @@
       
       .button-group {
         flex-direction: column;
+        align-items: stretch;
       }
       
       .verification-item {
@@ -828,6 +839,12 @@
       
       .submit-btn, .back-btn {
         padding: 16px 20px;
+        width: 100%;
+      }
+
+      .kyc-container {
+        padding: 20px 16px;
+        border-radius: var(--radius-lg);
       }
     }
 </style>
