@@ -1738,7 +1738,102 @@ def generate_sale_type_response(entities: Dict[str, Any], properties: List[Dict[
 # Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES AND MEMBER3
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
+        # ========== HANDLE BASIC INTENTS FIRST ==========
+    if intent == 'greeting':
+        greeting_responses = [
+            "👋 Hello! I'm Bah.AI, your property assistant for Batangas.",
+            "👋 Hi there! I'm here to help you find properties in Batangas.",
+            "👋 Welcome! I'm Bah.AI, your guide to properties in Batangas.",
+            "👋 Greetings! I can help you find houses, condos, and apartments in Batangas.",
+            "👋 Hello! How can I assist you with property search in Batangas today?"
+        ]
+        return random.choice(greeting_responses)
     
+    elif intent == 'thanks':
+        thanks_responses = [
+            "😊 You're welcome! Happy to help.",
+            "😊 My pleasure! Let me know if you need anything else.",
+            "😊 Glad I could assist! Feel free to ask more questions.",
+            "😊 You're most welcome! Need help with anything else?",
+            "😊 Anytime! I'm here to help with all your property needs."
+        ]
+        return random.choice(thanks_responses)
+    
+    elif intent == 'help':
+        help_response = "🤖 **Bah.AI Property Assistant**\n\n"
+        help_response += "I can help you with:\n\n"
+        help_response += "🔍 **Property Search**\n"
+        help_response += "• Find houses, condos, apartments\n"
+        help_response += "• Search by location (Batangas City, Lipa, Nasugbu, etc.)\n"
+        help_response += "• Filter by price range and bedrooms\n"
+        help_response += "• Find properties with specific features\n\n"
+        
+        help_response += "💰 **Financing Information**\n"
+        help_response += "• Properties with bank financing\n"
+        help_response += "• Outright payment options\n"
+        help_response += "• Installment plans\n\n"
+        
+        help_response += "📍 **Location Information**\n"
+        help_response += "• Learn about different areas in Batangas\n"
+        help_response += "• Lifestyle and amenities\n"
+        help_response += "• Property types available\n\n"
+        
+        help_response += "👨‍👩‍👧‍👦 **Personalized Matching**\n"
+        help_response += "• Properties for families\n"
+        help_response += "• Homes for couples\n"
+        help_response += "• Student accommodations\n"
+        help_response += "• Professional housing needs\n\n"
+        
+        help_response += "📋 **Process Guidance**\n"
+        help_response += "• Buying process steps\n"
+        help_response += "• Required documents\n"
+        help_response += "• Timeline information\n\n"
+        
+        help_response += "💡 **Try these examples:**\n"
+        help_response += "• 'Find apartments in Batangas City'\n"
+        help_response += "• 'Show me houses under 15M with 3 bedrooms'\n"
+        help_response += "• 'Properties with bank financing'\n"
+        help_response += "• 'Tell me about Lipa City'\n"
+        help_response += "• 'Find properties for family of 4'\n"
+        
+        return help_response
+    
+    elif intent == 'about_system':
+        about_response = "🏠 **Bah.AI - Batangas Property Assistant**\n\n"
+        about_response += "I'm an AI-powered chatbot designed to help you find and explore "
+        about_response += "properties in Batangas province, Philippines.\n\n"
+        
+        about_response += "**What I can do:**\n"
+        about_response += "• Search properties across Batangas cities and municipalities\n"
+        about_response += "• Provide detailed property information and features\n"
+        about_response += "• Offer financing options and payment information\n"
+        about_response += "• Give location insights and lifestyle information\n"
+        about_response += "• Match properties to your specific needs and preferences\n\n"
+        
+        about_response += "**Coverage Areas:**\n"
+        about_response += "• Batangas City, Lipa City, Nasugbu, Tanauan City\n"
+        about_response += "• Sto. Tomas City, Malvar, Bauan, Calatagan\n"
+        about_response += "• Taal, San Juan, Mabini, and many more\n\n"
+        
+        about_response += "**Property Types:**\n"
+        about_response += "• Houses, Condos, Apartments, Townhouses\n"
+        about_response += "• Commercial spaces, Offices, Retail\n"
+        about_response += "• Land, Beachfront properties, Resort properties\n\n"
+        
+        about_response += "Just tell me what you're looking for, and I'll help you find it! 😊"
+        
+        return about_response
+    
+    elif intent == 'goodbye':
+        goodbye_responses = [
+            "👋 Goodbye! Feel free to return anytime for property assistance.",
+            "👋 Farewell! Hope I helped with your property search in Batangas.",
+            "👋 See you! Remember, I'm here to help with all your property needs.",
+            "👋 Take care! Come back if you need more property information.",
+            "👋 Bye! Wishing you success in finding your perfect property."
+        ]
+        return random.choice(goodbye_responses)
+        
     # ========== HANDLE MEMBER3'S QUESTIONS FIRST ==========
     
     # Question 3: Family/space needs

@@ -75,6 +75,12 @@ class TeamNLUTrainer:
         
         # Intent mapping from old names to standard names
         self.intent_mapping = {
+                # Add basic intents
+            'greeting': 'greeting',
+            'thanks': 'thanks',
+            'help': 'help',
+            'about_system': 'about_system',
+            'goodbye': 'goodbye',
             'type_price_features': 'find_property_with_criteria',
             'near_landmark': 'find_near_landmark',
             'ready_to_move': 'find_ready_property',
@@ -93,9 +99,13 @@ class TeamNLUTrainer:
         
         # Intent keywords for better classification
         self.intent_keywords = {
-            'greeting': ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon'],
-            'help': ['help', 'what can you do', 'how can you help', 'assist', 'support'],
-            'thanks': ['thank you', 'thanks', 'appreciate', 'grateful'],
+                'greeting': ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'],
+    'thanks': ['thank you', 'thanks', 'thank', 'thanks a lot', 'appreciate', 'grateful'],
+    'help': ['help', 'what can you do', 'how can you help', 'assist', 'support', 'guide', 'explain'],
+    'about_system': ['what are you', 'who are you', 'what is this', 'what is the system', 
+                     'what do you do', 'what can you help with', 'tell me about yourself',
+                     'what is this system about', 'what is this chatbot', 'what is bah.ai'],
+    'goodbye': ['bye', 'goodbye', 'see you', 'farewell', 'exit', 'quit', 'end'],
             'financing': ['accept bank financing', 'accept financing', 'bank loan', 
                          'mortgage', 'pag-ibig', 'payment method', 'financing type',
                          'documents needed', 'requirements for', 'how to get',
@@ -864,9 +874,52 @@ def create_additional_training_file():
     """Create/update additional training data file"""
     additional_data = {
         "additional_samples": [
+            # Basic intents
             {"text": "hi", "intent": "greeting"},
             {"text": "hello", "intent": "greeting"},
             {"text": "hey", "intent": "greeting"},
+            {"text": "hello there", "intent": "greeting"},
+            {"text": "good morning", "intent": "greeting"},
+            {"text": "good afternoon", "intent": "greeting"},
+            {"text": "good evening", "intent": "greeting"},
+            {"text": "greetings", "intent": "greeting"},
+            
+            {"text": "thank you", "intent": "thanks"},
+            {"text": "thanks", "intent": "thanks"},
+            {"text": "thank you very much", "intent": "thanks"},
+            {"text": "thanks a lot", "intent": "thanks"},
+            {"text": "appreciate it", "intent": "thanks"},
+            {"text": "thank you for your help", "intent": "thanks"},
+            
+            {"text": "help", "intent": "help"},
+            {"text": "can you help me", "intent": "help"},
+            {"text": "what can you do", "intent": "help"},
+            {"text": "how can you help", "intent": "help"},
+            {"text": "assist me", "intent": "help"},
+            {"text": "need help", "intent": "help"},
+            {"text": "support me", "intent": "help"},
+            {"text": "guide me", "intent": "help"},
+            
+            {"text": "what are you", "intent": "about_system"},
+            {"text": "who are you", "intent": "about_system"},
+            {"text": "what is this", "intent": "about_system"},
+            {"text": "what is this system", "intent": "about_system"},
+            {"text": "what do you do", "intent": "about_system"},
+            {"text": "what can you help with", "intent": "about_system"},
+            {"text": "tell me about yourself", "intent": "about_system"},
+            {"text": "what is this system about", "intent": "about_system"},
+            {"text": "what is bahAI", "intent": "about_system"},
+            {"text": "what is this chatbot", "intent": "about_system"},
+            {"text": "what is this service", "intent": "about_system"},
+            {"text": "explain what you do", "intent": "about_system"},
+            
+            {"text": "bye", "intent": "goodbye"},
+            {"text": "goodbye", "intent": "goodbye"},
+            {"text": "see you", "intent": "goodbye"},
+            {"text": "farewell", "intent": "goodbye"},
+            {"text": "bye bye", "intent": "goodbye"},
+            {"text": "talk to you later", "intent": "goodbye"},
+            {"text": "see you later", "intent": "goodbye"},
                         # Force "find [property] in [location]" to be find_property
             {"text": "find apartments in batangas city", "intent": "find_property"},
             {"text": "find apartment in batangas city", "intent": "find_property"},

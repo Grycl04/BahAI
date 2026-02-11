@@ -24,14 +24,35 @@ const getBackendUrl = () => {
 export function initChatbot() {
     console.log("🤖 AI Chatbot Initializing...");
     
-    const chatInput = document.getElementById('chatInput');
-    const sendChatBtn = document.getElementById('sendChatBtn');
-    const voiceInputBtn = document.getElementById('voiceInputBtn');
     const chatMessages = document.getElementById('chatMessages');
     
-    if (!chatInput || !sendChatBtn || !chatMessages) {
-        console.error("❌ Chatbot elements not found!");
+    if (!chatMessages) {
+        console.error("❌ Chat messages container not found!");
         return;
+    }
+    
+    // FIX: Ensure chat input area exists even before prompts are clicked
+    const chatContainer = chatMessages.closest('.chatbot-container');
+    if (chatContainer) {
+        // Check if chat input already exists
+        let existingInput = chatContainer.querySelector('.chat-input');
+        if (!existingInput) {
+            console.log("🛠️ Creating chat input area...");
+            // Create the chat input area
+            const chatInputDiv = document.createElement('div');
+            chatInputDiv.className = 'chat-input';
+            chatInputDiv.id = 'chatInputContainer';
+            chatInputDiv.style.display = 'flex';
+            chatInputDiv.innerHTML = `
+                <input type="text" id="chatInput" 
+                       placeholder="e.g. Family home with yard, under 4M, near Lipa City..." />
+                <button id="sendChatBtn"><i class="fas fa-paper-plane"></i> Send</button>
+                <button id="voiceInputBtn" class="voice-btn"><i class="fas fa-microphone"></i></button>
+            `;
+            chatContainer.appendChild(chatInputDiv);
+        } else {
+            console.log("✅ Chat input area already exists");
+        }
     }
     
     // Show backend info for debugging
@@ -41,23 +62,67 @@ export function initChatbot() {
     // Show welcome message on first load
     showWelcomeMessage();
     
+    // FIX: Attach event listeners
+    setTimeout(() => {
+        attachChatListeners();
+        // Add demo prompts
+        addDemoPrompts();
+    }, 500);
+    
+    console.log("✅ AI Chatbot Initialized!");
+}
+
+// Create a separate function for attaching listeners
+function attachChatListeners() {
+    const chatInput = document.getElementById('chatInput');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+    const voiceInputBtn = document.getElementById('voiceInputBtn');
+    
+    if (!chatInput || !sendChatBtn) {
+        console.warn("⚠️ Chat input elements not ready yet, will retry...");
+        setTimeout(attachChatListeners, 500);
+        return;
+    }
+    
+    console.log("🔗 Attaching chat listeners...");
+    
+    // Remove existing listeners by cloning elements if needed
+    if (chatInput.hasAttribute('data-listener-attached')) {
+        const newChatInput = chatInput.cloneNode(true);
+        const newSendBtn = sendChatBtn.cloneNode(true);
+        
+        chatInput.parentNode.replaceChild(newChatInput, chatInput);
+        sendChatBtn.parentNode.replaceChild(newSendBtn, sendChatBtn);
+        
+        // Update references
+        window.chatInput = newChatInput;
+        window.sendChatBtn = newSendBtn;
+    } else {
+        window.chatInput = chatInput;
+        window.sendChatBtn = sendChatBtn;
+    }
+    
+    // Mark as having listeners attached
+    window.chatInput.setAttribute('data-listener-attached', 'true');
+    window.sendChatBtn.setAttribute('data-listener-attached', 'true');
+    
     // Send message on button click
-    sendChatBtn.addEventListener('click', async () => {
-        const message = chatInput.value.trim();
+    window.sendChatBtn.addEventListener('click', async () => {
+        const message = window.chatInput.value.trim();
         if (message) {
             await processChatMessage(message);
-            chatInput.value = '';
+            window.chatInput.value = '';
         }
     });
     
     // Send message on Enter key
-    chatInput.addEventListener('keypress', async (e) => {
+    window.chatInput.addEventListener('keypress', async (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            const message = chatInput.value.trim();
+            const message = window.chatInput.value.trim();
             if (message) {
                 await processChatMessage(message);
-                chatInput.value = '';
+                window.chatInput.value = '';
             }
         }
     });
@@ -69,10 +134,7 @@ export function initChatbot() {
         });
     }
     
-    // Add demo prompts
-    setTimeout(addDemoPrompts, 1000);
-    
-    console.log("✅ AI Chatbot Initialized!");
+    console.log("🎯 Chat listeners attached successfully");
 }
 
 // Main function to process chat messages
@@ -264,6 +326,9 @@ export async function processChatMessage(userMessage) {
         setTimeout(addDemoPrompts, 500);
     } finally {
         // Re-enable input
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        
         if (chatInput) {
             chatInput.disabled = false;
             chatInput.focus();
@@ -445,14 +510,15 @@ async function logChatInteraction(query, response, user) {
 }
 
 function addDemoPrompts() {
-    const existingPrompts = document.querySelector('.demo-prompts-container');
-    if (existingPrompts) existingPrompts.remove();
+    // Remove ALL existing prompt sections
+    const existingPromptSections = document.querySelectorAll('.demo-prompts-container, .demo-prompts, .quick-prompts-section, .ai-quick-questions');
+    existingPromptSections.forEach(section => section.remove());
     
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
     
-    // All 10 questions with simplified text
-    const allPrompts = [
+    // Your original 10 questions
+    const ALL_PROMPTS = [
         { text: "Apartments in Batangas City", emoji: "🏢", id: "q1" },
         { text: "Houses under 3M, 3 bedrooms", emoji: "🏠", id: "q2" },
         { text: "Family properties in Lipa", emoji: "👨‍👩‍👧‍👦", id: "q3" },
@@ -465,38 +531,113 @@ function addDemoPrompts() {
         { text: "For single professionals", emoji: "🎯", id: "q10" }
     ];
     
-    // Shuffle and select 4 random prompts
-    const shuffled = [...allPrompts].sort(() => Math.random() - 0.5);
-    const selectedPrompts = shuffled.slice(0, 4);
+    // The 5 initial "Try these" prompts
+    const INITIAL_PROMPTS = [
+        { text: "Find apartments", emoji: "🏢", id: "init1" },
+        { text: "Find houses", emoji: "🏠", id: "init2" },
+        { text: "About Batangas", emoji: "📍", id: "init3" },
+        { text: "Bank financing", emoji: "💰", id: "init4" },
+        { text: "Find condos", emoji: "🏙️", id: "init5" }
+    ];
+    
+    // Initialize global tracking
+    if (!window.promptTracker) {
+        window.promptTracker = {
+            usedQuestions: new Set(),
+            showInitial: true,
+            allQuestions: ALL_PROMPTS,
+            initialPrompts: INITIAL_PROMPTS,
+            usedInitialPrompts: new Set() // Track used initial prompts
+        };
+    }
+    
+    let selectedPrompts;
+    let titleText;
+    let showCount = false;
+    let showShuffleButton = false;
+    let gridColumns = "repeat(3, 1fr)";
+    
+    if (window.promptTracker.showInitial) {
+        // FIRST LOAD: Show ONLY the 5 initial "Try these" prompts
+        titleText = "Try these quick prompts";
+        showCount = false;
+        showShuffleButton = false;
+        gridColumns = "repeat(3, 1fr)";
+        
+        // Get available initial prompts (not used yet)
+        const availableInitialPrompts = window.promptTracker.initialPrompts.filter(
+            p => !window.promptTracker.usedInitialPrompts.has(p.id)
+        );
+        
+        if (availableInitialPrompts.length === 0) {
+            // All initial prompts used, switch to quick prompts
+            window.promptTracker.showInitial = false;
+            window.promptTracker.usedInitialPrompts.clear();
+            // Recursively call to show quick prompts
+            addDemoPrompts();
+            return;
+        }
+        
+        selectedPrompts = availableInitialPrompts.slice(0, 5);
+    } else {
+        // AFTER FIRST USE: Show 4 random questions from your 10 questions
+        titleText = "Quick Prompts";
+        showCount = true;
+        showShuffleButton = true;
+        gridColumns = "repeat(2, 1fr)";
+        
+        // Get available questions (not used yet)
+        const availableQuestions = window.promptTracker.allQuestions.filter(
+            q => !window.promptTracker.usedQuestions.has(q.id)
+        );
+        
+        // If less than 4 available, reset used questions
+        if (availableQuestions.length < 4) {
+            window.promptTracker.usedQuestions.clear();
+            selectedPrompts = window.promptTracker.allQuestions
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4);
+        } else {
+            // Shuffle and take 4 random questions
+            selectedPrompts = availableQuestions
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4);
+        }
+        
+        // Mark these 4 as used
+        selectedPrompts.forEach(q => window.promptTracker.usedQuestions.add(q.id));
+    }
     
     const demoSection = document.createElement('div');
     demoSection.className = 'demo-prompts-container';
     demoSection.innerHTML = `
         <div class="demo-prompts-title">
-            <i class="fas fa-bolt"></i> Quick Prompts
-            <span style="font-size: 12px; margin-left: 10px; background: rgba(102, 126, 234, 0.1); 
-                padding: 2px 8px; border-radius: 12px; font-weight: 600; color: var(--primary);">
-                ${selectedPrompts.length}/10 Questions
-            </span>
+            <i class="fas fa-bolt"></i> ${titleText}
+            ${showCount ? `
+                <span class="prompt-count-badge">
+                    ${window.promptTracker.usedQuestions.size}/10 Questions
+                </span>
+            ` : ''}
         </div>
-        <div class="demo-prompts-buttons">
+        <div class="demo-prompts-buttons" style="grid-template-columns: ${gridColumns};">
             ${selectedPrompts.map(prompt => `
-                <button class="demo-prompt-btn" data-prompt="${prompt.text}" data-id="${prompt.id}">
+                <button class="demo-prompt-btn" data-prompt="${prompt.text}" data-id="${prompt.id}" 
+                        title="Click to use: ${prompt.text}">
                     <span class="prompt-icon">${prompt.emoji}</span>
-                    <span>${prompt.text}</span>
+                    <span class="prompt-text">${prompt.text}</span>
                 </button>
             `).join('')}
         </div>
-        <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 11px; color: #888;">
-                <i class="fas fa-sync-alt fa-xs"></i> Prompts change on refresh
+        ${showShuffleButton ? `
+            <div class="prompts-footer">
+                <div class="prompts-info">
+                    <i class="fas fa-sync-alt fa-xs"></i> Prompts shuffle after use
+                </div>
+                <button id="refreshPrompts" class="shuffle-button">
+                    <i class="fas fa-random"></i> New set
+                </button>
             </div>
-            <button id="refreshPrompts" 
-                    style="font-size: 11px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); 
-                           color: var(--primary); cursor: pointer; padding: 4px 10px; border-radius: 12px; font-weight: 500;">
-                <i class="fas fa-redo-alt"></i> New set
-            </button>
-        </div>
+        ` : ''}
     `;
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
@@ -506,34 +647,77 @@ function addDemoPrompts() {
         document.querySelectorAll('.demo-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const prompt = this.getAttribute('data-prompt');
+                const promptId = this.getAttribute('data-id');
                 const chatInput = document.getElementById('chatInput');
+                
                 if (chatInput) {
                     chatInput.value = prompt;
                     chatInput.focus();
                     
-                    // Brief visual feedback
-                    this.style.transform = 'scale(0.98)';
-                    this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.2)';
+                    // Track used prompts
+                    if (window.promptTracker.showInitial) {
+                        // Mark initial prompt as used
+                        window.promptTracker.usedInitialPrompts.add(promptId);
+                        
+                        // If all initial prompts are used, switch to quick prompts next time
+                        if (window.promptTracker.usedInitialPrompts.size >= window.promptTracker.initialPrompts.length) {
+                            window.promptTracker.showInitial = false;
+                        }
+                    } else {
+                        // Mark question as used
+                        if (promptId && promptId.startsWith('q')) {
+                            window.promptTracker.usedQuestions.add(promptId);
+                        }
+                    }
+                    
+                    // Auto-send after a brief delay
+                    setTimeout(() => {
+                        processChatMessage(prompt);
+                        chatInput.value = '';
+                        
+                        // Update prompts after sending
+                        setTimeout(() => {
+                            addDemoPrompts();
+                        }, 1000);
+                    }, 300);
+                    
+                    // Visual feedback
+                    this.style.transform = 'scale(0.95)';
+                    this.style.boxShadow = '0 0 0 2px rgba(102, 126, 234, 0.3)';
                     setTimeout(() => {
                         this.style.transform = '';
                         this.style.boxShadow = '';
-                    }, 200);
+                    }, 300);
                 }
             });
         });
         
-        // Add refresh button functionality
+        // Add shuffle button functionality
         const refreshBtn = document.getElementById('refreshPrompts');
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => {
-                addDemoPrompts(); // Regenerate with new random prompts
+            refreshBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Get new random set
+                if (!window.promptTracker.showInitial) {
+                    addDemoPrompts();
+                }
                 
                 // Button feedback
                 refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 setTimeout(() => {
-                    refreshBtn.innerHTML = '<i class="fas fa-redo-alt"></i> New set';
+                    refreshBtn.innerHTML = '<i class="fas fa-random"></i> New set';
                 }, 500);
             });
+        }
+        
+        // Ensure chat input is visible
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput) {
+            chatInput.style.display = 'block';
+            chatInput.style.visibility = 'visible';
+            chatInput.style.opacity = '1';
         }
     }, 100);
 }
@@ -542,6 +726,16 @@ function addDemoPrompts() {
 function showWelcomeMessage() {
     const chatMessages = document.getElementById('chatMessages');
     if (chatMessages && chatMessages.children.length === 0) {
+        // Ensure chat input is visible
+        const chatInputContainer = chatMessages.closest('.chatbot-container');
+        if (chatInputContainer) {
+            const chatInputDiv = chatInputContainer.querySelector('.chat-input');
+            if (chatInputDiv) {
+                chatInputDiv.style.display = 'flex';
+                chatInputDiv.style.opacity = '1';
+            }
+        }
+        
         setTimeout(() => {
             const welcomeMessage = `
                 <div class="welcome-message">
@@ -598,7 +792,7 @@ const chatbotStyles = document.createElement('style');
 chatbotStyles.textContent = `
     /* Chat messages styling */
     .chat-messages {
-        height: 400px;
+        height: 420px;
         overflow-y: auto;
         padding: 15px;
         background: #f8f9fa;
@@ -861,62 +1055,121 @@ chatbotStyles.textContent = `
         line-height: 1.5;
     }
     
-    .welcome-message ul li {
-        margin-bottom: 5px;
-        line-height: 1.4;
-    }
-    
-    /* Demo prompts styling */
+    /* DEMO PROMPTS - COMPACT STYLING */
     .demo-prompts-container {
-        margin-top: 15px;
-        padding: 15px;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-        border-radius: 12px;
-        border: 1px solid rgba(102, 126, 234, 0.2);
-        animation: fadeIn 0.5s ease;
+        margin-top: 10px;
+        padding: 12px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-radius: 8px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        animation: fadeIn 0.3s ease;
+        max-height: 160px;
+        overflow: hidden;
     }
     
     .demo-prompts-title {
-        font-size: 14px;
+        font-size: 13px;
         color: var(--text-dark);
         font-weight: 600;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+    }
+    
+    .prompt-count-badge {
+        font-size: 11px;
+        background: rgba(102, 126, 234, 0.15);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        color: #667eea;
+        margin-left: 6px;
     }
     
     .demo-prompts-buttons {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        gap: 6px;
+        margin-bottom: 8px;
     }
     
     .demo-prompt-btn {
         background: white;
-        border: 1px solid rgba(102, 126, 234, 0.2);
-        border-radius: 8px;
-        padding: 10px;
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        border-radius: 6px;
+        padding: 8px 10px;
         cursor: pointer;
         text-align: left;
         transition: all 0.2s;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 13px;
+        gap: 6px;
+        font-size: 12px;
         color: #333;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        height: 36px;
     }
     
     .demo-prompt-btn:hover {
-        background: rgba(102, 126, 234, 0.05);
-        border-color: rgba(102, 126, 234, 0.4);
+        background: rgba(102, 126, 234, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
         transform: translateY(-1px);
     }
     
     .demo-prompt-btn .prompt-icon {
-        font-size: 14px;
+        font-size: 13px;
+        flex-shrink: 0;
+        width: 18px;
+        text-align: center;
     }
     
+    .demo-prompt-btn .prompt-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+    
+    .prompts-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    
+    .prompts-info {
+        font-size: 11px;
+        color: #888;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .shuffle-button {
+        font-size: 11px;
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        color: #667eea;
+        cursor: pointer;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s;
+    }
+    
+    .shuffle-button:hover {
+        background: rgba(102, 126, 234, 0.15);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Animations */
     @keyframes typing {
         0%, 60%, 100% {
             transform: translateY(0);

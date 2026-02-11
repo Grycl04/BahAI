@@ -13,6 +13,158 @@
       "intent": "greeting"
     },
     {
+      "text": "hello there",
+      "intent": "greeting"
+    },
+    {
+      "text": "good morning",
+      "intent": "greeting"
+    },
+    {
+      "text": "good afternoon",
+      "intent": "greeting"
+    },
+    {
+      "text": "good evening",
+      "intent": "greeting"
+    },
+    {
+      "text": "greetings",
+      "intent": "greeting"
+    },
+    {
+      "text": "thank you",
+      "intent": "thanks"
+    },
+    {
+      "text": "thanks",
+      "intent": "thanks"
+    },
+    {
+      "text": "thank you very much",
+      "intent": "thanks"
+    },
+    {
+      "text": "thanks a lot",
+      "intent": "thanks"
+    },
+    {
+      "text": "appreciate it",
+      "intent": "thanks"
+    },
+    {
+      "text": "thank you for your help",
+      "intent": "thanks"
+    },
+    {
+      "text": "help",
+      "intent": "help"
+    },
+    {
+      "text": "can you help me",
+      "intent": "help"
+    },
+    {
+      "text": "what can you do",
+      "intent": "help"
+    },
+    {
+      "text": "how can you help",
+      "intent": "help"
+    },
+    {
+      "text": "assist me",
+      "intent": "help"
+    },
+    {
+      "text": "need help",
+      "intent": "help"
+    },
+    {
+      "text": "support me",
+      "intent": "help"
+    },
+    {
+      "text": "guide me",
+      "intent": "help"
+    },
+    {
+      "text": "what are you",
+      "intent": "about_system"
+    },
+    {
+      "text": "who are you",
+      "intent": "about_system"
+    },
+    {
+      "text": "what is this",
+      "intent": "about_system"
+    },
+    {
+      "text": "what is this system",
+      "intent": "about_system"
+    },
+    {
+      "text": "what do you do",
+      "intent": "about_system"
+    },
+    {
+      "text": "what can you help with",
+      "intent": "about_system"
+    },
+    {
+      "text": "tell me about yourself",
+      "intent": "about_system"
+    },
+    {
+      "text": "what is this system about",
+      "intent": "about_system"
+    },
+    {
+      "text": "what is bahAI",
+      "intent": "about_system"
+    },
+    {
+      "text": "what is this chatbot",
+      "intent": "about_system"
+    },
+    {
+      "text": "what is this service",
+      "intent": "about_system"
+    },
+    {
+      "text": "explain what you do",
+      "intent": "about_system"
+    },
+    {
+      "text": "bye",
+      "intent": "goodbye"
+    },
+    {
+      "text": "goodbye",
+      "intent": "goodbye"
+    },
+    {
+      "text": "see you",
+      "intent": "goodbye"
+    },
+    {
+      "text": "farewell",
+      "intent": "goodbye"
+    },
+    {
+      "text": "bye bye",
+      "intent": "goodbye"
+    },
+    {
+      "text": "talk to you later",
+      "intent": "goodbye"
+    },
+    {
+      "text": "see you later",
+      "intent": "goodbye"
+    },
+    {
       "text": "find apartments in batangas city",
       "intent": "find_property"
     },
