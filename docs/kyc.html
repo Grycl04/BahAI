@@ -1125,7 +1125,7 @@
 import { auth, db } from './firebase-common.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, getBlob } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
 // Face++ API Configuration
 const FACE_API_KEY = "nwMEZVM-SXeV7Q6_tG9yNfQaVserEDGP";
@@ -1397,40 +1397,42 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
 
 // Helper function to convert image URL to base64
 async function urlToBase64(url) {
-    return new Promise((resolve, reject) => {
-        try {
-            // Get Firebase Storage reference
-            const storageRef = ref(storage, url);
-            
-            // Use XMLHttpRequest for better CORS handling on mobile
+    try {
+        // Use Firebase getBlob instead of XHR - faster and more reliable
+        const storageRef = ref(storage, url);
+        const blob = await getBlob(storageRef);
+        
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64data = reader.result.split(',')[1];
+                console.log(`✅ Base64 conversion: ${(blob.size/1024).toFixed(2)}KB`);
+                resolve(base64data);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error("❌ Firebase getBlob failed:", error);
+        
+        // Fallback to XHR
+        return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);
             xhr.responseType = 'blob';
-            xhr.setRequestHeader('Cache-Control', 'no-cache');
-            
             xhr.onload = function() {
                 if (this.status === 200) {
-                    const blob = this.response;
                     const reader = new FileReader();
-                    reader.onloadend = () => {
-                        const base64data = reader.result.split(',')[1];
-                        console.log(`✅ Base64 conversion: ${(blob.size/1024).toFixed(2)}KB`);
-                        resolve(base64data);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(this.response);
                 } else {
                     reject(new Error(`HTTP ${this.status}`));
                 }
             };
-            
-            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.onerror = reject;
             xhr.send();
-        } catch (error) {
-            console.error("URL to Base64 error:", error);
-            reject(error);
-        }
-    });
+        });
+    }
 }
 
 
