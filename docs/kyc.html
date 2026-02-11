@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -869,46 +869,38 @@
 
   <!-- KYC Form Container -->
   <div class="kyc-container">
-<!-- Role-specific Information - UPDATED with correct instructions -->
-<div id="brokerInfo" class="info-box hidden">
-  <h3><i class="fas fa-file-contract"></i> Broker Verification</h3>
-  <ul>
-    <li><strong>PRC License Number</strong> - Your Professional Regulation Commission ID number</li>
-    <li><strong>PRC ID</strong> - Clear photo/scan of your PRC ID (with your photo)</li>
-    <li><strong>Selfie (Face Only)</strong> - Clear selfie of your face - NO ID in this photo</li>
-    <li><strong>PRC ID Back (Optional)</strong> - Back side of your PRC ID if needed</li>
-  </ul>
-  <p style="margin-top: 15px; font-size: 14px; color: var(--text-medium); background: rgba(212, 175, 55, 0.1); padding: 12px; border-radius: 8px;">
-    <i class="fas fa-id-card"></i> <strong>Your PRC ID is your primary ID:</strong> Face++ will match your selfie with the photo on your PRC ID. No additional government ID required.
-  </p>
-</div>
+    <!-- Role-specific Information - From Version 3 -->
+    <div id="brokerInfo" class="info-box hidden">
+      <h3><i class="fas fa-file-contract"></i> Required Documents for Brokers</h3>
+      <ul>
+        <li><strong>PRC License Number</strong> - Your Professional Regulation Commission License</li>
+        <li><strong>PRC License Document</strong> - Clear photo/scan of your PRC License (PDF/JPG/PNG)</li>
+        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
+        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+      </ul>
+      <p><strong>Note:</strong> Your account will be verified automatically using Face++ face recognition.</p>
+    </div>
 
-<div id="agentInfo" class="info-box hidden">
-  <h3><i class="fas fa-user-tie"></i> Required Documents for Agents</h3>
-  <ul>
-    <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-    <li><strong>Selfie (Face Only)</strong> - Clear selfie of your face - NO ID in this photo</li>
-    <li><strong>ID Photo (Separate)</strong> - Clear, flat photo of your ID</li>
-    <li><strong>Broker Accreditation (Optional)</strong> - Number or referral code from your broker</li>
-    <li><strong>Broker Endorsement (Optional)</strong> - Document from your broker if available</li>
-  </ul>
-  <p style="margin-top: 15px; font-size: 14px; color: var(--text-medium);">
-    <i class="fas fa-info-circle"></i> Face++ will compare your selfie with the photo on your ID.
-  </p>
-</div>
+    <div id="agentInfo" class="info-box hidden">
+      <h3><i class="fas fa-user-tie"></i> Required Documents for Agents</h3>
+      <ul>
+        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
+        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+        <li><strong>Broker Accreditation (Optional)</strong> - Number or referral code from your broker</li>
+        <li><strong>Broker Endorsement (Optional)</strong> - Document from your broker if available</li>
+      </ul>
+      <p><strong>Note:</strong> Automatic face verification will be performed using Face++.</p>
+    </div>
 
-<div id="landlordInfo" class="info-box hidden">
-  <h3><i class="fas fa-home"></i> Required Documents for Landlords/Sellers</h3>
-  <ul>
-    <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-    <li><strong>Selfie (Face Only)</strong> - Clear selfie of your face - NO ID in this photo</li>
-    <li><strong>ID Photo (Separate)</strong> - Clear, flat photo of your ID</li>
-    <li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
-  </ul>
-  <p style="margin-top: 15px; font-size: 14px; color: var(--text-medium);">
-    <i class="fas fa-info-circle"></i> Face++ will compare your selfie with the photo on your ID.
-  </p>
-</div>
+    <div id="landlordInfo" class="info-box hidden">
+      <h3><i class="fas fa-home"></i> Required Documents for Landlords/Sellers</h3>
+      <ul>
+        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
+        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+        <li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
+      </ul>
+      <p><strong>Note:</strong> Face verification will be automatically processed using Face++ API.</p>
+    </div>
 
     <!-- Face Verification Results - From Version 3 -->
     <div id="verificationResults" class="verification-results">
@@ -944,43 +936,28 @@
     <!-- Upload Form - From Version 3 -->
     <div id="uploadForm" class="hidden">
       <form id="kycForm">
-<!-- Broker-specific fields - UPDATED -->
-<div id="brokerFields" class="form-section hidden">
-  <div class="section-title">Broker Verification</div>
-  <div class="form-grid">
-    <div class="form-group">
-      <label for="prcLicense" class="form-label required">
-        <i class="fas fa-id-card"></i> PRC ID Number
-      </label>
-      <input type="text" id="prcLicense" class="form-input" placeholder="e.g., 0123456">
-      <div class="help-text">
-        <i class="fas fa-info-circle"></i> Your Professional Regulation Commission ID number
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="prcDocument" class="form-label required">
-        <i class="fas fa-id-card"></i> PRC ID (Front with Photo)
-      </label>
-      <input type="file" id="prcDocument" class="form-input file-input" accept="image/*,image/heic,image/heif" required>
-      <div class="help-text">
-        <i class="fas fa-camera"></i> Clear photo showing your PRC ID face and details (JPG/PNG/HEIC - Max 10MB)
-      </div>
-    </div>
-  </div>
-  
-  <!-- Optional PRC ID Back -->
-  <div class="form-group" style="margin-top: 15px;">
-    <label for="prcIdBack" class="form-label">
-      <i class="fas fa-id-card"></i> PRC ID (Back - Optional)
-    </label>
-    <input type="file" id="prcIdBack" class="form-input file-input" accept="image/*,image/heic,image/heif">
-    <div class="help-text">
-      <i class="fas fa-info-circle"></i> Optional - Back side of your PRC ID if information is on the back
-    </div>
-  </div>
-  <div class="preview-container" id="previewPRC"></div>
-  <div class="preview-container" id="previewPRCBack"></div>
-</div>
+        <!-- Broker-specific fields -->
+        <div id="brokerFields" class="form-section hidden">
+          <div class="section-title">Broker Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="prcLicense" class="form-label required">
+                <i class="fas fa-id-card"></i> PRC License Number
+              </label>
+              <input type="text" id="prcLicense" class="form-input" placeholder="e.g., 0123456">
+            </div>
+            <div class="form-group">
+              <label for="prcDocument" class="form-label required">
+                <i class="fas fa-file-upload"></i> PRC License Document
+              </label>
+              <input type="file" id="prcDocument" class="form-input file-input" accept="image/*,.pdf">
+              <div class="help-text">
+                <i class="fas fa-file-alt"></i> Accepted formats: JPG, PNG, PDF (Max 5MB)
+              </div>
+            </div>
+          </div>
+          <div class="preview-container" id="previewPRC"></div>
+        </div>
 
         <!-- Agent-specific fields -->
         <div id="agentFields" class="form-section hidden">
@@ -1036,31 +1013,19 @@
         </div>
 
         <!-- Selfie Section -->
-<div class="form-section">
-  <div class="section-title">Face Verification</div>
-  <div class="form-grid">
-    <div class="form-group">
-      <label for="selfieId" class="form-label required">
-        <i class="fas fa-camera"></i> Selfie (Face Only)
-      </label>
-      <input type="file" id="selfieId" class="form-input file-input" accept="image/*,image/heic,image/heif" capture="user" required>
-      <div class="help-text">
-        <i class="fas fa-user-check"></i> <strong>CRITICAL:</strong> Take a selfie of your FACE ONLY - DO NOT hold your ID in this photo
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="idPhoto" class="form-label required">
-        <i class="fas fa-id-card"></i> ID Photo (Separate)
-      </label>
-      <input type="file" id="idPhoto" class="form-input file-input" accept="image/*,image/heic,image/heif" capture="environment" required>
-      <div class="help-text">
-        <i class="fas fa-camera"></i> Take a separate, clear photo of your ID (flat surface, good lighting)
-      </div>
-    </div>
-  </div>
-  <div class="preview-container" id="previewSelfie"></div>
-  <div class="preview-container" id="previewIdPhoto"></div>
-</div>
+        <div class="form-section">
+          <div class="section-title">Selfie Verification</div>
+          <div class="form-group">
+            <label for="selfieId" class="form-label required">
+              <i class="fas fa-camera"></i> Selfie with ID
+            </label>
+            <input type="file" id="selfieId" class="form-input file-input" accept="image/*" required>
+            <div class="help-text">
+              <i class="fas fa-user-check"></i> Take a selfie while holding your ID next to your face
+            </div>
+          </div>
+          <div class="preview-container" id="previewSelfie"></div>
+        </div>
 
         <!-- Landlord-specific field -->
         <div id="landlordFields" class="form-section hidden">
@@ -1125,7 +1090,7 @@
 import { auth, db } from './firebase-common.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL, getBlob } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
 // Face++ API Configuration
 const FACE_API_KEY = "nwMEZVM-SXeV7Q6_tG9yNfQaVserEDGP";
@@ -1156,8 +1121,6 @@ let kycStatus = null;
 
 // Setup preview handlers
 setupPreview("prcDocument", "previewPRC");
-setupPreview("prcIdBack", "previewPRCBack");
-setupPreview("idPhoto", "previewIdPhoto");
 setupPreview("brokerEndorsement", "previewEndorsement");
 setupPreview("govId", "previewGovId");
 setupPreview("govIdBack", "previewGovIdBack");
@@ -1165,118 +1128,121 @@ setupPreview("selfieId", "previewSelfie");
 setupPreview("proofAddress", "previewAddress");
 
 // Image preprocessing function
-// COMPLETE REPLACEMENT - Handles HEIC, EXIF, and mobile CORS
-async function preprocessImage(file) {
-    return new Promise(async (resolve, reject) => {
-        if (file.size > 10 * 1024 * 1024) { // Increased to 10MB for HEIC
-            reject(new Error("File size exceeds 10MB"));
+function preprocessImage(file) {
+    return new Promise((resolve, reject) => {
+        if (file.size > 5 * 1024 * 1024) {
+            reject(new Error("File size exceeds 5MB"));
             return;
         }
 
-        try {
-            // STEP 1: Convert HEIC/HEIF to JPEG (iPhone fix)
-            let processedFile = file;
-            const isHeic = file.type === 'image/heic' || 
-                          file.type === 'image/heif' || 
-                          file.name.toLowerCase().endsWith('.heic') || 
-                          file.name.toLowerCase().endsWith('.heif');
-            
-            if (isHeic && typeof heic2any !== 'undefined') {
-                console.log("Converting HEIC to JPEG...");
-                const convertedBlob = await heic2any({
-                    blob: file,
-                    toType: 'image/jpeg',
-                    quality: 0.95
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Get EXIF orientation data
+                EXIF.getData(img, function() {
+                    const orientation = EXIF.getTag(this, 'Orientation') || 1;
+                    console.log("EXIF Orientation:", orientation);
+                    
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas dimensions based on orientation
+                    if (orientation >= 5 && orientation <= 😎 {
+                        // For orientations 5-8, width and height are swapped
+                        canvas.width = img.height;
+                        canvas.height = img.width;
+                    } else {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                    }
+                    
+                    // Apply rotation based on EXIF orientation
+                    switch(orientation) {
+                        case 2: // Horizontal flip
+                            ctx.translate(canvas.width, 0);
+                            ctx.scale(-1, 1);
+                            break;
+                        case 3: // 180° rotated
+                            ctx.translate(canvas.width, canvas.height);
+                            ctx.rotate(Math.PI);
+                            break;
+                        case 4: // Vertical flip
+                            ctx.translate(0, canvas.height);
+                            ctx.scale(1, -1);
+                            break;
+                        case 5: // 90° rotated + flipped
+                            ctx.translate(canvas.width, 0);
+                            ctx.scale(-1, 1);
+                            ctx.rotate(90 * Math.PI / 180);
+                            break;
+                        case 6: // 90° rotated (clockwise) - COMMON FOR MOBILE SELFIES
+                            ctx.translate(canvas.width, 0);
+                            ctx.rotate(90 * Math.PI / 180);
+                            break;
+                        case 7: // 90° rotated + flipped
+                            ctx.translate(0, canvas.height);
+                            ctx.scale(1, -1);
+                            ctx.rotate(90 * Math.PI / 180);
+                            break;
+                        case 8: // 270° rotated (counter-clockwise)
+                            ctx.translate(0, canvas.height);
+                            ctx.rotate(-90 * Math.PI / 180);
+                            break;
+                        default: // Orientation 1 - normal
+                            break;
+                    }
+                    
+                    // Draw image with corrected orientation
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    
+                    // Now resize if needed while preserving corrected orientation
+                    let finalWidth = canvas.width;
+                    let finalHeight = canvas.height;
+                    const maxDimension = 1920;
+                    
+                    if (finalWidth > maxDimension || finalHeight > maxDimension) {
+                        if (finalWidth > finalHeight) {
+                            finalHeight = Math.round((finalHeight / finalWidth) * maxDimension);
+                            finalWidth = maxDimension;
+                        } else {
+                            finalWidth = Math.round((finalWidth / finalHeight) * maxDimension);
+                            finalHeight = maxDimension;
+                        }
+                        
+                        // Create resized canvas
+                        const resizedCanvas = document.createElement('canvas');
+                        resizedCanvas.width = finalWidth;
+                        resizedCanvas.height = finalHeight;
+                        const resizedCtx = resizedCanvas.getContext('2d');
+                        resizedCtx.drawImage(canvas, 0, 0, finalWidth, finalHeight);
+                        
+                        // Convert to blob
+                        resizedCanvas.toBlob((blob) => {
+                            console.log(Orientation fixed: ${orientation}, final size: ${finalWidth}x${finalHeight});
+                            resolve(blob);
+                        }, 'image/jpeg', 0.95);
+                    } else {
+                        // Use original corrected canvas
+                        canvas.toBlob((blob) => {
+                            console.log(Orientation fixed: ${orientation}, size: ${finalWidth}x${finalHeight});
+                            resolve(blob);
+                        }, 'image/jpeg', 0.95);
+                    }
                 });
-                processedFile = new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), 
-                    { type: 'image/jpeg' });
-            }
-
-            // STEP 2: Read and process image
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    // Get EXIF orientation
-                    EXIF.getData(img, function() {
-                        const orientation = EXIF.getTag(this, 'Orientation') || 1;
-                        console.log(`EXIF Orientation: ${orientation}, Dimensions: ${img.width}x${img.height}`);
-                        
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        
-                        // Set canvas dimensions with orientation fix
-                        if (orientation >= 5 && orientation <= 8) {
-                            canvas.width = img.height;
-                            canvas.height = img.width;
-                        } else {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                        }
-                        
-                        // Apply orientation transformation
-                        switch(orientation) {
-                            case 2: ctx.transform(-1, 0, 0, 1, canvas.width, 0); break;
-                            case 3: ctx.transform(-1, 0, 0, -1, canvas.width, canvas.height); break;
-                            case 4: ctx.transform(1, 0, 0, -1, 0, canvas.height); break;
-                            case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
-                            case 6: ctx.transform(0, 1, -1, 0, canvas.width, 0); break;
-                            case 7: ctx.transform(0, -1, -1, 0, canvas.width, canvas.height); break;
-                            case 8: ctx.transform(0, -1, 1, 0, 0, canvas.height); break;
-                            default: break;
-                        }
-                        
-                        // Draw image
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-                        
-                        // Resize if needed
-                        let finalWidth = canvas.width;
-                        let finalHeight = canvas.height;
-                        const maxDimension = 1600; // Reduced for better mobile performance
-                        
-                        if (finalWidth > maxDimension || finalHeight > maxDimension) {
-                            if (finalWidth > finalHeight) {
-                                finalHeight = Math.round((finalHeight / finalWidth) * maxDimension);
-                                finalWidth = maxDimension;
-                            } else {
-                                finalWidth = Math.round((finalWidth / finalHeight) * maxDimension);
-                                finalHeight = maxDimension;
-                            }
-                            
-                            const resizedCanvas = document.createElement('canvas');
-                            resizedCanvas.width = finalWidth;
-                            resizedCanvas.height = finalHeight;
-                            const resizedCtx = resizedCanvas.getContext('2d');
-                            resizedCtx.drawImage(canvas, 0, 0, finalWidth, finalHeight);
-                            
-                            resizedCanvas.toBlob((blob) => {
-                                console.log(`✅ Processed: ${finalWidth}x${finalHeight}, ${(blob.size/1024).toFixed(2)}KB`);
-                                resolve(blob);
-                            }, 'image/jpeg', 0.92);
-                        } else {
-                            canvas.toBlob((blob) => {
-                                console.log(`✅ Processed: ${finalWidth}x${finalHeight}, ${(blob.size/1024).toFixed(2)}KB`);
-                                resolve(blob);
-                            }, 'image/jpeg', 0.92);
-                        }
-                    });
-                };
-                img.onerror = () => reject(new Error("Failed to load image"));
-                img.src = e.target.result;
             };
-            reader.onerror = () => reject(new Error("Failed to read file"));
-            reader.readAsDataURL(processedFile);
-        } catch (error) {
-            console.error("Preprocessing error:", error);
-            reject(error);
-        }
+            img.onerror = () => reject(new Error("Failed to load image"));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
     });
 }
 
 // Upload to Firebase Storage
 async function uploadToStorage(file, path, onProgress) {
     try {
-        console.log(`Starting upload: ${path}`);
+        console.log(Starting upload: ${path});
         
         // Preprocess image (unless it's a PDF)
         let fileToUpload = file;
@@ -1289,15 +1255,15 @@ async function uploadToStorage(file, path, onProgress) {
         
         // Upload file
         const snapshot = await uploadBytes(storageRef, fileToUpload);
-        console.log(`Upload complete: ${path}`);
+        console.log(Upload complete: ${path});
         
         // Get download URL
         const downloadURL = await getDownloadURL(snapshot.ref);
-        console.log(`Download URL obtained: ${downloadURL.substring(0, 50)}...`);
+        console.log(Download URL obtained: ${downloadURL.substring(0, 50)}...);
         
         return downloadURL;
     } catch (error) {
-        console.error(`Upload error for ${path}:`, error);
+        console.error(Upload error for ${path}:, error);
         throw error;
     }
 }
@@ -1331,7 +1297,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         });
         
         if (!response.ok) {
-            throw new Error(`Face++ API error: ${response.status}`);
+            throw new Error(Face++ API error: ${response.status});
         }
         
         const result = await response.json();
@@ -1351,7 +1317,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         
         // Show verification results
         verificationResults.classList.add("show");
-        faceScore.textContent = `${confidence.toFixed(2)}%`;
+        faceScore.textContent = ${confidence.toFixed(2)}%;
         faceScore.className = confidence >= 70 ? "verification-value verification-pass" : "verification-value verification-fail";
         
         if (confidence >= 70) {
@@ -1362,7 +1328,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
             verificationResult.className = "verification-value verification-fail";
         }
         
-        processingTime.textContent = `${processingTimeMs}ms`;
+        processingTime.textContent = ${processingTimeMs}ms;
         
         return {
             success: true,
@@ -1382,7 +1348,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         faceScore.textContent = "API Error";
         verificationResult.textContent = "Manual Review";
         verificationResult.className = "verification-value verification-pass";
-        processingTime.textContent = `${processingTimeMs}ms`;
+        processingTime.textContent = ${processingTimeMs}ms;
         
         return {
             success: false,
@@ -1398,43 +1364,23 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
 // Helper function to convert image URL to base64
 async function urlToBase64(url) {
     try {
-        // Use Firebase getBlob instead of XHR - faster and more reliable
-        const storageRef = ref(storage, url);
-        const blob = await getBlob(storageRef);
+        const response = await fetch(url);
+        const blob = await response.blob();
         
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 const base64data = reader.result.split(',')[1];
-                console.log(`✅ Base64 conversion: ${(blob.size/1024).toFixed(2)}KB`);
                 resolve(base64data);
             };
             reader.onerror = reject;
             reader.readAsDataURL(blob);
-        });
+        }); // ✅ Added missing closing parenthesis and bracket
     } catch (error) {
-        console.error("❌ Firebase getBlob failed:", error);
-        
-        // Fallback to XHR
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.responseType = 'blob';
-            xhr.onload = function() {
-                if (this.status === 200) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(this.response);
-                } else {
-                    reject(new Error(`HTTP ${this.status}`));
-                }
-            };
-            xhr.onerror = reject;
-            xhr.send();
-        });
+        console.error("Error converting URL to base64:", error);
+        throw error;
     }
 }
-
 
 function setupPreview(inputId, previewId) {
     const input = document.getElementById(inputId);
@@ -1446,11 +1392,11 @@ function setupPreview(inputId, previewId) {
         const file = e.target.files[0];
         
         if (file) {
-if (file.size > 10 * 1024 * 1024) { // Changed from 5MB to 10MB
-    showMessage("⚠️ File size should not exceed 10MB", "warning");
-    input.value = "";
-    return;
-}
+            if (file.size > 5 * 1024 * 1024) {
+                showMessage("⚠️ File size should not exceed 5MB", "warning");
+                input.value = "";
+                return;
+            }
 
             const previewItem = document.createElement('div');
             previewItem.className = 'preview-item';
@@ -1470,7 +1416,7 @@ if (file.size > 10 * 1024 * 1024) { // Changed from 5MB to 10MB
                 img.onload = () => {
                     const info = document.createElement('div');
                     info.className = 'image-info';
-                    info.innerHTML = `${img.naturalWidth}x${img.naturalHeight} | ${(file.size / 1024).toFixed(2)} KB`;
+                    info.innerHTML = ${img.naturalWidth}x${img.naturalHeight} | ${(file.size / 1024).toFixed(2)} KB;
                     
                     // Quality indicator
                     const quality = document.createElement('div');
@@ -1581,7 +1527,7 @@ function showRoleSpecificContent(role) {
 }
 
 function updateStatusDisplay(status) {
-    statusBadge.className = `status-badge status-${status}`;
+    statusBadge.className = status-badge status-${status};
     
     switch(status) {
         case "not_submitted":
@@ -1612,7 +1558,7 @@ function updateProgress(percent, text) {
     progressStatus.textContent = text || (percent + '% complete');
 }
 
-// Form submission - COMPLETE FIXED VERSION for Mobile KYC
+// Form submission
 kycForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -1633,7 +1579,8 @@ kycForm.addEventListener("submit", async (e) => {
         const userId = currentUser.uid;
         const timestamp = Date.now();
         
-        // Initialize KYC data object
+        // Prepare upload tasks
+        const uploads = [];
         const kycData = {
             kycStatus: "verifying",
             kycDocuments: {
@@ -1642,195 +1589,111 @@ kycForm.addEventListener("submit", async (e) => {
             }
         };
 
-        // ===========================================
-        // STEP 1: Get all uploaded files
-        // ===========================================
-        const selfieFile = document.getElementById("selfieId").files[0]; // Face only selfie
-        const idPhotoFile = document.getElementById("idPhoto")?.files[0]; // New separate ID photo
-        const govIdFile = document.getElementById("govId").files[0]; // Legacy field (fallback)
-        const govIdBackFile = document.getElementById("govIdBack").files[0]; // Optional ID back
-        const prcDocFile = document.getElementById("prcDocument")?.files[0]; // Broker PRC ID
-        const endorsementFile = document.getElementById("brokerEndorsement")?.files[0]; // Agent endorsement
-        const proofAddressFile = document.getElementById("proofAddress")?.files[0]; // Proof of address
-        
-        // ===========================================
-        // STEP 2: Validate required files based on role
-        // ===========================================
-        
-        // ALL ROLES: Selfie is ALWAYS required
-        if (!selfieFile) {
-            showMessage("❌ Selfie is required.", "error");
+        // Common documents
+        const govIdFile = document.getElementById("govId").files[0];
+        const selfieFile = document.getElementById("selfieId").files[0];
+
+        if (!govIdFile || !selfieFile) {
+            showMessage("❌ Government ID and Selfie with ID are required.", "error");
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
             return;
         }
 
-        // ROLE-SPECIFIC validation
-        if (userRole === "broker") {
-            // Brokers: Need PRC License Number and PRC ID
-            const prcLicense = document.getElementById("prcLicense").value.trim();
-            
-            if (!prcLicense) {
-                showMessage("❌ PRC License Number is required for brokers.", "error");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
-                return;
-            }
-            
-            if (!prcDocFile) {
-                showMessage("❌ PRC ID photo is required for brokers.", "error");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
-                return;
-            }
-            
-            // Store PRC license number
-            kycData.prcLicenseNumber = prcLicense;
-            
-        } else {
-            // All other roles: Need ID photo (either new idPhoto or legacy govId)
-            const primaryIdFile = idPhotoFile || govIdFile;
-            
-            if (!primaryIdFile) {
-                showMessage("❌ ID photo is required.", "error");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
-                return;
-            }
-        }
-
         updateProgress(10, "Preparing uploads...");
 
-        // ===========================================
-        // STEP 3: Upload Selfie (Face Only)
-        // ===========================================
-        updateProgress(20, "Uploading selfie...");
-        const selfieUrl = await uploadToStorage(
-            selfieFile,
-            `kyc/${userId}/selfie_face_only_${timestamp}.jpg`
+        // Upload Government ID
+        updateProgress(20, "Uploading Government ID...");
+        const govIdUrl = await uploadToStorage(
+            govIdFile,
+            kyc/${userId}/gov_id_${timestamp}.jpg
         );
-        kycData.kycDocuments.selfieFaceOnly = selfieUrl;
-        console.log("✅ Selfie uploaded:", selfieUrl.substring(0, 50) + "...");
+        kycData.kycDocuments.governmentId = govIdUrl;
+        console.log("Government ID uploaded:", govIdUrl);
 
-        // ===========================================
-        // STEP 4: Upload ID Photo (for non-brokers)
-        // ===========================================
-        let idPhotoUrl = null;
-        
-        if (userRole !== "broker") {
-            const primaryIdFile = idPhotoFile || govIdFile;
-            
-            updateProgress(35, "Uploading ID photo...");
-            idPhotoUrl = await uploadToStorage(
-                primaryIdFile,
-                `kyc/${userId}/id_photo_${timestamp}.jpg`
-            );
-            kycData.kycDocuments.idPhoto = idPhotoUrl;
-            console.log("✅ ID Photo uploaded:", idPhotoUrl.substring(0, 50) + "...");
-        }
-
-        // ===========================================
-        // STEP 5: Upload ID Back (optional - all roles)
-        // ===========================================
+        // Upload Government ID Back (optional)
+        const govIdBackFile = document.getElementById("govIdBack").files[0];
         if (govIdBackFile) {
-            updateProgress(40, "Uploading ID back...");
+            updateProgress(35, "Uploading ID Back...");
             const govIdBackUrl = await uploadToStorage(
                 govIdBackFile,
-                `kyc/${userId}/id_back_${timestamp}.jpg`
+                kyc/${userId}/gov_id_back_${timestamp}.jpg
             );
-            kycData.kycDocuments.idBack = govIdBackUrl;
-            console.log("✅ ID Back uploaded");
+            kycData.kycDocuments.governmentIdBack = govIdBackUrl;
+            console.log("Government ID Back uploaded:", govIdBackUrl);
         }
 
-        // ===========================================
-        // STEP 6: Role-specific uploads
-        // ===========================================
-        
-        // ----- BROKER: Upload PRC ID -----
+        // Upload Selfie
+        updateProgress(50, "Uploading Selfie...");
+        const selfieUrl = await uploadToStorage(
+            selfieFile,
+            kyc/${userId}/selfie_${timestamp}.jpg
+        );
+        kycData.kycDocuments.selfieWithId = selfieUrl;
+        console.log("Selfie uploaded:", selfieUrl);
+
+        // Role-specific uploads
         if (userRole === "broker") {
-            updateProgress(50, "Uploading PRC ID...");
+            const prcLicense = document.getElementById("prcLicense").value.trim();
+            const prcDocFile = document.getElementById("prcDocument").files[0];
+
+            if (!prcLicense || !prcDocFile) {
+                showMessage("❌ PRC License Number and Document are required for brokers.", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+                return;
+            }
+
+            updateProgress(65, "Uploading PRC Document...");
             const prcDocUrl = await uploadToStorage(
                 prcDocFile,
-                `kyc/${userId}/prc_id_${timestamp}.jpg`
+                kyc/${userId}/prc_${timestamp}.jpg
             );
-            kycData.kycDocuments.prcId = prcDocUrl;
-            console.log("✅ PRC ID uploaded:", prcDocUrl.substring(0, 50) + "...");
+            kycData.prcLicenseNumber = prcLicense;
+            kycData.kycDocuments.prcDocument = prcDocUrl;
+            console.log("PRC Document uploaded:", prcDocUrl);
         }
 
-        // ----- AGENT: Upload Broker Accreditation & Endorsement -----
         if (userRole === "agent") {
             const brokerAccred = document.getElementById("brokerAccreditation").value.trim();
-            if (brokerAccred) {
-                kycData.brokerAccreditationNumber = brokerAccred;
-                console.log("✅ Broker accreditation saved");
-            }
+            const endorsementFile = document.getElementById("brokerEndorsement").files[0];
+
+            if (brokerAccred) kycData.brokerAccreditationNumber = brokerAccred;
             
             if (endorsementFile) {
-                updateProgress(60, "Uploading broker endorsement...");
+                updateProgress(75, "Uploading Broker Endorsement...");
                 const endorsementUrl = await uploadToStorage(
                     endorsementFile,
-                    `kyc/${userId}/broker_endorsement_${timestamp}.jpg`
+                    kyc/${userId}/broker_endorsement_${timestamp}.jpg
                 );
                 kycData.kycDocuments.brokerEndorsement = endorsementUrl;
-                console.log("✅ Broker endorsement uploaded");
+                console.log("Broker Endorsement uploaded:", endorsementUrl);
             }
         }
 
-        // ----- LANDLORD/SELLER: Upload Proof of Address -----
         if (userRole === "seller" || userRole === "landlord") {
+            const proofAddressFile = document.getElementById("proofAddress").files[0];
+            
             if (proofAddressFile) {
-                updateProgress(60, "Uploading proof of address...");
+                updateProgress(75, "Uploading Proof of Address...");
                 const proofAddressUrl = await uploadToStorage(
                     proofAddressFile,
-                    `kyc/${userId}/proof_address_${timestamp}.jpg`
+                    kyc/${userId}/proof_address_${timestamp}.jpg
                 );
                 kycData.kycDocuments.proofOfAddress = proofAddressUrl;
-                console.log("✅ Proof of address uploaded");
+                console.log("Proof of Address uploaded:", proofAddressUrl);
             }
         }
 
-        // ===========================================
-        // STEP 7: Determine which image to use for Face++ comparison
-        // ===========================================
-        let comparisonImageUrl;
-        
-        if (userRole === "broker") {
-            // BROKER: Use PRC ID (contains their face photo)
-            comparisonImageUrl = kycData.kycDocuments.prcId;
-            console.log("🔍 Using PRC ID for face comparison");
-        } else {
-            // OTHER ROLES: Use uploaded ID photo
-            comparisonImageUrl = idPhotoUrl;
-            console.log("🔍 Using government ID for face comparison");
-        }
-
-        // ===========================================
-        // STEP 8: Update Firestore with verifying status
-        // ===========================================
-        updateProgress(75, "Saving to database...");
+        // Update Firestore with verifying status
+        updateProgress(80, "Saving to database...");
         await updateDoc(doc(db, "users", currentUser.uid), kycData);
-        console.log("✅ Firestore updated with verifying status");
+        console.log("Firestore updated successfully");
 
-        // ===========================================
-        // STEP 9: Perform Face++ verification
-        // ===========================================
-        updateProgress(85, "Verifying face match with Face++...");
-        console.log("🔍 Starting Face++ verification...");
+        // Perform Face++ verification
+        const faceVerificationResult = await verifyWithFacePlusPlus(govIdUrl, selfieUrl);
         
-        const faceVerificationResult = await verifyWithFacePlusPlus(comparisonImageUrl, selfieUrl);
-        
-        console.log("📊 Face++ Result:", {
-            verified: faceVerificationResult.verified,
-            confidence: faceVerificationResult.confidence,
-            success: faceVerificationResult.success,
-            requiresManualReview: faceVerificationResult.requiresManualReview
-        });
-
-        // ===========================================
-        // STEP 10: Update Firestore with verification results
-        // ===========================================
-        updateProgress(95, "Finalizing verification...");
-        
+        // Update Firestore with verification results
         const finalKycData = {
             'kycStatus': faceVerificationResult.verified ? 'approved' : 'rejected',
             'kycDocuments.faceVerification': {
@@ -1845,41 +1708,18 @@ kycForm.addEventListener("submit", async (e) => {
             'kycDocuments.verifiedAt': serverTimestamp()
         };
 
+        updateProgress(95, "Finalizing verification...");
         await updateDoc(doc(db, "users", currentUser.uid), finalKycData);
-        console.log("✅ Firestore updated with verification results");
 
-        // ===========================================
-        // STEP 11: Show appropriate message to user
-        // ===========================================
-        
+        // Show appropriate message
         if (faceVerificationResult.verified) {
             showMessage("✅ Verification successful! Your account is now verified.", "success");
             updateStatusDisplay("approved");
-            
         } else if (faceVerificationResult.requiresManualReview) {
-            showMessage("⚠️ Face++ API unavailable. Your documents will be reviewed manually by admin.", "warning");
-            
-            // Update status to pending for manual review
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                'kycStatus': 'pending',
-                'kycDocuments.requiresManualReview': true
-            });
+            showMessage("⚠️ Verification requires manual review. Admin will review your documents shortly.", "warning");
             updateStatusDisplay("pending");
-            
         } else {
-            // Failed verification - provide specific feedback
-            let errorMessage = "❌ Face verification failed. ";
-            
-            if (faceVerificationResult.confidence < 70 && faceVerificationResult.confidence > 0) {
-                errorMessage += `Confidence score ${faceVerificationResult.confidence.toFixed(2)}% is below 70% threshold.`;
-            } else if (faceVerificationResult.confidence === 0) {
-                errorMessage += "Face++ could not detect a face in your photos. ";
-                errorMessage += "Please ensure your selfie shows your face clearly and your ID photo is readable.";
-            } else {
-                errorMessage += "Please ensure your selfie is clear and your ID photo matches your face.";
-            }
-            
-            showMessage(errorMessage, "error");
+            showMessage("❌ Face verification failed. Please ensure your selfie clearly shows your face and matches your ID.", "error");
             updateStatusDisplay("rejected");
             
             // Allow resubmission
@@ -1889,54 +1729,19 @@ kycForm.addEventListener("submit", async (e) => {
             return;
         }
 
-        // ===========================================
-        // STEP 12: Complete and reload
-        // ===========================================
         updateProgress(100, "Complete!");
         
-        // Reload page after 3 seconds to show updated status
+        // Reload page after 3 seconds
         setTimeout(() => {
             window.location.reload();
         }, 3000);
 
     } catch (error) {
-        // ===========================================
-        // ERROR HANDLING - Graceful fallback
-        // ===========================================
-        console.error("❌ Error submitting KYC:", error);
-        
-        // Provide user-friendly error message
-        let userErrorMessage = "❌ Failed to submit documents: ";
-        
-        if (error.message.includes("Network") || error.message.includes("fetch")) {
-            userErrorMessage += "Network error. Please check your internet connection.";
-        } else if (error.message.includes("size")) {
-            userErrorMessage += "File size too large. Maximum 10MB per file.";
-        } else if (error.message.includes("format") || error.message.includes("HEIC")) {
-            userErrorMessage += "Unsupported file format. Please use JPG or PNG.";
-        } else {
-            userErrorMessage += error.message || "Unknown error occurred.";
-        }
-        
-        showMessage(userErrorMessage, "error");
-        
-        // Re-enable submit button
+        console.error("Error submitting KYC:", error);
+        showMessage(❌ Failed to submit documents: ${error.message}, "error");
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
         progressContainer.classList.add("hidden");
-        
-        // Try to update Firestore with error state for admin review
-        try {
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                'kycStatus': 'pending',
-                'kycDocuments.submissionError': error.message,
-                'kycDocuments.requiresManualReview': true,
-                'kycDocuments.errorTimestamp': serverTimestamp()
-            });
-            console.log("✅ Error logged to Firestore for manual review");
-        } catch (dbError) {
-            console.error("Failed to log error to Firestore:", dbError);
-        }
     }
 });
 
@@ -1948,8 +1753,8 @@ function showMessage(text, type) {
         case 'warning': icon = '<i class="fas fa-exclamation-triangle"></i>'; break;
     }
     
-    messageBox.innerHTML = `${icon} ${text}`;
-    messageBox.className = `message-box ${type}`;
+    messageBox.innerHTML = ${icon} ${text};
+    messageBox.className = message-box ${type};
     
     setTimeout(() => {
         messageBox.className = 'message-box';
