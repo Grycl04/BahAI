@@ -1,7 +1,14 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-// Function to determine the correct backend URL based on environment
-const getBackendUrl = () => {
+// ============================================
+// BACKEND URL MANAGEMENT - LOCAL FIRST, PRODUCTION FALLBACK
+// ============================================
+
+/**
+ * Get the best available backend URL with connection testing
+ * Priority: 1. Local backend (if in dev) 2. Production backend (fallback)
+ */
+const getBackendUrl = async (testConnection = true) => {
     const hostname = window.location.hostname;
     const port = window.location.port;
     
@@ -17,18 +24,75 @@ const getBackendUrl = () => {
     // Check for Live Server (common ports)
     const isLiveServer = port === '5500' || port === '5501' || port === '8080' || port === '3000';
     
-    // Check if it's a development domain
-    const isDev = hostname.includes('.local') || 
-                  hostname.includes('dev-') || 
-                  hostname.includes('-dev.');
+    // LOCAL BACKEND CONFIGURATION
+    const LOCAL_URL = "http://localhost:10000/api/chat";
+    const LOCAL_HEALTH_URL = "http://localhost:10000/api/health";
     
-    if (isLocal || isLiveServer || isDev) {
-        console.log("🚀 Using LOCAL backend (localhost:10000)");
-        return "http://localhost:10000/api/chat";
+    // PRODUCTION BACKEND CONFIGURATION
+    const PROD_URL = "https://bahai.onrender.com/api/chat";
+    const PROD_HEALTH_URL = "https://bahai.onrender.com/api/health";
+    
+    // FIRST PRIORITY: Try LOCAL backend if we're in development environment
+    if (isLocal || isLiveServer) {
+        console.log("🚀 DEVELOPMENT MODE: Attempting to connect to LOCAL backend first...");
+        
+        if (testConnection) {
+            try {
+                // Test connection to local backend with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+                
+                const response = await fetch(LOCAL_HEALTH_URL, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    console.log("✅ LOCAL BACKEND IS AVAILABLE AND RESPONDING!");
+                    console.log("📍 Using LOCAL backend:", LOCAL_URL);
+                    
+                    // Store successful connection in sessionStorage
+                    try {
+                        sessionStorage.setItem('backend_status', 'local');
+                        sessionStorage.setItem('backend_url', LOCAL_URL);
+                        sessionStorage.setItem('backend_timestamp', Date.now().toString());
+                    } catch (e) {}
+                    
+                    return LOCAL_URL;
+                } else {
+                    console.log("⚠️ Local backend responded with error status:", response.status);
+                }
+            } catch (error) {
+                console.log("❌ Local backend is NOT available:", error.message);
+                console.log("☁️ FALLING BACK TO PRODUCTION BACKEND (Render)");
+                
+                // Store fallback status
+                try {
+                    sessionStorage.setItem('backend_status', 'production_fallback');
+                    sessionStorage.setItem('backend_url', PROD_URL);
+                    sessionStorage.setItem('backend_timestamp', Date.now().toString());
+                } catch (e) {}
+            }
+        } else {
+            // If testConnection is false, just return local URL without testing
+            return LOCAL_URL;
+        }
     } else {
-        console.log("☁️ Using PRODUCTION backend (Render)");
-        return "https://bahai.onrender.com/api/chat";
+        console.log("☁️ PRODUCTION ENVIRONMENT: Using Render backend directly");
+        try {
+            sessionStorage.setItem('backend_status', 'production');
+            sessionStorage.setItem('backend_url', PROD_URL);
+        } catch (e) {}
     }
+    
+    // FALLBACK: Production backend
+    console.log("📍 Using PRODUCTION backend:", PROD_URL);
+    return PROD_URL;
 };
 
 // ============================================
@@ -175,9 +239,6 @@ export function initChatbot() {
         }
     }
     
-    // Show backend info for debugging
-    console.log("🌐 Backend URL:", getBackendUrl());
-    
     // Show welcome message on first load
     showWelcomeMessage();
     
@@ -273,7 +334,7 @@ function attachChatListeners() {
 }
 
 // ============================================
-// PROCESS CHAT MESSAGES
+// PROCESS CHAT MESSAGES - WITH LOCAL FIRST, PRODUCTION FALLBACK
 // ============================================
 
 export async function processChatMessage(userMessage) {
@@ -306,15 +367,32 @@ export async function processChatMessage(userMessage) {
         console.log("📤 Sending to backend:", requestData);
         
         let data;
-        let backendUrl = getBackendUrl();
+        let backendUrl;
+        let usedFallback = false;
+        let connectionDetails = {
+            primary: null,
+            fallback: false,
+            responseTime: null
+        };
+        
+        const startTime = Date.now();
         
         try {
-            // Call backend with environment-specific timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 
-                backendUrl.includes('localhost') ? 10000 : 25000);
+            // STEP 1: Get backend URL with connection testing
+            backendUrl = await getBackendUrl(true);
+            
+            // Check if this is a fallback URL (production when we're in dev)
+            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            usedFallback = isLocalDev && backendUrl.includes('render.com');
+            
+            connectionDetails.primary = backendUrl;
             
             console.log("🌐 Attempting to connect to:", backendUrl);
+            
+            // Call backend with environment-specific timeout
+            const controller = new AbortController();
+            const timeoutDuration = backendUrl.includes('localhost') ? 10000 : 25000;
+            const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
             
             const response = await fetch(backendUrl, {
                 method: 'POST',
@@ -328,6 +406,7 @@ export async function processChatMessage(userMessage) {
             });
             
             clearTimeout(timeoutId);
+            connectionDetails.responseTime = Date.now() - startTime;
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -340,6 +419,12 @@ export async function processChatMessage(userMessage) {
             const cleanText = text.replace(/undefined/g, 'null');
             try {
                 data = JSON.parse(cleanText);
+                
+                // Add backend info to response data
+                data._backend_url = backendUrl;
+                data._backend_type = backendUrl.includes('localhost') ? 'local' : 'production';
+                data._response_time_ms = connectionDetails.responseTime;
+                
             } catch (parseError) {
                 console.error("❌ JSON parse error:", parseError);
                 data = {
@@ -347,62 +432,109 @@ export async function processChatMessage(userMessage) {
                     response: `I received your query: "${userMessage}", but there was an issue processing the response.`,
                     properties: [],
                     intent: 'error',
-                    properties_found: 0
+                    properties_found: 0,
+                    _backend_url: backendUrl,
+                    _parse_error: parseError.message
                 };
             }
             
         } catch (fetchError) {
-            console.error('🌐 Fetch error:', fetchError);
+            console.error('🌐 Fetch error from primary endpoint:', fetchError);
             
-            // Remove typing indicator first
-            if (typingMessage) typingMessage.remove();
-            
-            // Try alternative endpoint if the primary fails
-            const alternativeUrl = backendUrl.includes('localhost') 
-                ? "https://bahai.onrender.com/api/chat" 
-                : "http://localhost:10000/api/chat";
-            
-            console.log("🔄 Trying alternative endpoint:", alternativeUrl);
-            
-            try {
-                const alternativeController = new AbortController();
-                const alternativeTimeout = setTimeout(() => alternativeController.abort(), 15000);
+            // STEP 2: If we were trying local and it failed, try production fallback
+            if (backendUrl && backendUrl.includes('localhost')) {
+                console.log("🔄 Local backend failed, attempting PRODUCTION FALLBACK...");
                 
-                const fallbackResponse = await fetch(alternativeUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(requestData),
-                    signal: alternativeController.signal,
-                    mode: 'cors'
-                });
-                
-                clearTimeout(alternativeTimeout);
-                
-                if (fallbackResponse.ok) {
-                    const text = await fallbackResponse.text();
-                    const cleanText = text.replace(/undefined/g, 'null');
-                    data = JSON.parse(cleanText);
-                    console.log("✅ Connected to alternative endpoint");
-                } else {
-                    throw new Error(`Alternative endpoint failed: ${fallbackResponse.status}`);
+                try {
+                    const fallbackStartTime = Date.now();
+                    const fallbackController = new AbortController();
+                    const fallbackTimeout = setTimeout(() => fallbackController.abort(), 25000);
+                    
+                    const fallbackResponse = await fetch("https://bahai.onrender.com/api/chat", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(requestData),
+                        signal: fallbackController.signal,
+                        mode: 'cors'
+                    });
+                    
+                    clearTimeout(fallbackTimeout);
+                    
+                    if (fallbackResponse.ok) {
+                        const text = await fallbackResponse.text();
+                        const cleanText = text.replace(/undefined/g, 'null');
+                        data = JSON.parse(cleanText);
+                        usedFallback = true;
+                        connectionDetails.fallback = true;
+                        connectionDetails.fallback_time = Date.now() - fallbackStartTime;
+                        
+                        // Add backend info to response data
+                        data._backend_url = "https://bahai.onrender.com/api/chat (fallback)";
+                        data._backend_type = 'production_fallback';
+                        data._response_time_ms = connectionDetails.fallback_time;
+                        
+                        console.log(`✅ Successfully connected to production fallback (${connectionDetails.fallback_time}ms)`);
+                        
+                        // Store fallback status
+                        try {
+                            sessionStorage.setItem('backend_status', 'production_fallback');
+                            sessionStorage.setItem('backend_url', 'https://bahai.onrender.com/api/chat');
+                            sessionStorage.setItem('backend_timestamp', Date.now().toString());
+                        } catch (e) {}
+                        
+                    } else {
+                        throw new Error(`Production fallback failed: ${fallbackResponse.status}`);
+                    }
+                } catch (fallbackError) {
+                    console.error('❌ Production fallback also failed:', fallbackError);
+                    
+                    // Both local and production failed - use enhanced fallback
+                    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    data = {
+                        success: false,
+                        response: isLocalDev ? 
+                            `❌ **Cannot connect to any backend**\n\n` +
+                            `**Local backend:** Not responding\n` +
+                            `**Production fallback:** Failed\n\n` +
+                            `🔧 **To fix local backend:**\n` +
+                            `1. Open terminal in backend folder\n` +
+                            `2. Run: \`python chatbot_backend.py\`\n` +
+                            `3. Verify: http://localhost:10000/api/health\n\n` +
+                            `🌐 **Or use production only:**\n` +
+                            `Remove local check in getBackendUrl()` :
+                            `❌ **Service temporarily unavailable**\n\n` +
+                            `The AI service is experiencing issues. Please try again in a few moments.\n\n` +
+                            `🔍 **You can still:**\n` +
+                            `• Use the search filters above\n` +
+                            `• Browse property categories\n` +
+                            `• Contact brokers directly`,
+                        properties: [],
+                        intent: 'error',
+                        properties_found: 0,
+                        _error: fetchError.message,
+                        _fallback_error: fallbackError.message
+                    };
                 }
-            } catch (fallbackError) {
-                console.error('❌ Fallback also failed:', fallbackError);
-                
-                // Use fallback response
-                const isProduction = !backendUrl.includes('localhost');
+            } else {
+                // We were trying production and it failed
+                console.error('❌ Production backend failed');
                 
                 data = {
-                    success: true,
-                    response: isProduction ? 
-                        `I received your query: **"${userMessage}"**\n\n📢 **The AI service is starting up...**\n\nThis is normal with free hosting - it takes 30-60 seconds for the first request.\n\n🔍 **While you wait, you can:**\n\n• **Use the search filters above** - Find properties by location, type, and price\n• **Browse by category** - Check out the property category cards below\n• **Try these quick searches:**\n  • "Apartments in Batangas City"\n  • "Houses under ₱3M"\n  • "Properties with 3 bedrooms"\n\n💡 **Tip:** The AI service will respond automatically once it's ready!` :
-                        `I received your query: **"${userMessage}"**\n\n❌ **Could not connect to local backend.**\n\nPlease make sure your Python backend is running on http://localhost:10000\n\n🔍 **Commands to start the backend:**\n\`\`\`bash\ncd your-backend-folder\npython app.py\n\`\`\``,
+                    success: false,
+                    response: "❌ **Service temporarily unavailable**\n\n" +
+                             "The AI service is experiencing issues. Please try again in a few moments.\n\n" +
+                             "🔍 **You can still:**\n" +
+                             "• Use the search filters above\n" +
+                             "• Browse property categories\n" +
+                             "• Contact brokers directly",
                     properties: [],
-                    intent: 'fallback',
-                    properties_found: 0
+                    intent: 'error',
+                    properties_found: 0,
+                    _error: fetchError.message
                 };
             }
         }
@@ -412,13 +544,25 @@ export async function processChatMessage(userMessage) {
             typingMessage.remove();
         }
         
+        // Build response text with optional backend info for debugging
+        let responseText = data.response || data.message || 
+                          "I received your message but couldn't process it properly. Please try again.";
+        
+        // Add subtle backend indicator for development mode (only visible in console, not in chat)
+        if (usedFallback && (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))) {
+            console.log("ℹ️ Development mode: Using production backend fallback (local server not running)");
+            // Uncomment below if you want to show in chat:
+            // responseText += `\n\n*(Using production backend - local server not running)*`;
+        }
+        
         // Display response
-        if (data && data.response) {
-            addMessageToChat(data.response, 'bot');
-        } else if (data && data.message) {
-            addMessageToChat(data.message, 'bot');
-        } else {
-            addMessageToChat("I received your message but couldn't process it properly. Please try again.", 'bot');
+        addMessageToChat(responseText, 'bot');
+        
+        // Log connection details to console for debugging
+        if (connectionDetails.fallback) {
+            console.log(`ℹ️ Fallback used: Local failed (${connectionDetails.responseTime || 'timeout'}ms) → Production fallback (${connectionDetails.fallback_time}ms)`);
+        } else if (connectionDetails.responseTime) {
+            console.log(`ℹ️ Backend response time: ${connectionDetails.responseTime}ms (${backendUrl.includes('localhost') ? 'local' : 'production'})`);
         }
         
         // If properties were found, display them
@@ -455,11 +599,30 @@ export async function processChatMessage(userMessage) {
         // Remove demo prompts on error
         document.querySelector('.demo-prompts-container')?.remove();
         
-        // Show user-friendly error
-        addMessageToChat(
-            "I'm having trouble connecting right now. 😔\n\n**You can still:**\n• Use the search filters above 🔍\n• Browse property categories 🏠\n• Try again in a moment ⏳",
-            'bot'
-        );
+        // Show user-friendly error with helpful messages
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        let errorMessage;
+        if (isLocalDev) {
+            errorMessage = `I'm having trouble connecting to the local backend. 😔\n\n` +
+                          `**To fix this:**\n` +
+                          `1️⃣ Make sure your Python backend is running:\n` +
+                          `   \`cd backend\`\n` +
+                          `   \`python chatbot_backend.py\`\n\n` +
+                          `2️⃣ Verify it's on port 10000: http://localhost:10000/api/health\n\n` +
+                          `**You can still:**\n` +
+                          `• Use the search filters above 🔍\n` +
+                          `• Browse property categories 🏠\n` +
+                          `• Try again in a moment ⏳`;
+        } else {
+            errorMessage = "I'm having trouble connecting right now. 😔\n\n" +
+                          "**You can still:**\n" +
+                          "• Use the search filters above 🔍\n" +
+                          "• Browse property categories 🏠\n" +
+                          "• Try again in a moment ⏳";
+        }
+        
+        addMessageToChat(errorMessage, 'bot');
         
         // Show quick prompts after error
         setTimeout(addQuickPrompts, 500);
@@ -569,7 +732,7 @@ function displayPropertiesInChat(properties) {
         const bedrooms = prop.bedrooms || 'N/A';
         const area = prop.floorArea || prop.totalArea || 'N/A';
         const title = prop.title || 'Untitled Property';
-        const location = prop.address || prop.city || prop.location || 'Location not specified';
+        const location = prop.location || prop.city || prop.address || 'Location not specified';
         const photo = prop.photos?.[0] || prop.imageUrls?.[0] || 
             `https://via.placeholder.com/300x200/0b2e52/white?text=${encodeURIComponent(title.substring(0, 20))}`;
         
@@ -635,7 +798,9 @@ async function logChatInteraction(query, response, user) {
             timestamp: new Date(),
             modelUsed: response?.model_used || 'unknown',
             confidence: response?.confidence || 0,
-            success: response?.success || false
+            success: response?.success || false,
+            backend_url: response?._backend_url || 'unknown',
+            response_time_ms: response?._response_time_ms || 0
         });
         
         console.log('✅ Chat interaction logged');
@@ -835,9 +1000,36 @@ function showWelcomeMessage() {
             }
         }
         
-        setTimeout(() => {
-            const isProduction = !window.location.hostname.includes('localhost') && 
-                               !window.location.hostname.includes('127.0.0.1');
+        setTimeout(async () => {
+            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            // Check backend status for welcome message
+            let backendStatus = '';
+            let backendClass = '';
+            
+            if (isLocalDev) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 2000);
+                    const response = await fetch('http://localhost:10000/api/health', {
+                        method: 'GET',
+                        mode: 'cors',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        backendStatus = '✅ Local backend connected';
+                        backendClass = 'status-ok';
+                    } else {
+                        backendStatus = '⚠️ Local backend will fallback to production';
+                        backendClass = 'status-warning';
+                    }
+                } catch (error) {
+                    backendStatus = '🔄 Local backend not running - using production fallback';
+                    backendClass = 'status-fallback';
+                }
+            }
             
             const welcomeMessage = `
                 <div class="welcome-message">
@@ -854,13 +1046,17 @@ function showWelcomeMessage() {
                     <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
                         Hello! I'm your AI assistant for Batangas real estate. Try clicking one of the quick prompts below, then click Send when you're ready!
                     </p>
-                    ${isProduction ? `
+                    ${isLocalDev ? `
+                        <div class="${backendClass}" style="padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px; 
+                            ${backendClass === 'status-ok' ? 'background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724;' : 
+                              backendClass === 'status-warning' ? 'background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;' : 
+                              'background-color: #cce5ff; border: 1px solid #b8daff; color: #004085;'}">
+                            <i class="fas fa-${backendClass === 'status-ok' ? 'check-circle' : backendClass === 'status-warning' ? 'exclamation-triangle' : 'sync-alt'}"></i> 
+                            <strong>Backend Status:</strong> ${backendStatus}
+                        </div>
+                    ` : `
                         <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
                             <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
-                        </p>
-                    ` : `
-                        <p style="color: #004085; background-color: #cce5ff; border: 1px solid #b8daff; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
-                            <i class="fas fa-code"></i> <strong>Development Mode:</strong> Make sure your backend is running at http://localhost:10000
                         </p>
                     `}
                 </div>
@@ -880,44 +1076,80 @@ function showWelcomeMessage() {
 }
 
 // ============================================
-// KEEP BACKEND ALIVE (for Render free tier)
+// KEEP BACKEND ALIVE - LOCAL FIRST, PRODUCTION FALLBACK
 // ============================================
 
 function keepBackendAlive() {
-    // Only ping in production
-    if (!window.location.hostname.includes('localhost') && 
-        !window.location.hostname.includes('127.0.0.1')) {
-        
-        console.log("⏰ Setting up keep-alive for production backend...");
-        
-        // Initial ping after page load
-        setTimeout(() => {
-            fetch('https://bahai.onrender.com/api/health', { 
+    console.log("⏰ Setting up backend keep-alive with LOCAL FIRST strategy...");
+    
+    // Function to ping a backend
+    async function pingBackend(name, healthUrl) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            const response = await fetch(healthUrl, { 
                 method: 'GET',
                 mode: 'cors',
                 cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(res => {
-                if (res.ok) console.log('✅ Backend pinged successfully');
-            })
-            .catch(err => console.log('⚠️ Backend ping failed:', err.message));
-        }, 2000);
-        
-        // Regular pings every 5 minutes
-        setInterval(() => {
-            fetch('https://bahai.onrender.com/api/health', { 
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(res => {
-                if (res.ok) console.log('✅ Backend keep-alive successful');
-            })
-            .catch(err => console.log('⚠️ Keep-alive failed:', err.message));
-        }, 5 * 60 * 1000);
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                console.log(`✅ Backend keep-alive successful: ${name}`);
+                
+                // Store last successful ping
+                try {
+                    sessionStorage.setItem(`backend_last_ping_${name}`, Date.now().toString());
+                } catch (e) {}
+                
+                return true;
+            }
+        } catch (err) {
+            // Silent fail
+        }
+        return false;
     }
+    
+    // Initial ping after page load
+    setTimeout(async () => {
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        // First try local if in dev
+        if (isLocalDev) {
+            const localAlive = await pingBackend('local', 'http://localhost:10000/api/health');
+            
+            if (!localAlive) {
+                console.log('⚠️ Local backend not available, production will be used as fallback');
+                // Then ping production as backup
+                await pingBackend('production', 'https://bahai.onrender.com/api/health');
+            }
+        } else {
+            // In production, just ping production
+            await pingBackend('production', 'https://bahai.onrender.com/api/health');
+        }
+    }, 2000);
+    
+    // Regular pings every 5 minutes
+    setInterval(async () => {
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        // First try local if in dev
+        if (isLocalDev) {
+            const localAlive = await pingBackend('local', 'http://localhost:10000/api/health');
+            
+            // Only ping production if local is down
+            if (!localAlive) {
+                await pingBackend('production', 'https://bahai.onrender.com/api/health');
+            }
+        } else {
+            // In production, just ping production
+            await pingBackend('production', 'https://bahai.onrender.com/api/health');
+        }
+    }, 5 * 60 * 1000);
 }
 
 // ============================================
@@ -1207,6 +1439,14 @@ chatbotStyles.textContent = `
         color: #4a5568;
     }
     
+    /* Status indicators */
+    .status-ok, .status-warning, .status-fallback {
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        margin-top: 15px;
+    }
+    
     /* DEMO PROMPTS - TWO PHASES */
     .demo-prompts-container {
         margin-top: 15px;
@@ -1359,7 +1599,7 @@ chatbotStyles.textContent = `
         border-radius: 3px;
     }
     
-    .chat-messages::-webkitScrollbar-thumb:hover {
+    .chat-messages::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
     }
     
@@ -1400,5 +1640,6 @@ window.processChatMessage = processChatMessage;
 window.initChatbot = initChatbot;
 
 console.log("🚀 AI Chatbot Script Loaded Successfully!");
-console.log("📝 Initial Promots Ready:", INITIAL_PROMPTS.length);
+console.log("📝 Initial Prompts Ready:", INITIAL_PROMPTS.length);
 console.log("📝 Quick Prompts Ready:", ALL_QUICK_PROMPTS.length);
+console.log("🔄 Backend Strategy: LOCAL FIRST → PRODUCTION FALLBACK");

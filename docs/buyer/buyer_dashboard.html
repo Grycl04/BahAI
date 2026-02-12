@@ -462,6 +462,86 @@
         box-shadow: var(--card-shadow);
         border: 1px solid rgba(0, 0, 0, 0.05);
     }
+    @media (max-width: 768px) {
+    .ai-chatbot-section {
+        padding: 20px 15px;
+    }
+    
+    .chatbot-container {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 500px; /* Make it taller on mobile */
+    }
+    
+    .chat-messages {
+        max-height: 400px; /* Limit max height */
+        min-height: 300px; /* But ensure it's tall enough */
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .chat-input {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .chat-input input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .chat-input button {
+        width: 100%;
+        padding: 14px 20px;
+        margin-left: 0;
+    }
+    
+    /* Stack buttons vertically */
+    .chat-input > div {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .voice-btn {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}
+
+/* Even smaller screens */
+@media (max-width: 480px) {
+    .chatbot-container {
+        min-height: 550px; /* Even taller on very small screens */
+    }
+    
+    .chat-messages {
+        min-height: 350px;
+    }
+    
+    /* Make message bubbles more readable */
+    .chat-messages .message {
+        max-width: 90%;
+    }
+    
+    .chat-messages .message.bot {
+        margin-right: auto;
+    }
+    
+    .chat-messages .message.user {
+        margin-left: auto;
+    }
+}
     @media (min-width: 768px) {
     .category-card {
         min-height: 110px;
