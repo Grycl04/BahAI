@@ -1,0 +1,227 @@
+{
+  "training_samples": [
+    {
+      "query": "thank you",
+      "intent": "thanks",
+      "variations": [
+        "thanks",
+        "thank you very much",
+        "thanks a lot",
+        "thanks so much",
+        "thank you so much",
+        "many thanks",
+        "thanks a bunch",
+        "much appreciated",
+        "appreciate it",
+        "appreciated",
+        "ty",
+        "tysm",
+        "thx",
+        "tnx",
+        "thank u",
+        "thankyou",
+        "thank you!",
+        "thanks!",
+        "big thanks",
+        "huge thanks",
+        "thanks po",
+        "salamat",
+        "salamat po",
+        "maraming salamat",
+        "maraming salamat po",
+        "thanks boss",
+        "thanks bro",
+        "thanks sis",
+        "thanks ai",
+        "thanks bot"
+      ]
+    },
+    {
+      "query": "thanks for your help",
+      "intent": "thanks",
+      "variations": [
+        "thank you for your help",
+        "thanks for helping me",
+        "appreciate your help",
+        "thanks for the assistance",
+        "thank you for assisting me",
+        "thanks for the support",
+        "thank you for the support",
+        "thanks for guiding me",
+        "thanks for the help today",
+        "thanks for your time",
+        "salamat sa tulong",
+        "salamat sa help",
+        "thanks for helping",
+        "thanks for being helpful"
+      ]
+    },
+    {
+      "query": "that was helpful",
+      "intent": "thanks",
+      "variations": [
+        "that helped a lot",
+        "that's very helpful",
+        "this is helpful",
+        "that was very useful",
+        "this helped me",
+        "very helpful",
+        "super helpful",
+        "helpful thanks",
+        "big help",
+        "that helped",
+        "ok helpful",
+        "ayos helpful",
+        "nakakatulong",
+        "malaking tulong",
+        "thanks that helped"
+      ]
+    },
+    {
+      "query": "great thanks",
+      "intent": "thanks",
+      "variations": [
+        "awesome thanks",
+        "perfect thanks",
+        "excellent thanks",
+        "great thank you",
+        "nice thanks",
+        "cool thanks",
+        "great tysm",
+        "great thx",
+        "great appreciate it",
+        "solid thanks"
+      ]
+    },
+    {
+      "query": "ok thank you",
+      "intent": "thanks",
+      "variations": [
+        "ok thanks",
+        "okay thank you",
+        "okay thanks",
+        "alright thanks",
+        "ok ty",
+        "ok thx",
+        "okay tysm",
+        "ok appreciated",
+        "alright thank you",
+        "noted thanks",
+        "got it thanks",
+        "copy thanks"
+      ]
+    },
+    {
+      "query": "thanks for the info",
+      "intent": "thanks",
+      "variations": [
+        "thank you for the information",
+        "thanks for the details",
+        "appreciate the info",
+        "thanks for the update",
+        "thank you for the update",
+        "thanks for explaining",
+        "thanks for clarifying",
+        "appreciate the details",
+        "info received thanks",
+        "thanks for answering",
+        "salamat sa info",
+        "thanks sa info"
+      ]
+    },
+    {
+      "query": "thank you very much for the help",
+      "intent": "thanks",
+      "variations": [
+        "thanks a lot for your assistance",
+        "thank you so much for your help",
+        "very much appreciated",
+        "really appreciate it",
+        "deep thanks",
+        "huge appreciation",
+        "thanks big help",
+        "super thanks",
+        "thanks so so much"
+      ]
+    },
+    {
+      "query": "you've been helpful",
+      "intent": "thanks",
+      "variations": [
+        "you are very helpful",
+        "you're so helpful",
+        "you've been a great help",
+        "you helped a lot",
+        "you helped me",
+        "you are helpful",
+        "thanks for being helpful",
+        "appreciate you",
+        "thanks for your service"
+      ]
+    },
+    {
+      "query": "thanks for finding properties",
+      "intent": "thanks",
+      "variations": [
+        "thank you for the property search",
+        "thanks for the listings",
+        "appreciate the property info",
+        "thanks for showing listings",
+        "thanks for the apartments",
+        "thanks for the results",
+        "thanks for recommendations",
+        "thanks for the options",
+        "thanks for property help",
+        "salamat sa listings"
+      ]
+    },
+    {
+      "query": "thanks again",
+      "intent": "thanks",
+      "variations": [
+        "thank you again",
+        "thanks once more",
+        "again thank you",
+        "thanks ulit",
+        "salamat ulit",
+        "ty again",
+        "thx again",
+        "thanks once again",
+        "appreciate again"
+      ]
+    },
+    {
+      "query": "short thanks",
+      "intent": "thanks",
+      "variations": [
+        "ty!",
+        "thx!",
+        "tnx!",
+        "thanks!!",
+        "tysm!",
+        "ty ty",
+        "tenkyu",
+        "tenchu",
+        "tq",
+        "k thanks",
+        "kk thanks",
+        "ok ty",
+        "ok thx"
+      ]
+    },
+    {
+      "query": "emoji thanks",
+      "intent": "thanks",
+      "variations": [
+        "thanks 🙂",
+        "thanks 😊",
+        "thank you 🙏",
+        "thanks 👍",
+        "ty 🙏",
+        "thx 👍",
+        "thanks ❤️",
+        "salamat 🙏"
+      ]
+    }
+  ]
+}

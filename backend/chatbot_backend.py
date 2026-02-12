@@ -134,7 +134,8 @@ try:
                         city = data.get('city', 'Unknown')
                         status = data.get('status', 'No Status')
                         sale_type = data.get('saleType', 'No saleType')
-                        print(f"   {i+1}. ID: {doc_id[:10]}..., Type: {prop_type}, City: {city}, Status: {status}, SaleType: {sale_type}")
+                        financing_bank = data.get('financingBank', 'No bank')
+                        print(f"   {i+1}. ID: {doc_id[:10]}..., Type: {prop_type}, City: {city}, Status: {status}, SaleType: {sale_type}, Bank: {financing_bank}")
                         
                 else:
                     print("⚠️ No properties found in database (empty collection)")
@@ -255,7 +256,55 @@ def preprocess_text(text):
     
     return text
 
-# Entity extraction - UPDATED WITH MEMBER3 DETECTION LOGIC
+# ========== SALE TYPE & SPECIFIC BANK DETECTION ==========
+# Bank keywords mapping to official bank names (for filtering)
+bank_keywords = {
+    'bdo': 'BDO Unibank',
+    'bdo unibank': 'BDO Unibank',
+    'bpi': 'BPI',
+    'bank of the philippine islands': 'BPI',
+    'metrobank': 'Metrobank',
+    'metro bank': 'Metrobank',
+    'landbank': 'Land Bank of the Philippines',
+    'land bank': 'Land Bank of the Philippines',
+    'unionbank': 'UnionBank',
+    'union bank': 'UnionBank',
+    'security bank': 'Security Bank',
+    'securitybank': 'Security Bank',
+    'rcbc': 'RCBC',
+    'pnb': 'PNB',
+    'philippine national bank': 'PNB',
+    'china bank': 'China Bank',
+    'maybank': 'Maybank',
+}
+
+# Sale type keywords mapping to database values
+sale_type_keywords = {
+    # Bank financing category
+    'bank financing': 'bank_financing',
+    'bank loan': 'bank_financing',
+    'bank mortgage': 'bank_financing',
+    'housing loan': 'bank_financing',
+    'home loan': 'bank_financing',
+    'bank_financing': 'bank_financing',
+    
+    # Outright/Cash category
+    'outright': 'outright',
+    'cash': 'outright',
+    'cash payment': 'outright',
+    'full payment': 'outright',
+    'straight cash': 'outright',
+    
+    # Installment category
+    'installment': 'installment',
+    'installment plan': 'installment',
+    'in-house financing': 'installment',
+    'developer financing': 'installment',
+    'monthly payment': 'installment',
+    'monthly amortization': 'installment',
+}
+
+# Entity extraction - UPDATED WITH FINANCING LEVELS AND QUERY TYPE DISTINCTION
 def extract_entities_from_query(query: str) -> Dict[str, Any]:
     """Extract entities from user query"""
     entities = {
@@ -266,7 +315,13 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'price_range': None,
         'bedrooms': None,
         'bathrooms': None,
-        'sale_type': None,  
+        'sale_type': None,
+        'bank_name': None,
+        'financing_level': None,
+        'query_type': None,
+        'financing_info_request': False,
+        'is_property_search_with_financing': False,
+        'has_pagibig_query': False,
         'listing_type': None,
         'has_general_search': False,
         'max_price': None,
@@ -283,7 +338,6 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'process_type': None,
         'has_match_query': False,
         'lifestyle': None,
-        'has_financing_info_query': False,
     }
     
     query_lower = query.lower()
@@ -401,27 +455,107 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     has_location_terms = any(term in query_lower for term in ['in ', 'at ', 'within ', 'inside '])
     has_specific_location = False
     
-    # ========== SALE TYPE DETECTION ==========
-    sale_type_keywords = {
-        'bank financing': 'bank_financing',
-        'bank loan': 'bank_financing',
-        'bank mortgage': 'bank_financing',
-        'outright': 'outright',
-        'cash': 'outright',
-        'installment': 'installment',
-        'installment plan': 'installment',
-        'in-house financing': 'installment',
-        'developer financing': 'installment'
-    }
+    # ========== SALE TYPE & SPECIFIC BANK DETECTION ==========
     
-    for keyword, sale_type in sale_type_keywords.items():
-        if keyword in query_lower:
-            entities['sale_type'] = sale_type
+    # Check for specific banks FIRST (highest priority)
+    for bank_key, bank_name in bank_keywords.items():
+        if bank_key in query_lower:
+            entities['bank_name'] = bank_name
+            entities['sale_type'] = 'bank_financing'  # Implicitly bank_financing
+            entities['financing_level'] = 'specific_bank'  # Level 2
+            logger.info(f"🏦 Detected specific bank: {bank_name}")
             break
+
+    # Check for Pag-IBIG (special case)
+    pagibig_keywords = ['pag-ibig', 'pagibig', 'pag ibig', 'pag-ibig fund', 'pagibig fund']
+    if not entities.get('bank_name') and any(keyword in query_lower for keyword in pagibig_keywords):
+        entities['has_pagibig_query'] = True
+        entities['sale_type'] = 'bank_financing'  # Pag-IBIG is a type of financing
+        entities['financing_level'] = 'pagibig'  # Special level
+        logger.info("🏠 Detected Pag-IBIG query")
+
+    # Check for other sale types (if no specific bank or Pag-IBIG found)
+    if not entities.get('bank_name') and not entities.get('has_pagibig_query'):
+        for keyword, sale_type in sale_type_keywords.items():
+            if keyword in query_lower:
+                entities['sale_type'] = sale_type
+                entities['financing_level'] = 'sale_type'  # Level 1
+                logger.info(f"💰 Detected sale type: {sale_type}")
+                break
     
-    # Flag for financing information queries (documents, requirements)
-    if 'pag-ibig' in query_lower or 'housing loan' in query_lower or 'pagibig' in query_lower:
-        entities['has_financing_info_query'] = True  # Flag for info queries only
+    # ========== DISTINGUISH PROPERTY SEARCH vs INFORMATION REQUEST ==========
+    
+    # Check if this is a PROPERTY SEARCH query
+    property_search_indicators = [
+        'properties that accept',
+        'houses that accept', 
+        'condos that accept',
+        'apartments that accept',
+        'show me properties',
+        'find properties',
+        'properties with',
+        'find sale',
+        'looking for sale',
+        'properties accepting',
+        'with bank financing',
+        'with outright',
+        'with installment',
+        'available with',
+        'that accept',
+        'that offer',
+        'list properties',
+        'show properties',
+    ]
+
+    # Check if this is an INFORMATION REQUEST
+    info_request_indicators = [
+        'what documents',
+        'requirements for',
+        'how to get',
+        'what are the requirements',
+        'documents needed',
+        'papers needed',
+        'process for',
+        'how do i get',
+        'what is needed for',
+        'requirements to get',
+        'how to apply',
+        'application process',
+        'tell me about',
+        'information about',
+        'what is pag-ibig',
+        'what is bank financing',
+        'explain',
+        'guide',
+    ]
+
+    if entities.get('sale_type') or entities.get('bank_name') or entities.get('has_pagibig_query'):
+        query_lower = query.lower()
+        
+        # Check if it's a property search
+        is_property_search = any(indicator in query_lower for indicator in property_search_indicators)
+        
+        # Check if it's an information request
+        is_info_request = any(indicator in query_lower for indicator in info_request_indicators)
+        
+        if is_property_search and not is_info_request:
+            entities['is_property_search_with_financing'] = True
+            entities['query_type'] = 'property_search'
+            logger.info("🔍 Financing query is PROPERTY SEARCH")
+        elif is_info_request:
+            entities['financing_info_request'] = True
+            entities['query_type'] = 'information_request'
+            logger.info("📋 Financing query is INFORMATION REQUEST")
+        else:
+            # Ambiguous - check for action words
+            if any(word in query_lower for word in ['find', 'show', 'search', 'look', 'list']):
+                entities['is_property_search_with_financing'] = True
+                entities['query_type'] = 'property_search'
+                logger.info("🔍 Ambiguous financing query - treating as PROPERTY SEARCH")
+            else:
+                entities['financing_info_request'] = True
+                entities['query_type'] = 'information_request'
+                logger.info("📋 Ambiguous financing query - treating as INFORMATION REQUEST")
     
     # Detect listing type
     if 'for rent' in query_lower or 'rental' in query_lower:
@@ -503,15 +637,77 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             has_specific_location = True
             break
     
-    # Feature detection
-    if 'with swimming pool' in query_lower or 'with pool' in query_lower:
-        entities['feature'] = 'swimming pool'
-    elif 'with garden' in query_lower:
-        entities['feature'] = 'garden'
-    elif 'with parking' in query_lower:
+    # ========== FEATURE DETECTION ==========
+    feature_keywords = {
+        'parking': [
+            'with parking', 'parking space', 'parking included', 
+            'parking', 'car park', 'garage', 'parking lot',
+            'with garage', 'carport', 'parking slot'
+        ],
+        'swimming pool': [
+            'with swimming pool', 'with pool', 'pool', 
+            'swimming pool', 'swimmingpool', 'swim'
+        ],
+        'garden': [
+            'with garden', 'garden', 'backyard', 'yard',
+            'with backyard', 'green space', 'landscaped'
+        ],
+        'furnished': [
+            'furnished', 'fully furnished', 'with furniture',
+            'semi-furnished', 'partially furnished'
+        ],
+        'security': [
+            'with security', 'security guard', '24/7 security',
+            'cctv', 'gated', 'security camera', 'guarded',
+            'with guard', 'secure'
+        ],
+        'elevator': [
+            'with elevator', 'elevator', 'lift',
+            'with lift', 'elevator access'
+        ],
+        'wifi': [
+            'with wifi', 'wifi', 'internet', 'broadband',
+            'fiber', 'with internet'
+        ],
+        'aircon': [
+            'with aircon', 'air conditioning', 'aircon',
+            'ac', 'air conditioner', 'central ac'
+        ],
+        'balcony': [
+            'with balcony', 'balcony', 'terrace',
+            'with terrace', 'outdoor space'
+        ],
+        'maids room': [
+            'maids room', 'helpers quarter', 'maids quarter',
+            'with maid', 'staff room'
+        ]
+    }
+    
+    # Check for features
+    for feature, keywords in feature_keywords.items():
+        for keyword in keywords:
+            if keyword in query_lower:
+                entities['feature'] = feature
+                logger.info(f"🏷️ Detected feature: {feature} (keyword: '{keyword}')")
+                break
+        if entities.get('feature'):
+            break
+    
+    # Additional detection: look for "with X" pattern
+    if not entities.get('feature'):
+        # Look for "with" followed by a word
+        with_match = re.search(r'with\s+(\w+)', query_lower)
+        if with_match:
+            possible_feature = with_match.group(1).lower()
+            # Common features for fallback
+            if possible_feature in ['parking', 'pool', 'garden', 'garage', 'balcony', 'wifi']:
+                entities['feature'] = possible_feature
+                logger.info(f"🏷️ Detected feature from 'with' pattern: {possible_feature}")
+    
+    # Also check for "parking" as a standalone word (for your specific query)
+    if not entities.get('feature') and 'parking' in query_lower:
         entities['feature'] = 'parking'
-    elif 'furnished' in query_lower:
-        entities['feature'] = 'furnished'
+        logger.info(f"🏷️ Detected feature: parking (standalone)")
     
     # Landmark detection
     if 'near' in query_lower or 'close to' in query_lower or 'around' in query_lower or 'beside' in query_lower:
@@ -527,37 +723,75 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     
     # ========== ADD MEMBER3 DETECTION LOGIC ==========
     
-    # Question 3: Family/space needs detection
-    if 'for family' in query_lower or 'family of' in query_lower:
+    # Question 3: Family/space needs detection - EXPANDED TO MATCH TRAINING DATA
+    family_keywords = [
+        'for family', 
+        'family of', 
+        'family properties',     # ADD THIS - matches "Family properties in Lipa City"
+        'family house',          # ADD THIS
+        'family home',           # ADD THIS
+        'family condo',          # ADD THIS
+        'family apartment',      # ADD THIS
+        'family sized',          # ADD THIS
+        'family-size',           # ADD THIS
+        'family ready',          # ADD THIS
+        'family appropriate',    # ADD THIS
+        'suitable for family',   # ADD THIS
+        'big family',            # ADD THIS
+        'large family',          # ADD THIS
+        'small family'          # ADD THIS
+    ]
+    
+    if any(keyword in query_lower for keyword in family_keywords):
         entities['has_need_query'] = True
         entities['need_type'] = 'family'
-        logger.info("🎯 Detected family needs query")
+        logger.info(f"🎯 Detected family needs query: '{query}'")
         
         # Extract family size if mentioned
         match = re.search(r'family\s+of\s+(\d+)', query_lower)
         if match:
             entities['family_size'] = int(match.group(1))
             logger.info(f"👨‍👩‍👧‍👦 Detected family size: {entities['family_size']}")
-    
-    # Check for other needs - UPDATED WITH "couples"
-    needs_map = {
-        'for students': 'students',
-        'for professionals': 'professionals', 
-        'for couple': 'couple',
-        'for couples': 'couple',  # ADDED: Handle plural
-        'for retirees': 'retirees',
-        'for business': 'business'
-    }
-    
-    for keyword, need_type in needs_map.items():
-        if keyword in query_lower:
-            entities['has_need_query'] = True
-            entities['need_type'] = need_type
-            logger.info(f"🎯 Detected need type: {need_type}")
-            break
+        
+        # Extract space requirement (e.g., "spacious", "large", "cozy")
+        space_keywords = ['spacious', 'large', 'roomy', 'expansive', 'cozy', 'compact']
+        for keyword in space_keywords:
+            if keyword in query_lower:
+                entities['space_requirement'] = keyword
+                logger.info(f"🏠 Detected space requirement: {keyword}")
+                break
+        
+        # Check for other needs - EXPANDED FROM TRAINING DATA
+        needs_map = {
+            'for students': 'students',
+            'student housing': 'students',           # ADDED
+            'student accommodations': 'students',    # ADDED
+            'for professionals': 'professionals',
+            'working professionals': 'professionals', # ADDED
+            'for couple': 'couple',
+            'for couples': 'couple',
+            'properties for couples': 'couple',      # ADDED
+            'for retirees': 'retirees',
+            'retirement': 'retirees',               # ADDED
+            'for business': 'business',
+            'home business': 'business',            # ADDED
+            'for investors': 'investors',           # ADDED
+            'for single': 'single'                 # ADDED
+        }
+        
+        for keyword, need_type in needs_map.items():
+            if keyword in query_lower:
+                entities['has_need_query'] = True
+                entities['need_type'] = need_type
+                logger.info(f"🎯 Detected need type: {need_type}")
+                break
     
     # Question 5: Feature with good price
-    price_quality_keywords = ['good price', 'cheap', 'affordable', 'reasonable', 'good value']
+    price_quality_keywords = [
+        'good price', 'cheap', 'affordable', 'reasonable', 'good value',
+        'reasonable cost', 'budget-friendly', 'inexpensive', 'low cost',  # ADDED
+        'fair price', 'economical', 'value for money'                    # ADDED
+    ]
     for keyword in price_quality_keywords:
         if keyword in query_lower:
             entities['has_feature_price_query'] = True
@@ -566,7 +800,11 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             break
     
     # Question 8: Process info
-    process_keywords = ['steps for', 'how to', 'process of', 'timeline', 'requirements', 'documents']
+    process_keywords = [
+        'steps for', 'how to', 'process of', 'timeline', 'requirements', 
+        'documents', 'steps to', 'procedure', 'costs for', 'expenses',   # ADDED
+        'fees', 'charges', 'paperwork', 'legal requirements'           # ADDED
+    ]
     for keyword in process_keywords:
         if keyword in query_lower:
             entities['has_process_query'] = True
@@ -575,14 +813,32 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             break
     
     # Question 10: Lifestyle matching
-    match_keywords = ['match my', 'suitable for', 'fitting my', 'what matches', 'recommendations']
+    match_keywords = [
+        'match my', 'suitable for', 'fitting my', 'what matches', 
+        'recommendations', 'appropriate for', 'compatible with',      # ADDED
+        'aligned with', 'properties matching', 'match properties'    # ADDED
+    ]
+    
     for keyword in match_keywords:
         if keyword in query_lower:
             entities['has_match_query'] = True
+            
+            # Extract lifestyle type from query
+            lifestyle_patterns = [
+                r'(match my|suitable for|appropriate for)\s+([\w\s]+?)(?:lifestyle|needs|budget)',
+                r'([\w\s]+)\s+lifestyle'
+            ]
+            
+            for pattern in lifestyle_patterns:
+                lifestyle_match = re.search(pattern, query_lower)
+                if lifestyle_match:
+                    entities['lifestyle'] = lifestyle_match.group(1).strip()
+                    logger.info(f"🎯 Detected lifestyle: {entities['lifestyle']}")
+                    break
+            
             logger.info("🎯 Detected lifestyle matching query")
             break
-    # ========== END MEMBER3 DETECTION ==========
-    
+        
     # NEW: Determine if this is a general search (property type but no location)
     if entities.get('property_type') and not has_specific_location:
         entities['has_general_search'] = True
@@ -599,7 +855,7 @@ def add_price_numeric_value(property_data: Dict) -> Dict:
     
     if listing_type == 'rent' and 'monthlyRent' in property_data:
         property_data['price_numeric'] = property_data['monthlyRent']
-    elif listing_type == 'sale' and 'salePrice' in propertyData:
+    elif listing_type == 'sale' and 'salePrice' in property_data:
         property_data['price_numeric'] = property_data['salePrice']
     elif listing_type == 'lease' and 'annualRent' in property_data:
         property_data['price_numeric'] = property_data['annualRent']
@@ -704,6 +960,7 @@ def standardize_property_data(property_data: Dict) -> Dict:
     if not description:
         description = f"A {property_type.replace('_', ' ')} located in {city}, {province}."
     
+    # ========== ADD BANK FINANCING INFO ==========
     standardized = {
         'id': property_data.get('id', ''),
         'title': title,
@@ -724,7 +981,10 @@ def standardize_property_data(property_data: Dict) -> Dict:
         'hasVideos': property_data.get('hasVideos', False),
         'floorArea': property_data.get('floorArea', None),
         'lotArea': property_data.get('lotArea', None),
-        'sale_type': property_data.get('saleType', ''),  # ADDED: Include sale_type
+        # ========== ADDED: Bank financing fields ==========
+        'saleType': property_data.get('saleType', ''),  # Not sale_type
+        'financingBank': property_data.get('financingBank', None),  # Not financing_bank
+        'has_bank_financing': property_data.get('saleType') == 'bank_financing',
         'price_numeric': property_data.get('price_numeric', 0)  # Add numeric price
     }
     
@@ -733,322 +993,9 @@ def standardize_property_data(property_data: Dict) -> Dict:
 # Get mock properties when Firebase is not connected - UPDATED WITH COUPLE FILTERING
 def get_mock_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Generate mock properties for testing when Firebase is not connected"""
-    mock_properties = []
-    
-    # Base mock data matching your Firestore structure
-    base_properties = [
-        {
-            'id': 'mock_1',
-            'title': 'Modern House in Nasugbu',
-            'propertyType': 'house',
-            'type': 'rent',
-            'city': 'Nasugbu',
-            'province': 'Batangas',
-            'address': '123 Beach Road, Nasugbu',
-            'monthlyRent': 25000,
-            'bedrooms': '3',
-            'bathrooms': '2',
-            'floorArea': 120,
-            'description': 'Beautiful modern house near the beach',
-            'imageUrls': [],
-            'status': 'available',
-            'amenities': ['Swimming Pool', 'Garden', 'Parking']
-        },
-        {
-            'id': 'mock_2',
-            'title': 'Beachfront Condo Unit',
-            'propertyType': 'condo',
-            'type': 'sale',
-            'city': 'Nasugbu',
-            'province': 'Batangas',
-            'address': '456 Coastal Avenue, Nasugbu',
-            'salePrice': 3500000,
-            'bedrooms': '2',
-            'bathrooms': '2',
-            'floorArea': 80,
-            'description': 'Luxury beachfront condo with ocean view',
-            'imageUrls': [],
-            'status': 'available',
-            'saleType': 'bank_financing'  # ADDED: Mock sale type
-        },
-        {
-            'id': 'mock_3',
-            'title': 'Commercial Space in Lipa',
-            'propertyType': 'commercial_building',
-            'type': 'lease',
-            'city': 'Lipa City',
-            'province': 'Batangas',
-            'address': '789 Business District, Lipa',
-            'annualRent': 1200000,
-            'description': 'Prime commercial space for business',
-            'imageUrls': [],
-            'status': 'available'
-        },
-        {
-            'id': 'mock_4',
-            'title': 'Apartment in Batangas City',
-            'propertyType': 'apartment',
-            'type': 'rent',
-            'city': 'Batangas City',
-            'province': 'Batangas',
-            'address': '101 Main Street, Batangas City',
-            'monthlyRent': 12000,
-            'bedrooms': '2',
-            'bathrooms': '1',
-            'floorArea': 50,
-            'description': 'Clean and affordable apartment',
-            'imageUrls': [],
-            'status': 'available'
-        },
-        {
-            'id': 'mock_5',
-            'title': 'Townhouse in Sto. Tomas',
-            'propertyType': 'townhouse',
-            'type': 'sale',
-            'city': 'Sto. Tomas City',
-            'province': 'Batangas',
-            'address': '202 Subdivision, Sto. Tomas',
-            'salePrice': 2800000,
-            'bedrooms': '3',
-            'bathrooms': '2',
-            'floorArea': 90,
-            'description': 'Modern townhouse with garage',
-            'imageUrls': [],
-            'status': 'available',
-            'saleType': 'outright'  # ADDED: Mock sale type
-        },
-        # Add Member3 mock properties
-        {
-            'id': 'mock_family_1',
-            'title': 'Spacious Family House',
-            'propertyType': 'house',
-            'type': 'sale',
-            'city': 'Lipa City',
-            'province': 'Batangas',
-            'address': '321 Family Street, Lipa City',
-            'salePrice': 4500000,
-            'bedrooms': '4',
-            'bathrooms': '3',
-            'floorArea': 150,
-            'description': 'Perfect for large families with spacious rooms',
-            'imageUrls': [],
-            'status': 'available',
-            'saleType': 'bank_financing'
-        },
-        {
-            'id': 'mock_student_1', 
-            'title': 'Affordable Student Apartment',
-            'propertyType': 'apartment',
-            'type': 'rent',
-            'city': 'Batangas City',
-            'province': 'Batangas',
-            'address': '456 University Ave, Batangas City',
-            'monthlyRent': 12000,
-            'bedrooms': '2',
-            'bathrooms': '1',
-            'floorArea': 45,
-            'description': 'Great for students near universities',
-            'imageUrls': [],
-            'status': 'available'
-        },
-        {
-            'id': 'mock_affordable_1',
-            'title': 'Budget-Friendly Studio',
-            'propertyType': 'condo',
-            'type': 'rent',
-            'city': 'Tanauan City',
-            'province': 'Batangas',
-            'address': '789 Budget Road, Tanauan',
-            'monthlyRent': 8000,
-            'bedrooms': 'studio',
-            'bathrooms': '1',
-            'floorArea': 30,
-            'description': 'Cheap and affordable studio unit with good amenities',
-            'imageUrls': [],
-            'status': 'available',
-            'amenities': ['WiFi', 'Security', 'Parking']
-        },
-        {
-            'id': 'mock_couple_1',
-            'title': 'Cozy Apartment for Couples',
-            'propertyType': 'apartment',
-            'type': 'rent',
-            'city': 'Nasugbu',
-            'province': 'Batangas',
-            'address': '987 Romance Street, Nasugbu',
-            'monthlyRent': 15000,
-            'bedrooms': '1',
-            'bathrooms': '1',
-            'floorArea': 40,
-            'description': 'Perfect cozy apartment for couples near the beach',
-            'imageUrls': [],
-            'status': 'available',
-            'amenities': ['Beach Access', 'Balcony', 'Furnished']
-        },
-        {
-            'id': 'mock_couple_2',
-            'title': 'Modern Studio Condo',
-            'propertyType': 'condo',
-            'type': 'rent',
-            'city': 'Lipa City',
-            'province': 'Batangas',
-            'address': '654 Modern Avenue, Lipa City',
-            'monthlyRent': 10000,
-            'bedrooms': 'studio',
-            'bathrooms': '1',
-            'floorArea': 35,
-            'description': 'Modern studio perfect for young couples',
-            'imageUrls': [],
-            'status': 'available',
-            'amenities': ['Pool', 'Gym', 'Security']
-        },
-        {
-            'id': 'mock_couple_3',
-            'title': 'Romantic 1-Bedroom Unit',
-            'propertyType': 'condo',
-            'type': 'sale',
-            'city': 'Nasugbu',
-            'province': 'Batangas',
-            'address': '321 Love Lane, Nasugbu',
-            'salePrice': 2200000,
-            'bedrooms': '1',
-            'bathrooms': '1',
-            'floorArea': 45,
-            'description': 'Romantic 1-bedroom unit with sunset view',
-            'imageUrls': [],
-            'status': 'available',
-            'saleType': 'installment'
-        }
-    ]
-    
-    # Filter mock properties based on entities
-    for prop in base_properties:
-        matches = True
-        
-        # Filter by location (only if specified)
-        if entities.get('location'):
-            location = entities['location'].lower()
-            prop_city = prop.get('city', '').lower()
-            if 'nasugbu' in location and 'nasugbu' not in prop_city:
-                matches = False
-            elif 'lipa' in location and 'lipa' not in prop_city:
-                matches = False
-            elif 'batangas city' in location and 'batangas city' not in prop_city:
-                matches = False
-            elif 'sto tomas' in location and 'sto. tomas city' not in prop_city:
-                matches = False
-            elif 'tanauan' in location and 'tanauan' not in prop_city:
-                matches = False
-        
-        # Filter by property type
-        if entities.get('property_type') and matches:
-            requested_type = entities['property_type'].lower()
-            prop_type = prop.get('propertyType', '').lower()
-            
-            type_mapping = {
-                'house': ['house', 'bungalow', 'duplex'],
-                'condo': ['condo', 'condominium', 'penthouse', 'studio'],
-                'apartment': ['apartment', 'room', 'boarding_house'],
-                'commercial': ['commercial', 'office', 'retail', 'warehouse'],
-                'townhouse': ['townhouse']
-            }
-            
-            if requested_type in type_mapping:
-                if prop_type not in type_mapping[requested_type]:
-                    matches = False
-        
-        # Filter by sale type
-        if entities.get('sale_type') and matches:
-            requested_sale_type = entities['sale_type']
-            prop_sale_type = prop.get('saleType', '')
-            
-            # Only apply to sale properties
-            if prop.get('type') == 'sale':
-                if prop_sale_type != requested_sale_type:
-                    matches = False
-            else:
-                # Not a sale property, doesn't match sale type query
-                matches = False
-        
-        # Filter by price if specified
-        if entities.get('max_price') and matches:
-            price_numeric = 0
-            if prop.get('type') == 'rent' and 'monthlyRent' in prop:
-                price_numeric = prop['monthlyRent']
-            elif prop.get('type') == 'sale' and 'salePrice' in prop:
-                price_numeric = prop['salePrice']
-            
-            if price_numeric > entities['max_price']:
-                matches = False
-        
-        # Filter by bedrooms if specified
-        if entities.get('exact_bedrooms') is not None and matches:
-            prop_bedrooms = prop.get('bedrooms', '0')
-            try:
-                if isinstance(prop_bedrooms, str):
-                    bed_match = re.search(r'(\d+)', prop_bedrooms)
-                    if bed_match:
-                        prop_bed_num = int(bed_match.group(1))
-                    else:
-                        prop_bed_num = 0
-                else:
-                    prop_bed_num = int(prop_bedrooms)
-                
-                if prop_bed_num != entities['exact_bedrooms']:
-                    matches = False
-            except:
-                pass
-        
-        # Filter for family needs
-        if entities.get('has_need_query') and entities.get('need_type') == 'family' and entities.get('family_size'):
-            if matches:
-                prop_bedrooms = prop.get('bedrooms', '0')
-                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
-                min_bedrooms = max(1, entities['family_size'] // 2)
-                if bedrooms < min_bedrooms:
-                    matches = False
-        
-        # Filter for couple needs - ADDED COUPLE FILTERING
-        if entities.get('has_need_query') and entities.get('need_type') == 'couple':
-            if matches:
-                prop_bedrooms = prop.get('bedrooms', '0')
-                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
-                
-                # Couples typically need 0-2 bedrooms (studio to 2-bedroom)
-                if bedrooms > 2:  # More than 2 bedrooms not ideal for couples
-                    matches = False
-        
-        # Filter for price quality
-        if entities.get('has_feature_price_query') and matches:
-            # For affordable/cheap queries, filter by price
-            if entities.get('price_quality') in ['cheap', 'affordable', 'good price']:
-                price_numeric = 0
-                if prop.get('type') == 'rent' and 'monthlyRent' in prop:
-                    price_numeric = prop['monthlyRent']
-                    if price_numeric > 15000:  # Threshold for "affordable"
-                        matches = False
-                elif prop.get('type') == 'sale' and 'salePrice' in prop:
-                    price_numeric = prop['salePrice']
-                    if price_numeric > 3000000:  # Threshold for "affordable"
-                        matches = False
-        
-        if matches:
-            # Add numeric price value
-            prop_with_price = add_price_numeric_value(prop)
-            mock_properties.append(standardize_property_data(prop_with_price))
-    
-    # ========== NEW: Return empty if no mock properties match ==========
-    if not mock_properties and any([
-        entities.get('property_type'),
-        entities.get('location'),
-        entities.get('max_price'),
-        entities.get('exact_bedrooms'),
-        entities.get('sale_type')
-    ]):
-        logger.info("❌ No mock properties match the specified criteria")
-        return []
-    
-    return mock_properties
+    # MOCK DATA DISABLED - Always return empty list
+    logger.warning("⚠️ Mock data is disabled - only showing real database properties")
+    return []
 
 # Debug function for property matching
 def debug_property_matching(properties, entities):
@@ -1064,6 +1011,7 @@ def debug_property_matching(properties, entities):
         logger.info(f"     City: {prop.get('city')}")
         logger.info(f"     Status: {prop.get('status')}")
         logger.info(f"     Sale Type: {prop.get('saleType', 'N/A')}")
+        logger.info(f"     Bank: {prop.get('financingBank', 'N/A')}")
         logger.info(f"     Type (listing): {prop.get('type')}")
         
         # Check if it matches location
@@ -1086,8 +1034,15 @@ def debug_property_matching(properties, entities):
             query_sale_type = entities.get('sale_type', '').lower()
             matches_sale_type = query_sale_type in prop_sale_type or prop_sale_type in query_sale_type
             logger.info(f"     Matches sale type '{query_sale_type}': {matches_sale_type}")
+        
+        # Check if it matches specific bank
+        if entities.get('bank_name'):
+            prop_bank = prop.get('financingBank', '')
+            query_bank = entities.get('bank_name', '')
+            matches_bank = prop_bank == query_bank
+            logger.info(f"     Matches bank '{query_bank}': {matches_bank}")
 
-# Firestore queries - UPDATED TO USE saleType INSTEAD OF financingOptions
+# Firestore queries - UPDATED WITH SPECIFIC BANK AND PAG-IBIG FILTERING
 def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search properties in Firestore based on entities"""
     properties = []
@@ -1110,24 +1065,44 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         # NEW: Handle general searches (no location specified)
         is_general_search = not entities.get('location') and entities.get('has_general_search')
         
-        # ========== FIXED: SALE TYPE FILTERING (replaces financing filter) ==========
+        # ========== SALE TYPE & SPECIFIC BANK FILTERING ==========
         has_sale_type_query = entities.get('sale_type') is not None
-        
-        if has_sale_type_query:
-            sale_type = entities['sale_type']
-            logger.info(f"💰 SALE TYPE QUERY DETECTED: {sale_type}")
-            
-            # IMPORTANT: For sale type queries, ONLY show sale properties
+        has_specific_bank = entities.get('bank_name') is not None
+        has_pagibig_query = entities.get('has_pagibig_query', False)
+
+        # IMPORTANT: For any financing-related query, we ONLY want sale properties
+        if has_sale_type_query or has_specific_bank or has_pagibig_query:
             query = query.where(filter=FieldFilter('type', '==', 'sale'))
-            logger.info("🔍 Filtering: Sale properties only (sale_type applies only to sale)")
-            
-            # Try to filter by saleType field
+            logger.info("🔍 Filtering: Sale properties only")
+
+        # Level 1: Filter by saleType
+        if has_sale_type_query and not has_specific_bank and not has_pagibig_query:
+            sale_type = entities['sale_type']
             try:
                 query = query.where(filter=FieldFilter('saleType', '==', sale_type))
                 logger.info(f"🔍 Filtering by saleType: {sale_type}")
             except Exception as e:
                 logger.warning(f"⚠️ Could not filter by saleType: {e}")
-                # Will filter client-side if Firestore query fails
+
+        # Level 2: Filter by specific bank (highest priority)
+        if has_specific_bank:
+            bank_name = entities['bank_name']
+            try:
+                # Must have both saleType = bank_financing AND financingBank = specific bank
+                query = query.where(filter=FieldFilter('saleType', '==', 'bank_financing'))
+                query = query.where(filter=FieldFilter('financingBank', '==', bank_name))
+                logger.info(f"🔍 Filtering by specific bank: {bank_name}")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not filter by specific bank: {e}")
+                # Will filter client-side
+
+        # Level 3: Pag-IBIG (show ALL bank_financing properties)
+        elif has_pagibig_query and not has_specific_bank:
+            try:
+                query = query.where(filter=FieldFilter('saleType', '==', 'bank_financing'))
+                logger.info(f"🔍 Filtering: Properties eligible for Pag-IBIG (all bank_financing)")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not filter by bank_financing: {e}")
         
         # Filter by location if specified
         if entities.get('location'):
@@ -1153,7 +1128,6 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                 'Sto Tomas': 'Sto. Tomas City',
                 'Santo Tomas': 'Sto. Tomas City',
                 'Lobo': 'Lobo',
-                # Add more from your database
                 'Malvar': 'Malvar',
                 'Mataas Na Kahoy': 'Mataas Na Kahoy',
             }
@@ -1344,7 +1318,8 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             status = data.get('status', 'NO STATUS')
             listing_type = data.get('type', 'NO TYPE')
             sale_type = data.get('saleType', 'NO saleType')
-            logger.info(f"   • ID: {doc_id[:10]}..., Type: {prop_type}, City: {city}, Status: {status}, Listing: {listing_type}, SaleType: {sale_type}")
+            bank = data.get('financingBank', 'NO bank')
+            logger.info(f"   • ID: {doc_id[:10]}..., Type: {prop_type}, City: {city}, Status: {status}, Listing: {listing_type}, SaleType: {sale_type}, Bank: {bank}")
         
         # ========== COMPREHENSIVE CLIENT-SIDE FILTERING ==========
         filtered_properties = []
@@ -1357,7 +1332,7 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             valid_statuses = ['available', 'active', 'for sale']
             
             # For sale type queries, only show 'available' or 'active' sale properties
-            if has_sale_type_query:
+            if has_sale_type_query or has_specific_bank or has_pagibig_query:
                 if status not in ['available', 'active']:
                     logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - wrong status for sale type query: {status}")
                     matches = False
@@ -1371,7 +1346,7 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     continue
             
             # ========== CRITICAL: SALE TYPE FILTERING ==========
-            if has_sale_type_query:
+            if has_sale_type_query and not has_specific_bank and not has_pagibig_query:
                 sale_type = entities['sale_type']
                 
                 # Check 1: Must be a sale property
@@ -1394,6 +1369,45 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     continue
                 
                 logger.debug(f"✅ Property {property_data.get('id', 'unknown')} matches sale type: {sale_type}")
+            
+            # ========== CLIENT-SIDE BANK FILTERING ==========
+            if has_specific_bank and matches:
+                prop_bank = property_data.get('financingBank', '')
+                requested_bank = entities['bank_name']
+                
+                # Check 1: Must be a sale property
+                if property_data.get('type') != 'sale':
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not a sale property for bank financing")
+                    matches = False
+                    continue
+                
+                # Check 2: Must have financingBank field
+                if not prop_bank:
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - no financingBank field")
+                    matches = False
+                    continue
+                # Check 3: Must match the requested bank
+                elif prop_bank != requested_bank:
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - bank {prop_bank} != {requested_bank}")
+                    matches = False
+                    continue
+                else:
+                    logger.debug(f"✅ Property {property_data.get('id', 'unknown')} matches bank: {prop_bank}")
+
+            # ========== CLIENT-SIDE PAG-IBIG FILTERING ==========
+            if has_pagibig_query and not has_specific_bank and matches:
+                # Check 1: Must be a sale property
+                if property_data.get('type') != 'sale':
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not a sale property for Pag-IBIG")
+                    matches = False
+                    continue
+                
+                # Check 2: Must have saleType = bank_financing
+                prop_sale_type = property_data.get('saleType', '')
+                if prop_sale_type != 'bank_financing':
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not bank_financing for Pag-IBIG")
+                    matches = False
+                    continue
             
             # Apply property type filtering (for categories with multiple types)
             if entities.get('property_type') and property_type in type_map:
@@ -1502,8 +1516,8 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         debug_property_matching(property_data_list, entities)
         
         # ========== NO FALLBACK FOR SALE TYPE QUERIES ==========
-        if len(properties) == 0 and has_sale_type_query:
-            logger.info(f"❌ No properties found with sale type: {entities['sale_type']}")
+        if len(properties) == 0 and (has_sale_type_query or has_specific_bank or has_pagibig_query):
+            logger.info(f"❌ No properties found with specified financing criteria")
             return []
         
         # ========== DEDUPLICATION ==========
@@ -1524,9 +1538,6 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         logger.error(f"❌ Error searching Firestore: {e}")
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
-        
-        # Fall back to mock data on error
-        properties = get_mock_properties(entities)
     
     return properties
 
@@ -1690,8 +1701,8 @@ def generate_sale_type_response(entities: Dict[str, Any], properties: List[Dict[
         
         return response
     
-    # Handle financing information queries (documents, requirements)
-    elif entities.get('has_financing_info_query'):
+    # Handle financing information queries (documents, process, etc.)
+    elif entities.get('financing_info_request'):
         # User is asking ABOUT financing (documents, process, etc.)
         query_lower = query.lower()
         
@@ -1735,15 +1746,303 @@ def generate_sale_type_response(entities: Dict[str, Any], properties: List[Dict[
     
     return None  # Let the main generate_response handle it
 
+# ========== NEW: Generate financing property response (3 levels) ==========
+def generate_financing_property_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for financing-related property searches (3 levels)"""
+    
+    financing_level = entities.get('financing_level', 'sale_type')
+    query_type = entities.get('query_type', 'property_search')
+    
+    # ========== LEVEL 1: SALE TYPE ONLY ==========
+    if financing_level == 'sale_type':
+        sale_type = entities['sale_type']
+        sale_type_display = sale_type.replace('_', ' ').title()
+        
+        if sale_type == 'bank_financing':
+            response = f"🏦 **Properties with Bank Financing**\n\n"
+            response += f"I found {len(properties)} properties that accept bank financing:\n\n"
+            
+            # Group by bank if available
+            bank_counts = {}
+            for prop in properties:
+                bank = prop.get('financingBank', 'Bank financing')
+                if not bank:
+                    bank = 'Bank financing'
+                bank_counts[bank] = bank_counts.get(bank, 0) + 1
+            
+            for i, prop in enumerate(properties[:5]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                bank = prop.get('financingBank', 'Bank financing')
+                
+                if not bank:
+                    bank = 'Bank financing'
+                
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+                response += f"   🏦 {bank}\n\n"
+            
+            if bank_counts:
+                response += f"**Available Banks:**\n"
+                for bank, count in list(bank_counts.items())[:5]:
+                    response += f"• {bank}: {count} {'property' if count == 1 else 'properties'}\n"
+        
+        elif sale_type == 'outright':
+            response = f"💰 **Properties with Outright/Cash Payment**\n\n"
+            response += f"I found {len(properties)} properties available for outright purchase:\n\n"
+            for i, prop in enumerate(properties[:5]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+            
+            response += "\n💡 **Outright Payment Benefits:**"
+            response += "\n• 5-10% discount typically offered"
+            response += "\n• Fastest transaction process"
+            response += "\n• No interest or bank fees"
+        
+        elif sale_type == 'installment':
+            response = f"📅 **Properties with Installment Plans**\n\n"
+            response += f"I found {len(properties)} properties available with installment terms:\n\n"
+            for i, prop in enumerate(properties[:5]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+            
+            response += "\n💡 **Installment Benefits:**"
+            response += "\n• Flexible payment terms (up to 10 years)"
+            response += "\n• Easier approval process"
+            response += "\n• Direct developer financing"
+        
+        if not properties:
+            response = f"❌ No properties found with {sale_type_display}.\n\n"
+            response += "💡 **Try:**\n"
+            response += "• Expanding your search area\n"
+            if sale_type == 'bank_financing':
+                response += "• Checking other financing options (installment/outright)\n"
+            response += "• Contacting us for custom property matching\n"
+        
+        return response
+    
+    # ========== LEVEL 2: SPECIFIC BANK ==========
+    elif financing_level == 'specific_bank':
+        bank_name = entities['bank_name']
+        
+        if properties:
+            response = f"🏦 **Properties with {bank_name} Financing**\n\n"
+            response += f"I found {len(properties)} properties that offer {bank_name} financing:\n\n"
+            
+            for i, prop in enumerate(properties[:5]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+            
+            response += f"\n💡 **{bank_name} Financing Tips:**"
+            response += f"\n• Contact {bank_name} directly for current interest rates"
+            response += f"\n• Prepare requirements: Valid ID, Proof of Income, Bank Statements"
+            response += f"\n• Loanable amount typically up to 80% of property value"
+        else:
+            response = f"❌ No properties found with {bank_name} financing.\n\n"
+            response += "💡 **Try:**\n"
+            response += f"• Other banks (BDO, BPI, Metrobank, etc.)\n"
+            response += "• Properties with 'bank_financing' sale type\n"
+            response += "• Checking back later for new listings\n"
+        
+        return response
+    
+    # ========== LEVEL 3: PAG-IBIG ==========
+    elif financing_level == 'pagibig':
+        if properties:
+            response = f"🏠 **Properties Eligible for Pag-IBIG Financing**\n\n"
+            response += f"I found {len(properties)} properties that may qualify for Pag-IBIG housing loans:\n\n"
+            
+            # Group by bank
+            bank_counts = {}
+            for prop in properties:
+                bank = prop.get('financingBank', 'Bank financing')
+                if not bank:
+                    bank = 'Bank financing'
+                bank_counts[bank] = bank_counts.get(bank, 0) + 1
+            
+            for i, prop in enumerate(properties[:5]):
+                title = prop.get('title', f'Property {i+1}')
+                price = prop.get('price', 'Price not available')
+                location = prop.get('location', 'Location not specified')
+                bank = prop.get('financingBank', 'Bank financing')
+                
+                if not bank:
+                    bank = 'Bank financing'
+                
+                response += f"{i+1}. **{title}** in {location} - {price}\n"
+                response += f"   🏦 Partner Bank: {bank}\n\n"
+            
+            response += f"**Pag-IBIG Quick Info:**\n"
+            response += "• Requires 24+ months membership\n"
+            response += "• Up to ₱6M loanable amount\n"
+            response += "• 3-30 years payment term\n"
+            response += "• Interest rates: 5.75% - 11.5%\n\n"
+            response += "*Note: Final approval subject to Pag-IBIG evaluation.*"
+        else:
+            response = f"🏠 **Pag-IBIG Eligible Properties**\n\n"
+            response += "No properties currently found with Pag-IBIG eligibility.\n\n"
+            response += "💡 **Try:**\n"
+            response += "• Looking for properties with 'bank_financing' sale type\n"
+            response += "• These may qualify for Pag-IBIG upon approval\n"
+            response += "• Contact us for assisted Pag-IBIG applications\n"
+        
+        return response
+    
+    return None
+
+# ========== NEW: Generate financing information response ==========
+def generate_financing_info_response(entities: Dict[str, Any]) -> str:
+    """Generate response for financing information requests"""
+    
+    # Check for specific bank information
+    if entities.get('bank_name'):
+        bank_name = entities['bank_name']
+        return f"🏦 **{bank_name} Housing Loan Information**\n\n" \
+               f"**Typical Requirements:**\n" \
+               f"• Valid government-issued ID\n" \
+               f"• Proof of income (3-6 months payslips)\n" \
+               f"• Certificate of Employment\n" \
+               f"• Income Tax Return (ITR)\n" \
+               f"• Bank statements (3-6 months)\n" \
+               f"• Proof of billing\n" \
+               f"• Marriage certificate (if applicable)\n\n" \
+               f"**Process:**\n" \
+               f"1. Loan pre-qualification\n" \
+               f"2. Property appraisal\n" \
+               f"3. Submit loan application\n" \
+               f"4. Credit investigation\n" \
+               f"5. Loan approval (1-2 weeks)\n" \
+               f"6. Release of funds\n\n" \
+               f"💡 **Looking for {bank_name} properties?**\n" \
+               f"Try: 'find properties with {bank_name} financing'"
+    
+    # Check for Pag-IBIG information
+    elif entities.get('has_pagibig_query'):
+        return "🏠 **Pag-IBIG Housing Loan Information**\n\n" \
+               "**Membership Requirements:**\n" \
+               "• Active Pag-IBIG membership (24+ months)\n" \
+               "• At least 24 monthly contributions\n" \
+               "• No existing Pag-IBIG housing loan\n\n" \
+               "**Required Documents:**\n" \
+               "• Pag-IBIG MID Number\n" \
+               "• Valid IDs (2 valid IDs)\n" \
+               "• Proof of income (payslips, ITR)\n" \
+               "• Certificate of Employment\n" \
+               "• Proof of billing\n" \
+               "• Marriage contract (if married)\n" \
+               "• Tax Identification Number (TIN)\n\n" \
+               "**Loan Details:**\n" \
+               "• Maximum loan amount: Up to ₱6M\n" \
+               "• Interest rate: 5.75% - 11.5%\n" \
+               "• Payment term: 3-30 years\n" \
+               "• Loan-to-value: Up to 95%\n\n" \
+               "💡 **Find Pag-IBIG eligible properties:**\n" \
+               "• Try: 'show properties with bank financing'\n" \
+               "• These may qualify for Pag-IBIG upon approval"
+    
+    # Check for bank financing information
+    elif entities.get('sale_type') == 'bank_financing':
+        return "🏦 **Bank Financing Overview**\n\n" \
+               "**Available Banks:**\n" \
+               "• BDO Unibank\n" \
+               "• BPI\n" \
+               "• Metrobank\n" \
+               "• Land Bank of the Philippines\n" \
+               "• UnionBank\n" \
+               "• Security Bank\n" \
+               "• RCBC\n" \
+               "• PNB\n" \
+               "• China Bank\n" \
+               "• Maybank\n\n" \
+               "**Common Requirements:**\n" \
+               "• Valid ID\n" \
+               "• Proof of income (3-6 months)\n" \
+               "• Certificate of Employment\n" \
+               "• ITR\n" \
+               "• Bank statements\n" \
+               "• Proof of billing\n\n" \
+               "**Typical Terms:**\n" \
+               "• Downpayment: 20-30%\n" \
+               "• Interest rate: 6-12% annually\n" \
+               "• Loan term: 5-20 years\n\n" \
+               "💡 **Ask about specific banks:**\n" \
+               "• 'requirements for BDO loan'\n" \
+               "• 'BPI financing process'\n" \
+               "• 'Metrobank housing loan'"
+    
+    # Check for outright/cash information
+    elif entities.get('sale_type') == 'outright':
+        return "💰 **Outright/Cash Payment Information**\n\n" \
+               "**Advantages:**\n" \
+               "• Fastest transaction (1-2 weeks completion)\n" \
+               "• 5-10% discount typically offered\n" \
+               "• No interest payments\n" \
+               "• No bank processing fees\n" \
+               "• Stronger negotiating position\n" \
+               "• No credit checks required\n\n" \
+               "**Requirements:**\n" \
+               "• Valid government ID\n" \
+               "• Tax Identification Number (TIN)\n" \
+               "• Proof of fund source\n" \
+               "• Notarized Deed of Sale\n\n" \
+               "💡 **Find outright properties:**\n" \
+               "• Try: 'find houses with outright payment'\n" \
+               "• Or: 'properties with cash payment option'"
+    
+    # Check for installment information
+    elif entities.get('sale_type') == 'installment':
+        return "📅 **Installment/In-house Financing Information**\n\n" \
+               "**Advantages:**\n" \
+               "• Faster approval (1-3 days)\n" \
+               "• Less strict credit requirements\n" \
+               "• Flexible payment terms (up to 10 years)\n" \
+               "• Direct dealing with developer\n" \
+               "• Lower processing fees\n" \
+               "• Easier to negotiate terms\n\n" \
+               "**Requirements:**\n" \
+               "• Valid ID\n" \
+               "• Proof of Income\n" \
+               "• Downpayment (20-30%)\n" \
+               "• Post-dated checks\n" \
+               "• Buyer Information Sheet\n\n" \
+               "**Typical Terms:**\n" \
+               "• Interest rate: 6-9% annually\n" \
+               "• Monthly amortization based on remaining balance\n\n" \
+               "💡 **Find installment properties:**\n" \
+               "• Try: 'properties with installment plan'\n" \
+               "• Or: 'condos with in-house financing'"
+    
+    return None
+
 # Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES AND MEMBER3
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
-        # ========== HANDLE BASIC INTENTS FIRST ==========
+    
+    # ========== HANDLE MEMBER3 INTENTS FIRST ==========
+    if intent == 'find_property_for_need':
+        return generate_family_needs_response(entities, properties)
+    
+    elif intent == 'find_with_feature':
+        return generate_feature_price_response(entities, properties)
+    
+    elif intent == 'process_info':
+        return generate_process_info_response(entities, properties)
+    
+    elif intent == 'match_needs':
+        return generate_match_needs_response(entities, properties)
+    
+    # ========== HANDLE BASIC INTENTS FIRST ==========
     if intent == 'greeting':
         greeting_responses = [
-            "👋 Hello! I'm Bah.AI, your property assistant for Batangas.",
+            "👋 Hello! I'm BahAI, your property assistant for Batangas.",
             "👋 Hi there! I'm here to help you find properties in Batangas.",
-            "👋 Welcome! I'm Bah.AI, your guide to properties in Batangas.",
+            "👋 Welcome! I'm BahAI, your guide to properties in Batangas.",
             "👋 Greetings! I can help you find houses, condos, and apartments in Batangas.",
             "👋 Hello! How can I assist you with property search in Batangas today?"
         ]
@@ -1760,7 +2059,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return random.choice(thanks_responses)
     
     elif intent == 'help':
-        help_response = "🤖 **Bah.AI Property Assistant**\n\n"
+        help_response = "🤖 **BahAI Property Assistant**\n\n"
         help_response += "I can help you with:\n\n"
         help_response += "🔍 **Property Search**\n"
         help_response += "• Find houses, condos, apartments\n"
@@ -1771,7 +2070,8 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         help_response += "💰 **Financing Information**\n"
         help_response += "• Properties with bank financing\n"
         help_response += "• Outright payment options\n"
-        help_response += "• Installment plans\n\n"
+        help_response += "• Installment plans\n"
+        help_response += "• Specific bank filtering (BDO, BPI, Metrobank, etc.)\n\n"
         
         help_response += "📍 **Location Information**\n"
         help_response += "• Learn about different areas in Batangas\n"
@@ -1792,36 +2092,48 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         help_response += "💡 **Try these examples:**\n"
         help_response += "• 'Find apartments in Batangas City'\n"
         help_response += "• 'Show me houses under 15M with 3 bedrooms'\n"
-        help_response += "• 'Properties with bank financing'\n"
+        help_response += "• 'Properties with BDO financing'\n"
+        help_response += "• 'Show me properties with bank financing'\n"
         help_response += "• 'Tell me about Lipa City'\n"
         help_response += "• 'Find properties for family of 4'\n"
         
         return help_response
     
     elif intent == 'about_system':
-        about_response = "🏠 **Bah.AI - Batangas Property Assistant**\n\n"
-        about_response += "I'm an AI-powered chatbot designed to help you find and explore "
-        about_response += "properties in Batangas province, Philippines.\n\n"
-        
-        about_response += "**What I can do:**\n"
-        about_response += "• Search properties across Batangas cities and municipalities\n"
-        about_response += "• Provide detailed property information and features\n"
-        about_response += "• Offer financing options and payment information\n"
-        about_response += "• Give location insights and lifestyle information\n"
-        about_response += "• Match properties to your specific needs and preferences\n\n"
-        
-        about_response += "**Coverage Areas:**\n"
-        about_response += "• Batangas City, Lipa City, Nasugbu, Tanauan City\n"
-        about_response += "• Sto. Tomas City, Malvar, Bauan, Calatagan\n"
-        about_response += "• Taal, San Juan, Mabini, and many more\n\n"
-        
-        about_response += "**Property Types:**\n"
-        about_response += "• Houses, Condos, Apartments, Townhouses\n"
-        about_response += "• Commercial spaces, Offices, Retail\n"
-        about_response += "• Land, Beachfront properties, Resort properties\n\n"
-        
-        about_response += "Just tell me what you're looking for, and I'll help you find it! 😊"
-        
+        about_response = "🏠 **BahAI - Your Batangas Property Assistant** 🏝️\n\n"
+        about_response += "Hi there! I'm an AI-powered chatbot designed to help you find and explore "
+        about_response += "properties in Batangas province, Philippines. I'm here to make your property search easy and enjoyable! 😊\n\n"
+    
+        about_response += "**✨ What I Can Do For You:**\n"
+        about_response += "• 🔍 **Search properties** across Batangas cities and municipalities\n"
+        about_response += "• 📋 **Provide detailed property information** and features\n"
+        about_response += "• 💰 **Offer financing options** and payment information\n"
+        about_response += "• 🏦 **Filter by specific banks** (BDO, BPI, Metrobank, etc.)\n"
+        about_response += "• 🏖️ **Give location insights** and lifestyle information\n"
+        about_response += "• 🎯 **Match properties** to your specific needs and preferences\n\n"
+    
+        about_response += "**📍 Coverage Areas:**\n"
+        about_response += "• 🏙️ **Major Cities:** Batangas City, Lipa City, Tanauan City, Sto. Tomas City\n"
+        about_response += "• 🏖️ **Beach Areas:** Nasugbu, Calatagan, Mabini, San Juan\n"
+        about_response += "• 🏞️ **Heritage Towns:** Taal, Balayan, Lemery\n"
+        about_response += "• 🌄 **And many more!** Malvar, Bauan, Taysan, Rosario, and across the province\n\n"
+    
+        about_response += "**🏡 Property Types I Can Help With:**\n"
+        about_response += "• 🏠 Houses, Condos, Apartments, Townhouses\n"
+        about_response += "• 💼 Commercial spaces, Offices, Retail stores\n"
+        about_response += "• 🌊 Beachfront properties, Resort properties\n"
+        about_response += "• 🌾 Residential lots, Agricultural land\n\n"
+    
+        about_response += "**💬 Just tell me what you're looking for!**\n"
+        about_response += "Try saying something like:\n"
+        about_response += "• *'Find apartments in Batangas City'*\n"
+        about_response += "• *'Show me houses under 3M with 3 bedrooms'*\n"
+        about_response += "• *'Properties with BDO financing'*\n"
+        about_response += "• *'Tell me about Lipa City'*\n"
+        about_response += "• *'Properties near beaches in Nasugbu'*\n\n"
+    
+        about_response += "I'm here to help you every step of the way. What kind of property are you looking for today? 😊🎉"
+    
         return about_response
     
     elif intent == 'goodbye':
@@ -2150,7 +2462,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                     '{count}': str(len(properties)),
                     '{property_type}': entities.get('property_type', 'property'),
                     '{location}': entities.get('location', 'the area'),
-                    '{sale_type}': entities.get('sale_type', 'financing'),  # CHANGED: from financing_type to sale_type
+                    '{sale_type}': entities.get('sale_type', 'financing'),
                     '{feature}': entities.get('feature', 'feature'),
                     '{landmark}': entities.get('landmark', 'landmark'),
                     '{bedrooms}': str(entities.get('bedrooms', '')),
@@ -2268,7 +2580,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         
         if sale_type == 'bank_financing':
             response += "\n**Bank Financing Options:**\n"
-            response += "• BDO\n• Metrobank\n• UnionBank\n• RCBC\n• Other accredited banks\n"
+            response += "• BDO Unibank\n• BPI\n• Metrobank\n• UnionBank\n• RCBC\n• Security Bank\n• Other accredited banks\n"
             response += "\n**Typical Requirements:**\n"
             response += "• Valid IDs\n• Proof of income\n• Bank statements\n• Proof of billing\n"
         
@@ -2351,6 +2663,127 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
         response += "   • Try a broader search: *'find properties'*\n"
         response += "   • Specify a location: *'find {property_type_display.lower()} in Lipa City'*\n"
         response += "   • Check back later for new listings\n"
+    
+    return response
+
+# Placeholder functions for Member3 responses
+def generate_family_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for family needs queries"""
+    need_type = entities.get('need_type', 'family')
+    family_size = entities.get('family_size', 4)
+    
+    response = f"👨‍👩‍👧‍👦 **Properties for {need_type.title()}**\n\n"
+    
+    if properties:
+        response += f"I found {len(properties)} properties suitable for a family of {family_size}:\n\n"
+        for i, prop in enumerate(properties[:3]):
+            title = prop.get('title', f'Property {i+1}')
+            price = prop.get('price', 'Price not available')
+            location = prop.get('location', 'Location not specified')
+            bedrooms = prop.get('bedrooms', 'Not specified')
+            response += f"{i+1}. **{title}** in {location} - {price}\n"
+            response += f"   🛏️ {bedrooms} bedroom{'s' if bedrooms != '1' else ''}\n\n"
+        
+        response += "💡 **Family Tips:**\n"
+        response += "   • Look for properties near schools and parks\n"
+        response += "   • Consider neighborhoods with family-friendly amenities\n"
+        response += "   • Check for safety and security features\n"
+    else:
+        response += f"No properties found for a family of {family_size}.\n\n"
+        response += "💡 **Try:**\n"
+        response += "   • Adjusting your family size\n"
+        response += "   • Looking in different locations\n"
+        response += "   • Considering smaller families or different needs\n"
+    
+    return response
+
+def generate_feature_price_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for feature with price quality queries"""
+    feature = entities.get('feature', 'featured')
+    price_quality = entities.get('price_quality', 'affordable')
+    
+    response = f"💰 **{feature.title()} Properties at {price_quality.title()} Prices**\n\n"
+    
+    if properties:
+        response += f"I found {len(properties)} properties:\n\n"
+        for i, prop in enumerate(properties[:3]):
+            title = prop.get('title', f'Property {i+1}')
+            price = prop.get('price', 'Price not available')
+            location = prop.get('location', 'Location not specified')
+            response += f"{i+1}. **{title}** in {location} - {price}\n"
+    else:
+        response += f"No properties found with {feature} at {price_quality} prices.\n\n"
+        response += "💡 **Try:**\n"
+        response += "   • Adjusting your budget expectations\n"
+        response += "   • Looking for different features\n"
+        response += "   • Considering nearby areas\n"
+    
+    return response
+
+def generate_process_info_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for process information queries"""
+    process_type = entities.get('process_type', 'process')
+    
+    response = f"📋 **Property {process_type.title()} Information**\n\n"
+    
+    if 'step' in process_type or 'process' in process_type:
+        response += "**Standard Property Buying Process:**\n"
+        response += "1️⃣ **Search & Selection** - Find properties that match your needs\n"
+        response += "2️⃣ **Due Diligence** - Verify property documents and ownership\n"
+        response += "3️⃣ **Negotiation** - Discuss price and terms with the seller\n"
+        response += "4️⃣ **Reservation** - Pay reservation fee to secure the property\n"
+        response += "5️⃣ **Financing** - Secure loan or prepare full payment\n"
+        response += "6️⃣ **Contract Signing** - Execute Deed of Absolute Sale\n"
+        response += "7️⃣ **Payment** - Complete the payment\n"
+        response += "8️⃣ **Transfer of Title** - Register property in your name\n\n"
+    
+    elif 'document' in process_type or 'requirement' in process_type:
+        response += "**Common Requirements:**\n"
+        response += "• 📄 Valid government-issued IDs\n"
+        response += "• 💼 Proof of income (payslips, ITR, bank statements)\n"
+        response += "• 🏢 Certificate of Employment\n"
+        response += "• 📍 Proof of billing\n"
+        response += "• 💍 Marriage certificate (if applicable)\n"
+        response += "• 🔢 Tax Identification Number (TIN)\n\n"
+    
+    elif 'timeline' in process_type:
+        response += "**Typical Timeline:**\n"
+        response += "• Property Search: 1-4 weeks\n"
+        response += "• Due Diligence: 3-7 days\n"
+        response += "• Loan Approval: 1-2 weeks\n"
+        response += "• Document Processing: 2-4 weeks\n"
+        response += "• Total Process: 1-3 months\n\n"
+    
+    response += "💡 Contact us for specific guidance on your property purchase journey!"
+    return response
+
+def generate_match_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+    """Generate response for lifestyle matching queries"""
+    lifestyle = entities.get('lifestyle', 'your needs')
+    
+    response = f"🎯 **Properties Matching {lifestyle.title()}**\n\n"
+    
+    if properties:
+        response += f"I found {len(properties)} properties that align with your preferences:\n\n"
+        for i, prop in enumerate(properties[:3]):
+            title = prop.get('title', f'Property {i+1}')
+            price = prop.get('price', 'Price not available')
+            location = prop.get('location', 'Location not specified')
+            features = prop.get('features', [])
+            features_str = ", ".join(features[:2]) if features else "Standard features"
+            response += f"{i+1}. **{title}** in {location} - {price}\n"
+            response += f"   ✨ {features_str}\n\n"
+        
+        response += "💡 **How well does it match?**\n"
+        response += "   • Consider your daily commute\n"
+        response += "   • Check nearby amenities\n"
+        response += "   • Visit the neighborhood\n"
+    else:
+        response += "No properties found matching your lifestyle preferences.\n\n"
+        response += "💡 **Try:**\n"
+        response += "   • Describing your ideal lifestyle\n"
+        response += "   • Specifying preferred features\n"
+        response += "   • Selecting a different location\n"
     
     return response
 
@@ -2452,6 +2885,8 @@ def chat():
             
             # Check if user is asking for properties with specific sale type
             has_sale_type = entities.get('sale_type') is not None
+            has_specific_bank = entities.get('bank_name') is not None
+            has_pagibig = entities.get('has_pagibig_query', False)
             is_property_search = any(phrase in query_lower for phrase in [
                 'properties that accept',
                 'houses that accept', 
@@ -2475,11 +2910,11 @@ def chat():
                 'properties', 'houses', 'condos', 'apartments', 'units', 'spaces'
             ])
             
-            if (has_sale_type and (is_property_search or (has_search_action and has_property_type))):
-                # User is asking for properties with specific sale type
-                logger.info(f"🔍 Sale type query is a property search - searching Firestore")
+            if (has_sale_type or has_specific_bank or has_pagibig) and (is_property_search or (has_search_action and has_property_type)):
+                # User is asking for properties with specific sale type or bank
+                logger.info(f"🔍 Financing query is a property search - searching Firestore")
                 properties = search_firestore_properties(entities)
-            elif entities.get('has_financing_info_query'):
+            elif entities.get('financing_info_request'):
                 # User is asking ABOUT financing (documents, process, etc.)
                 logger.info(f"🔍 Financing query is information-only - NOT searching Firestore")
                 properties = []  # No property search needed
@@ -2499,14 +2934,30 @@ def chat():
             else:
                 properties = []  # Just location info, no properties
         
-        # Step 4: Generate response using appropriate function
-        # Check for sale_type or financing info queries first
-        if entities.get('sale_type') or entities.get('has_financing_info_query'):
-            sale_type_response = generate_sale_type_response(entities, properties, query)
-            if sale_type_response:
-                response_text = sale_type_response
+        # ========== UPDATED: Generate response using appropriate function ==========
+        # Check for financing-related queries first
+        if entities.get('sale_type') or entities.get('bank_name') or entities.get('has_pagibig_query'):
+            
+            if entities.get('query_type') == 'property_search':
+                # Property search with financing criteria
+                financing_response = generate_financing_property_response(entities, properties)
+                if financing_response:
+                    response_text = financing_response
+                else:
+                    response_text = generate_response(intent, entities, properties)
+            
+            elif entities.get('financing_info_request'):
+                # Information request about financing
+                info_response = generate_financing_info_response(entities)
+                if info_response:
+                    response_text = info_response
+                else:
+                    response_text = generate_response(intent, entities, properties)
+            
             else:
+                # Fallback
                 response_text = generate_response(intent, entities, properties)
+                
         else:
             response_text = generate_response(intent, entities, properties)
         
@@ -2524,6 +2975,10 @@ def chat():
             'is_general_search': entities.get('has_general_search', False),
             'is_criteria_search': intent == 'find_property_with_criteria',
             'has_sale_type_query': entities.get('sale_type') is not None,
+            'has_specific_bank': entities.get('bank_name') is not None,
+            'has_pagibig_query': entities.get('has_pagibig_query', False),
+            'financing_level': entities.get('financing_level'),
+            'query_type': entities.get('query_type'),
             'has_member3_query': any([
                 entities.get('has_need_query'),
                 entities.get('has_feature_price_query'),
@@ -2549,6 +3004,28 @@ def chat():
 def determine_intent_fallback(query: str) -> str:
     """Simple rule-based intent detection as fallback"""
     query_lower = query.lower()
+
+    # Check for SIMPLE greetings first (single word or very short)
+    simple_greetings = ['hi', 'hello', 'hey', 'howdy', 'yo', 'sup']
+    if query_lower in simple_greetings or query_lower in ['hi there', 'hello there', 'hey there']:
+        return 'greeting'
+    
+    # Check for time-based greetings
+    if any(query_lower.startswith(g) for g in ['good morning', 'good afternoon', 'good evening']):
+        return 'greeting'
+    
+    # NOW check for about_system queries (these are longer and ask about the system)
+    about_system_indicators = [
+        'what are you', 'who are you', 'what is this system', 'what is this chatbot',
+        'what is bahAI', 'tell me about yourself', 'introduce yourself', 'what do you do',
+        'what can you do', 'what is your purpose', 'system overview', 'about the system',
+        'what is the system about',
+        'what services do you offer', 'give me an introduction', 'explain what you do'
+    ]
+    
+    for indicator in about_system_indicators:
+        if indicator in query_lower:
+            return 'about_system'
     
     # ========== CRITICAL FIX: CHECK SPECIFIC PATTERNS FIRST ==========
     
@@ -2588,8 +3065,32 @@ def determine_intent_fallback(query: str) -> str:
     
     # ========== CHECK FOR MEMBER3 QUERIES ==========
     
-    # Family/needs queries
-    if 'for family' in query_lower or 'family of' in query_lower:
+    # Family/needs queries - EXPANDED TO MATCH TRAINING DATA
+    if any(phrase in query_lower for phrase in [
+        'for family', 
+        'family of', 
+        'family properties',
+        'family house',
+        'family home',
+        'family condo',
+        'family apartment',
+        'family sized',
+        'family-size',
+        'big family',
+        'large family',
+        'small family'
+    ]):
+        return 'find_property_for_need'
+
+    # Other needs queries - EXPANDED
+    if any(phrase in query_lower for phrase in [
+        'for students', 'student housing', 'student accommodations',
+        'for professionals', 'working professionals',
+        'for couple', 'for couples', 'properties for couples',
+        'for retirees', 'retirement',
+        'for business', 'home business',
+        'for investors', 'for single'
+    ]):
         return 'find_property_for_need'
     
     # Price quality queries
@@ -2603,10 +3104,6 @@ def determine_intent_fallback(query: str) -> str:
     # Lifestyle matching queries
     if any(keyword in query_lower for keyword in ['match my', 'suitable for', 'fitting my', 'what matches', 'recommendations']):
         return 'match_needs'
-    
-    # Other needs queries
-    if any(keyword in query_lower for keyword in ['for students', 'for professionals', 'for couple', 'for couples', 'for retirees', 'for business']):
-        return 'find_property_for_need'
     
     # ========== CHECK FOR SALE TYPE/FINANCING QUERIES ==========
     
@@ -2622,10 +3119,23 @@ def determine_intent_fallback(query: str) -> str:
         if keyword in query_lower:
             return 'financing'
     
+    # Specific bank detection
+    bank_names = [
+        'bdo', 'bpi', 'metrobank', 'landbank', 'unionbank', 
+        'security bank', 'rcbc', 'pnb', 'china bank', 'maybank'
+    ]
+    for bank in bank_names:
+        if bank in query_lower:
+            return 'financing'
+    
+    # Pag-IBIG detection
+    if 'pag-ibig' in query_lower or 'pagibig' in query_lower:
+        return 'financing'
+    
     # Financing information queries
     if any(phrase in query_lower for phrase in [
         'what documents', 'requirements for', 'how to get loan',
-        'pag-ibig', 'housing loan', 'mortgage documents',
+        'housing loan', 'mortgage documents',
         'loan requirements', 'financing documents', 'bank requirements'
     ]):
         return 'financing'
@@ -2794,8 +3304,8 @@ def health_check():
     
     return jsonify({
         'status': 'healthy',
-        'service': 'Bah.AI Property Chatbot',
-        'version': '3.8',  # Updated version with Member3 features
+        'service': 'BahAI Property Chatbot',
+        'version': '3.9',  # Updated version with specific bank filtering and 3-level financing
         'deployed_url': 'https://bahai.onrender.com',
         'firebase_connected': db is not None,
         'firebase_env_exists': firebase_env_exists,
@@ -2805,7 +3315,10 @@ def health_check():
         'supports_general_searches': True,
         'supports_criteria_searches': True,
         'supports_sale_type_filtering': True,
-        'member3_features': True,  # Added Member3 features flag
+        'supports_specific_bank_filtering': True,
+        'supports_pagibig_filtering': True,
+        'financing_levels_supported': ['sale_type', 'specific_bank', 'pagibig'],
+        'member3_features': True,
         'member3_questions_supported': [
             'Family/space needs detection',
             'Feature with price quality',
@@ -2831,10 +3344,21 @@ def test_endpoint():
         "what are the steps to buy a house",
         "find properties that match my lifestyle",
         
-        # Sale type queries
+        # Sale type queries - Level 1
         "show me properties with bank financing",
         "find houses with outright payment",
         "properties with installment plan",
+        
+        # Specific bank queries - Level 2
+        "properties with BDO financing",
+        "find condos with BPI loan",
+        "houses with Metrobank financing",
+        "properties that accept UnionBank",
+        
+        # Pag-IBIG queries - Level 3
+        "pag-ibig financing properties",
+        "show me properties eligible for pag-ibig",
+        "houses with pag-ibig loan",
         
         # Criteria-based searches
         "show me houses under 15M with 3 bedrooms",
@@ -2870,6 +3394,10 @@ def test_endpoint():
                     'has_location': entities.get('location') is not None,
                     'property_type': entities.get('property_type'),
                     'sale_type': entities.get('sale_type'),
+                    'bank_name': entities.get('bank_name'),
+                    'has_pagibig_query': entities.get('has_pagibig_query', False),
+                    'financing_level': entities.get('financing_level'),
+                    'query_type': entities.get('query_type'),
                     'max_price': entities.get('max_price'),
                     'exact_bedrooms': entities.get('exact_bedrooms'),
                     'has_need_query': entities.get('has_need_query'),
@@ -2885,7 +3413,7 @@ def test_endpoint():
                         entities.get('has_match_query')
                     ]),
                     'is_criteria_search': intent == 'find_property_with_criteria',
-                    'is_sale_type_query': entities.get('sale_type') is not None
+                    'is_financing_query': entities.get('sale_type') is not None or entities.get('bank_name') is not None or entities.get('has_pagibig_query', False)
                 })
         except Exception as e:
             results.append({
@@ -2900,13 +3428,15 @@ def test_endpoint():
         'supports_criteria_searches': True,
         'supports_general_searches': True,
         'supports_sale_type_filtering': True,
+        'supports_specific_bank_filtering': True,
+        'supports_pagibig_filtering': True,
         'member3_features_available': True
     })
 
 # ==================== MODEL LOADING (RUNS ON IMPORT) ====================
 print("\n" + "="*60)
-print("🚀 BAH.AI PROPERTY CHATBOT BACKEND v3.8")
-print("   (Added: Member3 Detection & Response Logic)")
+print("🚀 BAHAI PROPERTY CHATBOT BACKEND v3.9")
+print("   (Added: Specific Bank Filtering & 3-Level Financing)")
 print("="*60)
 
 print("📝 Step 1: Loading NLU model...")
@@ -2922,6 +3452,9 @@ print(f"🔥 Firebase: {'✅ Connected' if db else '❌ Not connected'}")
 print(f"🔍 General Searches: {'✅ Supported'}")
 print(f"🔍 Criteria Searches: {'✅ Supported'}")
 print(f"💰 Sale Type Filtering: {'✅ Supported (bank_financing, outright, installment)'}")
+print(f"🏦 Specific Bank Filtering: {'✅ Supported (BDO, BPI, Metrobank, etc.)'}")
+print(f"🏠 Pag-IBIG Filtering: {'✅ Supported'}")
+print(f"📊 Financing Levels: {['sale_type', 'specific_bank', 'pagibig']}")
 print(f"👨‍👩‍👧‍👦 Member3 Features: {'✅ Enabled'}")
 print(f"   • Family/space needs detection")
 print(f"   • Feature with price quality")
@@ -2949,10 +3482,13 @@ print("   • 'find affordable apartments' (price quality)")
 print("   • 'what are the steps to buy a house' (process info)")
 print("   • 'find properties that match my lifestyle' (lifestyle matching)")
 
+print("\n🔍 Example FINANCING queries (3 levels):")
+print("   • Level 1 - Sale Type: 'show me properties with bank financing'")
+print("   • Level 2 - Specific Bank: 'properties with BDO financing'")
+print("   • Level 3 - Pag-IBIG: 'show me pag-ibig eligible properties'")
+print("   • Info Request: 'what are the requirements for BDO housing loan'")
+
 print("\n🔍 Other example queries:")
-print("   • 'show me properties with bank financing' (sale type filter)")
-print("   • 'find houses with outright payment' (sale type filter)")
-print("   • 'properties with installment plan' (sale type filter)")
 print("   • 'show me houses under 15M with 3 bedrooms' (criteria search)")
 print("   • 'find condos below 10M with 2 bedrooms' (criteria search)")
 print("   • 'find apartments' (general search)")
@@ -2962,5 +3498,5 @@ print("="*60 + "\n")
 
 # ==================== MAIN BLOCK (for local development only) ====================
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)

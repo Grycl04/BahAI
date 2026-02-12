@@ -1,0 +1,212 @@
+{
+  "training_samples": [
+    {
+      "query": "bye",
+      "intent": "goodbye",
+      "variations": [
+        "goodbye",
+        "bye bye",
+        "bye!",
+        "byee",
+        "byeee",
+        "see you",
+        "see ya",
+        "see you later",
+        "later",
+        "laters",
+        "cya",
+        "see u",
+        "see you soon",
+        "talk later",
+        "talk to you later",
+        "bye for now",
+        "ok bye",
+        "alright bye",
+        "k bye",
+        "kk bye",
+        "bye bot",
+        "bye ai",
+        "bye assistant"
+      ]
+    },
+    {
+      "query": "goodbye",
+      "intent": "goodbye",
+      "variations": [
+        "good bye",
+        "goodbye!",
+        "good bye!",
+        "farewell",
+        "farewell bot",
+        "farewell ai",
+        "have a good day",
+        "have a nice day",
+        "have a great day",
+        "have a good one",
+        "take care",
+        "take care!",
+        "take care bot",
+        "take care ai",
+        "stay safe",
+        "stay safe bot"
+      ]
+    },
+    {
+      "query": "i'm leaving",
+      "intent": "goodbye",
+      "variations": [
+        "i have to go",
+        "got to go",
+        "gotta go",
+        "i need to go",
+        "i'm heading out",
+        "i'll go now",
+        "i'm done",
+        "done for now",
+        "i'm finished",
+        "i'm all set",
+        "i'll leave now",
+        "leaving now",
+        "signing off",
+        "logging off",
+        "log off",
+        "end chat",
+        "end conversation"
+      ]
+    },
+    {
+      "query": "thanks bye",
+      "intent": "goodbye",
+      "variations": [
+        "thank you bye",
+        "thanks, goodbye",
+        "thanks see you",
+        "thanks, i'm done",
+        "ok thanks bye",
+        "alright thanks bye",
+        "ty bye",
+        "thx bye",
+        "salamat bye",
+        "thanks that's all"
+      ]
+    },
+    {
+      "query": "talk later",
+      "intent": "goodbye",
+      "variations": [
+        "talk soon",
+        "talk next time",
+        "chat later",
+        "chat soon",
+        "we'll talk later",
+        "see you next time",
+        "see you again",
+        "until next time",
+        "later again"
+      ]
+    },
+    {
+      "query": "have a good day",
+      "intent": "goodbye",
+      "variations": [
+        "have a nice day",
+        "have a great day",
+        "enjoy your day",
+        "have a good night",
+        "good night",
+        "goodnight",
+        "good night bot",
+        "good night ai",
+        "have a good evening",
+        "have a great evening"
+      ]
+    },
+    {
+      "query": "closing chat",
+      "intent": "goodbye",
+      "variations": [
+        "close chat",
+        "close this",
+        "exit",
+        "quit",
+        "leave chat",
+        "stop chat",
+        "stop",
+        "end",
+        "finish",
+        "that's all",
+        "nothing else",
+        "no more questions",
+        "i'm good now",
+        "all good thanks"
+      ]
+    },
+    {
+      "query": "filipino goodbye",
+      "intent": "goodbye",
+      "variations": [
+        "paalam",
+        "sige bye",
+        "bye po",
+        "ingat",
+        "ingat po",
+        "ingat ka",
+        "ingat kayo",
+        "salamat bye",
+        "aalis na ako",
+        "alis na",
+        "tapos na",
+        "ok na",
+        "sige salamat",
+        "hanggang sa muli",
+        "hanggang next time"
+      ]
+    },
+    {
+      "query": "property chat done",
+      "intent": "goodbye",
+      "variations": [
+        "i found what i need",
+        "that's enough listings",
+        "i'm done searching",
+        "no more properties",
+        "i'll check later",
+        "i'll come back later",
+        "i'll browse later",
+        "i'll return later",
+        "i'll message later",
+        "i'll contact agent later"
+      ]
+    },
+    {
+      "query": "short goodbye",
+      "intent": "goodbye",
+      "variations": [
+        "bb",
+        "gtg",
+        "brb bye",
+        "ok im out",
+        "im out",
+        "out",
+        "bye now",
+        "bye2",
+        "bbye",
+        "aight bye"
+      ]
+    },
+    {
+      "query": "emoji goodbye",
+      "intent": "goodbye",
+      "variations": [
+        "bye 🙂",
+        "bye 👋",
+        "goodbye 👋",
+        "see you 👋",
+        "thanks bye 🙂",
+        "bye 👍",
+        "bye ❤️",
+        "ingat 🙏"
+      ]
+    }
+  ]
+}

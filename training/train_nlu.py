@@ -99,12 +99,17 @@ class TeamNLUTrainer:
         
         # Intent keywords for better classification
         self.intent_keywords = {
-                'greeting': ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'],
+    'greeting': ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
+                 'how are you', 'what\'s up', 'sup', 'hi there', 'hello there'],
     'thanks': ['thank you', 'thanks', 'thank', 'thanks a lot', 'appreciate', 'grateful'],
     'help': ['help', 'what can you do', 'how can you help', 'assist', 'support', 'guide', 'explain'],
-    'about_system': ['what are you', 'who are you', 'what is this', 'what is the system', 
-                     'what do you do', 'what can you help with', 'tell me about yourself',
-                     'what is this system about', 'what is this chatbot', 'what is bah.ai'],
+    'about_system': [
+        'what are you', 'who are you', 'what is this', 'what is the system', 
+        'what do you do', 'what can you help with', 'tell me about yourself',
+        'what is this system about', 'what is this chatbot', 'what is bah.ai',
+        'introduce yourself', 'system overview', 'what is your purpose',  # Add these
+        'what services do you offer', 'give me an overview', 'explain your features'
+    ],
     'goodbye': ['bye', 'goodbye', 'see you', 'farewell', 'exit', 'quit', 'end'],
             'financing': ['accept bank financing', 'accept financing', 'bank loan', 
                          'mortgage', 'pag-ibig', 'payment method', 'financing type',
@@ -121,7 +126,9 @@ class TeamNLUTrainer:
             'find_with_feature': ['with swimming pool', 'with pool', 'with garden', 
                                  'with parking', 'with elevator', 'with security',
                                  'with wifi', 'with furniture', 'with aircon',
-                                 'with feature', 'featuring', 'having'],
+                                 'with feature', 'featuring', 'having',
+                                 'parking', 'pool', 'garden', 'garage',  
+                                 'apartments with parking', 'condos with parking' ],
             'find_near_landmark': ['near schools', 'near mall', 'near hospital', 
                                   'near port', 'near beach', 'near church',
                                   'near landmark', 'close to', 'around',
@@ -290,11 +297,114 @@ class TeamNLUTrainer:
         
         return texts, intents
 
+    def load_member4_general_data(self):
+        """Load Member 4 general intents from separate folder"""
+        texts = []
+        intents = []
+        
+        general_files = glob.glob(os.path.join('data/member4_general', '*.json'))
+        
+        if not general_files:
+            print("   ⚠️ No member4_general files found")
+            return texts, intents
+        
+        for general_file in general_files:
+            file_name = os.path.basename(general_file)
+            print(f"   📄 Loading {file_name}...")
+            
+            try:
+                with open(general_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                samples = data.get('training_samples', [])
+                
+                for sample in samples:
+                    # Main query
+                    query = sample.get('query', '').strip()
+                    if query:
+                        texts.append(self.preprocess_text(query))
+                        intents.append(sample.get('intent', 'greeting'))
+                    
+                    # Variations
+                    variations = sample.get('variations', [])
+                    for variation in variations:
+                        if isinstance(variation, str) and variation.strip():
+                            texts.append(self.preprocess_text(variation))
+                            intents.append(sample.get('intent', 'greeting'))
+                
+                print(f"      ✅ Added {len(samples)} base samples from {file_name}")
+                
+            except Exception as e:
+                print(f"      ❌ Error loading {file_name}: {e}")
+        
+        # Print summary
+        if texts:
+            from collections import Counter
+            intent_counts = Counter(intents)
+            print(f"      📊 Intent breakdown:")
+            for intent, count in intent_counts.most_common():
+                print(f"         • {intent}: {count} samples")
+        
+        return texts, intents
+
     def add_corrective_training_samples(self):
         """Add specific training samples to fix common misclassifications"""
         print("\n🔧 Adding corrective training samples...")
         
         corrective_samples = [
+            # Clear greeting samples (short, simple)
+            ("hi", "greeting"),
+            ("hello", "greeting"),
+            ("hey", "greeting"),
+            ("hi there", "greeting"),
+            ("hello there", "greeting"),
+            ("good morning", "greeting"),
+            ("good afternoon", "greeting"),
+            ("good evening", "greeting"),
+            ("howdy", "greeting"),
+            ("yo", "greeting"),
+            ("sup", "greeting"),
+            ("hello bot", "greeting"),
+            ("hi ai", "greeting"),
+        
+            # Clear about_system samples (asking for information about the system)
+            ("what are you", "about_system"),
+            ("who are you", "about_system"),
+            ("what is this system", "about_system"),
+            ("what is this chatbot", "about_system"),
+            ("what is bahai", "about_system"),
+            ("tell me about yourself", "about_system"),
+            ("introduce yourself", "about_system"),
+            ("what do you do", "about_system"),
+            ("what can you do", "about_system"),
+            ("what is your purpose", "about_system"),
+            ("system overview", "about_system"),
+            ("what services do you offer", "about_system"),
+            ("give me an introduction", "about_system"),
+            ("explain what you do", "about_system"),
+            ("about the system", "about_system"),
+            ("what is this about", "about_system"),
+            ("tell me more about bah.ai", "about_system"),
+            ("what is the system about", "about_system"),
+            ("what services do you offer", "about_system"),
+            ("give me an introduction", "about_system"),
+            ("explain what you do", "about_system"),
+            ("what is this about", "about_system"),
+            ("tell me more about bahAI", "about_system"),
+            ("can you introduce yourself", "about_system"),
+            ("describe yourself", "about_system"),
+        
+            # Negative examples - what should NOT be about_system
+            ("hi what is this", "greeting"),  
+            ("hello what are you", "greeting"), 
+        
+            # Let's add these as about_system since they're asking about the system
+            ("hi what are you", "about_system"),
+            ("hello what is this", "about_system"),
+            ("hey what do you do", "about_system"),
+
+            
+    
             # Clear examples of find_property_with_criteria
             ("houses under 30 million with 4 bedrooms", "find_property_with_criteria"),
             ("show me properties below 20M with 3 bedrooms", "find_property_with_criteria"),
@@ -609,6 +719,13 @@ class TeamNLUTrainer:
         all_texts.extend(member_texts)
         all_intents.extend(member_intents)
         print(f"   ✅ Loaded {len(member_texts)} samples")
+        print(f"   Total so far: {len(all_texts)} samples")
+
+        print("\n📁 Source 1C: Member 4 - General Intents")
+        member4_texts, member4_intents = self.load_member4_general_data()
+        all_texts.extend(member4_texts)
+        all_intents.extend(member4_intents)
+        print(f"   ✅ Loaded {len(member4_texts)} general intent samples")
         print(f"   Total so far: {len(all_texts)} samples")
         
         # 2. Add corrective training samples (FIX for your issues)
