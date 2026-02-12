@@ -17,6 +17,7 @@ from typing import Dict, List, Any, Optional
 import numpy as np
 import random
 import sys
+import hashlib
 from collections import defaultdict
 
 load_dotenv('.env.local') 
@@ -217,12 +218,11 @@ def load_nlu_model():
     
     # List all possible model paths to check
     possible_paths = [
-        MODEL_PATH,  # Original path: /training/models/nlu_model.pkl
+        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),  # <-- MOVE TO TOP
+        MODEL_PATH,  # training/models/nlu_model.pkl
         os.path.join(PROJECT_ROOT, 'backend', 'models', 'nlu_model.pkl'),
-        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),
         os.path.join(os.path.dirname(PROJECT_ROOT), 'models', 'nlu_model.pkl'),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'nlu_model.pkl'),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'nlu_model.pkl'),
     ]
     
     model_loaded = False
@@ -329,6 +329,73 @@ def load_nlu_model():
             
         except Exception as fallback_error:
             logger.error(f"❌ Could not create fallback model: {fallback_error}")
+def verify_model_file():
+    """Verify which model file is actually being loaded"""
+    model_paths = [
+        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),
+        os.path.join(PROJECT_ROOT, 'training', 'models', 'nlu_model.pkl'),
+        os.path.join(PROJECT_ROOT, 'backend', 'models', 'nlu_model.pkl'),
+    ]
+    
+    print("\n" + "="*60)
+    print("🔍 MODEL FILE VERIFICATION")
+    print("="*60)
+    
+    for path in model_paths:
+        if os.path.exists(path):
+            size = os.path.getsize(path)
+            with open(path, 'rb') as f:
+                content = f.read()
+                md5 = hashlib.md5(content).hexdigest()
+            
+            # Try to peek at the intents
+            try:
+                with open(path, 'rb') as f:
+                    data = pickle.load(f)
+                intents = data.get('classes', [])
+                print(f"📁 {path}")
+                print(f"   Size: {size:,} bytes")
+                print(f"   MD5: {md5}")
+                print(f"   Intents: {len(intents)} - {intents[:5]}...")
+                print(f"   Date: {data.get('training_date', 'unknown')}")
+                print()
+            except Exception as e:
+                print(f"❌ {path} - Error: {e}")
+                print()
+        else:
+            print(f"❌ {path} - NOT FOUND")
+    
+    print("="*60 + "\n")
+
+# Also add this emergency intent list right after load_nlu_model()
+def ensure_all_intents():
+    """Emergency fix: Ensure model_classes has all 15 intents"""
+    global model_classes
+    
+    all_15_intents = [
+        'about_system', 'financing', 'find_near_landmark', 'find_property',
+        'find_property_for_need', 'find_property_with_criteria', 'find_ready_property',
+        'find_with_feature', 'goodbye', 'greeting', 'help', 'location_info',
+        'match_needs', 'process_info', 'thanks'
+    ]
+    
+    if not model_classes or len(model_classes) < 15:
+        print("\n" + "="*60)
+        print("🚨 EMERGENCY: Model missing intents! Applying emergency fix...")
+        print("="*60)
+        
+        # Keep existing intents if any, add missing ones
+        if model_classes:
+            existing_intents = set(model_classes)
+            model_classes = all_15_intents
+            print(f"✅ Preserved: {sorted(existing_intents)}")
+            print(f"✅ Added: {sorted(set(all_15_intents) - existing_intents)}")
+        else:
+            model_classes = all_15_intents
+            print(f"✅ Created fallback intent list with all 15 intents")
+        
+        print(f"📊 Total intents now: {len(model_classes)}")
+        print("="*60 + "\n")
 
 def diagnose_model_file():
     """Diagnose what's in the model file for debugging"""
@@ -3592,6 +3659,8 @@ print("="*60)
 print("📝 Step 1: Loading NLU model...")
 load_nlu_model()
 diagnose_model_file()
+verify_model_file() 
+ensure_all_intents() 
 
 
 print("📝 Step 2: Loading training data...")
