@@ -390,15 +390,16 @@ def diagnose_model_file():
             logger.error(f"❌ Model directory does not exist: {model_dir}")
 
 # Preprocess text for prediction (same as training)
-def preprocess_text(text):
-    """Preprocess text for prediction"""
+def preprocess_text(text):  # ✅ Removed 'self' parameter
+    """Simple, reliable preprocessing"""
     if not text:
         return ""
     
+    # Convert to lowercase
     text = str(text).lower()
     
-    # Remove special characters but keep spaces and basic punctuation
-    text = re.sub(r'[^\w\s\?\.]', ' ', text)
+    # Remove special characters but KEEP letters, numbers, spaces
+    text = re.sub(r'[^a-z0-9\s]', ' ', text)
     
     # Remove extra spaces
     text = re.sub(r'\s+', ' ', text).strip()
@@ -2818,7 +2819,7 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
 # Placeholder functions for Member3 responses
 def generate_family_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response for family needs queries"""
-    need_type = entities.get('need_type', 'family')
+    need_type = entities.get('need_type', 'family')  
     family_size = entities.get('family_size', 4)
     
     response = f"👨‍👩‍👧‍👦 **Properties for {need_type.title()}**\n\n"

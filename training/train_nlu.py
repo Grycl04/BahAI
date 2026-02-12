@@ -171,6 +171,56 @@ class TeamNLUTrainer:
         except Exception as e:
             logger.error(f"❌ Error loading Batangas data: {e}")
             return {}
+    
+    # ========== THIS MUST BE AT THE SAME INDENTATION LEVEL ==========
+    def fix_couples_classification(self):
+        """OVERRIDE: Force the model to recognize 'properties for couples' as find_property_for_need"""
+        
+        print("\n" + "="*60)
+        print("🔥 CRITICAL FIX: Adding COUPLES-SPECIFIC training samples")
+        print("="*60)
+        
+        # PRIMARY PATTERN - exactly what users type
+        couples_samples = [
+            ("properties for couples", "find_property_for_need"),
+            ("find properties for couples", "find_property_for_need"),
+            ("show me properties for couples", "find_property_for_need"),
+            ("looking for properties for couples", "find_property_for_need"),
+            ("apartments for couples", "find_property_for_need"),
+            ("houses for couples", "find_property_for_need"),
+            ("condos for couples", "find_property_for_need"),
+            ("homes for couples", "find_property_for_need"),
+            ("properties for couple", "find_property_for_need"),
+            ("bahay para sa mag asawa", "find_property_for_need"),
+            ("apartment para sa mag asawa", "find_property_for_need"),
+        ]
+        
+        # NEGATIVE examples - what should NOT be find_property_for_need
+        negative_samples = [
+            ("find properties", "find_property"),
+            ("show me properties", "find_property"),
+            ("properties available", "find_property"),
+        ]
+        
+        texts = []
+        intents = []
+        
+        for text, intent in couples_samples:
+            processed = self.preprocess_text(text)
+            texts.append(processed)
+            intents.append(intent)
+            print(f"  ✅ Added: '{text}' -> {intent}")
+        
+        for text, intent in negative_samples:
+            processed = self.preprocess_text(text)
+            texts.append(processed)
+            intents.append(intent)
+            print(f"  🔸 Negative: '{text}' -> {intent}")
+        
+        print(f"\n  📊 Added {len(texts)} total samples")
+        print("="*60)
+        
+        return texts, intents
 
     def clean_json_file(self, filepath):
         """Fix JSON file by properly loading and saving it"""
@@ -216,10 +266,10 @@ class TeamNLUTrainer:
         text = str(text).lower()
         
         # First, preserve important intent patterns by marking them
-        text = self.mark_intent_keywords(text, original_text)
+        # text = self.mark_intent_keywords(text, original_text)
         
         # Remove special characters but keep spaces and basic punctuation
-        text = re.sub(r'[^\w\s\?\.\-\:]', ' ', text)
+        text = re.sub(r'[^a-z0-9\s]', ' ', text)
         
         # Remove extra spaces
         text = re.sub(r'\s+', ' ', text).strip()
@@ -777,6 +827,45 @@ class TeamNLUTrainer:
         all_intents.extend(generated_intents)
         print(f"   ✅ Generated {len(generated_texts)} variations")
         
+        # ========== ADD THIS SECTION RIGHT HERE ==========
+        print("\n" + "="*60)
+        print("🚨 APPLYING CRITICAL COUPLES CLASSIFICATION FIX")
+        print("="*60)
+        
+        # Filter out mislabeled couples samples
+        filtered_texts = []
+        filtered_intents = []
+        
+        for i, text in enumerate(all_texts):
+            intent = all_intents[i]
+            query = text.lower() if isinstance(text, str) else ""
+            
+            # Remove any "properties for couples" that are mislabeled
+            if "for couples" in query or "for couple" in query:
+                if intent != "find_property_for_need":
+                    print(f"  ⚠️ Removing mislabeled: '{text[:50]}...' -> {intent}")
+                    continue
+            
+            filtered_texts.append(text)
+            filtered_intents.append(intent)
+        
+        # Add our CORRECT couples samples
+        couples_texts, couples_intents = self.fix_couples_classification()
+        filtered_texts.extend(couples_texts)
+        filtered_intents.extend(couples_intents)
+        
+        # DUPLICATE the couples samples for extra weight
+        for _ in range(3):
+            filtered_texts.extend(couples_texts)
+            filtered_intents.extend(couples_intents)
+        
+        print(f"\n  ✅ After fix: {len(filtered_texts)} total samples")
+        print(f"  ✅ 'properties for couples' samples: {couples_texts.count('properties for couples')} copies")
+        print("="*60)
+        
+        all_texts = filtered_texts
+        all_intents = filtered_intents
+
         print("="*60)
         print(f"📊 FINAL TRAINING DATA STATISTICS")
         print("="*60)
