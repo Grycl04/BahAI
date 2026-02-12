@@ -210,35 +210,184 @@ def load_training_data():
         training_data = {}
 
 # Load NLU model
+# Load NLU model - COMPLETE FIXED VERSION with multiple fallback paths and diagnostics
 def load_nlu_model():
-    """Load the trained NLU model from train_nlu.py"""
+    """Load the trained NLU model from train_nlu.py with multiple fallback paths"""
     global vectorizer, classifier, model_classes
     
-    try:
-        if os.path.exists(MODEL_PATH):
-            logger.info(f"📂 Loading model from {MODEL_PATH}")
+    # List all possible model paths to check
+    possible_paths = [
+        MODEL_PATH,  # Original path: /training/models/nlu_model.pkl
+        os.path.join(PROJECT_ROOT, 'backend', 'models', 'nlu_model.pkl'),
+        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),
+        os.path.join(os.path.dirname(PROJECT_ROOT), 'models', 'nlu_model.pkl'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'nlu_model.pkl'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'nlu_model.pkl'),
+    ]
+    
+    model_loaded = False
+    
+    for model_path in possible_paths:
+        if os.path.exists(model_path):
+            try:
+                logger.info(f"📂 Attempting to load model from: {model_path}")
+                with open(model_path, 'rb') as f:
+                    model_data = pickle.load(f)
+                
+                # Try different possible key names
+                vectorizer = model_data.get('vectorizer') or model_data.get('tfidf') or model_data.get('vectorizer_obj') or None
+                classifier = model_data.get('classifier') or model_data.get('model') or model_data.get('clf') or None
+                
+                # CRITICAL: Test if vectorizer is actually fitted
+                if vectorizer:
+                    try:
+                        # Test with a simple query
+                        test_result = vectorizer.transform(["test query"])
+                        logger.info(f"✅ Vectorizer is fitted and working from: {model_path}")
+                        
+                        # Get feature count
+                        try:
+                            feature_count = len(vectorizer.get_feature_names_out())
+                            logger.info(f"📊 Feature count: {feature_count}")
+                        except:
+                            pass
+                        
+                        # Check classifier
+                        if classifier and hasattr(classifier, 'classes_'):
+                            model_classes = classifier.classes_.tolist()
+                            logger.info(f"✅ Classifier loaded with {len(model_classes)} intents")
+                            logger.info(f"📊 Model intents: {model_classes}")
+                            model_loaded = True
+                            break  # Success! Exit the loop
+                        else:
+                            logger.warning("⚠️ Classifier missing or incomplete, trying next path...")
+                            vectorizer = None
+                            classifier = None
+                            continue
+                        
+                    except Exception as e:
+                        logger.error(f"❌ Vectorizer at {model_path} is NOT fitted: {e}")
+                        logger.error("   This indicates the model file is corrupted or saved incorrectly")
+                        vectorizer = None
+                        classifier = None
+                        continue  # Try next path
+                else:
+                    logger.warning(f"⚠️ No vectorizer found in model file at {model_path}")
+                    continue
+                    
+            except Exception as e:
+                logger.error(f"❌ Error loading model from {model_path}: {e}")
+                continue
+    
+    if not model_loaded:
+        logger.error("❌ Could not load a valid NLU model from any path!")
+        logger.error("💡 Will use fallback intent detection")
+        logger.error("📍 Checked paths:")
+        for path in possible_paths:
+            status = "✅ Exists" if os.path.exists(path) else "❌ Not found"
+            logger.error(f"   • {path} - {status}")
+        
+        # Reset global variables
+        vectorizer = None
+        classifier = None
+        model_classes = []
+        
+        # Try to load a minimal fallback model if needed
+        logger.info("🔄 Attempting to create minimal fallback vectorizer...")
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            from sklearn.svm import SVC
+            import numpy as np
+            
+            # Create a minimal fallback model with basic intents
+            fallback_texts = [
+                "find apartments", "find houses", "find condos",
+                "tell me about batangas", "what is lipa city like",
+                "properties with bank financing", "how to get a loan"
+            ]
+            fallback_intents = [
+                "find_property", "find_property", "find_property",
+                "location_info", "location_info",
+                "financing", "process_info"
+            ]
+            
+            # Create and fit a minimal vectorizer
+            fallback_vectorizer = TfidfVectorizer(max_features=100)
+            fallback_vectorizer.fit(fallback_texts)
+            
+            # Transform and train a minimal classifier
+            X = fallback_vectorizer.transform(fallback_texts)
+            fallback_classifier = SVC(kernel='linear', probability=True)
+            fallback_classifier.fit(X, fallback_intents)
+            
+            vectorizer = fallback_vectorizer
+            classifier = fallback_classifier
+            model_classes = fallback_classifier.classes_.tolist()
+            
+            logger.info(f"✅ Created fallback model with {len(model_classes)} intents")
+            logger.warning("⚠️ This is a minimal fallback - accuracy will be limited")
+            
+        except Exception as fallback_error:
+            logger.error(f"❌ Could not create fallback model: {fallback_error}")
+
+def diagnose_model_file():
+    """Diagnose what's in the model file for debugging"""
+    logger.info("🔍 Running model file diagnostics...")
+    
+    # Check if MODEL_PATH exists
+    if os.path.exists(MODEL_PATH):
+        logger.info(f"✅ Model file exists at: {MODEL_PATH}")
+        file_size = os.path.getsize(MODEL_PATH)
+        logger.info(f"📊 File size: {file_size} bytes")
+        
+        try:
             with open(MODEL_PATH, 'rb') as f:
                 model_data = pickle.load(f)
             
-            vectorizer = model_data.get('vectorizer')
-            classifier = model_data.get('classifier')
+            logger.info(f"📦 Model data keys: {list(model_data.keys())}")
+            logger.info(f"📦 Model version: {model_data.get('version', 'unknown')}")
             
-            if classifier and hasattr(classifier, 'classes_'):
-                model_classes = classifier.classes_.tolist()
-                logger.info(f"✅ NLU model loaded successfully (v{model_data.get('version', '1.0')})")
-                logger.info(f"📊 Model intents: {model_classes}")
-                logger.info(f"📊 Feature count: {len(vectorizer.get_feature_names_out()) if vectorizer else 0}")
+            # Check vectorizer
+            vec = model_data.get('vectorizer')
+            if vec:
+                logger.info(f"📦 Vectorizer type: {type(vec)}")
+                try:
+                    vec.transform(["test"])
+                    logger.info("✅ Vectorizer IS fitted!")
+                    try:
+                        logger.info(f"📊 Feature names: {len(vec.get_feature_names_out())}")
+                    except:
+                        pass
+                except Exception as e:
+                    logger.error(f"❌ Vectorizer is NOT fitted: {e}")
             else:
-                logger.warning("⚠️ Classifier doesn't have classes_ attribute")
-                
-        else:
-            logger.error(f"❌ Model file not found: {MODEL_PATH}")
-            logger.error("💡 Run train_nlu.py first to create the model!")
+                logger.warning("⚠️ No vectorizer found in model file!")
             
-    except Exception as e:
-        logger.error(f"❌ Error loading NLU model: {e}")
-        import traceback
-        logger.error(f"Traceback: {traceback.format_exc()}")
+            # Check classifier
+            clf = model_data.get('classifier')
+            if clf:
+                logger.info(f"📦 Classifier type: {type(clf)}")
+                if hasattr(clf, 'classes_'):
+                    logger.info(f"📊 Classifier classes: {clf.classes_.tolist()}")
+                else:
+                    logger.warning("⚠️ Classifier has no classes_ attribute")
+            else:
+                logger.warning("⚠️ No classifier found in model file!")
+                
+        except Exception as e:
+            logger.error(f"❌ Failed to read model file: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+    else:
+        logger.error(f"❌ Model file not found at: {MODEL_PATH}")
+        
+        # Check if directory exists
+        model_dir = os.path.dirname(MODEL_PATH)
+        if os.path.exists(model_dir):
+            logger.info(f"✅ Model directory exists: {model_dir}")
+            logger.info(f"📂 Contents: {os.listdir(model_dir)}")
+        else:
+            logger.error(f"❌ Model directory does not exist: {model_dir}")
 
 # Preprocess text for prediction (same as training)
 def preprocess_text(text):
@@ -3441,6 +3590,8 @@ print("="*60)
 
 print("📝 Step 1: Loading NLU model...")
 load_nlu_model()
+diagnose_model_file()
+
 
 print("📝 Step 2: Loading training data...")
 load_training_data()
