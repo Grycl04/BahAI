@@ -1,105 +1,42 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 // ============================================
-// BACKEND URL MANAGEMENT - LOCAL FIRST, PRODUCTION FALLBACK
+// BACKEND URL MANAGEMENT - PURE ENVIRONMENT BASED
 // ============================================
 
 /**
- * Get the best available backend URL with connection testing
- * Priority: 1. Local backend (if in dev) 2. Production backend (fallback)
+ * Get the appropriate backend URL based on environment
+ * - LOCAL: http://localhost:10000 (when hostname is localhost/127.0.0.1)
+ * - PRODUCTION: https://bahai.onrender.com (everywhere else)
  */
-const getBackendUrl = async (testConnection = true) => {
+const getBackendUrl = () => {
+    // 🔴 FORCE LOCAL BACKEND - CHANGE THIS BACK WHEN DONE
+    console.log("🚀 FORCED LOCAL BACKEND - http://localhost:10000");
+    return "http://localhost:10000/api/chat";
+    
+    /* ORIGINAL CODE - COMMENTED OUT
     const hostname = window.location.hostname;
     const port = window.location.port;
     
-    console.log("🌐 Detected hostname:", hostname, "Port:", port);
+    const isExplicitLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isLocalIp = hostname.startsWith('192.168.') || hostname.startsWith('10.0.');
+    const isEmptyHostname = hostname === '' && port !== '';
     
-    // Check if we're in local development
-    const isLocal = hostname === 'localhost' || 
-                    hostname === '127.0.0.1' || 
-                    hostname.startsWith('192.168.') ||
-                    hostname.startsWith('10.0.') ||
-                    (hostname === '' && port !== '');
-    
-    // Check for Live Server (common ports)
-    const isLiveServer = port === '5500' || port === '5501' || port === '8080' || port === '3000';
-    
-    // LOCAL BACKEND CONFIGURATION
-    const LOCAL_URL = "http://localhost:10000/api/chat";
-    const LOCAL_HEALTH_URL = "http://localhost:10000/api/health";
-    
-    // PRODUCTION BACKEND CONFIGURATION
-    const PROD_URL = "https://bahai.onrender.com/api/chat";
-    const PROD_HEALTH_URL = "https://bahai.onrender.com/api/health";
-    
-    // FIRST PRIORITY: Try LOCAL backend if we're in development environment
-    if (isLocal || isLiveServer) {
-        console.log("🚀 DEVELOPMENT MODE: Attempting to connect to LOCAL backend first...");
-        
-        if (testConnection) {
-            try {
-                // Test connection to local backend with timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-                
-                const response = await fetch(LOCAL_HEALTH_URL, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (response.ok) {
-                    console.log("✅ LOCAL BACKEND IS AVAILABLE AND RESPONDING!");
-                    console.log("📍 Using LOCAL backend:", LOCAL_URL);
-                    
-                    // Store successful connection in sessionStorage
-                    try {
-                        sessionStorage.setItem('backend_status', 'local');
-                        sessionStorage.setItem('backend_url', LOCAL_URL);
-                        sessionStorage.setItem('backend_timestamp', Date.now().toString());
-                    } catch (e) {}
-                    
-                    return LOCAL_URL;
-                } else {
-                    console.log("⚠️ Local backend responded with error status:", response.status);
-                }
-            } catch (error) {
-                console.log("❌ Local backend is NOT available:", error.message);
-                console.log("☁️ FALLING BACK TO PRODUCTION BACKEND (Render)");
-                
-                // Store fallback status
-                try {
-                    sessionStorage.setItem('backend_status', 'production_fallback');
-                    sessionStorage.setItem('backend_url', PROD_URL);
-                    sessionStorage.setItem('backend_timestamp', Date.now().toString());
-                } catch (e) {}
-            }
-        } else {
-            // If testConnection is false, just return local URL without testing
-            return LOCAL_URL;
-        }
-    } else {
-        console.log("☁️ PRODUCTION ENVIRONMENT: Using Render backend directly");
-        try {
-            sessionStorage.setItem('backend_status', 'production');
-            sessionStorage.setItem('backend_url', PROD_URL);
-        } catch (e) {}
+    if (isExplicitLocalhost || isLocalIp || isEmptyHostname) {
+        console.log("🚀 LOCAL ENVIRONMENT - Using local backend: http://localhost:10000");
+        return "http://localhost:10000/api/chat";
     }
     
-    // FALLBACK: Production backend
-    console.log("📍 Using PRODUCTION backend:", PROD_URL);
-    return PROD_URL;
+    console.log("☁️ PRODUCTION ENVIRONMENT - Using Render backend: https://bahai.onrender.com");
+    return "https://bahai.onrender.com/api/chat";
+    */
 };
 
 // ============================================
-// PROMPT DEFINITIONS - NO HARDCODED HTML
+// PROMPT DEFINITIONS
 // ============================================
 
-// PHASE 1: Initial "Try these quick prompts" - Exactly like the hardcoded HTML
+// PHASE 1: Initial "Try these quick prompts"
 const INITIAL_PROMPTS = [
     { 
         displayText: "Find apartments", 
@@ -202,7 +139,6 @@ const ALL_QUICK_PROMPTS = [
 // ============================================
 
 export function initChatbot() {
-    console.trace("🔍 initChatbot called from:", new Error().stack);
     console.log("🤖 AI Chatbot Initializing...");
     
     const chatMessages = document.getElementById('chatMessages');
@@ -214,24 +150,21 @@ export function initChatbot() {
     
     // Initialize prompt phase tracker
     window.chatbotPhase = {
-        showInitialPrompts: true,  // Start with "Try these quick prompts"
-        initialPromptsUsed: false  // Track if user has interacted
+        showInitialPrompts: true,
+        initialPromptsUsed: false
     };
     
     // Ensure chat input area exists
     const chatContainer = chatMessages.closest('.chatbot-container');
     if (chatContainer) {
-        // Check if chat input already exists
         let existingInput = chatContainer.querySelector('.chat-input');
         if (!existingInput) {
-            console.log("🛠️ Creating chat input area...");
             const chatInputDiv = document.createElement('div');
             chatInputDiv.className = 'chat-input';
             chatInputDiv.id = 'chatInputContainer';
-            chatInputDiv.style.display = 'flex';
             chatInputDiv.innerHTML = `
                 <input type="text" id="chatInput" 
-                       placeholder="e.g. Family home with yard, under 4M, near Lipa City..." />
+                       placeholder="e.g. Find apartments in Batangas City..." />
                 <button id="sendChatBtn"><i class="fas fa-paper-plane"></i> Send</button>
                 <button id="voiceInputBtn" class="voice-btn"><i class="fas fa-microphone"></i></button>
             `;
@@ -239,13 +172,16 @@ export function initChatbot() {
         }
     }
     
+    // Log backend info
+    const backendUrl = getBackendUrl();
+    console.log(`📍 Backend: ${backendUrl.includes('localhost') ? 'LOCAL (http://localhost:10000)' : 'PRODUCTION (Render)'}`);
+    
     // Show welcome message on first load
     showWelcomeMessage();
     
     // Attach event listeners and add INITIAL prompts
     setTimeout(() => {
         attachChatListeners();
-        // PHASE 1: Add "Try these quick prompts"
         addInitialPrompts();
     }, 500);
     
@@ -267,17 +203,12 @@ function attachChatListeners() {
         return;
     }
     
-    console.log("🔗 Attaching chat listeners...");
-    
-    // Remove existing listeners by cloning elements if needed
+    // Remove existing listeners by cloning
     if (chatInput.hasAttribute('data-listener-attached')) {
         const newChatInput = chatInput.cloneNode(true);
         const newSendBtn = sendChatBtn.cloneNode(true);
-        
         chatInput.parentNode.replaceChild(newChatInput, chatInput);
         sendChatBtn.parentNode.replaceChild(newSendBtn, sendChatBtn);
-        
-        // Update references
         window.chatInput = newChatInput;
         window.sendChatBtn = newSendBtn;
     } else {
@@ -285,7 +216,6 @@ function attachChatListeners() {
         window.sendChatBtn = sendChatBtn;
     }
     
-    // Mark as having listeners attached
     window.chatInput.setAttribute('data-listener-attached', 'true');
     window.sendChatBtn.setAttribute('data-listener-attached', 'true');
     
@@ -293,8 +223,7 @@ function attachChatListeners() {
     window.sendChatBtn.addEventListener('click', async () => {
         const message = window.chatInput.value.trim();
         if (message) {
-            // Mark that user has sent a message - switch to quick prompts phase
-            if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
+            if (window.chatbotPhase?.showInitialPrompts) {
                 window.chatbotPhase.showInitialPrompts = false;
                 window.chatbotPhase.initialPromptsUsed = true;
             }
@@ -309,8 +238,7 @@ function attachChatListeners() {
             e.preventDefault();
             const message = window.chatInput.value.trim();
             if (message) {
-                // Mark that user has sent a message - switch to quick prompts phase
-                if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
+                if (window.chatbotPhase?.showInitialPrompts) {
                     window.chatbotPhase.showInitialPrompts = false;
                     window.chatbotPhase.initialPromptsUsed = true;
                 }
@@ -324,17 +252,14 @@ function attachChatListeners() {
     if (voiceInputBtn) {
         const newVoiceBtn = voiceInputBtn.cloneNode(true);
         voiceInputBtn.parentNode.replaceChild(newVoiceBtn, voiceInputBtn);
-        
         newVoiceBtn.addEventListener('click', () => {
-            alert("Voice input would require additional setup with Web Speech API");
+            alert("🎤 Voice input requires Web Speech API. Please type your question instead.");
         });
     }
-    
-    console.log("🎯 Chat listeners attached successfully");
 }
 
 // ============================================
-// PROCESS CHAT MESSAGES - WITH LOCAL FIRST, PRODUCTION FALLBACK
+// PROCESS CHAT MESSAGES - CLEAN SINGLE ATTEMPT
 // ============================================
 
 export async function processChatMessage(userMessage) {
@@ -358,279 +283,124 @@ export async function processChatMessage(userMessage) {
         // Show typing indicator
         const typingMessage = addTypingIndicator();
         
-        // Prepare request to Python backend
+        // Prepare request to backend
         const requestData = {
             query: userMessage,
             user_id: currentUser ? currentUser.uid : 'anonymous'
         };
         
-        console.log("📤 Sending to backend:", requestData);
+        // Get URL based on environment
+        const backendUrl = getBackendUrl();
+        const isLocal = backendUrl.includes('localhost');
         
-        let data;
-        let backendUrl;
-        let usedFallback = false;
-        let connectionDetails = {
-            primary: null,
-            fallback: false,
-            responseTime: null
-        };
+        console.log("🌐 Connecting to:", backendUrl);
         
-        const startTime = Date.now();
+        // Single attempt with appropriate timeout
+        const controller = new AbortController();
+        const timeoutMs = isLocal ? 8000 : 30000; // 8s local, 30s production (for cold starts)
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
-        try {
-            // STEP 1: Get backend URL with connection testing
-            backendUrl = await getBackendUrl(true);
-            
-            // Check if this is a fallback URL (production when we're in dev)
-            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            usedFallback = isLocalDev && backendUrl.includes('render.com');
-            
-            connectionDetails.primary = backendUrl;
-            
-            console.log("🌐 Attempting to connect to:", backendUrl);
-            
-            // Call backend with environment-specific timeout
-            const controller = new AbortController();
-            const timeoutDuration = backendUrl.includes('localhost') ? 10000 : 25000;
-            const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
-            
-            const response = await fetch(backendUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(requestData),
-                signal: controller.signal,
-                mode: 'cors'
-            });
-            
-            clearTimeout(timeoutId);
-            connectionDetails.responseTime = Date.now() - startTime;
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const text = await response.text();
-            console.log("📥 Raw response received:", text.substring(0, 200) + "...");
-            
-            // Clean the response
-            const cleanText = text.replace(/undefined/g, 'null');
-            try {
-                data = JSON.parse(cleanText);
-                
-                // Add backend info to response data
-                data._backend_url = backendUrl;
-                data._backend_type = backendUrl.includes('localhost') ? 'local' : 'production';
-                data._response_time_ms = connectionDetails.responseTime;
-                
-            } catch (parseError) {
-                console.error("❌ JSON parse error:", parseError);
-                data = {
-                    success: false,
-                    response: `I received your query: "${userMessage}", but there was an issue processing the response.`,
-                    properties: [],
-                    intent: 'error',
-                    properties_found: 0,
-                    _backend_url: backendUrl,
-                    _parse_error: parseError.message
-                };
-            }
-            
-        } catch (fetchError) {
-            console.error('🌐 Fetch error from primary endpoint:', fetchError);
-            
-            // STEP 2: If we were trying local and it failed, try production fallback
-            if (backendUrl && backendUrl.includes('localhost')) {
-                console.log("🔄 Local backend failed, attempting PRODUCTION FALLBACK...");
-                
-                try {
-                    const fallbackStartTime = Date.now();
-                    const fallbackController = new AbortController();
-                    const fallbackTimeout = setTimeout(() => fallbackController.abort(), 25000);
-                    
-                    const fallbackResponse = await fetch("https://bahai.onrender.com/api/chat", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(requestData),
-                        signal: fallbackController.signal,
-                        mode: 'cors'
-                    });
-                    
-                    clearTimeout(fallbackTimeout);
-                    
-                    if (fallbackResponse.ok) {
-                        const text = await fallbackResponse.text();
-                        const cleanText = text.replace(/undefined/g, 'null');
-                        data = JSON.parse(cleanText);
-                        usedFallback = true;
-                        connectionDetails.fallback = true;
-                        connectionDetails.fallback_time = Date.now() - fallbackStartTime;
-                        
-                        // Add backend info to response data
-                        data._backend_url = "https://bahai.onrender.com/api/chat (fallback)";
-                        data._backend_type = 'production_fallback';
-                        data._response_time_ms = connectionDetails.fallback_time;
-                        
-                        console.log(`✅ Successfully connected to production fallback (${connectionDetails.fallback_time}ms)`);
-                        
-                        // Store fallback status
-                        try {
-                            sessionStorage.setItem('backend_status', 'production_fallback');
-                            sessionStorage.setItem('backend_url', 'https://bahai.onrender.com/api/chat');
-                            sessionStorage.setItem('backend_timestamp', Date.now().toString());
-                        } catch (e) {}
-                        
-                    } else {
-                        throw new Error(`Production fallback failed: ${fallbackResponse.status}`);
-                    }
-                } catch (fallbackError) {
-                    console.error('❌ Production fallback also failed:', fallbackError);
-                    
-                    // Both local and production failed - use enhanced fallback
-                    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    
-                    data = {
-                        success: false,
-                        response: isLocalDev ? 
-                            `❌ **Cannot connect to any backend**\n\n` +
-                            `**Local backend:** Not responding\n` +
-                            `**Production fallback:** Failed\n\n` +
-                            `🔧 **To fix local backend:**\n` +
-                            `1. Open terminal in backend folder\n` +
-                            `2. Run: \`python chatbot_backend.py\`\n` +
-                            `3. Verify: http://localhost:10000/api/health\n\n` +
-                            `🌐 **Or use production only:**\n` +
-                            `Remove local check in getBackendUrl()` :
-                            `❌ **Service temporarily unavailable**\n\n` +
-                            `The AI service is experiencing issues. Please try again in a few moments.\n\n` +
-                            `🔍 **You can still:**\n` +
-                            `• Use the search filters above\n` +
-                            `• Browse property categories\n` +
-                            `• Contact brokers directly`,
-                        properties: [],
-                        intent: 'error',
-                        properties_found: 0,
-                        _error: fetchError.message,
-                        _fallback_error: fallbackError.message
-                    };
-                }
-            } else {
-                // We were trying production and it failed
-                console.error('❌ Production backend failed');
-                
-                data = {
-                    success: false,
-                    response: "❌ **Service temporarily unavailable**\n\n" +
-                             "The AI service is experiencing issues. Please try again in a few moments.\n\n" +
-                             "🔍 **You can still:**\n" +
-                             "• Use the search filters above\n" +
-                             "• Browse property categories\n" +
-                             "• Contact brokers directly",
-                    properties: [],
-                    intent: 'error',
-                    properties_found: 0,
-                    _error: fetchError.message
-                };
-            }
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(requestData),
+            signal: controller.signal,
+            mode: 'cors'
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        // Remove typing indicator if still exists
-        if (typingMessage && typingMessage.parentNode) {
+        const text = await response.text();
+        
+        // Clean the response
+        const cleanText = text.replace(/undefined/g, 'null');
+        let data;
+        
+        try {
+            data = JSON.parse(cleanText);
+        } catch (parseError) {
+            console.error("❌ JSON parse error:", parseError);
+            data = {
+                success: false,
+                response: "I received your query but had trouble processing the response. Please try again.",
+                properties: [],
+                intent: 'error'
+            };
+        }
+        
+        // Remove typing indicator
+        if (typingMessage?.parentNode) {
             typingMessage.remove();
         }
         
-        // Build response text with optional backend info for debugging
-        let responseText = data.response || data.message || 
-                          "I received your message but couldn't process it properly. Please try again.";
-        
-        // Add subtle backend indicator for development mode (only visible in console, not in chat)
-        if (usedFallback && (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))) {
-            console.log("ℹ️ Development mode: Using production backend fallback (local server not running)");
-            // Uncomment below if you want to show in chat:
-            // responseText += `\n\n*(Using production backend - local server not running)*`;
-        }
-        
         // Display response
+        const responseText = data.response || data.message || 
+                           "I received your message but couldn't process it properly.";
         addMessageToChat(responseText, 'bot');
         
-        // Log connection details to console for debugging
-        if (connectionDetails.fallback) {
-            console.log(`ℹ️ Fallback used: Local failed (${connectionDetails.responseTime || 'timeout'}ms) → Production fallback (${connectionDetails.fallback_time}ms)`);
-        } else if (connectionDetails.responseTime) {
-            console.log(`ℹ️ Backend response time: ${connectionDetails.responseTime}ms (${backendUrl.includes('localhost') ? 'local' : 'production'})`);
-        }
-        
         // If properties were found, display them
-        if (data && data.properties && data.properties.length > 0) {
+        if (data?.properties?.length > 0) {
             displayPropertiesInChat(data.properties);
         }
         
-        // Show appropriate prompts based on phase
+        // Show quick prompts
         setTimeout(() => {
-            // If we're still in initial phase but user just sent a message, switch to quick prompts
-            if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
+            if (window.chatbotPhase?.showInitialPrompts) {
                 window.chatbotPhase.showInitialPrompts = false;
                 window.chatbotPhase.initialPromptsUsed = true;
-                addQuickPrompts();
-            } else {
-                // Otherwise just show quick prompts
-                addQuickPrompts();
             }
+            addQuickPrompts();
         }, 500);
         
-        // Try to log (non-critical)
+        // Log interaction (non-critical)
         try {
             await logChatInteraction(userMessage, data, currentUser);
         } catch (logError) {
-            console.log('Non-critical log error:', logError.message);
+            // Silently fail - logging is non-critical
         }
         
     } catch (error) {
-        console.error('💥 Error in processChatMessage:', error);
+        console.error('💥 Chat error:', error);
         
         // Remove typing indicator
         document.querySelector('.typing-indicator')?.remove();
         
-        // Remove demo prompts on error
-        document.querySelector('.demo-prompts-container')?.remove();
-        
-        // Show user-friendly error with helpful messages
-        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        // Show user-friendly error based on environment
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         
         let errorMessage;
-        if (isLocalDev) {
-            errorMessage = `I'm having trouble connecting to the local backend. 😔\n\n` +
-                          `**To fix this:**\n` +
-                          `1️⃣ Make sure your Python backend is running:\n` +
-                          `   \`cd backend\`\n` +
-                          `   \`python chatbot_backend.py\`\n\n` +
-                          `2️⃣ Verify it's on port 10000: http://localhost:10000/api/health\n\n` +
-                          `**You can still:**\n` +
-                          `• Use the search filters above 🔍\n` +
-                          `• Browse property categories 🏠\n` +
-                          `• Try again in a moment ⏳`;
-        } else {
-            errorMessage = "I'm having trouble connecting right now. 😔\n\n" +
+        if (isLocal) {
+            errorMessage = "❌ **Cannot connect to local backend**\n\n" +
+                          "**To fix this:**\n" +
+                          "1️⃣ Open terminal in backend folder\n" +
+                          "2️⃣ Run: `python chatbot_backend.py`\n" +
+                          "3️⃣ Verify: http://localhost:10000/api/health\n\n" +
                           "**You can still:**\n" +
                           "• Use the search filters above 🔍\n" +
                           "• Browse property categories 🏠\n" +
-                          "• Try again in a moment ⏳";
+                          "• Contact brokers directly 💬";
+        } else {
+            errorMessage = "⏳ **AI service is starting up...**\n\n" +
+                          "This can take 30-60 seconds on free hosting.\n\n" +
+                          "**Please try again in a moment.**\n\n" +
+                          "**You can still:**\n" +
+                          "• Use the search filters above 🔍\n" +
+                          "• Browse property categories 🏠\n" +
+                          "• Contact brokers directly 💬";
         }
         
         addMessageToChat(errorMessage, 'bot');
-        
-        // Show quick prompts after error
         setTimeout(addQuickPrompts, 500);
+        
     } finally {
         // Re-enable input
-        const chatInput = document.getElementById('chatInput');
-        const sendChatBtn = document.getElementById('sendChatBtn');
-        
         if (chatInput) {
             chatInput.disabled = false;
             chatInput.focus();
@@ -643,7 +413,7 @@ export async function processChatMessage(userMessage) {
 }
 
 // ============================================
-// UI HELPERS
+// UI HELPER FUNCTIONS
 // ============================================
 
 function addMessageToChat(message, sender) {
@@ -655,7 +425,7 @@ function addMessageToChat(message, sender) {
     
     const avatar = sender === 'user' ? '👤' : '🤖';
     
-    // Convert newlines to HTML breaks and basic markdown
+    // Format message
     let formattedMessage = message
         .replace(/\n/g, '<br>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -714,7 +484,7 @@ function getDisplayPrice(property) {
 
 function displayPropertiesInChat(properties) {
     const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages || !properties || properties.length === 0) return;
+    if (!chatMessages || !properties?.length) return;
     
     const propertiesDiv = document.createElement('div');
     propertiesDiv.className = 'chat-properties-container';
@@ -766,22 +536,21 @@ function displayPropertiesInChat(properties) {
             <p style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
                 <a href="search_results.html" 
                    style="color: #0b6e4f; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                    🔍 View all ${properties.length} properties in search results <i class="fas fa-arrow-right"></i>
+                    🔍 View all ${properties.length} properties <i class="fas fa-arrow-right"></i>
                 </a>
             </p>
         `;
     }
     
     propertiesDiv.innerHTML = html;
-    
     chatMessages.appendChild(propertiesDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function logChatInteraction(query, response, user) {
+    if (!user) return;
+    
     try {
-        if (!user) return;
-        
         const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
         const { getApp } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js");
         
@@ -798,31 +567,24 @@ async function logChatInteraction(query, response, user) {
             timestamp: new Date(),
             modelUsed: response?.model_used || 'unknown',
             confidence: response?.confidence || 0,
-            success: response?.success || false,
-            backend_url: response?._backend_url || 'unknown',
-            response_time_ms: response?._response_time_ms || 0
+            success: response?.success || false
         });
-        
-        console.log('✅ Chat interaction logged');
     } catch (error) {
-        console.log('Could not log chat interaction (non-critical):', error.message);
+        // Silently fail - logging is non-critical
     }
 }
 
 // ============================================
-// PHASE 1: INITIAL PROMPTS - "Try these quick prompts"
-// EXACTLY like the hardcoded HTML version
+// PHASE 1: INITIAL PROMPTS
 // ============================================
 
 function addInitialPrompts() {
-    // Remove any existing prompt containers
     const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
     
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
     
-    // Reset phase tracker
     if (!window.chatbotPhase) {
         window.chatbotPhase = {
             showInitialPrompts: true,
@@ -830,7 +592,6 @@ function addInitialPrompts() {
         };
     }
     
-    // Only show initial prompts if we're in the initial phase
     if (!window.chatbotPhase.showInitialPrompts) {
         addQuickPrompts();
         return;
@@ -857,7 +618,6 @@ function addInitialPrompts() {
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
-    // Add event listeners to initial prompt buttons
     setTimeout(() => {
         document.querySelectorAll('.initial-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -868,11 +628,9 @@ function addInitialPrompts() {
                 const chatInput = document.getElementById('chatInput');
                 
                 if (chatInput && fullPrompt) {
-                    // Set the FULL expanded prompt in the input field
                     chatInput.value = fullPrompt;
                     chatInput.focus();
                     
-                    // Visual feedback
                     this.style.transform = 'scale(0.95)';
                     this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
                     setTimeout(() => {
@@ -886,12 +644,10 @@ function addInitialPrompts() {
 }
 
 // ============================================
-// PHASE 2: QUICK PROMPTS - 4 random questions
-// Shown after first interaction
+// PHASE 2: QUICK PROMPTS - 4 RANDOM
 // ============================================
 
 function addQuickPrompts() {
-    // Remove any existing prompt containers
     const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
     
@@ -934,7 +690,6 @@ function addQuickPrompts() {
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
-    // Add event listeners to quick prompt buttons
     setTimeout(() => {
         document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -945,11 +700,9 @@ function addQuickPrompts() {
                 const chatInput = document.getElementById('chatInput');
                 
                 if (chatInput && fullPrompt) {
-                    // Set the FULL expanded prompt in the input field
                     chatInput.value = fullPrompt;
                     chatInput.focus();
                     
-                    // Visual feedback
                     this.style.transform = 'scale(0.95)';
                     this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
                     setTimeout(() => {
@@ -960,7 +713,6 @@ function addQuickPrompts() {
             });
         });
         
-        // Add refresh button functionality
         const refreshBtn = document.getElementById('refreshPrompts');
         if (refreshBtn) {
             const newRefreshBtn = refreshBtn.cloneNode(true);
@@ -969,11 +721,8 @@ function addQuickPrompts() {
             newRefreshBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                // Generate new random prompts
                 addQuickPrompts();
                 
-                // Button feedback
                 newRefreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
                 setTimeout(() => {
                     newRefreshBtn.innerHTML = '<i class="fas fa-redo-alt"></i> New set';
@@ -989,106 +738,72 @@ function addQuickPrompts() {
 
 function showWelcomeMessage() {
     const chatMessages = document.getElementById('chatMessages');
-    if (chatMessages && chatMessages.children.length === 0) {
-        // Ensure chat input is visible
-        const chatInputContainer = chatMessages.closest('.chatbot-container');
-        if (chatInputContainer) {
-            const chatInputDiv = chatInputContainer.querySelector('.chat-input');
-            if (chatInputDiv) {
-                chatInputDiv.style.display = 'flex';
-                chatInputDiv.style.opacity = '1';
-            }
-        }
-        
-        setTimeout(async () => {
-            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            
-            // Check backend status for welcome message
-            let backendStatus = '';
-            let backendClass = '';
-            
-            if (isLocalDev) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 2000);
-                    const response = await fetch('http://localhost:10000/api/health', {
-                        method: 'GET',
-                        mode: 'cors',
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-                    
-                    if (response.ok) {
-                        backendStatus = '✅ Local backend connected';
-                        backendClass = 'status-ok';
-                    } else {
-                        backendStatus = '⚠️ Local backend will fallback to production';
-                        backendClass = 'status-warning';
-                    }
-                } catch (error) {
-                    backendStatus = '🔄 Local backend not running - using production fallback';
-                    backendClass = 'status-fallback';
-                }
-            }
-            
-            const welcomeMessage = `
-                <div class="welcome-message">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                            display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);">
-                            🤖
-                        </div>
-                        <div>
-                            <h4 style="margin: 0; color: var(--text-dark); font-size: 18px;">AI Property Assistant</h4>
-                            <p style="margin: 0; font-size: 12px; color: #666;">Specialized in Batangas Properties</p>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
-                        Hello! I'm your AI assistant for Batangas real estate. Try clicking one of the quick prompts below, then click Send when you're ready!
-                    </p>
-                    ${isLocalDev ? `
-                        <div class="${backendClass}" style="padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px; 
-                            ${backendClass === 'status-ok' ? 'background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724;' : 
-                              backendClass === 'status-warning' ? 'background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;' : 
-                              'background-color: #cce5ff; border: 1px solid #b8daff; color: #004085;'}">
-                            <i class="fas fa-${backendClass === 'status-ok' ? 'check-circle' : backendClass === 'status-warning' ? 'exclamation-triangle' : 'sync-alt'}"></i> 
-                            <strong>Backend Status:</strong> ${backendStatus}
-                        </div>
-                    ` : `
-                        <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
-                            <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
-                        </p>
-                    `}
+    if (!chatMessages || chatMessages.children.length > 0) return;
+    
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const backendUrl = getBackendUrl();
+    
+    const welcomeMessage = `
+        <div class="welcome-message">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);">
+                    🤖
                 </div>
-            `;
-            
-            const welcomeDiv = document.createElement('div');
-            welcomeDiv.className = 'message bot';
-            welcomeDiv.innerHTML = `
-                <div class="avatar">🤖</div>
-                <div class="content" style="background: white; padding: 0; overflow: hidden;">
-                    ${welcomeMessage}
+                <div>
+                    <h4 style="margin: 0; color: var(--text-dark); font-size: 18px;">AI Property Assistant</h4>
+                    <p style="margin: 0; font-size: 12px; color: #666;">Specialized in Batangas Properties</p>
                 </div>
-            `;
-            chatMessages.appendChild(welcomeDiv);
-        }, 300);
-    }
+            </div>
+            <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
+                Hello! I'm your AI assistant for Batangas real estate. 
+                ${isLocal ? '🖥️ Local development mode' : '☁️ Production mode'}
+            </p>
+            ${!isLocal ? `
+                <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
+                    <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
+                </p>
+            ` : `
+                <p style="color: #004085; background-color: #cce5ff; border: 1px solid #b8daff; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
+                    <i class="fas fa-code"></i> <strong>Local Backend:</strong> ${backendUrl}
+                </p>
+            `}
+        </div>
+    `;
+    
+    const welcomeDiv = document.createElement('div');
+    welcomeDiv.className = 'message bot';
+    welcomeDiv.innerHTML = `
+        <div class="avatar">🤖</div>
+        <div class="content" style="background: white; padding: 0; overflow: hidden;">
+            ${welcomeMessage}
+        </div>
+    `;
+    chatMessages.appendChild(welcomeDiv);
 }
 
 // ============================================
-// KEEP BACKEND ALIVE - LOCAL FIRST, PRODUCTION FALLBACK
+// KEEP BACKEND ALIVE - PRODUCTION ONLY
 // ============================================
 
 function keepBackendAlive() {
-    console.log("⏰ Setting up backend keep-alive with LOCAL FIRST strategy...");
+    // ONLY run in production (Render, etc.)
+    const isProduction = !(window.location.hostname === 'localhost' || 
+                          window.location.hostname === '127.0.0.1');
     
-    // Function to ping a backend
-    async function pingBackend(name, healthUrl) {
+    if (!isProduction) {
+        console.log("⏸️ Local development - keep-alive disabled");
+        return;
+    }
+    
+    console.log("⏰ Setting up keep-alive for production backend...");
+    
+    async function pingBackend() {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             
-            const response = await fetch(healthUrl, { 
+            const response = await fetch('https://bahai.onrender.com/api/health', { 
                 method: 'GET',
                 mode: 'cors',
                 cache: 'no-cache',
@@ -1099,57 +814,18 @@ function keepBackendAlive() {
             clearTimeout(timeoutId);
             
             if (response.ok) {
-                console.log(`✅ Backend keep-alive successful: ${name}`);
-                
-                // Store last successful ping
-                try {
-                    sessionStorage.setItem(`backend_last_ping_${name}`, Date.now().toString());
-                } catch (e) {}
-                
-                return true;
+                console.log('✅ Production backend keep-alive successful');
             }
         } catch (err) {
-            // Silent fail
+            // Silent fail in production - don't spam console
         }
-        return false;
     }
     
-    // Initial ping after page load
-    setTimeout(async () => {
-        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        // First try local if in dev
-        if (isLocalDev) {
-            const localAlive = await pingBackend('local', 'http://localhost:10000/api/health');
-            
-            if (!localAlive) {
-                console.log('⚠️ Local backend not available, production will be used as fallback');
-                // Then ping production as backup
-                await pingBackend('production', 'https://bahai.onrender.com/api/health');
-            }
-        } else {
-            // In production, just ping production
-            await pingBackend('production', 'https://bahai.onrender.com/api/health');
-        }
-    }, 2000);
+    // Initial ping after 5 seconds
+    setTimeout(pingBackend, 5000);
     
-    // Regular pings every 5 minutes
-    setInterval(async () => {
-        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        // First try local if in dev
-        if (isLocalDev) {
-            const localAlive = await pingBackend('local', 'http://localhost:10000/api/health');
-            
-            // Only ping production if local is down
-            if (!localAlive) {
-                await pingBackend('production', 'https://bahai.onrender.com/api/health');
-            }
-        } else {
-            // In production, just ping production
-            await pingBackend('production', 'https://bahai.onrender.com/api/health');
-        }
-    }, 5 * 60 * 1000);
+    // Ping every 5 minutes
+    setInterval(pingBackend, 5 * 60 * 1000);
 }
 
 // ============================================
@@ -1439,15 +1115,7 @@ chatbotStyles.textContent = `
         color: #4a5568;
     }
     
-    /* Status indicators */
-    .status-ok, .status-warning, .status-fallback {
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        margin-top: 15px;
-    }
-    
-    /* DEMO PROMPTS - TWO PHASES */
+    /* DEMO PROMPTS */
     .demo-prompts-container {
         margin-top: 15px;
         padding: 15px;
@@ -1628,18 +1296,14 @@ if (!document.querySelector('#chatbot-styles')) {
     document.head.appendChild(chatbotStyles);
 }
 
-// Start keep-alive when DOM is loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', keepBackendAlive);
-} else {
-    keepBackendAlive();
-}
+// Start keep-alive (automatically only runs in production)
+keepBackendAlive();
 
 // Make functions available globally
 window.processChatMessage = processChatMessage;
 window.initChatbot = initChatbot;
 
 console.log("🚀 AI Chatbot Script Loaded Successfully!");
-console.log("📝 Initial Prompts Ready:", INITIAL_PROMPTS.length);
-console.log("📝 Quick Prompts Ready:", ALL_QUICK_PROMPTS.length);
-console.log("🔄 Backend Strategy: LOCAL FIRST → PRODUCTION FALLBACK");
+console.log(`🌍 Environment: ${window.location.hostname.includes('localhost') ? 'LOCAL' : 'PRODUCTION'}`);
+console.log(`🔌 Backend: ${getBackendUrl().includes('localhost') ? 'Localhost:10000' : 'Render.com'}`);
+console.log(`⏱️  Timeout: ${getBackendUrl().includes('localhost') ? '8s' : '30s'} (for cold starts)`);

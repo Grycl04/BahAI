@@ -1,6 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+// FIX: Clear corrupted localStorage/sessionStorage that causes "undefined is not valid JSON"
+(function() {
+    try {
+        // Check all localStorage items
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            try {
+                const value = localStorage.getItem(key);
+                JSON.parse(value);
+            } catch (e) {
+                console.warn(`🗑️ Removing corrupted localStorage: ${key}`);
+                localStorage.removeItem(key);
+            }
+        }
+        
+        // Check all sessionStorage items
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            try {
+                const value = sessionStorage.getItem(key);
+                JSON.parse(value);
+            } catch (e) {
+                console.warn(`🗑️ Removing corrupted sessionStorage: ${key}`);
+                sessionStorage.removeItem(key);
+            }
+        }
+        
+        console.log("✅ Storage check complete - corrupted items removed");
+    } catch (e) {
+        console.error("Storage cleanup error:", e);
+    }
+})();
+</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dashboard - BahAI Real Estate</title>
