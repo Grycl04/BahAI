@@ -52,7 +52,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # CONFIGURATION
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH =  os.path.join(PROJECT_ROOT, 'training', 'models', 'nlu_model.pkl')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'nlu_model.pkl')
 TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member1', 'training_data.json')
 
 # Global variables
@@ -66,6 +66,8 @@ training_data = {}  # Store training data for response templates
 print("\n" + "="*60)
 print("🔥 FIREBASE CONNECTION")
 print("="*60)
+print("MODEL PATH:", MODEL_PATH)
+print("MODEL EXISTS:", os.path.exists(MODEL_PATH))
 
 # Initialize Firebase
 try:
