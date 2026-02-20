@@ -9,12 +9,8 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth
  * - LOCAL: http://localhost:10000 (when hostname is localhost/127.0.0.1)
  * - PRODUCTION: https://bahai.onrender.com (everywhere else)
  */
+
 const getBackendUrl = () => {
-    // 🔴 FORCE LOCAL BACKEND - CHANGE THIS BACK WHEN DONE
-    console.log("🚀 FORCED LOCAL BACKEND - http://localhost:10000");
-    return "http://localhost:10000/api/chat";
-    
-    /* ORIGINAL CODE - COMMENTED OUT
     const hostname = window.location.hostname;
     const port = window.location.port;
     
@@ -29,7 +25,6 @@ const getBackendUrl = () => {
     
     console.log("☁️ PRODUCTION ENVIRONMENT - Using Render backend: https://bahai.onrender.com");
     return "https://bahai.onrender.com/api/chat";
-    */
 };
 
 // ============================================
