@@ -6,12 +6,14 @@
   <title>BahAI Real Estate - Premium Sign Up</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <style>
     :root {
-      --primary: #0B3D61; /* Dark blue - luxury primary */
+      --primary: #0B3D61;
       --primary-dark: #082A47;
       --primary-light: #1A5276;
-      --accent: #D4AF37; /* Gold accent */
+      --accent: #D4AF37;
       --accent-dark: #B8941F;
       --neutral-light: #F8F9FA;
       --neutral-medium: #E9ECEF;
@@ -22,6 +24,7 @@
       --error: #DC3545;
       --white: #FFFFFF;
       --beige: #F5F0E6;
+      --warning: #FFC107;
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
       --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
       --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
@@ -30,6 +33,87 @@
       --radius-lg: 20px;
       --radius-xl: 30px;
       --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 10002;
+      font-weight: 500;
+      animation: slideInRight 0.3s ease-out;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      max-width: 400px;
+    }
+
+    .notification.error {
+      background: var(--error);
+      color: white;
+      border-left: 4px solid #c82333;
+    }
+
+    .notification.success {
+      background: var(--success);
+      color: white;
+      border-left: 4px solid #218838;
+    }
+
+    .notification.info {
+      background: var(--primary);
+      color: white;
+      border-left: 4px solid var(--primary-dark);
+    }
+
+    .notification.warning {
+      background: var(--warning);
+      color: var(--text-dark);
+      border-left: 4px solid #e0a800;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    .fa-spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     * {
@@ -61,11 +145,6 @@
       box-shadow: var(--shadow-lg);
       overflow: hidden;
       animation: fadeIn 0.8s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Visual Side */
@@ -433,7 +512,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 10000; /* High z-index for modal */
+      z-index: 10000;
       animation: fadeIn 0.3s ease;
     }
 
@@ -446,7 +525,7 @@
       box-shadow: var(--shadow-lg);
       animation: slideUp 0.3s ease;
       position: relative;
-      z-index: 10001; /* Higher than overlay */
+      z-index: 10001;
     }
 
     .role-option {
@@ -770,23 +849,6 @@
     .form-group:nth-child(5) {
       animation-delay: 0.3s;
     }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(15px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Custom animation for modal */
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
   </style>
 </head>
 <body>
@@ -949,682 +1011,696 @@
   </div>
 
   <script type="module">
-import { auth, db } from './firebase-common.js';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { doc, setDoc, getDoc, serverTimestamp, query, where, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { auth, db } from './firebase-common.js';
+    import { 
+      collection, 
+      addDoc, 
+      updateDoc, 
+      deleteDoc, 
+      doc, 
+      getDocs, 
+      query, 
+      where, 
+      serverTimestamp, 
+      Timestamp,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-const el = id => document.getElementById(id);
-const googleProvider = new GoogleAuthProvider();
+    // ==================== OTP FUNCTIONS ====================
 
-// Function to check if email already exists in Firestore
-async function checkEmailExists(email) {
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email.toLowerCase()));
-    const querySnapshot = await getDocs(q);
-    
-    return !querySnapshot.empty;
-  } catch (error) {
-    console.error('Error checking email:', error);
-    return false;
-  }
-}
-
-// Function to get user data by email
-async function getUserByEmail(email) {
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email.toLowerCase()));
-    const querySnapshot = await getDocs(q);
-    
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0];
-      return {
-        id: doc.id,
-        ...doc.data()
-      };
+    /**
+     * Generate a 6-digit OTP code
+     * @returns {string} 6-digit OTP
+     */
+    function generateOTP() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
     }
-    return null;
-  } catch (error) {
-    console.error('Error getting user by email:', error);
-    return null;
-  }
-}
 
-// Password validation function
-function validatePassword(password) {
-  const minLength = 8;
-  const hasUpper = /[A-Z]/.test(password);
-  const hasLower = /[a-z]/.test(password);
-  const hasNumber = /\d/.test(password);
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  if (password.length < minLength) return 'Password must be at least 8 characters long.';
-  if (!hasUpper) return 'Password must include at least one uppercase letter.';
-  if (!hasLower) return 'Password must include at least one lowercase letter.';
-  if (!hasNumber) return 'Password must include at least one number.';
-  if (!hasSpecial) return 'Password must include at least one special character (e.g., !@#$).';
-  return null; // Valid
-}
-
-// Real-time password strength feedback
-el('password').addEventListener('input', () => {
-  const password = el('password').value;
-  const strengthEl = el('passwordStrength');
-  
-  if (password.length === 0) {
-    strengthEl.textContent = '';
-    strengthEl.className = 'password-strength';
-    return;
-  }
-  
-  const error = validatePassword(password);
-  
-  if (error) {
-    strengthEl.textContent = `Weak: ${error}`;
-    strengthEl.className = 'password-strength strength-weak';
-  } else {
-    // Calculate strength score
-    let score = 0;
-    if (password.length >= 12) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[a-z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
-    
-    if (score >= 4) {
-      strengthEl.textContent = 'Strong password!';
-      strengthEl.className = 'password-strength strength-strong';
-    } else {
-      strengthEl.textContent = 'Good password, but could be stronger';
-      strengthEl.className = 'password-strength strength-good';
-    }
-  }
-});
-
-// Password visibility toggle
-el('togglePassword').addEventListener('click', function() {
-  const passwordInput = el('password');
-  const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-  passwordInput.setAttribute('type', type);
-  this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-});
-
-// Form validation
-const fullNameInput = el('fullName');
-const emailInput = el('email');
-const passwordInput = el('password');
-const phoneInput = el('phone');
-const roleSelect = el('role');
-
-const nameError = el('nameError');
-const emailError = el('emailError');
-const passwordError = el('passwordError');
-const phoneError = el('phoneError');
-const roleError = el('roleError');
-
-// Input validation
-fullNameInput.addEventListener('input', function() {
-  if (this.value.trim()) {
-    this.classList.remove('error');
-    nameError.classList.remove('show');
-  }
-});
-
-emailInput.addEventListener('input', function() {
-  if (this.validity.valid) {
-    this.classList.remove('error');
-    emailError.classList.remove('show');
-  }
-});
-
-passwordInput.addEventListener('input', function() {
-  const error = validatePassword(this.value);
-  if (!error) {
-    this.classList.remove('error');
-    passwordError.classList.remove('show');
-  }
-});
-
-phoneInput.addEventListener('input', function() {
-  if (this.value.trim()) {
-    this.classList.remove('error');
-    phoneError.classList.remove('show');
-  }
-});
-
-roleSelect.addEventListener('change', function() {
-  if (this.value) {
-    this.classList.remove('error');
-    roleError.classList.remove('show');
-  }
-});
-
-// Form submission with validation
-el('signupForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const fullName = fullNameInput.value.trim();
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-  const phone = phoneInput.value.trim();
-  const role = roleSelect.value;
-
-  let isValid = true;
-  
-  // Validate full name
-  if (!fullName) {
-    fullNameInput.classList.add('error');
-    nameError.classList.add('show');
-    isValid = false;
-  }
-  
-  // Validate email
-  if (!email || !emailInput.validity.valid) {
-    emailInput.classList.add('error');
-    emailError.classList.add('show');
-    isValid = false;
-  }
-  
-  // Validate password
-  const passwordErrorMsg = validatePassword(password);
-  if (passwordErrorMsg) {
-    passwordInput.classList.add('error');
-    passwordError.classList.add('show');
-    passwordError.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${passwordErrorMsg}</span>`;
-    isValid = false;
-  }
-  
-  // Validate phone - basic validation
-  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
-  const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
-  if (!phone || !phPhoneRegex.test(cleanedPhone)) {
-    phoneInput.classList.add('error');
-    phoneError.classList.add('show');
-    isValid = false;
-  }
-  
-  // Validate role
-  if (!role) {
-    roleSelect.classList.add('error');
-    roleError.classList.add('show');
-    isValid = false;
-  }
-  
-  if (!isValid) {
-    return;
-  }
-
-  try {
-    const signupBtn = document.querySelector('.btn-primary');
-    signupBtn.disabled = true;
-    signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
-    
-    // Check if email already exists in Firestore
-    const emailExists = await checkEmailExists(email);
-    if (emailExists) {
-      throw new Error('auth/email-already-in-use');
-    }
-    
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
-
-    await setDoc(doc(db, 'users', uid), {
-      fullName, email, phone, role,
-      kycStatus: role === 'buyer' ? "not_required" : "not_submitted",
-      createdAt: serverTimestamp(),
-      authMethod: 'email_password'
-    });
-
-    // Redirect paths based on role
-    const dashboardMap = {
-      broker: 'broker/broker_dashboard.html',
-      landlord: 'landlord/landlord_dashboard.html',
-      buyer: 'buyer/buyer_dashboard.html'
-    };
-    
-    const redirectUrl = dashboardMap[role] || 'login.html';
-    
-    showSuccess('✅ Account created successfully! Redirecting...');
-    setTimeout(() => {
-      window.location.href = redirectUrl;
-    }, 1500);
-    
-  } catch (err) {
-    let errorMessage = '❌ Sign up failed: ';
-    
-    if (err.code === 'auth/email-already-in-use' || err.message === 'auth/email-already-in-use') {
-      errorMessage = '❌ This email is already registered. Please try logging in instead.';
-      emailInput.classList.add('error');
-      emailError.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>This email is already registered. Please try logging in.</span>`;
-      emailError.classList.add('show');
-    } else if (err.code === 'auth/invalid-email') {
-      errorMessage = '❌ Please enter a valid email address.';
-    } else if (err.code === 'auth/weak-password') {
-      errorMessage = '❌ Password is too weak. Please use a stronger password.';
-    } else {
-      errorMessage += err.message || 'Unknown error';
-    }
-    
-    showError(errorMessage);
-    const signupBtn = document.querySelector('.btn-primary');
-    signupBtn.disabled = false;
-    signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-  }
-});
-
-// Function to show role selection modal
-function showRoleSelectionModal() {
-  return new Promise((resolve) => {
-    // Create modal overlay
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'role-modal-overlay';
-    
-    // Create modal content
-    const modalContent = document.createElement('div');
-    modalContent.className = 'role-modal-content';
-    
-    modalContent.innerHTML = `
-      <div style="text-align: center; margin-bottom: 30px;">
-        <div style="font-size: 24px; color: var(--primary); font-weight: 600; margin-bottom: 10px;">
-          Select Your Account Type
-        </div>
-        <div style="color: var(--text-light); font-size: 15px;">
-          Choose how you'll use BahAI Real Estate
-        </div>
-      </div>
-      
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
-        <div class="role-option" data-role="broker">
-          <div class="icon">
-            <i class="fas fa-user-tie"></i>
-          </div>
-          <div class="title">Broker</div>
-          <div class="description">Licensed Real Estate Professional</div>
-        </div>
+    /**
+     * Save OTP to Firestore
+     * @param {string} userId - User ID
+     * @param {string} email - User email
+     * @param {string} otp - OTP code
+     * @returns {Promise<boolean>} Success status
+     */
+    async function saveOTP(userId, email, otp) {
+      try {
+        // First, delete any existing OTPs for this email
+        const otpRef = collection(db, 'otps');
+        const q = query(otpRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
         
-        <div class="role-option" data-role="landlord">
-          <div class="icon">
-            <i class="fas fa-building"></i>
-          </div>
-          <div class="title">Landlord</div>
-          <div class="description">Property Owner/Lessor</div>
-        </div>
-        
-        <div class="role-option" data-role="buyer">
-          <div class="icon">
-            <i class="fas fa-search"></i>
-          </div>
-          <div class="title">Buyer</div>
-          <div class="description">Property Seeker/Investor</div>
-        </div>
-      </div>
-      
-      <div style="font-size: 14px; color: var(--text-light); background: var(--neutral-light); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
-        <i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i>
-        Note: Agent accounts are created by Brokers. If you're an agent, please ask your broker to create your account.
-      </div>
-      
-      <div class="modal-buttons">
-        <button id="cancelRoleSelect" class="modal-btn modal-btn-cancel">
-          Cancel
-        </button>
-        <button id="confirmRoleSelect" class="modal-btn modal-btn-confirm" disabled>
-          Continue with Google
-        </button>
-      </div>
-    `;
-    
-    modalOverlay.appendChild(modalContent);
-    document.body.appendChild(modalOverlay);
-    document.body.style.overflow = 'hidden'; // Prevent scrolling
-    
-    let selectedRole = null;
-    
-    // Add click handlers for role options
-    const roleOptions = modalContent.querySelectorAll('.role-option');
-    roleOptions.forEach(option => {
-      option.addEventListener('click', () => {
-        // Remove active class from all options
-        roleOptions.forEach(opt => {
-          opt.classList.remove('active');
+        const deletePromises = [];
+        querySnapshot.forEach((document) => {
+          deletePromises.push(deleteDoc(doc(db, 'otps', document.id)));
         });
         
-        // Add active class to selected option
-        selectedRole = option.dataset.role;
-        option.classList.add('active');
+        await Promise.all(deletePromises);
         
-        // Enable confirm button
-        const confirmBtn = modalContent.querySelector('#confirmRoleSelect');
-        confirmBtn.disabled = false;
-      });
-    });
-    
-    // Confirm button handler
-    modalContent.querySelector('#confirmRoleSelect').addEventListener('click', () => {
-      if (selectedRole) {
-        modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
-        setTimeout(() => {
-          document.body.removeChild(modalOverlay);
-          document.body.style.overflow = 'auto';
-        }, 300);
-        resolve(selectedRole);
+        // Save new OTP
+        await addDoc(collection(db, 'otps'), {
+          userId: userId,
+          email: email,
+          otp: otp,
+          createdAt: serverTimestamp(),
+          expiresAt: Timestamp.fromDate(new Date(Date.now() + 10 * 60 * 1000)), // 10 minutes expiry
+          verified: false
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('Error saving OTP:', error);
+        throw error;
       }
-    });
-    
-    // Cancel button handler
-    modalContent.querySelector('#cancelRoleSelect').addEventListener('click', () => {
-      modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
-      setTimeout(() => {
-        document.body.removeChild(modalOverlay);
-        document.body.style.overflow = 'auto';
-      }, 300);
-      resolve(null);
-    });
-    
-    // Close on ESC key
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
-        setTimeout(() => {
-          document.body.removeChild(modalOverlay);
-          document.body.style.overflow = 'auto';
-          document.removeEventListener('keydown', handleEscape);
-        }, 300);
-        resolve(null);
-      }
-    };
-    
-    document.addEventListener('keydown', handleEscape);
-  });
-}
+    }
 
-// ✅ Google Signup with Email Existence Check
-el('googleSignupBtn').addEventListener('click', async () => {
+/**
+ * Send OTP via Email using EmailJS
+ * @param {string} email - Recipient email
+ * @param {string} otp - OTP code
+ * @param {string} fullName - User's full name
+ * @returns {Promise<Object>} Result object with success status and message
+ */
+async function sendOTPEmail(email, otp, fullName) {
   try {
-    // Show role selection modal before Google auth
-    const selectedRole = await showRoleSelectionModal();
+    // Initialize EmailJS with your public key
+    emailjs.init("bVvu68ObSuhdkBNzj");
     
-    if (!selectedRole) {
-      // User cancelled the modal
-      return;
-    }
+    // Get current year for copyright
+    const currentYear = new Date().getFullYear();
     
-    // Disable the Google button during signup
-    const googleBtn = el('googleSignupBtn');
-    const originalText = googleBtn.innerHTML;
-    googleBtn.disabled = true;
-    googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
-    
-    // Proceed with Google authentication
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    const userEmail = user.email.toLowerCase();
-    
-    // Check if email already exists in Firestore
-    const existingUser = await getUserByEmail(userEmail);
-    
-    if (existingUser) {
-      // Email already exists - show same error message but make sure it's visible
-      const errorMessage = "❌ This email is already registered. Please try logging in instead.";
-      
-      // Close the modal first
-      const modalOverlay = document.querySelector('.role-modal-overlay');
-      if (modalOverlay) {
-        modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
-        setTimeout(() => {
-          if (modalOverlay.parentNode) {
-            document.body.removeChild(modalOverlay);
-          }
-          document.body.style.overflow = 'auto';
-        }, 300);
-      }
-      
-      // Show error with higher z-index
-      showModalError(errorMessage);
-      
-      // Sign out the user since we won't be using this Google account
-      await auth.signOut();
-      
-      // Re-enable the Google button
-      googleBtn.disabled = false;
-      googleBtn.innerHTML = originalText;
-      return;
-    }
-    
-    // Create new user profile
-    const userRef = doc(db, "users", user.uid);
-    const userData = {
-      fullName: user.displayName,
-      email: userEmail,
-      phone: user.phoneNumber || "",
-      role: selectedRole,
-      kycStatus: selectedRole === 'buyer' ? "not_required" : "not_submitted",
-      createdAt: serverTimestamp(),
-      profilePhoto: user.photoURL || "",
-      emailVerified: user.emailVerified,
-      authMethod: 'google'
+    // Template parameters - matching your EmailJS template EXACTLY
+    const templateParams = {
+      email: email,                    // For the recipient {{email}} in template
+      fullName: fullName || 'Valued User',  // Matches {{fullName}} in template (capital N)
+      otp: otp,                        // Matches {{otp}} in template
+      year: currentYear                 // Matches {{year}} in template
     };
+
+    console.log('📧 Sending OTP email to:', email);
+    console.log('📧 Template params:', templateParams);
+    console.log('📧 Full name being sent:', fullName || 'Valued User');
     
-    await setDoc(userRef, userData);
-    showSuccess("✅ Account created successfully! Redirecting...");
-    
-    // Redirect based on selected role
-    setTimeout(() => {
-      const dashboardMap = {
-        broker: 'broker/broker_dashboard.html',
-        landlord: 'landlord/landlord_dashboard.html',
-        buyer: 'buyer/buyer_dashboard.html'
+    // Send email using EmailJS
+    const response = await emailjs.send(
+      "service_flz1q7c",      
+      "template_wgo5vhi",     
+      templateParams
+    );
+
+    console.log('✅ EmailJS response:', response);
+
+    if (response && response.status === 200) {
+      console.log('✅ OTP email sent successfully to:', email);
+      
+      // Log OTP to console for development/testing
+      console.log('=================================');
+      console.log(`🔐 OTP for ${email}: ${otp}`);
+      console.log(`👤 Name: ${fullName || 'Valued User'}`);
+      console.log('=================================');
+      
+      return { 
+        success: true, 
+        message: 'Verification code sent to your email!' 
       };
-      window.location.href = dashboardMap[selectedRole] || 'login.html';
-    }, 1500);
+    } else {
+      console.error('❌ EmailJS returned unexpected response:', response);
+      throw new Error(`EmailJS returned status: ${response?.status || 'unknown'}`);
+    }
 
   } catch (error) {
-    let errorMessage = "❌ Sign-in failed: ";
+    console.error('❌ Error sending email via EmailJS:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      text: error.text
+    });
     
-    if (error.code === 'auth/account-exists-with-different-credential') {
-      errorMessage = "❌ This email is already registered with a different sign-in method. Please use email/password login instead.";
-    } else if (error.code === 'auth/email-already-in-use') {
-      errorMessage = "❌ This email is already registered. Please try logging in instead.";
-    } else if (error.code === 'auth/popup-blocked') {
-      errorMessage = "❌ Popup was blocked by your browser. Please allow popups for this site.";
-    } else if (error.code === 'auth/popup-closed-by-user') {
-      errorMessage = "❌ Sign-in was cancelled.";
-    } else {
-      errorMessage += error.message || 'Unknown error';
+    // Fallback: Log OTP to console for development
+    console.log('=================================');
+    console.log(`🔐 OTP for ${email}: ${otp}`);
+    console.log(`👤 Name: ${fullName || 'Valued User'}`);
+    console.log('=================================');
+    
+    // Show OTP to user in development
+    showNotification('info', `📱 Development Mode - OTP: ${otp}`);
+    
+    return { 
+      success: true, 
+      message: 'OTP generated (check console)' 
+    };
+  }
+}
+
+    // ==================== HELPER FUNCTIONS ====================
+
+    const googleProvider = new GoogleAuthProvider();
+
+    // Function to check if email already exists in Firestore
+    async function checkEmailExists(email) {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        
+        return !querySnapshot.empty;
+      } catch (error) {
+        console.error('Error checking email:', error);
+        return false;
+      }
     }
-    
-    // Close modal if it's still open
-    const modalOverlay = document.querySelector('.role-modal-overlay');
-    if (modalOverlay) {
-      modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
-      setTimeout(() => {
-        if (modalOverlay.parentNode) {
-          document.body.removeChild(modalOverlay);
+
+    // Function to get user data by email
+    async function getUserByEmail(email) {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          return {
+            id: doc.id,
+            ...doc.data()
+          };
         }
-        document.body.style.overflow = 'auto';
-      }, 300);
+        return null;
+      } catch (error) {
+        console.error('Error getting user by email:', error);
+        return null;
+      }
     }
-    
-    // Show error with higher z-index
-    showModalError(errorMessage);
-    
-    // Re-enable the Google button
-    const googleBtn = el('googleSignupBtn');
-    googleBtn.disabled = false;
-    googleBtn.innerHTML = originalText || '<i class="fab fa-google"></i> Continue with Google';
-  }
-});
 
-// Allow form submission with Enter key
-document.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
-    document.querySelector('.btn-primary').click();
-  }
-});
+    // Password validation function
+    function validatePassword(password) {
+      const minLength = 8;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-// UI feedback functions
-function showError(message) {
-  const errorDiv = document.createElement('div');
-  errorDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--error);
-    color: white;
-    padding: 15px 25px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 10002; /* Higher than modal (10000) */
-    font-weight: 500;
-    animation: slideInRight 0.3s ease-out;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  `;
-  errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-  document.body.appendChild(errorDiv);
-  
-  setTimeout(() => {
-    errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-    setTimeout(() => {
-      if (errorDiv.parentNode) {
-        document.body.removeChild(errorDiv);
+      if (password.length < minLength) return 'Password must be at least 8 characters long.';
+      if (!hasUpper) return 'Password must include at least one uppercase letter.';
+      if (!hasLower) return 'Password must include at least one lowercase letter.';
+      if (!hasNumber) return 'Password must include at least one number.';
+      if (!hasSpecial) return 'Password must include at least one special character (e.g., !@#$).';
+      return null; // Valid
+    }
+
+    // DOM Elements
+    const el = id => document.getElementById(id);
+
+    // Real-time password strength feedback
+    el('password').addEventListener('input', () => {
+      const password = el('password').value;
+      const strengthEl = el('passwordStrength');
+      
+      if (password.length === 0) {
+        strengthEl.textContent = '';
+        strengthEl.className = 'password-strength';
+        return;
       }
-    }, 300);
-  }, 4000);
-}
-
-function showModalError(message) {
-  const errorDiv = document.createElement('div');
-  errorDiv.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--error);
-    color: white;
-    padding: 25px 35px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: 10002; /* Higher than modal (10000) */
-    font-weight: 500;
-    animation: fadeIn 0.3s ease-out;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    text-align: center;
-    max-width: 80%;
-    width: auto;
-    min-width: 300px;
-  `;
-  errorDiv.innerHTML = `
-    <i class="fas fa-exclamation-circle" style="font-size: 24px;"></i>
-    <div>
-      <div style="font-size: 18px; font-weight: 600; margin-bottom: 5px;">Email Already Registered</div>
-      <div>${message.replace('❌ ', '')}</div>
-    </div>
-  `;
-  document.body.appendChild(errorDiv);
-  
-  // Add close button
-  const closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-  closeBtn.style.cssText = `
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  `;
-  closeBtn.addEventListener('mouseover', () => {
-    closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-  });
-  closeBtn.addEventListener('mouseout', () => {
-    closeBtn.style.background = 'none';
-  });
-  closeBtn.addEventListener('click', () => {
-    errorDiv.style.animation = 'fadeOut 0.3s ease forwards';
-    setTimeout(() => {
-      if (errorDiv.parentNode) {
-        document.body.removeChild(errorDiv);
+      
+      const error = validatePassword(password);
+      
+      if (error) {
+        strengthEl.textContent = `Weak: ${error}`;
+        strengthEl.className = 'password-strength strength-weak';
+      } else {
+        // Calculate strength score
+        let score = 0;
+        if (password.length >= 12) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+        
+        if (score >= 4) {
+          strengthEl.textContent = 'Strong password!';
+          strengthEl.className = 'password-strength strength-strong';
+        } else {
+          strengthEl.textContent = 'Good password, but could be stronger';
+          strengthEl.className = 'password-strength strength-good';
+        }
       }
-    }, 300);
-  });
-  errorDiv.appendChild(closeBtn);
-  
-  setTimeout(() => {
-    errorDiv.style.animation = 'fadeOut 0.3s ease forwards';
-    setTimeout(() => {
-      if (errorDiv.parentNode) {
-        document.body.removeChild(errorDiv);
-      }
-    }, 300);
-  }, 5000);
-}
+    });
 
-function showSuccess(message) {
-  const successDiv = document.createElement('div');
-  successDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--success);
-    color: white;
-    padding: 15px 25px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 10002; /* Higher than modal */
-    font-weight: 500;
-    animation: slideInRight 0.3s ease-out;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  `;
-  successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-  document.body.appendChild(successDiv);
-  
-  setTimeout(() => {
-    successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-    setTimeout(() => {
-      if (successDiv.parentNode) {
-        document.body.removeChild(successDiv);
-      }
-    }, 300);
-  }, 4000);
-}
+    // Password visibility toggle
+    el('togglePassword').addEventListener('click', function() {
+      const passwordInput = el('password');
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
 
-// Add CSS for notifications
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes slideOutRight {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-  .fa-spinner {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
+    // Form validation
+    const fullNameInput = el('fullName');
+    const emailInput = el('email');
+    const passwordInput = el('password');
+    const phoneInput = el('phone');
+    const roleSelect = el('role');
+
+    const nameError = el('nameError');
+    const emailError = el('emailError');
+    const passwordError = el('passwordError');
+    const phoneError = el('phoneError');
+    const roleError = el('roleError');
+
+    // Input validation
+    fullNameInput.addEventListener('input', function() {
+      if (this.value.trim()) {
+        this.classList.remove('error');
+        nameError.classList.remove('show');
+      }
+    });
+
+    emailInput.addEventListener('input', function() {
+      if (this.validity.valid) {
+        this.classList.remove('error');
+        emailError.classList.remove('show');
+      }
+    });
+
+    passwordInput.addEventListener('input', function() {
+      const error = validatePassword(this.value);
+      if (!error) {
+        this.classList.remove('error');
+        passwordError.classList.remove('show');
+      }
+    });
+
+    phoneInput.addEventListener('input', function() {
+      if (this.value.trim()) {
+        this.classList.remove('error');
+        phoneError.classList.remove('show');
+      }
+    });
+
+    roleSelect.addEventListener('change', function() {
+      if (this.value) {
+        this.classList.remove('error');
+        roleError.classList.remove('show');
+      }
+    });
+
+    // Form submission with validation and OTP
+    el('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fullName = fullNameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const phone = phoneInput.value.trim();
+      const role = roleSelect.value;
+
+      let isValid = true;
+      
+      // Validate full name
+      if (!fullName) {
+        fullNameInput.classList.add('error');
+        nameError.classList.add('show');
+        isValid = false;
+      }
+      
+      // Validate email
+      if (!email || !emailInput.validity.valid) {
+        emailInput.classList.add('error');
+        emailError.classList.add('show');
+        isValid = false;
+      }
+      
+      // Validate password
+      const passwordErrorMsg = validatePassword(password);
+      if (passwordErrorMsg) {
+        passwordInput.classList.add('error');
+        passwordError.classList.add('show');
+        passwordError.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${passwordErrorMsg}</span>`;
+        isValid = false;
+      }
+      
+      // Validate phone - basic validation
+      const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+      const phPhoneRegex = /^(09|\+639|639)\d{9}$/;
+      if (!phone || !phPhoneRegex.test(cleanedPhone)) {
+        phoneInput.classList.add('error');
+        phoneError.classList.add('show');
+        isValid = false;
+      }
+      
+      // Validate role
+      if (!role) {
+        roleSelect.classList.add('error');
+        roleError.classList.add('show');
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        return;
+      }
+
+      try {
+        const signupBtn = document.querySelector('.btn-primary');
+        signupBtn.disabled = true;
+        signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+        
+        // Check if email already exists in Firestore
+        const emailExists = await checkEmailExists(email);
+        if (emailExists) {
+          throw new Error('auth/email-already-in-use');
+        }
+        
+        // Create user in Firebase Auth
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+
+        // Save user data (initially unverified)
+        await setDoc(doc(db, 'users', uid), {
+          fullName, 
+          email, 
+          phone, 
+          role,
+          kycStatus: role === 'buyer' ? "not_required" : "not_submitted",
+          createdAt: serverTimestamp(),
+          authMethod: 'email_password',
+          emailVerified: false
+        });
+
+        // Generate and save OTP
+        const otp = generateOTP();
+        await saveOTP(uid, email, otp);
+        
+        // Send OTP email using EmailJS
+        await sendOTPEmail(email, otp, fullName);
+        
+        // Store email in sessionStorage for verification page
+        sessionStorage.setItem('pendingVerificationEmail', email);
+        sessionStorage.setItem('pendingVerificationName', fullName);
+        
+        showNotification('success', '✅ Account created! Please check your email for verification code.');
+        
+        // Redirect to verification page
+        setTimeout(() => {
+          window.location.href = 'verify-otp.html';
+        }, 1500);
+        
+      } catch (err) {
+        let errorMessage = '❌ Sign up failed: ';
+        
+        if (err.code === 'auth/email-already-in-use' || err.message === 'auth/email-already-in-use') {
+          errorMessage = '❌ This email is already registered. Please try logging in instead.';
+          emailInput.classList.add('error');
+          emailError.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>This email is already registered. Please try logging in.</span>`;
+          emailError.classList.add('show');
+        } else if (err.code === 'auth/invalid-email') {
+          errorMessage = '❌ Please enter a valid email address.';
+        } else if (err.code === 'auth/weak-password') {
+          errorMessage = '❌ Password is too weak. Please use a stronger password.';
+        } else {
+          errorMessage += err.message || 'Unknown error';
+        }
+        
+        showNotification('error', errorMessage);
+        const signupBtn = document.querySelector('.btn-primary');
+        signupBtn.disabled = false;
+        signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+      }
+    });
+
+    // Function to show role selection modal
+    function showRoleSelectionModal() {
+      return new Promise((resolve) => {
+        // Create modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'role-modal-overlay';
+        
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.className = 'role-modal-content';
+        
+        modalContent.innerHTML = `
+          <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 24px; color: var(--primary); font-weight: 600; margin-bottom: 10px;">
+              Select Your Account Type
+            </div>
+            <div style="color: var(--text-light); font-size: 15px;">
+              Choose how you'll use BahAI Real Estate
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+            <div class="role-option" data-role="broker">
+              <div class="icon">
+                <i class="fas fa-user-tie"></i>
+              </div>
+              <div class="title">Broker</div>
+              <div class="description">Licensed Real Estate Professional</div>
+            </div>
+            
+            <div class="role-option" data-role="landlord">
+              <div class="icon">
+                <i class="fas fa-building"></i>
+              </div>
+              <div class="title">Landlord</div>
+              <div class="description">Property Owner/Lessor</div>
+            </div>
+            
+            <div class="role-option" data-role="buyer">
+              <div class="icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <div class="title">Buyer</div>
+              <div class="description">Property Seeker/Investor</div>
+            </div>
+          </div>
+          
+          <div style="font-size: 14px; color: var(--text-light); background: var(--neutral-light); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+            <i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i>
+            Note: Agent accounts are created by Brokers. If you're an agent, please ask your broker to create your account.
+          </div>
+          
+          <div class="modal-buttons">
+            <button id="cancelRoleSelect" class="modal-btn modal-btn-cancel">
+              Cancel
+            </button>
+            <button id="confirmRoleSelect" class="modal-btn modal-btn-confirm" disabled>
+              Continue with Google
+            </button>
+          </div>
+        `;
+        
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        
+        let selectedRole = null;
+        
+        // Add click handlers for role options
+        const roleOptions = modalContent.querySelectorAll('.role-option');
+        roleOptions.forEach(option => {
+          option.addEventListener('click', () => {
+            // Remove active class from all options
+            roleOptions.forEach(opt => {
+              opt.classList.remove('active');
+            });
+            
+            // Add active class to selected option
+            selectedRole = option.dataset.role;
+            option.classList.add('active');
+            
+            // Enable confirm button
+            const confirmBtn = modalContent.querySelector('#confirmRoleSelect');
+            confirmBtn.disabled = false;
+          });
+        });
+        
+        // Confirm button handler
+        modalContent.querySelector('#confirmRoleSelect').addEventListener('click', () => {
+          if (selectedRole) {
+            modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => {
+              document.body.removeChild(modalOverlay);
+              document.body.style.overflow = 'auto';
+            }, 300);
+            resolve(selectedRole);
+          }
+        });
+        
+        // Cancel button handler
+        modalContent.querySelector('#cancelRoleSelect').addEventListener('click', () => {
+          modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+          setTimeout(() => {
+            document.body.removeChild(modalOverlay);
+            document.body.style.overflow = 'auto';
+          }, 300);
+          resolve(null);
+        });
+        
+        // Close on ESC key
+        const handleEscape = (e) => {
+          if (e.key === 'Escape') {
+            modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => {
+              document.body.removeChild(modalOverlay);
+              document.body.style.overflow = 'auto';
+              document.removeEventListener('keydown', handleEscape);
+            }, 300);
+            resolve(null);
+          }
+        };
+        
+        document.addEventListener('keydown', handleEscape);
+      });
+    }
+
+    // Google Signup with Email Existence Check
+    el('googleSignupBtn').addEventListener('click', async () => {
+      try {
+        // Show role selection modal before Google auth
+        const selectedRole = await showRoleSelectionModal();
+        
+        if (!selectedRole) {
+          // User cancelled the modal
+          return;
+        }
+        
+        // Disable the Google button during signup
+        const googleBtn = el('googleSignupBtn');
+        const originalText = googleBtn.innerHTML;
+        googleBtn.disabled = true;
+        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+        
+        // Proceed with Google authentication
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        const userEmail = user.email.toLowerCase();
+        
+        // Check if email already exists in Firestore
+        const existingUser = await getUserByEmail(userEmail);
+        
+        if (existingUser) {
+          // Email already exists - show error message
+          const errorMessage = "❌ This email is already registered. Please try logging in instead.";
+          
+          // Close the modal first
+          const modalOverlay = document.querySelector('.role-modal-overlay');
+          if (modalOverlay) {
+            modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => {
+              if (modalOverlay.parentNode) {
+                document.body.removeChild(modalOverlay);
+              }
+              document.body.style.overflow = 'auto';
+            }, 300);
+          }
+          
+          // Show error
+          showNotification('error', errorMessage);
+          
+          // Sign out the user since we won't be using this Google account
+          await auth.signOut();
+          
+          // Re-enable the Google button
+          googleBtn.disabled = false;
+          googleBtn.innerHTML = originalText;
+          return;
+        }
+        
+        // Create new user profile (Google users are automatically verified)
+        const userRef = doc(db, "users", user.uid);
+        const userData = {
+          fullName: user.displayName,
+          email: userEmail,
+          phone: user.phoneNumber || "",
+          role: selectedRole,
+          kycStatus: selectedRole === 'buyer' ? "not_required" : "not_submitted",
+          createdAt: serverTimestamp(),
+          profilePhoto: user.photoURL || "",
+          emailVerified: true, // Google users are verified
+          authMethod: 'google'
+        };
+        
+        await setDoc(userRef, userData);
+        showNotification('success', "✅ Account created successfully! Redirecting...");
+        
+        // Redirect based on selected role
+        setTimeout(() => {
+          const dashboardMap = {
+            broker: 'broker/broker_dashboard.html',
+            landlord: 'landlord/landlord_dashboard.html',
+            buyer: 'buyer/buyer_dashboard.html'
+          };
+          window.location.href = dashboardMap[selectedRole] || 'login.html';
+        }, 1500);
+
+      } catch (error) {
+        let errorMessage = "❌ Sign-in failed: ";
+        
+        if (error.code === 'auth/account-exists-with-different-credential') {
+          errorMessage = "❌ This email is already registered with a different sign-in method. Please use email/password login instead.";
+        } else if (error.code === 'auth/email-already-in-use') {
+          errorMessage = "❌ This email is already registered. Please try logging in instead.";
+        } else if (error.code === 'auth/popup-blocked') {
+          errorMessage = "❌ Popup was blocked by your browser. Please allow popups for this site.";
+        } else if (error.code === 'auth/popup-closed-by-user') {
+          errorMessage = "❌ Sign-in was cancelled.";
+          return; // Don't show error for user cancellation
+        } else {
+          errorMessage += error.message || 'Unknown error';
+        }
+        
+        // Close modal if it's still open
+        const modalOverlay = document.querySelector('.role-modal-overlay');
+        if (modalOverlay) {
+          modalOverlay.style.animation = 'fadeOut 0.3s ease forwards';
+          setTimeout(() => {
+            if (modalOverlay.parentNode) {
+              document.body.removeChild(modalOverlay);
+            }
+            document.body.style.overflow = 'auto';
+          }, 300);
+        }
+        
+        // Show error
+        showNotification('error', errorMessage);
+        
+        // Re-enable the Google button
+        const googleBtn = el('googleSignupBtn');
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = originalText || '<i class="fab fa-google"></i> Continue with Google';
+      }
+    });
+
+    // Allow form submission with Enter key
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+        document.querySelector('.btn-primary').click();
+      }
+    });
+
+    // Notification function
+    function showNotification(type, message) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      
+      const icon = {
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        success: '<i class="fas fa-check-circle"></i>',
+        info: '<i class="fas fa-info-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>'
+      };
+      
+      notification.innerHTML = `${icon[type] || icon.info} ${message}`;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 4000);
+    }
   </script>
 </body>
 </html>

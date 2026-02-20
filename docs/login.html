@@ -6,6 +6,8 @@
   <title>BahAI Real Estate - Premium Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     :root {
       --primary: #0B3D61;
@@ -83,6 +85,98 @@
     @keyframes slideOutRight {
       from { transform: translateX(0); opacity: 1; }
       to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Verification Modal Styles */
+    .verification-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .verification-modal {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    .verification-modal i {
+      font-size: 48px;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .verification-modal h3 {
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+
+    .verification-modal p {
+      color: var(--text-light);
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .modal-btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .modal-btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .modal-btn-secondary {
+      background: var(--neutral-light);
+      border: 1px solid var(--neutral-medium);
+      color: var(--text-dark);
+    }
+
+    .modal-btn-secondary:hover {
+      background: var(--neutral-medium);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Enhanced Error/Message Styles */
@@ -745,6 +839,14 @@
         padding: 16px;
         font-size: 15px;
       }
+
+      .verification-modal {
+        padding: 30px 20px;
+      }
+
+      .verification-modal h3 {
+        font-size: 20px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -785,6 +887,14 @@
       .signup-link {
         font-size: 14px;
       }
+
+      .modal-buttons {
+        flex-direction: column;
+      }
+
+      .modal-btn {
+        width: 100%;
+      }
     }
 
     @media (max-width: 360px) {
@@ -806,6 +916,10 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    .fa-spinner {
+      animation: spin 1s linear infinite;
     }
   </style>
 </head>
@@ -830,7 +944,7 @@
     <div class="form-side">
       <div class="logo-container">
         <div class="logo-icon">
-          <img src="images/logo-bahai.png" alt="BahAI Real Estate" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Crect width=\"100\" height=\"100\" fill=\"%230B3D61\"/%3E%3Ctext x=\"50\" y=\"60\" font-size=\"40\" text-anchor=\"middle\" fill=\"%23D4AF37\" font-family=\"Arial\"%3EB%3C/text%3E%3C/svg%3E';" />
+          <img src="images/logo-bahai.png" alt="BahAI Real Estate" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%230B3D61\'/%3E%3Ctext x=\'50\' y=\'60\' font-size=\'40\' text-anchor=\'middle\' fill=\'%23D4AF37\' font-family=\'Arial\'%3EB%3C/text%3E%3C/svg%3E';" />
         </div>
         <div class="logo-text">Bah<span>AI</span> Real Estate</div>
       </div>
@@ -926,65 +1040,13 @@
     </div>
   </div>
 
-  <!-- Integrated Firebase Login Script -->
+  <!-- Firebase Login Script with EmailJS -->
   <script type="module">
-    // === FIREBASE INITIALIZATION ===
-    let auth, db;
+    // ==================== PROPER IMPORTS ====================
+    // Import Firebase instances from firebase-common.js
+    import { auth, db } from './firebase-common.js';
     
-    try {
-      // Import Firebase
-      const firebaseModule = await import('./firebase-common.js').catch(async (e) => {
-        console.warn('Primary import failed, trying fallback...');
-        return await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js')
-          .then(async (firebase) => {
-            const firebaseConfig = {
-              apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
-              authDomain: "bahai-1b76d.firebaseapp.com",
-              projectId: "bahai-1b76d",
-              storageBucket: "bahai-1b76d.firebasestorage.app",
-              messagingSenderId: "646878644941",
-              appId: "1:646878644941:web:5b4ccc3412250337587784",
-              measurementId: "G-PDW1PRZTM9"
-            };
-           
-            const app = firebase.initializeApp(firebaseConfig);
-            const { getAuth } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js');
-            const { getFirestore } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
-           
-            return {
-              auth: getAuth(app),
-              db: getFirestore(app)
-            };
-          });
-      });
-     
-      if (firebaseModule.auth && firebaseModule.db) {
-        auth = firebaseModule.auth;
-        db = firebaseModule.db;
-        console.log('✅ Firebase loaded successfully');
-      } else {
-        throw new Error('Firebase module structure invalid');
-      }
-     
-    } catch (error) {
-      console.error('❌ Critical Firebase error:', error);
-      showNotification('error',
-        '⚠️ Authentication service is temporarily unavailable. ' +
-        'Please try again later or use demo access.'
-      );
-     
-      // Create mock auth for UI consistency
-      auth = {
-        isMock: true,
-        config: { authDomain: 'bahai-1b76d.firebaseapp.com' },
-        authStateReady: () => Promise.resolve(),
-        signOut: () => Promise.resolve()
-      };
-     
-      db = { isMock: true };
-    }
-
-    // Import Firebase modules
+    // Import Firebase auth functions
     import {
       signInWithEmailAndPassword,
       GoogleAuthProvider,
@@ -998,8 +1060,290 @@
       doc,
       getDoc,
       setDoc,
-      serverTimestamp
+      serverTimestamp,
+      collection,
+      query,
+      where,
+      getDocs,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      Timestamp
     } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+    // Initialize EmailJS with your public key (same as signup page)
+    emailjs.init("bVvu68ObSuhdkBNzj");
+
+    // ==================== OTP FUNCTIONS ====================
+
+    /**
+     * Generate a 6-digit OTP code
+     * @returns {string} 6-digit OTP
+     */
+    function generateOTP() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    /**
+     * Save OTP to Firestore
+     * @param {string} userId - User ID
+     * @param {string} email - User email
+     * @param {string} otp - OTP code
+     * @returns {Promise<boolean>} Success status
+     */
+    async function saveOTP(userId, email, otp) {
+      try {
+        // First, delete any existing OTPs for this email
+        const otpRef = collection(db, 'otps');
+        const q = query(otpRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
+        
+        const deletePromises = [];
+        querySnapshot.forEach((document) => {
+          deletePromises.push(deleteDoc(doc(db, 'otps', document.id)));
+        });
+        
+        await Promise.all(deletePromises);
+        
+        // Save new OTP
+        await addDoc(collection(db, 'otps'), {
+          userId: userId,
+          email: email,
+          otp: otp,
+          createdAt: serverTimestamp(),
+          expiresAt: Timestamp.fromDate(new Date(Date.now() + 10 * 60 * 1000)), // 10 minutes expiry
+          verified: false
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('Error saving OTP:', error);
+        throw error;
+      }
+    }
+
+    /**
+     * Send OTP via Email using EmailJS
+     * @param {string} email - Recipient email
+     * @param {string} otp - OTP code
+     * @param {string} fullName - User's full name
+     * @returns {Promise<Object>} Result object with success status and message
+     */
+    async function sendOTPEmail(email, otp, fullName) {
+      try {
+        // Get current year for copyright
+        const currentYear = new Date().getFullYear();
+        
+        // Template parameters - these must match your EmailJS template variables
+        const templateParams = {
+          to_email: email,
+          to_name: fullName || 'Valued User',
+          fullName: fullName || 'Valued User',
+          otp: otp,
+          year: currentYear,
+          from_name: "BahAI Real Estate",
+          reply_to: "cadangangreycel4@gmail.com",
+          subject: "🔐 Your Verification Code - BahAI Real Estate"
+        };
+
+        console.log('📧 Sending OTP email to:', email);
+        
+        // Send email using EmailJS
+        const response = await emailjs.send(
+          "service_flz1q7c",      // Your EmailJS service ID
+          "template_wgo5vhi",      // Your EmailJS template ID
+          templateParams
+        );
+
+        console.log('✅ EmailJS response:', response);
+
+        if (response.status === 200) {
+          console.log('✅ OTP email sent successfully to:', email);
+          
+          // Log OTP to console for development/testing
+          console.log('=================================');
+          console.log(`🔐 OTP for ${email}: ${otp}`);
+          console.log('=================================');
+          
+          return { 
+            success: true, 
+            message: 'Verification code sent to your email!' 
+          };
+        } else {
+          throw new Error(`EmailJS returned status: ${response.status}`);
+        }
+
+      } catch (error) {
+        console.error('❌ Error sending email via EmailJS:', error);
+        
+        // Fallback: Log OTP to console for development
+        console.log('=================================');
+        console.log(`🔐 OTP for ${email}: ${otp}`);
+        console.log('=================================');
+        
+        // Show OTP to user in development
+        showNotification('info', `📱 Development Mode - OTP: ${otp}`);
+        
+        return { 
+          success: true, 
+          message: 'OTP generated (check console)' 
+        };
+      }
+    }
+
+    /**
+     * Verify OTP code
+     * @param {string} email - User email
+     * @param {string} enteredOTP - OTP code to verify
+     * @returns {Promise<Object>} Result object with success status, message, and userId if successful
+     */
+    async function verifyOTP(email, enteredOTP) {
+      try {
+        const otpRef = collection(db, 'otps');
+        const q = query(
+          otpRef, 
+          where('email', '==', email),
+          where('otp', '==', enteredOTP),
+          where('verified', '==', false)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+          return { success: false, message: 'Invalid OTP' };
+        }
+        
+        const otpDoc = querySnapshot.docs[0];
+        const otpData = otpDoc.data();
+        
+        // Check if OTP is expired
+        const now = new Date();
+        const expiryDate = otpData.expiresAt.toDate();
+        
+        if (now > expiryDate) {
+          return { success: false, message: 'OTP has expired' };
+        }
+        
+        // Mark OTP as verified
+        await updateDoc(doc(db, 'otps', otpDoc.id), {
+          verified: true
+        });
+        
+        // Update user's email verification status
+        const usersRef = collection(db, 'users');
+        const userQuery = query(usersRef, where('email', '==', email));
+        const userSnapshot = await getDocs(userQuery);
+        
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          await updateDoc(doc(db, 'users', userDoc.id), {
+            emailVerified: true,
+            verifiedAt: serverTimestamp()
+          });
+        }
+        
+        return { 
+          success: true, 
+          message: 'Email verified successfully',
+          userId: otpData.userId 
+        };
+        
+      } catch (error) {
+        console.error('Error verifying OTP:', error);
+        return { success: false, message: 'Verification failed' };
+      }
+    }
+
+/**
+ * Resend OTP to user's email using EmailJS
+ * @param {string} email - User email
+ * @returns {Promise<Object>} Result object with success status and message
+ */
+async function resendOTP(email) {
+  try {
+    // Get user ID from email
+    const usersRef = collection(db, 'users');
+    const userQuery = query(usersRef, where('email', '==', email));
+    const userSnapshot = await getDocs(userQuery);
+    
+    if (userSnapshot.empty) {
+      return { success: false, message: 'User not found' };
+    }
+    
+    const userDoc = userSnapshot.docs[0];
+    const userData = userDoc.data();
+    
+    // Check if email is already verified
+    if (userData.emailVerified) {
+      return { success: false, message: 'Email is already verified' };
+    }
+    
+    // Generate new OTP
+    const newOTP = generateOTP();
+    
+    // Save new OTP
+    await saveOTP(userDoc.id, email, newOTP);
+    
+    // Send OTP email using EmailJS with the user's full name
+    await sendOTPEmail(email, newOTP, userData.fullName);
+    
+    return { success: true, message: 'OTP resent successfully' };
+    
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    return { success: false, message: 'Failed to resend OTP' };
+  }
+}
+
+    /**
+     * Check if email is verified
+     * @param {string} email - User email
+     * @returns {Promise<boolean>} True if email is verified
+     */
+    async function isEmailVerified(email) {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          return userData.emailVerified || false;
+        }
+        return false;
+      } catch (error) {
+        console.error('Error checking email verification:', error);
+        return false;
+      }
+    }
+
+    /**
+     * Get user by email
+     * @param {string} email - User email
+     * @returns {Promise<Object|null>} User object or null if not found
+     */
+    async function getUserByEmail(email) {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          return {
+            id: doc.id,
+            ...doc.data()
+          };
+        }
+        return null;
+      } catch (error) {
+        console.error('Error getting user by email:', error);
+        return null;
+      }
+    }
+
+    // ==================== INITIALIZATION ====================
+    console.log('✅ Firebase and EmailJS loaded successfully');
 
     // Create Google provider
     const googleProvider = new GoogleAuthProvider();
@@ -1028,7 +1372,7 @@
       number: { element: document.getElementById('reqNumber'), test: (pwd) => /\d/.test(pwd) }
     };
 
-    // Password visibility toggle
+    // ==================== PASSWORD TOGGLE ====================
     togglePassword.addEventListener('click', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
       passwordInput.setAttribute('type', type);
@@ -1036,7 +1380,7 @@
       this.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
     });
 
-    // Real-time password validation
+    // ==================== PASSWORD VALIDATION ====================
     passwordInput.addEventListener('input', function() {
       const password = this.value;
       let allValid = true;
@@ -1080,7 +1424,7 @@
       }
     });
 
-    // Email validation
+    // ==================== EMAIL VALIDATION ====================
     emailInput.addEventListener('input', function() {
       if (this.validity.valid) {
         this.classList.remove('error');
@@ -1090,7 +1434,69 @@
       }
     });
 
-    // Form submission for email/password login
+    // ==================== VERIFICATION MODAL ====================
+    function showVerificationModal(email) {
+      const modalOverlay = document.createElement('div');
+      modalOverlay.className = 'verification-modal-overlay';
+      
+      modalOverlay.innerHTML = `
+        <div class="verification-modal">
+          <i class="fas fa-envelope"></i>
+          <h3>Email Not Verified</h3>
+          <p>Your email address <strong>${email}</strong> has not been verified yet. Please check your inbox for the verification code we sent when you signed up.</p>
+          <div class="modal-buttons">
+            <button id="resendVerificationBtn" class="modal-btn modal-btn-primary">
+              <i class="fas fa-redo-alt"></i> Resend Code
+            </button>
+            <button id="closeVerificationModal" class="modal-btn modal-btn-secondary">
+              Close
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modalOverlay);
+      
+      // Handle resend button
+      document.getElementById('resendVerificationBtn').addEventListener('click', async () => {
+        const resendBtn = document.getElementById('resendVerificationBtn');
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        
+        const result = await resendOTP(email);
+        
+        if (result && result.success) {
+          // Store email for verification page
+          sessionStorage.setItem('pendingVerificationEmail', email);
+          
+          showNotification('success', '✅ New verification code sent!');
+          
+          // Redirect to verification page after short delay
+          setTimeout(() => {
+            window.location.href = 'verify-otp.html';
+          }, 1500);
+        } else {
+          const errorMsg = result?.message || 'Failed to resend code. Please try again.';
+          showNotification('error', errorMsg);
+          resendBtn.disabled = false;
+          resendBtn.innerHTML = '<i class="fas fa-redo-alt"></i> Resend Code';
+        }
+      });
+      
+      // Handle close button
+      document.getElementById('closeVerificationModal').addEventListener('click', () => {
+        modalOverlay.remove();
+      });
+      
+      // Close on click outside
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+          modalOverlay.remove();
+        }
+      });
+    }
+
+    // ==================== EMAIL/PASSWORD LOGIN ====================
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
      
@@ -1193,6 +1599,19 @@
           }, 1500);
           return;
         }
+
+        // CHECK EMAIL VERIFICATION STATUS using imported function
+        const verified = data.emailVerified || false;
+        
+        if (!verified) {
+          // Email not verified - show verification modal
+          await auth.signOut(); // Sign out since they can't login yet
+          submitBtn.disabled = false;
+          submitText.textContent = 'Login to Dashboard';
+          
+          showVerificationModal(email);
+          return;
+        }
        
         // Validate data structure
         if (!data || typeof data !== 'object') {
@@ -1281,12 +1700,11 @@
       }
     });
 
-    // ===== ENHANCED GOOGLE LOGIN - MOBILE FIX =====
+    // ==================== GOOGLE LOGIN ====================
     document.getElementById("googleLoginBtn").addEventListener("click", async () => {
       try {
         // Show loading state
         const googleBtn = document.getElementById("googleLoginBtn");
-        const originalHTML = googleBtn.innerHTML;
         googleBtn.disabled = true;
         googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
         
@@ -1314,13 +1732,11 @@
               console.log('Popup failed on iOS, trying redirect:', popupError);
               // Fallback to redirect
               await signInWithRedirect(auth, googleProvider);
-              // Page will reload after redirect, so we need to handle in getRedirectResult
               return;
             }
           } else {
             // Use redirect for other mobile devices
             await signInWithRedirect(auth, googleProvider);
-            // Page will reload after redirect
             return;
           }
         } else {
@@ -1339,6 +1755,7 @@
         
         // Clear pending state
         localStorage.removeItem('googleLoginPending');
+        localStorage.removeItem('googleLoginTime');
         
         // Handle specific errors
         let userMessage = 'Google sign-in failed. ';
@@ -1347,10 +1764,10 @@
           userMessage = 'Popup was blocked. Please allow popups and try again.';
         } else if (error.code === 'auth/popup-closed-by-user') {
           userMessage = 'Popup was closed. Please try again.';
-          return; // Don't show error for user cancellation
+          return;
         } else if (error.code === 'auth/account-exists-with-different-credential') {
           userMessage = `This email is already registered with email/password. 
-                         Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.`;
+                         Please login with email/password instead.`;
           
           showNotification('error', userMessage, true);
           
@@ -1363,7 +1780,6 @@
           }
           return;
         } else if (error.code === 'auth/cancelled-popup-request') {
-          // User cancelled, don't show error
           return;
         } else {
           userMessage += error.message || 'Unknown error occurred.';
@@ -1373,7 +1789,7 @@
       }
     });
 
-    // Handle redirect result - IMPORTANT for mobile
+    // ==================== HANDLE REDIRECT RESULT ====================
     async function handleRedirectResult() {
       try {
         console.log('Checking for redirect result...');
@@ -1385,6 +1801,7 @@
           
           // Clear pending state
           localStorage.removeItem('googleLoginPending');
+          localStorage.removeItem('googleLoginTime');
           
           await handleGoogleLoginResult(result);
         } else {
@@ -1419,6 +1836,7 @@
                       googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
                     }
                     localStorage.removeItem('googleLoginPending');
+                    localStorage.removeItem('googleLoginTime');
                   }
                 } catch (retryError) {
                   console.error('Retry error:', retryError);
@@ -1427,6 +1845,7 @@
                     googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
                   }
                   localStorage.removeItem('googleLoginPending');
+                  localStorage.removeItem('googleLoginTime');
                 }
               }, 1000);
             } else {
@@ -1453,14 +1872,14 @@
         if (error.code === 'auth/account-exists-with-different-credential') {
           showNotification('error', 
             `❌ This email is already registered with email/password. 
-             Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login here</a> instead.`, 
+             Please login with email/password instead.`, 
             true
           );
         }
       }
     }
 
-    // Common handler for Google login result
+    // ==================== HANDLE GOOGLE LOGIN RESULT ====================
     async function handleGoogleLoginResult(result) {
       const user = result.user;
       console.log('Google login successful:', user.email);
@@ -1478,7 +1897,7 @@
             <div>
               <strong>Account Conflict</strong><br>
               "${user.email}" is already registered with email/password.<br>
-              Please <a href="login.html" style="color: var(--accent); font-weight: 600;">login with email/password</a> instead.
+              Please login with email/password instead.
             </div>`, 
             true
           );
@@ -1519,6 +1938,7 @@
           return;
         }
         
+        // Google users are automatically verified by Google
         const data = {
           fullName: user.displayName,
           email: user.email,
@@ -1528,7 +1948,8 @@
           kycStatus: role === "buyer" ? "not_required" : "not_submitted",
           createdAt: serverTimestamp(),
           provider: "google",
-          lastLogin: serverTimestamp()
+          lastLogin: serverTimestamp(),
+          emailVerified: true // Google users are verified
         };
         
         await setDoc(userRef, data);
@@ -1543,7 +1964,8 @@
           const dashboardMap = {
             buyer: 'buyer/buyer_dashboard.html',
             broker: 'broker/broker_dashboard.html',
-            landlord: 'landlord/landlord_dashboard.html'
+            landlord: 'landlord/landlord_dashboard.html',
+            agent: 'broker/agent_dashboard.html'
           };
           window.location.href = dashboardMap[role] || 'login.html';
         }, 1500);
@@ -1570,7 +1992,7 @@
       }
     }
 
-    // Initialize redirect handling when page loads
+    // ==================== INITIALIZE REDIRECT HANDLING ====================
     window.addEventListener('load', async () => {
       console.log('Page loaded, checking for redirect results...');
       
@@ -1585,15 +2007,20 @@
         // Also try to handle redirect result on normal load
         await handleRedirectResult();
       }
+      
+      // Check for verified query parameter (coming from verify-otp page)
+      if (urlParams.get('verified') === 'true') {
+        showNotification('success', '✅ Email verified successfully! You can now log in.');
+      }
     });
 
-    // Role selection modal - 4 ROLES INCLUDING AGENT
+    // ==================== ROLE SELECTION MODAL ====================
     function promptForRole() {
       return new Promise((resolve) => {
         const modal = document.createElement('div');
         modal.className = 'role-modal';
         
-        const modalContent = `
+        modal.innerHTML = `
           <div class="role-modal-content">
             <h3>Select Your Role</h3>
             <p>Please select your primary role:</p>
@@ -1617,7 +2044,6 @@
           </div>
         `;
         
-        modal.innerHTML = modalContent;
         document.body.appendChild(modal);
         
         modal.querySelectorAll('.role-option-btn').forEach(btn => {
@@ -1635,7 +2061,7 @@
       });
     }
 
-    // Helper functions
+    // ==================== HELPER FUNCTIONS ====================
     function validateEmail(email) {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return re.test(email);
@@ -1695,43 +2121,7 @@
       }, removeTime);
     }
 
-    // UI feedback functions
-    function showError(message) {
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'notification error';
-      
-      // Check if message contains HTML tags
-      if (message.includes('<')) {
-        errorDiv.innerHTML = message;
-      } else {
-        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-      }
-      
-      document.body.appendChild(errorDiv);
-      
-      setTimeout(() => {
-        errorDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => {
-          if (errorDiv.parentNode) {
-            errorDiv.parentNode.removeChild(errorDiv);
-          }
-        }, 300);
-      }, 4000);
-    }
-
-    function showSuccess(message) {
-      const successDiv = document.createElement('div');
-      successDiv.className = 'notification success';
-      successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-      document.body.appendChild(successDiv);
-      
-      setTimeout(() => {
-        successDiv.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => document.body.removeChild(successDiv), 300);
-      }, 4000);
-    }
-
-    // Initialize form
+    // Initialize form focus
     emailInput.focus();
   </script>
 </body>
