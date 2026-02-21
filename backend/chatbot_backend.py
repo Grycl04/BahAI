@@ -475,6 +475,46 @@ def preprocess_text(text):  # ✅ Removed 'self' parameter
     
     return text
 
+# ========== ADD THIS RIGHT HERE - LANGUAGE DETECTION FUNCTION ==========
+def detect_language(text):
+    """Detect if query is Tagalog or English"""
+    if not text:
+        return 'en'
+    
+    text_lower = text.lower()
+    
+    # Tagalog common words and particles
+    tagalog_indicators = [
+        'ang', 'ng', 'sa', 'mga', 'ay', 'ito', 'ko', 'ako', 'mo', 'ka',
+        'siya', 'tayo', 'kami', 'sila', 'namin', 'ninyo', 'nila',
+        'paano', 'mag', 'po', 'opo', 'oo', 'hindi', 'wala', 'may',
+        'gusto', 'kailangan', 'meron', 'pwede', 'pwedeng', 'ba', 'na',
+        'pa', 'din', 'rin', 'kasi', 'dahil', 'kung', 'kapag', 'pag',
+        'para', 'saan', 'kailan', 'bakit', 'sino', 'ano', 'ilan',
+        'itong', 'iyan', 'iyon', 'dito', 'diyan', 'doon'
+    ]
+    
+    # Count Tagalog indicators
+    words = text_lower.split()
+    tagalog_count = sum(1 for word in words if word in tagalog_indicators)
+    
+    # If we find Tagalog words, return 'tl' (Tagalog)
+    if tagalog_count > 0:
+        return 'tl'
+    
+    # Check for common Tagalog question patterns
+    tagalog_patterns = [
+        r'^paano', r'^saan', r'^kailan', r'^bakit', r'^ano', r'^sino',
+        r'\s+ba\s+', r'\s+po\s+', r'\s+opo\s+', r'mag$', r'^mag'
+    ]
+    
+    for pattern in tagalog_patterns:
+        if re.search(pattern, text_lower):
+            return 'tl'
+    
+    # Default to English
+    return 'en'
+
 # ========== SALE TYPE & SPECIFIC BANK DETECTION ==========
 # Bank keywords mapping to official bank names (for filtering)
 bank_keywords = {
@@ -2242,6 +2282,8 @@ def generate_financing_info_response(entities: Dict[str, Any]) -> str:
 # Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES AND MEMBER3
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
+
+    original_query = entities.get('original_query', '')
     
     # ========== HANDLE MEMBER3 INTENTS FIRST ==========
     if intent == 'find_property_for_need':
@@ -2255,6 +2297,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     
     elif intent == 'match_needs':
         return generate_match_needs_response(entities, properties)
+    
     
     # ========== HANDLE BASIC INTENTS FIRST ==========
     if intent == 'greeting':
@@ -2354,7 +2397,85 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         about_response += "I'm here to help you every step of the way. What kind of property are you looking for today? 😊🎉"
     
         return about_response
-    
+
+    # ========== BUYER ACCOUNT INTENTS WITH LANGUAGE DETECTION ==========
+    elif intent.startswith('buyer_'):
+        # Detect language from the original query
+        language = detect_language(original_query)
+        
+        # Dictionary of responses in both languages
+        buyer_responses = {
+            'buyer_signup': {
+                'en': "📝 **Buyer Account Sign Up**\n\nTo sign up as a buyer:\n\n**Steps:**\n1. Go to the BahAI website\n2. Click 'Sign Up' or 'Register'\n3. Choose 'Buyer' account type\n4. Fill in your details:\n   • Full name\n   • Email address\n   • Phone number\n   • Create a strong password\n5. Verify your email address\n6. Complete OTP verification\n\n**Need help with specific steps?** Just ask!\n• 'What are the password requirements?'\n• 'How to verify my email?'\n• 'Phone number format'",
+                'tl': "📝 **Pag-Sign Up bilang Buyer**\n\nPara mag-sign up bilang buyer:\n\n**Mga Hakbang:**\n1. Pumunta sa BahAI website\n2. I-click ang 'Sign Up' o 'Register'\n3. Piliin ang 'Buyer' bilang account type\n4. Punan ang iyong mga detalye:\n   • Buong pangalan\n   • Email address\n   • Phone number\n   • Gumawa ng malakas na password\n5. I-verify ang iyong email address\n6. Kumpletuhin ang OTP verification\n\nMay tanong sa specific steps? Magtanong lang!\n• 'Ano ang mga password requirements?'\n• 'Paano i-verify ang email?'\n• 'Format ng phone number'"
+            },
+            'buyer_signup_requirements': {
+                'en': "📋 **Buyer Sign Up Requirements**\n\nYou'll need:\n\n**Personal Information:**\n• Full legal name\n• Valid email address\n• Active mobile number\n• Strong password\n\n**Verification:**\n• Email verification link\n• OTP code sent to your phone\n\n**Optional but helpful:**\n• Profile picture\n• Preferred contact method\n• Property preferences\n\nAll information is kept secure and private.",
+                'tl': "📋 **Mga Kailangan sa Pag-Sign Up**\n\nKailangan mo ang mga sumusunod:\n\n**Personal na Impormasyon:**\n• Buong pangalan\n• Wasto at aktibong email address\n• Aktibong mobile number\n• Malakas na password\n\n**Verification:**\n• Email verification link\n• OTP code na ipapadala sa iyong phone\n\n**Hindi required ngunit makakatulong:**\n• Profile picture\n• Preferred contact method\n• Mga property preferences\n\nLahat ng impormasyon ay ligtas at pribado."
+            },
+            'buyer_signup_password': {
+                'en': "🔐 **Password Requirements**\n\nYour password must:\n• Be at least 8 characters long\n• Include uppercase and lowercase letters\n• Include at least one number\n• Include at least one special character (!@#$%^&*)\n• Not be commonly used or easily guessed\n\n**Example of strong password:** `Batangas@2024`\n\n**Tips:**\n• Use a mix of characters\n• Avoid personal information\n• Don't reuse passwords from other sites",
+                'tl': "🔐 **Mga Requirement sa Password**\n\nAng iyong password ay dapat:\n• Hindi bababa sa 8 characters\n• May malaki at maliit na letra\n• May kahit isang numero\n• May kahit isang special character (!@#$%^&*)\n• Hindi karaniwan o madaling hulaan\n\n**Halimbawa ng malakas na password:** `Batangas@2024`\n\n**Tips:**\n• Gumamit ng iba't ibang karakter\n• Iwasan ang personal na impormasyon\n• Huwag gumamit ng password mula sa ibang sites"
+            },
+            'buyer_signup_phone': {
+                'en': "📱 **Phone Number Format**\n\nEnter your Philippine mobile number:\n\n**Accepted formats:**\n• 09171234567 (11 digits)\n• +639171234567 (International format)\n• 0917 123 4567 (With spaces)\n\n**Note:**\n• Must be a valid Globe, Smart, Sun, or DITO number\n• You'll receive an OTP code for verification\n• Keep your SIM active to receive codes",
+                'tl': "📱 **Format ng Phone Number**\n\nIlagay ang iyong Philippine mobile number:\n\n**Tanggap na format:**\n• 09171234567 (11 digits)\n• +639171234567 (International format)\n• 0917 123 4567 (May spaces)\n\n**Paalala:**\n• Dapat valid na Globe, Smart, Sun, o DITO number\n• Makakatanggap ka ng OTP code para sa verification\n• Panatilihing aktibo ang iyong SIM para makatanggap ng codes"
+            },
+            'buyer_login': {
+                'en': "🔑 **Buyer Login**\n\nTo log in to your buyer account:\n\n**Steps:**\n1. Go to BahAI website\n2. Click 'Login' or 'Sign In'\n3. Choose 'Buyer' as account type\n4. Enter your credentials:\n   • Email address\n   • Password\n5. Click 'Login'\n\n**Trouble logging in?**\n• 'Forgot password'\n• 'Login errors'\n• 'Contact support'",
+                'tl': "🔑 **Pag-Login bilang Buyer**\n\nPara mag-login sa iyong buyer account:\n\n**Mga Hakbang:**\n1. Pumunta sa BahAI website\n2. I-click ang 'Login' o 'Sign In'\n3. Piliin ang 'Buyer' bilang account type\n4. Ilagay ang iyong credentials:\n   • Email address\n   • Password\n5. I-click ang 'Login'\n\n**May problema sa pag-login?**\n• 'Nakalimutan ang password'\n• 'Login errors'\n• 'Contact support'"
+            },
+            'buyer_login_google': {
+                'en': "🔑 **Login with Google**\n\nYou can also log in using your Google account:\n\n**Steps:**\n1. Click 'Continue with Google'\n2. Select your Google account\n3. Grant necessary permissions\n4. You'll be automatically logged in\n\n**Benefits:**\n• No need to remember another password\n• Faster login process\n• Secure Google authentication\n\n*Note: Your Google email must match the one used for registration*",
+                'tl': "🔑 **Login gamit ang Google**\n\nPwede ka ring mag-login gamit ang iyong Google account:\n\n**Mga Hakbang:**\n1. I-click ang 'Continue with Google'\n2. Piliin ang iyong Google account\n3. Payagan ang mga permissions\n4. Awtomatiko kang ma-login\n\n**Benepisyo:**\n• Hindi na kailangan pang mag-memorya ng ibang password\n• Mas mabilis na login process\n• Secure na Google authentication\n\n*Paalala: Ang iyong Google email ay dapat tugma sa ginamit sa registration*"
+            },
+            'buyer_forgot_password': {
+                'en': "🔄 **Forgot Password**\n\nTo reset your password:\n\n**Steps:**\n1. Click 'Forgot Password' on login page\n2. Enter your registered email address\n3. Check your email for reset link\n4. Click the link (valid for 1 hour)\n5. Create a new strong password\n6. Log in with your new password\n\n**Tips:**\n• Check spam folder if email not received\n• Use a password you haven't used before\n• Contact support if you don't receive email",
+                'tl': "🔄 **Nakalimutan ang Password**\n\nPara i-reset ang iyong password:\n\n**Mga Hakbang:**\n1. I-click ang 'Forgot Password' sa login page\n2. Ilagay ang iyong registered email address\n3. Tingnan ang iyong email para sa reset link\n4. I-click ang link (valid ng 1 oras)\n5. Gumawa ng bagong malakas na password\n6. Mag-login gamit ang iyong bagong password\n\n**Tips:**\n• Tingnan ang spam folder kung hindi dumating ang email\n• Gumamit ng password na hindi mo pa nagagamit\n• Kontakin ang support kung wala pa ring email"
+            },
+            'buyer_email_verification': {
+                'en': "📧 **Email Verification**\n\nVerify your email address:\n\n**After sign up:**\n1. Check your inbox for verification email\n2. Click the verification link\n3. You'll be redirected to confirmation page\n4. Your email is now verified\n\n**Didn't receive email?**\n• Check spam/junk folder\n• Wait 5-10 minutes\n• Request 'resend verification'\n• Make sure email was typed correctly\n\n**Why verify?**\n• Secure your account\n• Receive important notifications\n• Enable all features",
+                'tl': "📧 **Email Verification**\n\nI-verify ang iyong email address:\n\n**Pagkatapos mag-sign up:**\n1. Tingnan ang iyong inbox para sa verification email\n2. I-click ang verification link\n3. Dadalhin ka sa confirmation page\n4. Verified na ang iyong email\n\n**Hindi nakuha ang email?**\n• Tingnan ang spam/junk folder\n• Maghintay ng 5-10 minuto\n• Mag-request ng 'resend verification'\n• Siguraduhing tama ang email na nilagay\n\n**Bakit kailangan i-verify?**\n• Para secure ang iyong account\n• Makatanggap ng importanteng notifications\n• Magamit ang lahat ng features"
+            },
+            'buyer_verify_otp': {
+                'en': "🔢 **OTP Verification**\n\nOne-Time Password (OTP) verification:\n\n**Process:**\n1. You'll receive a 6-digit code via SMS\n2. Enter the code in the verification form\n3. Click 'Verify' or 'Submit'\n4. Your phone number is now verified\n\n**Tips:**\n• Code expires in 5-10 minutes\n• Enter exactly as received\n• Request new code if expired\n• Keep your phone nearby",
+                'tl': "🔢 **OTP Verification**\n\nOne-Time Password (OTP) verification:\n\n**Proseso:**\n1. Makakatanggap ka ng 6-digit code sa pamamagitan ng SMS\n2. I-type ang code sa verification form\n3. I-click ang 'Verify' o 'Submit'\n4. Verified na ang iyong phone number\n\n**Tips:**\n• Ang code ay valid lang ng 5-10 minuto\n• I-type ng eksakto tulad ng natanggap\n• Mag-request ng bagong code kung expired\n• Itabi ang iyong phone para madaling makuha ang code"
+            },
+            'buyer_resend_otp': {
+                'en': "🔄 **Resend OTP Code**\n\nIf you didn't receive the OTP:\n\n**Steps to resend:**\n1. Click 'Resend Code' button\n2. Wait 30-60 seconds for new SMS\n3. Enter the new 6-digit code\n4. Complete verification\n\n**Still not receiving?**\n• Check mobile signal\n• Verify phone number is correct\n• Contact support if issue persists\n• Try using a different number",
+                'tl': "🔄 **Magpa-resend ng OTP Code**\n\nKung hindi mo natanggap ang OTP:\n\n**Mga hakbang para magpa-resend:**\n1. I-click ang 'Resend Code' na button\n2. Maghintay ng 30-60 segundo para sa bagong SMS\n3. I-type ang bagong 6-digit code\n4. Kumpletuhin ang verification\n\n**Wala pa ring natatanggap?**\n• Tingnan ang mobile signal\n• Siguraduhing tama ang phone number\n• Kontakin ang support kung hindi pa rin\n• Subukan gumamit ng ibang number"
+            },
+            'buyer_login_errors': {
+                'en': "⚠️ **Login Error Troubleshooting**\n\nCommon login issues and solutions:\n\n**❌ 'Invalid email or password'**\n• Check email spelling\n• Ensure caps lock is off\n• Reset password if forgotten\n\n**❌ 'Account not found'**\n• Verify you signed up as buyer\n• Check email was verified\n• Try signing up again\n\n**❌ 'Too many attempts'**\n• Wait 15-30 minutes\n• Reset your password\n• Contact support\n\n**Still stuck?** Contact our support team!",
+                'tl': "⚠️ **Pag-troubleshoot ng Login Error**\n\nKaraniwang login issues at solusyon:\n\n**❌ 'Invalid email or password'**\n• Tignan ang spelling ng email\n• Siguraduhing naka-off ang caps lock\n• I-reset ang password kung nakalimutan\n\n**❌ 'Account not found'**\n• Tiyakin na nag-sign up ka bilang buyer\n• Tignan kung na-verify ang email\n• Subukang mag-sign up muli\n\n**❌ 'Too many attempts'**\n• Maghintay ng 15-30 minuto\n• I-reset ang iyong password\n• Kontakin ang support\n\n**Wala pa rin?** Kontakin ang aming support team!"
+            },
+            'buyer_logout': {
+                'en': "👋 **Logout**\n\nTo log out of your buyer account:\n\n**Steps:**\n1. Click your profile icon\n2. Select 'Logout' or 'Sign Out'\n3. Confirm logout if prompted\n4. You'll return to login page\n\n**Tips:**\n• Always log out on shared devices\n• Clear browser cache for security\n• You'll need to log in again to access dashboard",
+                'tl': "👋 **Pag-Logout**\n\nPara mag-logout sa iyong buyer account:\n\n**Mga Hakbang:**\n1. I-click ang iyong profile icon\n2. Piliin ang 'Logout' o 'Sign Out'\n3. Kumpirmahin ang logout kung hinihingi\n4. Babalik ka sa login page\n\n**Tips:**\n• Laging mag-logout sa shared devices\n• I-clear ang browser cache para sa seguridad\n• Kailangan mong mag-login muli para magamit ang dashboard"
+            },
+            'buyer_account_settings': {
+                'en': "⚙️ **Account Settings**\n\nManage your buyer account:\n\n**You can update:**\n• Profile information (name, photo)\n• Email address (requires verification)\n• Phone number (requires OTP)\n• Password (for security)\n• Notification preferences\n• Privacy settings\n• Saved searches\n• Favorite properties\n\n**How to access:**\n1. Log in to your account\n2. Click profile icon\n3. Select 'Settings' or 'Profile'\n4. Make your changes\n5. Click 'Save Changes'",
+                'tl': "⚙️ **Account Settings**\n\nI-manage ang iyong buyer account:\n\n**Pwede mong baguhin:**\n• Profile information (pangalan, photo)\n• Email address (kailangan ng verification)\n• Phone number (kailangan ng OTP)\n• Password (para sa seguridad)\n• Notification preferences\n• Privacy settings\n• Saved searches\n• Favorite properties\n\n**Paano i-access:**\n1. Mag-login sa iyong account\n2. I-click ang profile icon\n3. Piliin ang 'Settings' o 'Profile'\n4. Gawin ang iyong mga pagbabago\n5. I-click ang 'Save Changes'"
+            },
+            'buyer_update_profile': {
+                'en': "👤 **Update Profile**\n\nTo update your profile information:\n\n**Steps:**\n1. Go to Account Settings\n2. Click 'Edit Profile'\n3. Update your information:\n   • Display name\n   • Profile picture\n   • Contact preferences\n   • Property interests\n4. Click 'Save Changes'\n\n**Note:**\n• Email changes require verification\n• Phone changes require OTP\n• Some fields may be read-only\n• Changes are immediate",
+                'tl': "👤 **Mag-update ng Profile**\n\nPara i-update ang iyong profile information:\n\n**Mga Hakbang:**\n1. Pumunta sa Account Settings\n2. I-click ang 'Edit Profile'\n3. I-update ang iyong impormasyon:\n   • Display name\n   • Profile picture\n   • Contact preferences\n   • Property interests\n4. I-click ang 'Save Changes'\n\n**Paalala:**\n• Ang pagpapalit ng email ay kailangan ng verification\n• Ang pagpapalit ng phone ay kailangan ng OTP\n• Ang ibang fields ay read-only\n• Agad nagkakabisa ang mga pagbabago"
+            },
+            'buyer_contact_support': {
+                'en': "📞 **Contact Support**\n\nNeed help with your buyer account?\n\n**Contact options:**\n• **Email:** support@bahai.com\n• **Phone:** (02) 1234-5678\n• **Chat:** Available on website\n• **Facebook:** @bahai.ph\n\n**When contacting us, please provide:**\n• Your registered email\n• Account type (buyer)\n• Description of the issue\n• Screenshots (if applicable)\n\n**Support hours:**\nMonday - Friday: 8:00 AM - 8:00 PM\nSaturday: 9:00 AM - 5:00 PM\nSunday: Closed\n\nWe typically respond within 24 hours!",
+                'tl': "📞 **Kontakin ang Support**\n\nKailangan ng tulong sa iyong buyer account?\n\n**Mga paraan para makontak kami:**\n• **Email:** support@bahai.com\n• **Phone:** (02) 1234-5678\n• **Chat:** Available sa website\n• **Facebook:** @bahai.ph\n\n**Kapag nag-email, pakilagay ang:**\n• Ang iyong registered email\n• Account type (buyer)\n• Deskripsyon ng problema\n• Screenshots (kung maaari)\n\n**Oras ng support:**\nMonday - Friday: 8:00 AM - 8:00 PM\nSaturday: 9:00 AM - 5:00 PM\nSunday: Sarado\n\nKaraniwan kaming nagre-respond within 24 oras!"
+            }
+        }
+        
+        # Get the response in the appropriate language
+        intent_response = buyer_responses.get(intent, {})
+        if language == 'tl' and 'tl' in intent_response:
+            response = intent_response['tl']
+        else:
+            response = intent_response.get('en', f"👤 **Buyer Account: {intent.replace('buyer_', '').replace('_', ' ').title()}**\n\nI can help you with this buyer account feature. What specific information do you need?")
+        
+        return response
+
     elif intent == 'goodbye':
         goodbye_responses = [
             "👋 Goodbye! Feel free to return anytime for property assistance.",
@@ -3084,6 +3205,7 @@ def chat():
         
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
+        entities['original_query'] = query
         logger.info(f"🏷️ Entities: {entities}")
         
         # Step 3: Search properties if needed
@@ -3245,7 +3367,99 @@ def determine_intent_fallback(query: str) -> str:
     for indicator in about_system_indicators:
         if indicator in query_lower:
             return 'about_system'
-    
+
+    # ========== BUYER ACCOUNT INTENTS ==========
+    if any(phrase in query_lower for phrase in [
+        'sign up buyer', 'buyer sign up', 'create buyer account',
+        'become a buyer', 'register as buyer', 'buyer registration'
+    ]):
+        return 'buyer_signup'
+
+    if any(phrase in query_lower for phrase in [
+        'sign up requirements', 'what do i need to sign up',
+        'requirements for buyer', 'buyer sign up requirements'
+    ]):
+        return 'buyer_signup_requirements'
+
+    if any(phrase in query_lower for phrase in [
+        'password requirements', 'strong password', 'password rules',
+        'buyer password', 'password format'
+    ]):
+        return 'buyer_signup_password'
+
+    if any(phrase in query_lower for phrase in [
+        'phone number format', 'mobile number format',
+        'how to enter phone', 'phone number requirements'
+    ]):
+        return 'buyer_signup_phone'
+
+    if any(phrase in query_lower for phrase in [
+        'buyer login', 'login to buyer', 'sign in buyer',
+        'log in as buyer', 'buyer sign in'
+    ]):
+        return 'buyer_login'
+
+    if any(phrase in query_lower for phrase in [
+        'login with google', 'google login', 'sign in with google',
+        'continue with google'
+    ]):
+        return 'buyer_login_google'
+
+    if any(phrase in query_lower for phrase in [
+        'forgot password', 'reset password', 'can\'t remember password',
+        'change password', 'new password'
+    ]):
+        return 'buyer_forgot_password'
+
+    if any(phrase in query_lower for phrase in [
+        'email verification', 'verify email', 'verification email',
+        'didn\'t receive email', 'confirm email'
+    ]):
+        return 'buyer_email_verification'
+
+    if any(phrase in query_lower for phrase in [
+        'verify otp', 'enter otp', 'otp code', '6-digit code',
+        'verification code'
+    ]):
+        return 'buyer_verify_otp'
+
+    if any(phrase in query_lower for phrase in [
+        'resend otp', 'resend code', 'send again', 'new code'
+    ]):
+        return 'buyer_resend_otp'
+
+    if any(phrase in query_lower for phrase in [
+        'login error', 'can\'t login', 'login failed',
+        'invalid credentials', 'wrong password'
+    ]):
+        return 'buyer_login_errors'
+
+    # REMOVED: account locked section
+
+    if any(phrase in query_lower for phrase in [
+        'logout', 'sign out', 'log out', 'exit account'
+    ]):
+        return 'buyer_logout'
+
+
+    if any(phrase in query_lower for phrase in [
+        'account settings', 'profile settings', 'edit profile',
+        'update settings', 'change settings'
+    ]):
+        return 'buyer_account_settings'
+
+    if any(phrase in query_lower for phrase in [
+        'update profile', 'edit profile', 'change name',
+        'update email', 'change phone', 'update information'
+    ]):
+        return 'buyer_update_profile'
+
+    if any(phrase in query_lower for phrase in [
+        'contact support', 'customer support', 'help email',
+        'report problem', 'support email', 'contact admin'
+    ]):
+        return 'buyer_contact_support'
+        
     # ========== CRITICAL FIX: CHECK SPECIFIC PATTERNS FIRST ==========
     
     # PATTERN 1: "find X in Y" - This MUST be find_property
@@ -3544,6 +3758,23 @@ def health_check():
             'Process information',
             'Lifestyle matching'
         ],
+        'buyer_intents_supported': [
+    'buyer_signup',
+    'buyer_signup_requirements',
+    'buyer_signup_password',
+    'buyer_signup_phone',
+    'buyer_login',
+    'buyer_login_google',
+    'buyer_forgot_password',
+    'buyer_email_verification',
+    'buyer_verify_otp',
+    'buyer_resend_otp',
+    'buyer_login_errors',
+    'buyer_logout',
+    'buyer_account_settings',
+    'buyer_update_profile',
+    'buyer_contact_support'
+],
         'mock_data_mode': db is None,  # True if using mock data
         'timestamp': datetime.now().isoformat(),
         'endpoints': {
@@ -3592,6 +3823,16 @@ def test_endpoint():
         # Location-specific searches
         "find apartments in batangas city",
         "properties near schools",
+
+        # Buyer account test queries
+        "how do I sign up as a buyer",
+        "paano mag sign up bilang buyer",
+        "what are the password requirements",
+        "I forgot my password",
+        "how to login to buyer dashboard",
+        "verify my email",
+        "resend verification code",
+        "contact buyer support"
     ]
     
     results = []

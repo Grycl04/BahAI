@@ -92,9 +92,21 @@ class TeamNLUTrainer:
             'financing_info': 'financing',
             'financing': 'financing',
             'find_property': 'find_property',
-            'greeting': 'greeting',  
-            'help': 'help',          
-            'thanks': 'thanks'       
+                'buyer_signup': 'buyer_signup',
+    'buyer_signup_requirements': 'buyer_signup_requirements',
+    'buyer_signup_password': 'buyer_signup_password',
+    'buyer_signup_phone': 'buyer_signup_phone',
+    'buyer_login': 'buyer_login',
+    'buyer_login_google': 'buyer_login_google',
+    'buyer_forgot_password': 'buyer_forgot_password',
+    'buyer_email_verification': 'buyer_email_verification',
+    'buyer_verify_otp': 'buyer_verify_otp',
+    'buyer_resend_otp': 'buyer_resend_otp',
+    'buyer_login_errors': 'buyer_login_errors',
+    'buyer_logout': 'buyer_logout',
+    'buyer_account_settings': 'buyer_account_settings',
+    'buyer_update_profile': 'buyer_update_profile',
+    'buyer_contact_support': 'buyer_contact_support',
         }
         
         # Intent keywords for better classification
@@ -150,7 +162,68 @@ class TeamNLUTrainer:
         'price range', 'budget', 'affordable', 'cheap'
     ],
             'match_needs': ['match my', 'suitable for', 'fitting my', 'appropriate for',
-                           'compatible with', 'what matches', 'recommendations for']
+                           'compatible with', 'what matches', 'recommendations for'],
+                'buyer_signup': [
+        'sign up', 'signup', 'register', 'create account', 'become buyer', 
+        'join as buyer', 'create buyer', 'registration', 'new account',
+        'mag sign up', 'gumawa ng account', 'maging buyer', 'magparehistro'
+    ],
+    'buyer_signup_requirements': [
+        'requirements', 'what info', 'what needed', 'documents', 'prepare',
+        'kailangan', 'requirements sa', 'dokumento', 'ihanda', 'what do i need'
+    ],
+    'buyer_signup_password': [
+        'password', 'strong password', 'password requirements', 'password rules',
+        'malakas na password', 'requirements sa password', 'special character'
+    ],
+    'buyer_signup_phone': [
+        'phone number', 'mobile number', '0917', '09', '+63', 'contact number',
+        'format ng phone', 'phone format', 'paano maglagay ng number'
+    ],
+    'buyer_login': [
+        'login', 'sign in', 'log in', 'access account', 'buyer dashboard',
+        'mag login', 'pumasok sa account', 'sign in sa buyer'
+    ],
+    'buyer_login_google': [
+        'google login', 'google sign in', 'continue with google', 
+        'google account', 'google authentication'
+    ],
+    'buyer_forgot_password': [
+        'forgot password', 'reset password', 'can\'t remember', 'recover account',
+        'nakalimutan password', 'i-reset ang password', 'change password'
+    ],
+    'buyer_email_verification': [
+        'verification email', 'verify email', 'didn\'t receive', 'verification code',
+        'verify account', 'hindi natanggap', 'verification code', 'otp'
+    ],
+    'buyer_verify_otp': [
+        'verify code', 'enter otp', 'verification code', '6-digit code',
+        'i-verify ang email', 'paano gamitin ang code', 'saan ilalagay ang code'
+    ],
+    'buyer_resend_otp': [
+        'resend code', 'resend otp', 'send again', 'new code',
+        'resend verification', 'paki-resend', 'paulit yung code'
+    ],
+    'buyer_login_errors': [
+        'can\'t login', 'login failed', 'login error', 'invalid credentials',
+        'bakit hindi makapag login', 'ayaw pumasok', 'error sa pag login'
+    ],
+    'buyer_logout': [
+        'logout', 'sign out', 'log out', 'exit account',
+        'mag logout', 'mag sign out', 'lumabas sa dashboard'
+    ],
+    'buyer_account_settings': [
+        'account settings', 'profile settings', 'edit profile', 'update info',
+        'settings page', 'pwedeng baguhin sa settings', 'profile settings options'
+    ],
+    'buyer_update_profile': [
+        'update profile', 'edit profile', 'change details', 'change name', 
+        'update email', 'change phone', 'mag edit ng profile', 'baguhin ang pangalan'
+    ],
+    'buyer_contact_support': [
+        'contact support', 'customer support', 'help email', 'report problem',
+        'support email', 'mag-email sa support', 'may problema sa account'
+    ]
         }
         
         # Load Batangas data for location training
@@ -265,8 +338,10 @@ class TeamNLUTrainer:
         original_text = text.lower()
         text = str(text).lower()
         
-        # First, preserve important intent patterns by marking them
-        # text = self.mark_intent_keywords(text, original_text)
+        # FIXED: Properly indented
+        tagalog_words = ['paano', 'mag', 'ang', 'mga', 'bilang', 'sa', 'ng', 'ako', 'ko', 
+                         'gusto', 'maging', 'gumawa', 'account', 'buyer', 'sign', 'up',
+                         'login', 'password', 'email', 'phone', 'verification']
         
         # Remove special characters but keep spaces and basic punctuation
         text = re.sub(r'[^a-z0-9\s]', ' ', text)
@@ -279,7 +354,10 @@ class TeamNLUTrainer:
             doc = self.nlp(text)
             tokens = []
             for token in doc:
-                if not token.is_stop and not token.is_punct:
+                # Keep Tagalog words as-is
+                if token.text in tagalog_words:
+                    tokens.append(token.text)
+                elif not token.is_stop and not token.is_punct:
                     tokens.append(token.lemma_)
             return ' '.join(tokens)
         
@@ -299,19 +377,47 @@ class TeamNLUTrainer:
         return marked_text
 
     def load_member_data(self, base_path='data'):
-        """Load training data from all team members"""
+        """Load training data from all team members including buyer folder"""
         texts = []
         intents = []
         
-        member_files = glob.glob(os.path.join(base_path, 'member*', 'training_data.json'))
+        # Look for both patterns: member* AND member*_buyer
+        member_files = []
+        
+        # Pattern 1: Standard member folders (member1, member2, member3, etc.)
+        member_files.extend(glob.glob(os.path.join(base_path, 'member[0-9]', 'training_data.json')))
+        member_files.extend(glob.glob(os.path.join(base_path, 'member[0-9][0-9]', 'training_data.json')))
+        
+        # Pattern 2: Explicitly look for member5_buyer and any other buyer folders
+        member_files.extend(glob.glob(os.path.join(base_path, 'member*_buyer', 'training_data.json')))
+        
+        # Also look in the current directory's data folder
+        if not member_files:
+            member_files.extend(glob.glob(os.path.join('data', 'member[0-9]', 'training_data.json')))
+            member_files.extend(glob.glob(os.path.join('data', 'member*_buyer', 'training_data.json')))
         
         if not member_files:
             logger.warning("❌ No member training files found!")
+            # Debug: Print what folders exist
+            print("\n🔍 Debug: Checking what folders exist in 'data' directory:")
+            if os.path.exists('data'):
+                for item in os.listdir('data'):
+                    item_path = os.path.join('data', item)
+                    if os.path.isdir(item_path):
+                        print(f"   Found folder: {item}")
+                        # Check if training_data.json exists in this folder
+                        if os.path.exists(os.path.join(item_path, 'training_data.json')):
+                            print(f"      ✅ Has training_data.json")
+                        else:
+                            print(f"      ❌ No training_data.json")
             return texts, intents
         
         for member_file in member_files:
             member_name = os.path.basename(os.path.dirname(member_file))
             print(f"📂 Loading {member_name} data...")
+            
+            # Print the full path for debugging
+            print(f"   Path: {member_file}")
             
             # Clean the JSON file first
             self.clean_json_file(member_file)
@@ -321,11 +427,22 @@ class TeamNLUTrainer:
                     data = json.load(f)
                 
                 samples = data.get('training_samples', [])
+                print(f"   Found {len(samples)} samples in {member_name}")
+                
+                # Debug: Show first few intents from buyer folder
+                if 'buyer' in member_name.lower() and samples:
+                    print(f"   🏷️  First few buyer intents:")
+                    for i, sample in enumerate(samples[:3]):
+                        print(f"      {i+1}. {sample.get('intent', 'unknown')}")
                 
                 for sample in samples:
                     # Get intent and map to standard name
                     original_intent = sample.get('intent', '')
                     mapped_intent = self.intent_mapping.get(original_intent, original_intent)
+                    
+                    # Debug first few buyer intents
+                    if original_intent.startswith('buyer_') and len(texts) < 10:
+                        print(f"   ✅ Mapped {original_intent} -> {mapped_intent}")
                     
                     # Main query
                     query = sample.get('query', '').strip()
@@ -344,6 +461,11 @@ class TeamNLUTrainer:
                 
             except Exception as e:
                 print(f"   ❌ Error loading {member_file}: {e}")
+        
+        # Print summary of all member files loaded
+        print(f"\n📊 Total member files loaded: {len(member_files)}")
+        for file in member_files:
+            print(f"   • {file}")
         
         return texts, intents
 
@@ -979,7 +1101,22 @@ class TeamNLUTrainer:
                 print(f"   {i+1}. '{display_text}'")
                 print(f"       → True: {case['true']}, Pred: {case['pred']}")
         
-        return True
+        # FIXED: Buyer intent monitoring - properly indented
+        buyer_intents = [intent for intent in self.intent_mapping.values() 
+                        if intent.startswith('buyer_')]
+        print(f"\n📊 Monitoring {len(buyer_intents)} buyer intents: {buyer_intents}")
+        
+        buyer_mask = [y in buyer_intents for y in y_val]
+        if any(buyer_mask):
+            X_val_buyer = [X_val[i] for i in range(len(X_val)) if buyer_mask[i]]
+            y_val_buyer = [y_val[i] for i in range(len(y_val)) if buyer_mask[i]]
+            
+            if X_val_buyer:
+                val_buyer_predictions = self.pipeline.predict(X_val_buyer)
+                print(f"\n🔍 Classification report for BUYER INTENTS:")
+                print(classification_report(y_val_buyer, val_buyer_predictions))
+        
+        return True  # <-- This return was missing indentation
 
     def save_model(self):
         """Save trained model to multiple locations"""
@@ -1049,7 +1186,15 @@ def test_predictions(trainer, test_queries):
         "tell me about lipa city",
         "available now apartments",
         "houses for big family",
-        "condos near malls"
+        "condos near malls",
+        # FIXED: Added missing comma and proper formatting
+        "How do I sign up as a buyer",
+        "paano mag sign up bilang buyer",
+        "What are the password requirements",
+        "I forgot my password",
+        "How do I log in to buyer dashboard",
+        "I haven't received the verification email",
+        "Can you resend the verification code",
     ]
     
     for query in specific_queries:
@@ -1118,6 +1263,66 @@ def create_additional_training_file():
             {"text": "what is this chatbot", "intent": "about_system"},
             {"text": "what is this service", "intent": "about_system"},
             {"text": "explain what you do", "intent": "about_system"},
+
+                        # ========== CRITICAL BUYER INTENT FIXES ==========
+            
+            # Clear "sign up" queries (should be buyer_signup, NOT buyer_login)
+            {"text": "How do I sign up as a buyer", "intent": "buyer_signup"},
+            {"text": "How do I sign up", "intent": "buyer_signup"},
+            {"text": "I want to sign up", "intent": "buyer_signup"},
+            {"text": "Create a buyer account", "intent": "buyer_signup"},
+            {"text": "Register as a buyer", "intent": "buyer_signup"},
+            {"text": "Become a buyer", "intent": "buyer_signup"},
+            {"text": "Sign up for buyer account", "intent": "buyer_signup"},
+            {"text": "New buyer registration", "intent": "buyer_signup"},
+            {"text": "How to create buyer account", "intent": "buyer_signup"},
+            {"text": "Steps to sign up as buyer", "intent": "buyer_signup"},
+            {"text": "paano mag sign up", "intent": "buyer_signup"},
+            {"text": "paano maging buyer", "intent": "buyer_signup"},
+            
+            # Clear "login" queries (should be buyer_login)
+            {"text": "how to login", "intent": "buyer_login"},
+            {"text": "How do I log in", "intent": "buyer_login"},
+            {"text": "Login to my account", "intent": "buyer_login"},
+            {"text": "Sign in as buyer", "intent": "buyer_login"},
+            {"text": "Access my buyer account", "intent": "buyer_login"},
+            {"text": "Log into buyer dashboard", "intent": "buyer_login"},
+            {"text": "How to sign in", "intent": "buyer_login"},
+            {"text": "Buyer login help", "intent": "buyer_login"},
+            {"text": "Can't log in", "intent": "buyer_login_errors"},  # Note: different intent
+            {"text": "Login problems", "intent": "buyer_login_errors"},  # Note: different intent
+            {"text": "paano mag login", "intent": "buyer_login"},
+            
+            # Clear "forgot password" queries
+            {"text": "I forgot my password", "intent": "buyer_forgot_password"},
+            {"text": "Reset my password", "intent": "buyer_forgot_password"},
+            {"text": "Change password", "intent": "buyer_forgot_password"},
+            {"text": "Forgot password help", "intent": "buyer_forgot_password"},
+            {"text": "nakalimutan ko password", "intent": "buyer_forgot_password"},
+            
+            # Email verification samples
+            {"text": "verify my email", "intent": "buyer_email_verification"},
+            {"text": "resend verification code", "intent": "buyer_resend_otp"},
+            {"text": "where to enter OTP", "intent": "buyer_verify_otp"},
+            {"text": "didn't get verification email", "intent": "buyer_email_verification"},
+            
+            # Account settings samples
+            {"text": "update my profile", "intent": "buyer_update_profile"},
+            {"text": "change my name", "intent": "buyer_update_profile"},
+            {"text": "change my email", "intent": "buyer_update_profile"},
+            {"text": "account settings", "intent": "buyer_account_settings"},
+            {"text": "edit profile", "intent": "buyer_update_profile"},
+            
+            # Contact support
+            {"text": "contact support", "intent": "buyer_contact_support"},
+            {"text": "help with my account", "intent": "buyer_contact_support"},
+            {"text": "customer service", "intent": "buyer_contact_support"},
+            {"text": "support email", "intent": "buyer_contact_support"},
+            
+            # Logout
+            {"text": "how to logout", "intent": "buyer_logout"},
+            {"text": "sign out", "intent": "buyer_logout"},
+            {"text": "log out of dashboard", "intent": "buyer_logout"},
             
             {"text": "bye", "intent": "goodbye"},
             {"text": "goodbye", "intent": "goodbye"},

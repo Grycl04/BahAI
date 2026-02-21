@@ -137,6 +137,182 @@
       "intent": "about_system"
     },
     {
+      "text": "How do I sign up as a buyer",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "How do I sign up",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "I want to sign up",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "Create a buyer account",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "Register as a buyer",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "Become a buyer",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "Sign up for buyer account",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "New buyer registration",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "How to create buyer account",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "Steps to sign up as buyer",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "paano mag sign up",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "paano maging buyer",
+      "intent": "buyer_signup"
+    },
+    {
+      "text": "how to login",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "How do I log in",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "Login to my account",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "Sign in as buyer",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "Access my buyer account",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "Log into buyer dashboard",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "How to sign in",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "Buyer login help",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "Can't log in",
+      "intent": "buyer_login_errors"
+    },
+    {
+      "text": "Login problems",
+      "intent": "buyer_login_errors"
+    },
+    {
+      "text": "paano mag login",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "I forgot my password",
+      "intent": "buyer_forgot_password"
+    },
+    {
+      "text": "Reset my password",
+      "intent": "buyer_forgot_password"
+    },
+    {
+      "text": "Change password",
+      "intent": "buyer_forgot_password"
+    },
+    {
+      "text": "Forgot password help",
+      "intent": "buyer_forgot_password"
+    },
+    {
+      "text": "nakalimutan ko password",
+      "intent": "buyer_forgot_password"
+    },
+    {
+      "text": "verify my email",
+      "intent": "buyer_email_verification"
+    },
+    {
+      "text": "resend verification code",
+      "intent": "buyer_resend_otp"
+    },
+    {
+      "text": "where to enter OTP",
+      "intent": "buyer_verify_otp"
+    },
+    {
+      "text": "didn't get verification email",
+      "intent": "buyer_email_verification"
+    },
+    {
+      "text": "update my profile",
+      "intent": "buyer_update_profile"
+    },
+    {
+      "text": "change my name",
+      "intent": "buyer_update_profile"
+    },
+    {
+      "text": "change my email",
+      "intent": "buyer_update_profile"
+    },
+    {
+      "text": "account settings",
+      "intent": "buyer_account_settings"
+    },
+    {
+      "text": "edit profile",
+      "intent": "buyer_update_profile"
+    },
+    {
+      "text": "contact support",
+      "intent": "buyer_contact_support"
+    },
+    {
+      "text": "help with my account",
+      "intent": "buyer_contact_support"
+    },
+    {
+      "text": "customer service",
+      "intent": "buyer_contact_support"
+    },
+    {
+      "text": "support email",
+      "intent": "buyer_contact_support"
+    },
+    {
+      "text": "how to logout",
+      "intent": "buyer_logout"
+    },
+    {
+      "text": "sign out",
+      "intent": "buyer_logout"
+    },
+    {
+      "text": "log out of dashboard",
+      "intent": "buyer_logout"
+    },
+    {
       "text": "bye",
       "intent": "goodbye"
     },
