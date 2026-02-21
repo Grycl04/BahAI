@@ -1,37 +1,41 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-// ============================================
-// BACKEND URL MANAGEMENT - PURE ENVIRONMENT BASED
-// ============================================
-
-/**
- * Get the appropriate backend URL based on environment
- * - LOCAL: http://localhost:10000 (when hostname is localhost/127.0.0.1)
- * - PRODUCTION: https://bahai.onrender.com (everywhere else)
- */
-
+// Function to determine the correct backend URL based on environment
 const getBackendUrl = () => {
     const hostname = window.location.hostname;
     const port = window.location.port;
     
-    const isExplicitLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isLocalIp = hostname.startsWith('192.168.') || hostname.startsWith('10.0.');
-    const isEmptyHostname = hostname === '' && port !== '';
+    console.log("🌐 Detected hostname:", hostname, "Port:", port);
     
-    if (isExplicitLocalhost || isLocalIp || isEmptyHostname) {
-        console.log("🚀 LOCAL ENVIRONMENT - Using local backend: http://localhost:10000");
+    // Check if we're in local development
+    const isLocal = hostname === 'localhost' || 
+                    hostname === '127.0.0.1' || 
+                    hostname.startsWith('192.168.') ||
+                    hostname.startsWith('10.0.') ||
+                    (hostname === '' && port !== '');
+    
+    // Check for Live Server (common ports)
+    const isLiveServer = port === '5500' || port === '5501' || port === '8080' || port === '3000';
+    
+    // Check if it's a development domain
+    const isDev = hostname.includes('.local') || 
+                  hostname.includes('dev-') || 
+                  hostname.includes('-dev.');
+    
+    if (isLocal || isLiveServer || isDev) {
+        console.log("🚀 Using LOCAL backend (localhost:10000)");
         return "http://localhost:10000/api/chat";
+    } else {
+        console.log("☁️ Using PRODUCTION backend (Render)");
+        return "https://bahai.onrender.com/api/chat";
     }
-    
-    console.log("☁️ PRODUCTION ENVIRONMENT - Using Render backend: https://bahai.onrender.com");
-    return "https://bahai.onrender.com/api/chat";
 };
 
 // ============================================
-// PROMPT DEFINITIONS
+// PROMPT DEFINITIONS - NO HARDCODED HTML
 // ============================================
 
-// PHASE 1: Initial "Try these quick prompts"
+// PHASE 1: Initial "Try these quick prompts" - Exactly like the hardcoded HTML
 const INITIAL_PROMPTS = [
     { 
         displayText: "Find apartments", 
@@ -134,6 +138,7 @@ const ALL_QUICK_PROMPTS = [
 // ============================================
 
 export function initChatbot() {
+    console.trace("🔍 initChatbot called from:", new Error().stack);
     console.log("🤖 AI Chatbot Initializing...");
     
     const chatMessages = document.getElementById('chatMessages');
@@ -145,21 +150,24 @@ export function initChatbot() {
     
     // Initialize prompt phase tracker
     window.chatbotPhase = {
-        showInitialPrompts: true,
-        initialPromptsUsed: false
+        showInitialPrompts: true,  // Start with "Try these quick prompts"
+        initialPromptsUsed: false  // Track if user has interacted
     };
     
     // Ensure chat input area exists
     const chatContainer = chatMessages.closest('.chatbot-container');
     if (chatContainer) {
+        // Check if chat input already exists
         let existingInput = chatContainer.querySelector('.chat-input');
         if (!existingInput) {
+            console.log("🛠️ Creating chat input area...");
             const chatInputDiv = document.createElement('div');
             chatInputDiv.className = 'chat-input';
             chatInputDiv.id = 'chatInputContainer';
+            chatInputDiv.style.display = 'flex';
             chatInputDiv.innerHTML = `
                 <input type="text" id="chatInput" 
-                       placeholder="e.g. Find apartments in Batangas City..." />
+                       placeholder="e.g. Family home with yard, under 4M, near Lipa City..." />
                 <button id="sendChatBtn"><i class="fas fa-paper-plane"></i> Send</button>
                 <button id="voiceInputBtn" class="voice-btn"><i class="fas fa-microphone"></i></button>
             `;
@@ -167,9 +175,8 @@ export function initChatbot() {
         }
     }
     
-    // Log backend info
-    const backendUrl = getBackendUrl();
-    console.log(`📍 Backend: ${backendUrl.includes('localhost') ? 'LOCAL (http://localhost:10000)' : 'PRODUCTION (Render)'}`);
+    // Show backend info for debugging
+    console.log("🌐 Backend URL:", getBackendUrl());
     
     // Show welcome message on first load
     showWelcomeMessage();
@@ -177,6 +184,7 @@ export function initChatbot() {
     // Attach event listeners and add INITIAL prompts
     setTimeout(() => {
         attachChatListeners();
+        // PHASE 1: Add "Try these quick prompts"
         addInitialPrompts();
     }, 500);
     
@@ -198,12 +206,17 @@ function attachChatListeners() {
         return;
     }
     
-    // Remove existing listeners by cloning
+    console.log("🔗 Attaching chat listeners...");
+    
+    // Remove existing listeners by cloning elements if needed
     if (chatInput.hasAttribute('data-listener-attached')) {
         const newChatInput = chatInput.cloneNode(true);
         const newSendBtn = sendChatBtn.cloneNode(true);
+        
         chatInput.parentNode.replaceChild(newChatInput, chatInput);
         sendChatBtn.parentNode.replaceChild(newSendBtn, sendChatBtn);
+        
+        // Update references
         window.chatInput = newChatInput;
         window.sendChatBtn = newSendBtn;
     } else {
@@ -211,6 +224,7 @@ function attachChatListeners() {
         window.sendChatBtn = sendChatBtn;
     }
     
+    // Mark as having listeners attached
     window.chatInput.setAttribute('data-listener-attached', 'true');
     window.sendChatBtn.setAttribute('data-listener-attached', 'true');
     
@@ -218,7 +232,8 @@ function attachChatListeners() {
     window.sendChatBtn.addEventListener('click', async () => {
         const message = window.chatInput.value.trim();
         if (message) {
-            if (window.chatbotPhase?.showInitialPrompts) {
+            // Mark that user has sent a message - switch to quick prompts phase
+            if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
                 window.chatbotPhase.showInitialPrompts = false;
                 window.chatbotPhase.initialPromptsUsed = true;
             }
@@ -233,7 +248,8 @@ function attachChatListeners() {
             e.preventDefault();
             const message = window.chatInput.value.trim();
             if (message) {
-                if (window.chatbotPhase?.showInitialPrompts) {
+                // Mark that user has sent a message - switch to quick prompts phase
+                if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
                     window.chatbotPhase.showInitialPrompts = false;
                     window.chatbotPhase.initialPromptsUsed = true;
                 }
@@ -247,14 +263,17 @@ function attachChatListeners() {
     if (voiceInputBtn) {
         const newVoiceBtn = voiceInputBtn.cloneNode(true);
         voiceInputBtn.parentNode.replaceChild(newVoiceBtn, voiceInputBtn);
+        
         newVoiceBtn.addEventListener('click', () => {
-            alert("🎤 Voice input requires Web Speech API. Please type your question instead.");
+            alert("Voice input would require additional setup with Web Speech API");
         });
     }
+    
+    console.log("🎯 Chat listeners attached successfully");
 }
 
 // ============================================
-// PROCESS CHAT MESSAGES - CLEAN SINGLE ATTEMPT
+// PROCESS CHAT MESSAGES
 // ============================================
 
 export async function processChatMessage(userMessage) {
@@ -278,124 +297,177 @@ export async function processChatMessage(userMessage) {
         // Show typing indicator
         const typingMessage = addTypingIndicator();
         
-        // Prepare request to backend
+        // Prepare request to Python backend
         const requestData = {
             query: userMessage,
             user_id: currentUser ? currentUser.uid : 'anonymous'
         };
         
-        // Get URL based on environment
-        const backendUrl = getBackendUrl();
-        const isLocal = backendUrl.includes('localhost');
+        console.log("📤 Sending to backend:", requestData);
         
-        console.log("🌐 Connecting to:", backendUrl);
-        
-        // Single attempt with appropriate timeout
-        const controller = new AbortController();
-        const timeoutMs = isLocal ? 8000 : 30000; // 8s local, 30s production (for cold starts)
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-        
-        const response = await fetch(backendUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(requestData),
-            signal: controller.signal,
-            mode: 'cors'
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const text = await response.text();
-        
-        // Clean the response
-        const cleanText = text.replace(/undefined/g, 'null');
         let data;
+        let backendUrl = getBackendUrl();
         
         try {
-            data = JSON.parse(cleanText);
-        } catch (parseError) {
-            console.error("❌ JSON parse error:", parseError);
-            data = {
-                success: false,
-                response: "I received your query but had trouble processing the response. Please try again.",
-                properties: [],
-                intent: 'error'
-            };
+            // Call backend with environment-specific timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 
+                backendUrl.includes('localhost') ? 10000 : 25000);
+            
+            console.log("🌐 Attempting to connect to:", backendUrl);
+            
+            const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestData),
+                signal: controller.signal,
+                mode: 'cors'
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const text = await response.text();
+            console.log("📥 Raw response received:", text.substring(0, 200) + "...");
+            
+            // Clean the response
+            const cleanText = text.replace(/undefined/g, 'null');
+            try {
+                data = JSON.parse(cleanText);
+            } catch (parseError) {
+                console.error("❌ JSON parse error:", parseError);
+                data = {
+                    success: false,
+                    response: `I received your query: "${userMessage}", but there was an issue processing the response.`,
+                    properties: [],
+                    intent: 'error',
+                    properties_found: 0
+                };
+            }
+            
+        } catch (fetchError) {
+            console.error('🌐 Fetch error:', fetchError);
+            
+            // Remove typing indicator first
+            if (typingMessage) typingMessage.remove();
+            
+            // Try alternative endpoint if the primary fails
+            const alternativeUrl = backendUrl.includes('localhost') 
+                ? "https://bahai.onrender.com/api/chat" 
+                : "http://localhost:10000/api/chat";
+            
+            console.log("🔄 Trying alternative endpoint:", alternativeUrl);
+            
+            try {
+                const alternativeController = new AbortController();
+                const alternativeTimeout = setTimeout(() => alternativeController.abort(), 15000);
+                
+                const fallbackResponse = await fetch(alternativeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: alternativeController.signal,
+                    mode: 'cors'
+                });
+                
+                clearTimeout(alternativeTimeout);
+                
+                if (fallbackResponse.ok) {
+                    const text = await fallbackResponse.text();
+                    const cleanText = text.replace(/undefined/g, 'null');
+                    data = JSON.parse(cleanText);
+                    console.log("✅ Connected to alternative endpoint");
+                } else {
+                    throw new Error(`Alternative endpoint failed: ${fallbackResponse.status}`);
+                }
+            } catch (fallbackError) {
+                console.error('❌ Fallback also failed:', fallbackError);
+                
+                // Use fallback response
+                const isProduction = !backendUrl.includes('localhost');
+                
+                data = {
+                    success: true,
+                    response: isProduction ? 
+                        `I received your query: **"${userMessage}"**\n\n📢 **The AI service is starting up...**\n\nThis is normal with free hosting - it takes 30-60 seconds for the first request.\n\n🔍 **While you wait, you can:**\n\n• **Use the search filters above** - Find properties by location, type, and price\n• **Browse by category** - Check out the property category cards below\n• **Try these quick searches:**\n  • "Apartments in Batangas City"\n  • "Houses under ₱3M"\n  • "Properties with 3 bedrooms"\n\n💡 **Tip:** The AI service will respond automatically once it's ready!` :
+                        `I received your query: **"${userMessage}"**\n\n❌ **Could not connect to local backend.**\n\nPlease make sure your Python backend is running on http://localhost:10000\n\n🔍 **Commands to start the backend:**\n\`\`\`bash\ncd your-backend-folder\npython app.py\n\`\`\``,
+                    properties: [],
+                    intent: 'fallback',
+                    properties_found: 0
+                };
+            }
         }
         
-        // Remove typing indicator
-        if (typingMessage?.parentNode) {
+        // Remove typing indicator if still exists
+        if (typingMessage && typingMessage.parentNode) {
             typingMessage.remove();
         }
         
         // Display response
-        const responseText = data.response || data.message || 
-                           "I received your message but couldn't process it properly.";
-        addMessageToChat(responseText, 'bot');
+        if (data && data.response) {
+            addMessageToChat(data.response, 'bot');
+        } else if (data && data.message) {
+            addMessageToChat(data.message, 'bot');
+        } else {
+            addMessageToChat("I received your message but couldn't process it properly. Please try again.", 'bot');
+        }
         
         // If properties were found, display them
-        if (data?.properties?.length > 0) {
+        if (data && data.properties && data.properties.length > 0) {
             displayPropertiesInChat(data.properties);
         }
         
-        // Show quick prompts
+        // Show appropriate prompts based on phase
         setTimeout(() => {
-            if (window.chatbotPhase?.showInitialPrompts) {
+            // If we're still in initial phase but user just sent a message, switch to quick prompts
+            if (window.chatbotPhase && window.chatbotPhase.showInitialPrompts) {
                 window.chatbotPhase.showInitialPrompts = false;
                 window.chatbotPhase.initialPromptsUsed = true;
+                addQuickPrompts();
+            } else {
+                // Otherwise just show quick prompts
+                addQuickPrompts();
             }
-            addQuickPrompts();
         }, 500);
         
-        // Log interaction (non-critical)
+        // Try to log (non-critical)
         try {
             await logChatInteraction(userMessage, data, currentUser);
         } catch (logError) {
-            // Silently fail - logging is non-critical
+            console.log('Non-critical log error:', logError.message);
         }
         
     } catch (error) {
-        console.error('💥 Chat error:', error);
+        console.error('💥 Error in processChatMessage:', error);
         
         // Remove typing indicator
         document.querySelector('.typing-indicator')?.remove();
         
-        // Show user-friendly error based on environment
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        // Remove demo prompts on error
+        document.querySelector('.demo-prompts-container')?.remove();
         
-        let errorMessage;
-        if (isLocal) {
-            errorMessage = "❌ **Cannot connect to local backend**\n\n" +
-                          "**To fix this:**\n" +
-                          "1️⃣ Open terminal in backend folder\n" +
-                          "2️⃣ Run: `python chatbot_backend.py`\n" +
-                          "3️⃣ Verify: http://localhost:10000/api/health\n\n" +
-                          "**You can still:**\n" +
-                          "• Use the search filters above 🔍\n" +
-                          "• Browse property categories 🏠\n" +
-                          "• Contact brokers directly 💬";
-        } else {
-            errorMessage = "⏳ **AI service is starting up...**\n\n" +
-                          "This can take 30-60 seconds on free hosting.\n\n" +
-                          "**Please try again in a moment.**\n\n" +
-                          "**You can still:**\n" +
-                          "• Use the search filters above 🔍\n" +
-                          "• Browse property categories 🏠\n" +
-                          "• Contact brokers directly 💬";
-        }
+        // Show user-friendly error
+        addMessageToChat(
+            "I'm having trouble connecting right now. 😔\n\n**You can still:**\n• Use the search filters above 🔍\n• Browse property categories 🏠\n• Try again in a moment ⏳",
+            'bot'
+        );
         
-        addMessageToChat(errorMessage, 'bot');
+        // Show quick prompts after error
         setTimeout(addQuickPrompts, 500);
-        
     } finally {
         // Re-enable input
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        
         if (chatInput) {
             chatInput.disabled = false;
             chatInput.focus();
@@ -408,7 +480,7 @@ export async function processChatMessage(userMessage) {
 }
 
 // ============================================
-// UI HELPER FUNCTIONS
+// UI HELPERS
 // ============================================
 
 function addMessageToChat(message, sender) {
@@ -420,7 +492,7 @@ function addMessageToChat(message, sender) {
     
     const avatar = sender === 'user' ? '👤' : '🤖';
     
-    // Format message
+    // Convert newlines to HTML breaks and basic markdown
     let formattedMessage = message
         .replace(/\n/g, '<br>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -479,7 +551,7 @@ function getDisplayPrice(property) {
 
 function displayPropertiesInChat(properties) {
     const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages || !properties?.length) return;
+    if (!chatMessages || !properties || properties.length === 0) return;
     
     const propertiesDiv = document.createElement('div');
     propertiesDiv.className = 'chat-properties-container';
@@ -497,7 +569,7 @@ function displayPropertiesInChat(properties) {
         const bedrooms = prop.bedrooms || 'N/A';
         const area = prop.floorArea || prop.totalArea || 'N/A';
         const title = prop.title || 'Untitled Property';
-        const location = prop.location || prop.city || prop.address || 'Location not specified';
+        const location = prop.address || prop.city || prop.location || 'Location not specified';
         const photo = prop.photos?.[0] || prop.imageUrls?.[0] || 
             `https://via.placeholder.com/300x200/0b2e52/white?text=${encodeURIComponent(title.substring(0, 20))}`;
         
@@ -531,21 +603,22 @@ function displayPropertiesInChat(properties) {
             <p style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
                 <a href="search_results.html" 
                    style="color: #0b6e4f; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                    🔍 View all ${properties.length} properties <i class="fas fa-arrow-right"></i>
+                    🔍 View all ${properties.length} properties in search results <i class="fas fa-arrow-right"></i>
                 </a>
             </p>
         `;
     }
     
     propertiesDiv.innerHTML = html;
+    
     chatMessages.appendChild(propertiesDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function logChatInteraction(query, response, user) {
-    if (!user) return;
-    
     try {
+        if (!user) return;
+        
         const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
         const { getApp } = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js");
         
@@ -564,22 +637,27 @@ async function logChatInteraction(query, response, user) {
             confidence: response?.confidence || 0,
             success: response?.success || false
         });
+        
+        console.log('✅ Chat interaction logged');
     } catch (error) {
-        // Silently fail - logging is non-critical
+        console.log('Could not log chat interaction (non-critical):', error.message);
     }
 }
 
 // ============================================
-// PHASE 1: INITIAL PROMPTS
+// PHASE 1: INITIAL PROMPTS - "Try these quick prompts"
+// EXACTLY like the hardcoded HTML version
 // ============================================
 
 function addInitialPrompts() {
+    // Remove any existing prompt containers
     const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
     
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
     
+    // Reset phase tracker
     if (!window.chatbotPhase) {
         window.chatbotPhase = {
             showInitialPrompts: true,
@@ -587,6 +665,7 @@ function addInitialPrompts() {
         };
     }
     
+    // Only show initial prompts if we're in the initial phase
     if (!window.chatbotPhase.showInitialPrompts) {
         addQuickPrompts();
         return;
@@ -613,6 +692,7 @@ function addInitialPrompts() {
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
+    // Add event listeners to initial prompt buttons
     setTimeout(() => {
         document.querySelectorAll('.initial-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -623,9 +703,11 @@ function addInitialPrompts() {
                 const chatInput = document.getElementById('chatInput');
                 
                 if (chatInput && fullPrompt) {
+                    // Set the FULL expanded prompt in the input field
                     chatInput.value = fullPrompt;
                     chatInput.focus();
                     
+                    // Visual feedback
                     this.style.transform = 'scale(0.95)';
                     this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
                     setTimeout(() => {
@@ -639,10 +721,12 @@ function addInitialPrompts() {
 }
 
 // ============================================
-// PHASE 2: QUICK PROMPTS - 4 RANDOM
+// PHASE 2: QUICK PROMPTS - 4 random questions
+// Shown after first interaction
 // ============================================
 
 function addQuickPrompts() {
+    // Remove any existing prompt containers
     const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
     
@@ -685,6 +769,7 @@ function addQuickPrompts() {
     
     chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
     
+    // Add event listeners to quick prompt buttons
     setTimeout(() => {
         document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -695,9 +780,11 @@ function addQuickPrompts() {
                 const chatInput = document.getElementById('chatInput');
                 
                 if (chatInput && fullPrompt) {
+                    // Set the FULL expanded prompt in the input field
                     chatInput.value = fullPrompt;
                     chatInput.focus();
                     
+                    // Visual feedback
                     this.style.transform = 'scale(0.95)';
                     this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
                     setTimeout(() => {
@@ -708,6 +795,7 @@ function addQuickPrompts() {
             });
         });
         
+        // Add refresh button functionality
         const refreshBtn = document.getElementById('refreshPrompts');
         if (refreshBtn) {
             const newRefreshBtn = refreshBtn.cloneNode(true);
@@ -716,8 +804,11 @@ function addQuickPrompts() {
             newRefreshBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Generate new random prompts
                 addQuickPrompts();
                 
+                // Button feedback
                 newRefreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
                 setTimeout(() => {
                     newRefreshBtn.innerHTML = '<i class="fas fa-redo-alt"></i> New set';
@@ -733,94 +824,100 @@ function addQuickPrompts() {
 
 function showWelcomeMessage() {
     const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages || chatMessages.children.length > 0) return;
-    
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const backendUrl = getBackendUrl();
-    
-    const welcomeMessage = `
-        <div class="welcome-message">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);">
-                    🤖
+    if (chatMessages && chatMessages.children.length === 0) {
+        // Ensure chat input is visible
+        const chatInputContainer = chatMessages.closest('.chatbot-container');
+        if (chatInputContainer) {
+            const chatInputDiv = chatInputContainer.querySelector('.chat-input');
+            if (chatInputDiv) {
+                chatInputDiv.style.display = 'flex';
+                chatInputDiv.style.opacity = '1';
+            }
+        }
+        
+        setTimeout(() => {
+            const isProduction = !window.location.hostname.includes('localhost') && 
+                               !window.location.hostname.includes('127.0.0.1');
+            
+            const welcomeMessage = `
+                <div class="welcome-message">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);">
+                            🤖
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; color: var(--text-dark); font-size: 18px;">AI Property Assistant</h4>
+                            <p style="margin: 0; font-size: 12px; color: #666;">Specialized in Batangas Properties</p>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
+                        Hello! I'm your AI assistant for Batangas real estate. Try clicking one of the quick prompts below, then click Send when you're ready!
+                    </p>
+                    ${isProduction ? `
+                        <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
+                            <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
+                        </p>
+                    ` : `
+                        <p style="color: #004085; background-color: #cce5ff; border: 1px solid #b8daff; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
+                            <i class="fas fa-code"></i> <strong>Development Mode:</strong> Make sure your backend is running at http://localhost:10000
+                        </p>
+                    `}
                 </div>
-                <div>
-                    <h4 style="margin: 0; color: var(--text-dark); font-size: 18px;">AI Property Assistant</h4>
-                    <p style="margin: 0; font-size: 12px; color: #666;">Specialized in Batangas Properties</p>
+            `;
+            
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'message bot';
+            welcomeDiv.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="content" style="background: white; padding: 0; overflow: hidden;">
+                    ${welcomeMessage}
                 </div>
-            </div>
-            <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
-                Hello! I'm your AI assistant for Batangas real estate. 
-                ${isLocal ? '🖥️ Local development mode' : '☁️ Production mode'}
-            </p>
-            ${!isLocal ? `
-                <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
-                    <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
-                </p>
-            ` : `
-                <p style="color: #004085; background-color: #cce5ff; border: 1px solid #b8daff; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
-                    <i class="fas fa-code"></i> <strong>Local Backend:</strong> ${backendUrl}
-                </p>
-            `}
-        </div>
-    `;
-    
-    const welcomeDiv = document.createElement('div');
-    welcomeDiv.className = 'message bot';
-    welcomeDiv.innerHTML = `
-        <div class="avatar">🤖</div>
-        <div class="content" style="background: white; padding: 0; overflow: hidden;">
-            ${welcomeMessage}
-        </div>
-    `;
-    chatMessages.appendChild(welcomeDiv);
+            `;
+            chatMessages.appendChild(welcomeDiv);
+        }, 300);
+    }
 }
 
 // ============================================
-// KEEP BACKEND ALIVE - PRODUCTION ONLY
+// KEEP BACKEND ALIVE (for Render free tier)
 // ============================================
 
 function keepBackendAlive() {
-    // ONLY run in production (Render, etc.)
-    const isProduction = !(window.location.hostname === 'localhost' || 
-                          window.location.hostname === '127.0.0.1');
-    
-    if (!isProduction) {
-        console.log("⏸️ Local development - keep-alive disabled");
-        return;
-    }
-    
-    console.log("⏰ Setting up keep-alive for production backend...");
-    
-    async function pingBackend() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            
-            const response = await fetch('https://bahai.onrender.com/api/health', { 
+    // Only ping in production
+    if (!window.location.hostname.includes('localhost') && 
+        !window.location.hostname.includes('127.0.0.1')) {
+        
+        console.log("⏰ Setting up keep-alive for production backend...");
+        
+        // Initial ping after page load
+        setTimeout(() => {
+            fetch('https://bahai.onrender.com/api/health', { 
                 method: 'GET',
                 mode: 'cors',
                 cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                console.log('✅ Production backend keep-alive successful');
-            }
-        } catch (err) {
-            // Silent fail in production - don't spam console
-        }
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if (res.ok) console.log('✅ Backend pinged successfully');
+            })
+            .catch(err => console.log('⚠️ Backend ping failed:', err.message));
+        }, 2000);
+        
+        // Regular pings every 5 minutes
+        setInterval(() => {
+            fetch('https://bahai.onrender.com/api/health', { 
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if (res.ok) console.log('✅ Backend keep-alive successful');
+            })
+            .catch(err => console.log('⚠️ Keep-alive failed:', err.message));
+        }, 5 * 60 * 1000);
     }
-    
-    // Initial ping after 5 seconds
-    setTimeout(pingBackend, 5000);
-    
-    // Ping every 5 minutes
-    setInterval(pingBackend, 5 * 60 * 1000);
 }
 
 // ============================================
@@ -1110,7 +1207,7 @@ chatbotStyles.textContent = `
         color: #4a5568;
     }
     
-    /* DEMO PROMPTS */
+    /* DEMO PROMPTS - TWO PHASES */
     .demo-prompts-container {
         margin-top: 15px;
         padding: 15px;
@@ -1262,7 +1359,7 @@ chatbotStyles.textContent = `
         border-radius: 3px;
     }
     
-    .chat-messages::-webkit-scrollbar-thumb:hover {
+    .chat-messages::-webkitScrollbar-thumb:hover {
         background: #a8a8a8;
     }
     
@@ -1291,14 +1388,17 @@ if (!document.querySelector('#chatbot-styles')) {
     document.head.appendChild(chatbotStyles);
 }
 
-// Start keep-alive (automatically only runs in production)
-keepBackendAlive();
+// Start keep-alive when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', keepBackendAlive);
+} else {
+    keepBackendAlive();
+}
 
 // Make functions available globally
 window.processChatMessage = processChatMessage;
 window.initChatbot = initChatbot;
 
 console.log("🚀 AI Chatbot Script Loaded Successfully!");
-console.log(`🌍 Environment: ${window.location.hostname.includes('localhost') ? 'LOCAL' : 'PRODUCTION'}`);
-console.log(`🔌 Backend: ${getBackendUrl().includes('localhost') ? 'Localhost:10000' : 'Render.com'}`);
-console.log(`⏱️  Timeout: ${getBackendUrl().includes('localhost') ? '8s' : '30s'} (for cold starts)`);
+console.log("📝 Initial Promots Ready:", INITIAL_PROMPTS.length);
+console.log("📝 Quick Prompts Ready:", ALL_QUICK_PROMPTS.length);
