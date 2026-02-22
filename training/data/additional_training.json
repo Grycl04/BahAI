@@ -878,15 +878,15 @@
     },
     {
       "text": "apartments for students in batangas city",
-      "intent": "find_property_for_need"
+      "intent": "match_needs"
     },
     {
       "text": "condos for professionals",
-      "intent": "find_property_for_need"
+      "intent": "match_needs"
     },
     {
       "text": "properties for retirees",
-      "intent": "find_property_for_need"
+      "intent": "match_needs"
     },
     {
       "text": "match properties to my budget",
@@ -902,6 +902,18 @@
     },
     {
       "text": "what properties match my needs",
+      "intent": "match_needs"
+    },
+    {
+      "text": "properties for students near schools",
+      "intent": "match_needs"
+    },
+    {
+      "text": "i am a doctor, show properties near hospitals",
+      "intent": "match_needs"
+    },
+    {
+      "text": "i like to gym, show properties near gym",
       "intent": "match_needs"
     },
     {
