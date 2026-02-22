@@ -47,8 +47,8 @@
         --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
         --primary-light: #1e3a5f;
         --primary-dark: #071e38;
-        --secondary-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-        --accent-gradient: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+        --secondary-gradient: #d4af37;
+        --accent-gradient: #d4af37;
         --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         --border-radius: 16px;
@@ -2436,6 +2436,36 @@ async function loadAllUserData(userIds) {
     }
 }
 
+function getListingOwnerId(listing) {
+    return listing?.userId || listing?.ownerId || null;
+}
+
+function getFallbackUserInfo(ownerId) {
+    const shortId = ownerId ? String(ownerId).substring(0, 8) : 'Unknown';
+    return {
+        displayName: `User ${shortId}`,
+        email: 'N/A',
+        phone: 'N/A',
+        role: 'user',
+        photoURL: null
+    };
+}
+
+async function ensureUserDataForListings(listings) {
+    if (!Array.isArray(listings) || listings.length === 0) return;
+
+    const missingUserIds = new Set();
+    listings.forEach(listing => {
+        const ownerId = getListingOwnerId(listing);
+        if (ownerId && !userMap.has(ownerId)) {
+            missingUserIds.add(ownerId);
+        }
+    });
+
+    if (missingUserIds.size === 0) return;
+    await Promise.all(Array.from(missingUserIds).map(ownerId => loadUserData(ownerId)));
+}
+
 async function loadUserData(userId) {
     try {
         console.log(`🔍 Attempting to load user: ${userId}`);
@@ -2564,19 +2594,16 @@ function displayFilteredListings() {
 
 async function displayListings(listings) {
   const container = document.getElementById('listingsContainer');
+
+  await ensureUserDataForListings(listings);
   
   // Check which properties are already saved (only for logged-in users)
   const savedMap = auth.currentUser ? await checkSavedStatus(listings) : new Map();
   
   container.innerHTML = listings.map(listing => {
     const isSaved = savedMap.has(listing.id);
-    const userInfo = userMap.get(listing.userId) || {
-      displayName: `User ${listing.userId ? listing.userId.substring(0, 8) : 'Unknown'}`,
-      email: 'N/A',
-      phone: 'N/A',
-      role: 'user',
-      photoURL: null
-    };
+    const ownerId = getListingOwnerId(listing);
+    const userInfo = userMap.get(ownerId) || getFallbackUserInfo(ownerId);
     
     const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
     const brokerAvatarHtml = userInfo.photoURL
@@ -2642,9 +2669,13 @@ async function displayListings(listings) {
     // Determine contact button text and behavior based on auth state and KYC
     // Determine contact button text and behavior based on auth state and KYC
     const contactButton = auth.currentUser 
-        ? `<button class="action-btn contact-btn" data-user-id="${listing.userId}" onclick="handleContactClick('${listing.userId}', event)">
+        ? (ownerId
+            ? `<button class="action-btn contact-btn" data-user-id="${ownerId}" onclick="handleContactClick('${ownerId}', event)">
                 <i class="fas fa-comment"></i> Contact Broker
-        </button>`
+            </button>`
+            : `<button class="action-btn contact-btn" disabled style="opacity:0.6;cursor:not-allowed;">
+                <i class="fas fa-comment"></i> Contact Unavailable
+            </button>`)
         : `<button class="action-btn contact-btn" onclick="window.location.href='../login.html'">
                 <i class="fas fa-sign-in-alt"></i> Login to Contact
         </button>`;
@@ -3664,6 +3695,11 @@ async function getLocationBasedRecommendations(userId) {
         }
     } catch (error) {
         console.warn('Live location unavailable:', error);
+        // If user explicitly denies geolocation, do not use saved coordinates.
+        if (error && error.code === 1) {
+            try { localStorage.removeItem(USER_LOCATION_STORAGE_KEY); } catch (e) {}
+            return { location: null, usedSavedLocation: false };
+        }
         const storedLocation = getLocationFromLocalStorage();
         if (storedLocation) {
             location = storedLocation;
@@ -3829,6 +3865,24 @@ async function loadUserPreferenceData(userId, propertyMap) {
     };
 }
 
+async function getSavedPropertyIdsSet(userId) {
+    if (!userId) return new Set();
+
+    try {
+        const savedSnap = await getDocs(query(collection(db, 'savedProperties'), where('userId', '==', userId)));
+        const savedIds = new Set();
+        savedSnap.forEach(itemDoc => {
+            const data = itemDoc.data() || {};
+            const propertyId = data.propertyId || data.listingId;
+            if (propertyId) savedIds.add(String(propertyId));
+        });
+        return savedIds;
+    } catch (error) {
+        console.error('Error loading saved property IDs:', error);
+        return new Set();
+    }
+}
+
 function buildRecentBehaviorSignals(behaviorData, propertyMap) {
     const viewedTypes = new Set();
     const viewedLocations = new Set();
@@ -3925,6 +3979,7 @@ async function generateSuperSmartRecommendations(currentUser) {
     const properties = await getPropertiesForRecommendations();
     const propertyMap = new Map(properties.map(p => [String(p.id), p]));
     const userPrefs = await loadUserPreferenceData(userId, propertyMap);
+    const savedPropertyIds = await getSavedPropertyIdsSet(userId);
     const locationResult = await getLocationBasedRecommendations(userId);
     const recentSignals = buildRecentBehaviorSignals(behaviorData, propertyMap);
 
@@ -3941,10 +3996,13 @@ async function generateSuperSmartRecommendations(currentUser) {
         recentSignals.viewedLocations.size === 0;
 
     const activeProperties = properties.filter(listing =>
-        listing.status === 'active' ||
-        listing.status === 'available' ||
-        listing.status === 'Active' ||
-        (listing.status === undefined && listing.isActive !== false)
+        (
+            listing.status === 'active' ||
+            listing.status === 'available' ||
+            listing.status === 'Active' ||
+            (listing.status === undefined && listing.isActive !== false)
+        ) &&
+        !savedPropertyIds.has(String(listing.id))
     );
 
     const scored = activeProperties
@@ -4005,42 +4063,12 @@ async function loadRecommendationsFromPython() {
 async function showGuestRecommendations() {
     try {
         console.log('Showing properties to guest user');
+        const existingPrompt = document.querySelector('#recommendedSection .guest-prompt');
+        if (existingPrompt) existingPrompt.remove();
         const result = await generateSuperSmartRecommendations(null);
 
         if (result.recommendations.length > 0) {
             displayRecommendedListingsPython(result.recommendations, 'super_smart');
-            
-            // Add a prompt message below the section
-            setTimeout(() => {
-                const section = document.getElementById('recommendedSection');
-                if (section) {
-                    let promptDiv = section.querySelector('.guest-prompt');
-                    if (!promptDiv) {
-                        promptDiv = document.createElement('div');
-                        promptDiv.className = 'guest-prompt';
-                        promptDiv.style.cssText = `
-                            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-                            color: white;
-                            padding: 15px 20px;
-                            border-radius: 8px;
-                            margin-top: 20px;
-                            text-align: center;
-                            animation: fadeIn 0.5s ease;
-                        `;
-                        promptDiv.innerHTML = `
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                                <div style="flex: 1; max-width: 600px;">
-                                    <strong>🔓 Unlock AI Recommendations!</strong>
-                                    <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
-                                        <a href="../login.html" style="color: white; text-decoration: underline; font-weight: 600;">Sign in</a> to save properties and get personalized AI recommendations based on your preferences.
-                                    </p>
-                                </div>
-                            </div>
-                        `;
-                        section.appendChild(promptDiv);
-                    }
-                }
-            }, 100);
         } else {
             // If no recent listings, show a message
             const recoContainer = document.getElementById('recommendedListingsContainer');
@@ -4126,17 +4154,12 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
         return;
     }
 
-    // Check which properties are already saved (only for logged-in users)
-    checkSavedStatus(recommendations).then(savedMap => {
+    // Ensure profile info exists for recommendation owners before rendering
+    ensureUserDataForListings(recommendations).then(() => checkSavedStatus(recommendations)).then(savedMap => {
         recoContainer.innerHTML = recommendations.map(property => {
             const isSaved = savedMap.has(property.id);
-            const userInfo = userMap.get(property.userId) || {
-                displayName: `User ${property.userId ? property.userId.substring(0, 8) : 'Unknown'}`,
-                email: 'N/A',
-                phone: 'N/A',
-                role: 'user',
-                photoURL: null
-            };
+            const ownerId = getListingOwnerId(property);
+            const userInfo = userMap.get(ownerId) || getFallbackUserInfo(ownerId);
             
             const userInitials = userInfo.displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'UU';
             const brokerAvatarHtml = userInfo.photoURL
@@ -4198,9 +4221,13 @@ function displayRecommendedListingsPython(recommendations, type = 'personalized'
             // Determine contact button based on auth state
            // Determine contact button based on auth state
             const contactButton = auth.currentUser 
-                ? `<button class="action-btn contact-btn" style="width: 100%;" data-user-id="${property.userId}" onclick="handleContactClick('${property.userId}', event)">
+                ? (ownerId
+                    ? `<button class="action-btn contact-btn" style="width: 100%;" data-user-id="${ownerId}" onclick="handleContactClick('${ownerId}', event)">
                     <i class="fas fa-comment"></i> Contact Broker
                 </button>`
+                    : `<button class="action-btn contact-btn" style="width: 100%;opacity:0.6;cursor:not-allowed;" disabled>
+                    <i class="fas fa-comment"></i> Contact Unavailable
+                </button>`)
                 : `<button class="action-btn contact-btn" style="width: 100%;" onclick="window.location.href='../login.html'">
                     <i class="fas fa-sign-in-alt"></i> Login to Contact
                 </button>`;
