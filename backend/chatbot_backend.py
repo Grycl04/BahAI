@@ -316,13 +316,14 @@ def load_nlu_model():
     """Load the trained NLU model from train_nlu.py with multiple fallback paths"""
     global vectorizer, classifier, model_classes
     
-    # List all possible model paths to check
+    # Prefer backend-local model for Render/backend-only deployments.
+    # Keep fallbacks for local compatibility.
     possible_paths = [
-        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),  # <-- MOVE TO TOP
-        MODEL_PATH,  # training/models/nlu_model.pkl
+        MODEL_PATH,  # backend/models/nlu_model.pkl
+        os.path.join(BACKEND_ROOT, 'models', 'nlu_model.pkl'),
         os.path.join(PROJECT_ROOT, 'backend', 'models', 'nlu_model.pkl'),
+        os.path.join(PROJECT_ROOT, 'models', 'nlu_model.pkl'),
         os.path.join(os.path.dirname(PROJECT_ROOT), 'models', 'nlu_model.pkl'),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'nlu_model.pkl'),
     ]
     
     model_loaded = False
