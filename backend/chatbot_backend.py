@@ -51,17 +51,30 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # CONFIGURATION
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'nlu_model.pkl')
-TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member1', 'training_data.json')
-BUYER_TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member5_buyer', 'training_data.json')
-MEMBER2_TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member2', 'training_data.json')
-MEMBER3_TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member3', 'training_data.json')
+BACKEND_ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BACKEND_ROOT)
+MODEL_PATH = os.path.join(BACKEND_ROOT, 'models', 'nlu_model.pkl')
+
+# Runtime data paths: prefer backend/data (Render-friendly), fallback to training/data
+RUNTIME_DATA_ROOT = os.path.join(BACKEND_ROOT, 'data')
+LEGACY_DATA_ROOT = os.path.join(PROJECT_ROOT, 'training', 'data')
+
+def _resolve_data_path(*parts: str) -> str:
+    """Return backend/data path when available, otherwise fallback to training/data."""
+    runtime_path = os.path.join(RUNTIME_DATA_ROOT, *parts)
+    if os.path.exists(runtime_path):
+        return runtime_path
+    return os.path.join(LEGACY_DATA_ROOT, *parts)
+
+TRAINING_DATA_PATH = _resolve_data_path('member1', 'training_data.json')
+BUYER_TRAINING_DATA_PATH = _resolve_data_path('member5_buyer', 'training_data.json')
+MEMBER2_TRAINING_DATA_PATH = _resolve_data_path('member2', 'training_data.json')
+MEMBER3_TRAINING_DATA_PATH = _resolve_data_path('member3', 'training_data.json')
 MEMBER4_GENERAL_PATHS = [
-    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'greetings.json'),
-    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'thanks.json'),
-    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'goodbye.json'),
-    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'about_system.json'),
+    _resolve_data_path('member4_general', 'greetings.json'),
+    _resolve_data_path('member4_general', 'thanks.json'),
+    _resolve_data_path('member4_general', 'goodbye.json'),
+    _resolve_data_path('member4_general', 'about_system.json'),
 ]
 
 # Global variables
@@ -1467,7 +1480,7 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 def _load_landmarks_data() -> Dict[str, Any]:
     """Load landmark categories and points for map-based 'near X' filtering."""
-    path = os.path.join(PROJECT_ROOT, 'training', 'data', 'shared', 'landmarks_batangas.json')
+    path = _resolve_data_path('shared', 'landmarks_batangas.json')
     try:
         if os.path.exists(path):
             with open(path, 'r', encoding='utf-8') as f:

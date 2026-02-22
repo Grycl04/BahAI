@@ -1,0 +1,310 @@
+{
+  "training_samples": [
+    {
+      "query": "what are you",
+      "intent": "about_system",
+      "response_template_english": "🏠 **BahAI - Your Batangas Property Assistant**\n\nI'm an AI chatbot that helps you search and explore properties in Batangas. I can help with property search, financing info, location insights, and matching properties to your needs.",
+      "response_template_tagalog": "🏠 **BahAI - Property Assistant mo sa Batangas**\n\nIsa akong AI chatbot na tutulong sa paghanap at pag-explore ng properties sa Batangas. Matutulungan kita sa property search, financing info, location insights, at pag-match ng property ayon sa needs mo.",
+      "variations": [
+        "who are you",
+        "what are you exactly",
+        "who are you exactly",
+        "what is this",
+        "what is this system",
+        "what is this chatbot",
+        "hello what is this",
+        "hi what are you",
+        "yo what is this bot",
+        "what kind of ai is this"
+      ]
+    },
+    {
+      "query": "what do you do",
+      "intent": "about_system",
+      "variations": [
+        "what can you do",
+        "what can you help with",
+        "what are your capabilities",
+        "what features do you have",
+        "what are you capable of",
+        "what do you help users with",
+        "how can you assist",
+        "what tasks can you do",
+        "what services do you provide",
+        "what can i use you for"
+      ]
+    },
+    {
+      "query": "tell me about yourself",
+      "intent": "about_system",
+      "variations": [
+        "tell me more about yourself",
+        "tell me about this system",
+        "tell me about this chatbot",
+        "tell me about bah ai",
+        "introduce yourself",
+        "give me info about you",
+        "short intro about you",
+        "who is this ai",
+        "what should i know about you",
+        "describe yourself"
+      ]
+    },
+    {
+      "query": "what is bah.ai",
+      "intent": "about_system",
+      "variations": [
+        "what is bahai",
+        "what is bah ai",
+        "what is this bah ai",
+        "about bah.ai",
+        "bah ai information",
+        "bah ai details",
+        "explain bah ai",
+        "what does bah.ai do",
+        "bah.ai purpose",
+        "bah.ai system info"
+      ]
+    },
+    {
+      "query": "how do you work",
+      "intent": "about_system",
+      "variations": [
+        "how does this work",
+        "how does it work",
+        "how does the system work",
+        "how do you operate",
+        "how are you built",
+        "how do i use this",
+        "how does this ai function",
+        "how do i start",
+        "how to use this system",
+        "how does this chatbot respond"
+      ]
+    },
+    {
+      "query": "who made you",
+      "intent": "about_system",
+      "variations": [
+        "who created you",
+        "who developed you",
+        "who built you",
+        "who is your developer",
+        "who programmed you",
+        "who owns this system",
+        "who manages this",
+        "what company made this",
+        "who runs this ai",
+        "who maintains this"
+      ]
+    },
+    {
+      "query": "what properties can you find",
+      "intent": "about_system",
+      "variations": [
+        "what kind of properties do you have",
+        "what properties do you offer",
+        "what property types do you have",
+        "what can i search for",
+        "do you have apartments",
+        "can you find houses",
+        "do you list rentals",
+        "can i search condos",
+        "what listings are available",
+        "do you show rooms for rent"
+      ]
+    },
+    {
+      "query": "what areas do you cover",
+      "intent": "about_system",
+      "variations": [
+        "what locations do you have",
+        "what cities do you serve",
+        "what municipalities are included",
+        "do you have properties in batangas only",
+        "what places are supported",
+        "which locations can i search",
+        "coverage areas",
+        "where do you operate",
+        "do you work nationwide",
+        "which areas are available"
+      ]
+    },
+    {
+      "query": "is this ai",
+      "intent": "about_system",
+      "variations": [
+        "are you ai",
+        "are you artificial intelligence",
+        "is this an ai chatbot",
+        "are you a real person",
+        "am I talking to a bot",
+        "is this automated",
+        "is this a virtual assistant",
+        "is this a robot",
+        "are responses automated",
+        "is this human"
+      ]
+    },
+    {
+      "query": "what is your purpose",
+      "intent": "about_system",
+      "variations": [
+        "what is the purpose of this system",
+        "why were you created",
+        "what's your mission",
+        "what is the goal of bah.ai",
+        "why does this exist",
+        "what is this for",
+        "what is this ai for",
+        "why should i use this",
+        "what problem do you solve",
+        "what is your main function"
+      ]
+    },
+    {
+      "query": "give me an overview",
+      "intent": "about_system",
+      "variations": [
+        "give me an introduction",
+        "provide an overview",
+        "introduce yourself",
+        "system overview",
+        "overview please",
+        "quick summary",
+        "summary of system",
+        "what is this platform",
+        "platform overview",
+        "explain this platform"
+      ]
+    },
+    {
+      "query": "what services do you offer",
+      "intent": "about_system",
+      "variations": [
+        "what services are available",
+        "what can i use this for",
+        "how can you assist me",
+        "what help do you provide",
+        "what support do you give",
+        "service list",
+        "available features",
+        "what tools do you have",
+        "what functions exist",
+        "what can users do here"
+      ]
+    },
+    {
+      "query": "what can i do here",
+      "intent": "about_system",
+      "variations": [
+        "what can i do in this system",
+        "how can i use this",
+        "what features are here",
+        "what options do i have",
+        "how do i start using this",
+        "how to navigate",
+        "what is available here",
+        "what can users do",
+        "what actions are possible",
+        "how to interact here"
+      ]
+    },
+    {
+      "query": "are you a chatbot",
+      "intent": "about_system",
+      "variations": [
+        "is this a chatbot",
+        "am i chatting with a bot",
+        "is this automated",
+        "is this a virtual assistant",
+        "are you a digital assistant",
+        "is this ai chat",
+        "chatbot ba ito",
+        "bot ka ba",
+        "is this live chat",
+        "is this system ai powered"
+      ]
+    },
+    {
+      "query": "what platform is this",
+      "intent": "about_system",
+      "variations": [
+        "what app is this",
+        "what website is this",
+        "what system am i using",
+        "where am i chatting",
+        "what tool is this",
+        "what service is this",
+        "what platform am i on",
+        "what program is this",
+        "what software is this",
+        "what system is this"
+      ]
+    },
+    {
+      "query": "explain your features",
+      "intent": "about_system",
+      "variations": [
+        "list your features",
+        "what functions do you have",
+        "what tools are available",
+        "show features",
+        "feature list",
+        "system features",
+        "available functions",
+        "what can you show",
+        "what options exist",
+        "tell me features"
+      ]
+    },
+    {
+      "query": "can you help me search",
+      "intent": "about_system",
+      "variations": [
+        "can you help me find something",
+        "can you assist me",
+        "can you guide me",
+        "can you help me navigate",
+        "are you a search assistant",
+        "can you find listings",
+        "can you recommend places",
+        "can you help me look",
+        "can you search for me",
+        "do you help users find things"
+      ]
+    },
+    {
+      "query": "how accurate are you",
+      "intent": "about_system",
+      "variations": [
+        "are your results accurate",
+        "can i trust your answers",
+        "how reliable is this",
+        "do you give correct info",
+        "how smart are you",
+        "are results reliable",
+        "is info updated",
+        "are you trustworthy",
+        "how good are you",
+        "accuracy level"
+      ]
+    },
+    {
+      "query": "do you store data",
+      "intent": "about_system",
+      "variations": [
+        "do you save my info",
+        "do you keep conversations",
+        "is this private",
+        "are chats recorded",
+        "do you store chat history",
+        "is my data safe",
+        "privacy info",
+        "do you track users",
+        "do you log messages",
+        "is this secure"
+      ]
+    }
+  ]
+}

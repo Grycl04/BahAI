@@ -1,0 +1,73 @@
+{
+  "comment": "Landmarks for map-based 'near X' filtering. Property must have latitude/longitude (from map pin). Distance in km. Approximate coordinates for Batangas area.",
+  "radius_km": 5,
+  "categories": {
+    "school": {
+      "keywords_for_description": ["school", "university", "college", "campus", "near school", "walking distance to school", "malapit sa school", "malapit sa university", "malapit sa college"],
+      "points": [
+        { "name": "Batangas State University - Alangilan", "lat": 13.768, "lng": 121.065, "city": "Batangas City" },
+        { "name": "Batangas State University - Main", "lat": 13.758, "lng": 121.058, "city": "Batangas City" },
+        { "name": "Lipa City schools area", "lat": 13.942, "lng": 121.165, "city": "Lipa City" },
+        { "name": "Tanauan City schools area", "lat": 14.083, "lng": 121.150, "city": "Tanauan City" },
+        { "name": "Nasugbu schools area", "lat": 14.069, "lng": 120.632, "city": "Nasugbu" }
+      ]
+    },
+    "mall": {
+      "keywords_for_description": ["mall", "sm", "robinsons", "waltermart", "shopping", "near mall", "malapit sa mall", "walking distance to mall"],
+      "points": [
+        { "name": "SM City Batangas", "lat": 13.764, "lng": 121.063, "city": "Batangas City" },
+        { "name": "Robinsons Place Batangas", "lat": 13.760, "lng": 121.060, "city": "Batangas City" },
+        { "name": "SM City Lipa", "lat": 13.938, "lng": 121.163, "city": "Lipa City" },
+        { "name": "SM City Sto. Tomas", "lat": 14.078, "lng": 121.143, "city": "Sto. Tomas City" }
+      ]
+    },
+    "hospital": {
+      "keywords_for_description": ["hospital", "medical", "clinic", "near hospital", "malapit sa hospital", "walking distance to hospital"],
+      "points": [
+        { "name": "Batangas Medical Center area", "lat": 13.762, "lng": 121.062, "city": "Batangas City" },
+        { "name": "Lipa City hospitals area", "lat": 13.940, "lng": 121.162, "city": "Lipa City" },
+        { "name": "Nasugbu hospital area", "lat": 14.068, "lng": 120.630, "city": "Nasugbu" }
+      ]
+    },
+    "beach": {
+      "keywords_for_description": ["beach", "beachfront", "sea", "coast", "near beach", "malapit sa beach", "walking distance to beach", "sea view", "ocean"],
+      "points": [
+        { "name": "Batangas City coast", "lat": 13.750, "lng": 121.055, "city": "Batangas City" },
+        { "name": "Nasugbu beach area", "lat": 14.065, "lng": 120.615, "city": "Nasugbu" },
+        { "name": "Lian beach area", "lat": 14.033, "lng": 120.650, "city": "Lian" },
+        { "name": "Calatagan beach", "lat": 13.832, "lng": 120.633, "city": "Calatagan" }
+      ]
+    },
+    "church": {
+      "keywords_for_description": ["church", "cathedral", "chapel", "near church", "malapit sa church", "walking distance to church"],
+      "points": [
+        { "name": "Batangas Cathedral area", "lat": 13.757, "lng": 121.058, "city": "Batangas City" },
+        { "name": "Lipa Cathedral area", "lat": 13.941, "lng": 121.164, "city": "Lipa City" }
+      ]
+    },
+    "port": {
+      "keywords_for_description": ["port", "pier", "near port", "malapit sa port", "batangas port"],
+      "points": [
+        { "name": "Batangas Port", "lat": 13.755, "lng": 121.048, "city": "Batangas City" }
+      ]
+    }
+  },
+  "query_to_category": {
+    "school": "school",
+    "schools": "school",
+    "university": "school",
+    "universities": "school",
+    "college": "school",
+    "colleges": "school",
+    "mall": "mall",
+    "malls": "mall",
+    "shopping": "mall",
+    "hospital": "hospital",
+    "hospitals": "hospital",
+    "beach": "beach",
+    "beaches": "beach",
+    "church": "church",
+    "churches": "church",
+    "port": "port"
+  }
+}
