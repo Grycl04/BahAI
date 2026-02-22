@@ -3,6 +3,8 @@
     {
       "query": "what are you",
       "intent": "about_system",
+      "response_template_english": "🏠 **BahAI - Your Batangas Property Assistant**\n\nI'm an AI chatbot that helps you search and explore properties in Batangas. I can help with property search, financing info, location insights, and matching properties to your needs.",
+      "response_template_tagalog": "🏠 **BahAI - Property Assistant mo sa Batangas**\n\nIsa akong AI chatbot na tutulong sa paghanap at pag-explore ng properties sa Batangas. Matutulungan kita sa property search, financing info, location insights, at pag-match ng property ayon sa needs mo.",
       "variations": [
         "who are you",
         "what are you exactly",

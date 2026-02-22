@@ -3,6 +3,8 @@
     {
       "query": "bye",
       "intent": "goodbye",
+      "response_template_english": "👋 Goodbye! Feel free to return anytime for property assistance.",
+      "response_template_tagalog": "👋 Paalam! Bumalik ka lang anytime kung kailangan mo ng tulong sa property.",
       "variations": [
         "goodbye",
         "bye bye",

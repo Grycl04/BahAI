@@ -54,6 +54,15 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'nlu_model.pkl')
 TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member1', 'training_data.json')
+BUYER_TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member5_buyer', 'training_data.json')
+MEMBER2_TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member2', 'training_data.json')
+MEMBER3_TRAINING_DATA_PATH = os.path.join(PROJECT_ROOT, 'training', 'data', 'member3', 'training_data.json')
+MEMBER4_GENERAL_PATHS = [
+    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'greetings.json'),
+    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'thanks.json'),
+    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'goodbye.json'),
+    os.path.join(PROJECT_ROOT, 'training', 'data', 'member4_general', 'about_system.json'),
+]
 
 # Global variables
 vectorizer = None
@@ -62,6 +71,8 @@ db = None
 nlp = None
 model_classes = []  # Store model classes separately
 training_data = {}  # Store training data for response templates
+buyer_training_data = {}  # Buyer intents from member5_buyer
+intent_templates = {}  # intent -> {'en': template, 'tl': template}
 
 print("\n" + "="*60)
 print("🔥 FIREBASE CONNECTION")
@@ -174,9 +185,47 @@ except Exception as e:
     db = None
 
 # Load training data for response templates
+def _register_intent_template(intent_name: str, en_template: str = "", tl_template: str = ""):
+    """Store one EN/TL template per intent for language-aware responses."""
+    if not intent_name:
+        return
+    if intent_name not in intent_templates:
+        intent_templates[intent_name] = {'en': '', 'tl': ''}
+    if en_template and not intent_templates[intent_name]['en']:
+        intent_templates[intent_name]['en'] = en_template
+    if tl_template and not intent_templates[intent_name]['tl']:
+        intent_templates[intent_name]['tl'] = tl_template
+
+
+def _collect_intent_templates(dataset: Dict[str, Any]):
+    """Extract templates from dataset-level and sample-level template fields."""
+    if not dataset:
+        return
+
+    # 1) Sample-level templates
+    for sample in dataset.get('training_samples', []):
+        intent_name = sample.get('intent')
+        en = sample.get('response_template_english') or sample.get('response_template') or ''
+        tl = sample.get('response_template_tagalog') or ''
+        _register_intent_template(intent_name, en, tl)
+
+    # 2) Dataset-level bilingual template maps
+    en_map = dataset.get('response_templates_english', {})
+    tl_map = dataset.get('response_templates_tagalog', {})
+    legacy_map = dataset.get('response_templates', {})
+
+    for intent_name, template in en_map.items():
+        _register_intent_template(intent_name, template, '')
+    for intent_name, template in tl_map.items():
+        _register_intent_template(intent_name, '', template)
+    for intent_name, template in legacy_map.items():
+        _register_intent_template(intent_name, template, '')
+
+
 def load_training_data():
     """Load training data for response templates"""
-    global training_data
+    global training_data, intent_templates
+    intent_templates = {}
     
     print(f"\n🔍 DEBUG: Loading training data from {TRAINING_DATA_PATH}")
     print(f"📁 TRAINING_DATA_PATH exists: {os.path.exists(TRAINING_DATA_PATH)}")
@@ -186,6 +235,7 @@ def load_training_data():
             with open(TRAINING_DATA_PATH, 'r', encoding='utf-8') as f:
                 training_data = json.load(f)
             logger.info(f"✅ Training data loaded from {TRAINING_DATA_PATH}")
+            _collect_intent_templates(training_data)
             
             # Debug: Check if location profiles have descriptions and lifestyle
             if 'location_profiles' in training_data:
@@ -211,6 +261,41 @@ def load_training_data():
     except Exception as e:
         logger.error(f"❌ Error loading training data: {e}")
         training_data = {}
+
+    # Load additional member datasets to unify EN/TL intent templates
+    for member_path in [MEMBER2_TRAINING_DATA_PATH, MEMBER3_TRAINING_DATA_PATH]:
+        try:
+            if os.path.exists(member_path):
+                with open(member_path, 'r', encoding='utf-8') as f:
+                    member_data = json.load(f)
+                _collect_intent_templates(member_data)
+                logger.info(f"✅ Additional templates loaded from {member_path}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not load templates from {member_path}: {e}")
+
+    for member4_path in MEMBER4_GENERAL_PATHS:
+        try:
+            if os.path.exists(member4_path):
+                with open(member4_path, 'r', encoding='utf-8') as f:
+                    member4_data = json.load(f)
+                _collect_intent_templates(member4_data)
+                logger.info(f"✅ Member4 general templates loaded from {member4_path}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not load templates from {member4_path}: {e}")
+
+    # Load buyer training data from member5_buyer for buyer intents
+    global buyer_training_data
+    try:
+        if os.path.exists(BUYER_TRAINING_DATA_PATH):
+            with open(BUYER_TRAINING_DATA_PATH, 'r', encoding='utf-8') as f:
+                buyer_training_data = json.load(f)
+            logger.info(f"✅ Buyer training data loaded from {BUYER_TRAINING_DATA_PATH}")
+        else:
+            logger.warning(f"⚠️ Buyer training data file not found: {BUYER_TRAINING_DATA_PATH}")
+            buyer_training_data = {}
+    except Exception as e:
+        logger.error(f"❌ Error loading buyer training data: {e}")
+        buyer_training_data = {}
 
 # Load NLU model
 # Load NLU model - COMPLETE FIXED VERSION with multiple fallback paths and diagnostics
@@ -583,6 +668,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'has_pagibig_query': False,
         'listing_type': None,
         'has_general_search': False,
+        'has_ready_query': False,
         'max_price': None,
         'min_price': None,
         'min_bedrooms': None,
@@ -597,17 +683,28 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'process_type': None,
         'has_match_query': False,
         'lifestyle': None,
+        'lifestyle_focus_landmark': None,
     }
     
     query_lower = query.lower()
+
+    # Detect "ready to move in" style queries early
+    ready_query_phrases = [
+        'ready to move', 'ready for occupancy', 'available now',
+        'immediate occupancy', 'move in ready', 'ready now',
+        'ready to occupy', 'immediate move in', 'available immediately',
+        'rfo', 'pwede na lipatan', 'handa na tirahan', 'lipat agad'
+    ]
+    if any(phrase in query_lower for phrase in ready_query_phrases):
+        entities['has_ready_query'] = True
     
     # ========== PROPERTY TYPE DETECTION ==========
     # Check for condo variations FIRST
-    if any(term in query_lower for term in ['condo', 'condos', 'condominium', 'condominiums']):
+    if any(term in query_lower for term in ['condo', 'condos', 'condominium', 'condominiums', 'kondo']):
         entities['property_type'] = 'condo'
     elif 'apartment' in query_lower or 'apartments' in query_lower:
         entities['property_type'] = 'apartment'
-    elif 'house' in query_lower or 'houses' in query_lower:
+    elif any(term in query_lower for term in ['house', 'houses', 'bahay', 'mga bahay']):
         entities['property_type'] = 'house'
     elif 'townhouse' in query_lower or 'townhouses' in query_lower:
         entities['property_type'] = 'townhouse'
@@ -976,7 +1073,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             entities['landmark'] = match.group(1).strip()
     
     # Bathroom detection
-    bath_match = re.search(r'(\d+)\s+bathroom', query_lower)
+    bath_match = re.search(r'(\d+)\s+(?:bathroom|bath|banyo)', query_lower)
     if bath_match:
         entities['bathrooms'] = int(bath_match.group(1))
     
@@ -1020,30 +1117,51 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.info(f"🏠 Detected space requirement: {keyword}")
                 break
         
-        # Check for other needs - EXPANDED FROM TRAINING DATA
-        needs_map = {
-            'for students': 'students',
-            'student housing': 'students',           # ADDED
-            'student accommodations': 'students',    # ADDED
-            'for professionals': 'professionals',
-            'working professionals': 'professionals', # ADDED
-            'for couple': 'couple',
-            'for couples': 'couple',
-            'properties for couples': 'couple',      # ADDED
-            'for retirees': 'retirees',
-            'retirement': 'retirees',               # ADDED
-            'for business': 'business',
-            'home business': 'business',            # ADDED
-            'for investors': 'investors',           # ADDED
-            'for single': 'single'                 # ADDED
-        }
-        
-        for keyword, need_type in needs_map.items():
-            if keyword in query_lower:
-                entities['has_need_query'] = True
-                entities['need_type'] = need_type
-                logger.info(f"🎯 Detected need type: {need_type}")
-                break
+    # Check for other needs - independent from family keywords
+    needs_map = {
+        'for family': 'family',
+        'family of': 'family',
+        'for couple': 'couple',
+        'for couples': 'couple',
+        'properties for couples': 'couple',
+        'for single': 'single'
+    }
+    
+    for keyword, need_type in needs_map.items():
+        if keyword in query_lower:
+            entities['has_need_query'] = True
+            entities['need_type'] = need_type
+            logger.info(f"🎯 Detected need type: {need_type}")
+            break
+
+    # Lifestyle-oriented intents (Question 10)
+    lifestyle_map = {
+        'for students': ('student lifestyle', 'schools'),
+        'student housing': ('student lifestyle', 'schools'),
+        'student accommodations': ('student lifestyle', 'schools'),
+        'properties for students': ('student lifestyle', 'schools'),
+        'for professionals': ('professional lifestyle', None),
+        'working professionals': ('professional lifestyle', None),
+        'single professional': ('single professional lifestyle', None),
+        'for retirees': ('retiree lifestyle', 'hospitals'),
+        'retirement': ('retiree lifestyle', 'hospitals'),
+        'for business': ('business lifestyle', None),
+        'home business': ('business lifestyle', None),
+        'for investors': ('investor lifestyle', None),
+        'doctor': ('medical professional lifestyle', 'hospitals'),
+        'nurse': ('medical professional lifestyle', 'hospitals'),
+        'medical': ('medical professional lifestyle', 'hospitals'),
+        'gym': ('active lifestyle', 'gym'),
+        'active lifestyle': ('active lifestyle', 'gym')
+    }
+    for keyword, (lifestyle_name, default_landmark) in lifestyle_map.items():
+        if keyword in query_lower:
+            entities['has_match_query'] = True
+            entities['lifestyle'] = entities.get('lifestyle') or lifestyle_name
+            if default_landmark and not entities.get('landmark'):
+                entities['landmark'] = default_landmark
+                entities['lifestyle_focus_landmark'] = default_landmark
+            break
     
     # Question 5: Feature with good price
     price_quality_keywords = [
@@ -1097,6 +1215,39 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
             
             logger.info("🎯 Detected lifestyle matching query")
             break
+
+    # Allow implicit lifestyle-matching prompts (e.g., "I am a doctor", "student ako")
+    implicit_lifestyle_terms = [
+        'i am a doctor', 'doctor ako', 'nurse ako', 'medical worker',
+        'i am a student', 'student ako', 'single professional', 'young professional',
+        'work from home', 'retiree', 'retired'
+    ]
+    if not entities.get('has_match_query') and any(term in query_lower for term in implicit_lifestyle_terms):
+        entities['has_match_query'] = True
+        if not entities.get('lifestyle'):
+            entities['lifestyle'] = query_lower
+
+    # Map lifestyle to practical matching hints
+    if entities.get('has_match_query'):
+        # Student lifestyle -> near schools/universities
+        if any(term in query_lower for term in ['student', 'students', 'university', 'school', 'estudyante']):
+            entities['need_type'] = entities.get('need_type') or 'students'
+            entities['lifestyle_focus_landmark'] = 'schools'
+            if not entities.get('landmark'):
+                entities['landmark'] = 'schools'
+
+        # Doctor/medical lifestyle -> near hospitals
+        if any(term in query_lower for term in ['doctor', 'nurse', 'hospital', 'medical', 'healthcare']):
+            entities['need_type'] = entities.get('need_type') or 'professionals'
+            entities['lifestyle_focus_landmark'] = 'hospitals'
+            if not entities.get('landmark'):
+                entities['landmark'] = 'hospitals'
+
+        # Single professional lifestyle -> room/apartment/1BR preference
+        if any(term in query_lower for term in ['single professional', 'single', 'young professional']):
+            entities['need_type'] = 'single'
+            if not entities.get('property_type'):
+                entities['property_type'] = 'apartment'
         
     # NEW: Determine if this is a general search (property type but no location)
     if entities.get('property_type') and not has_specific_location:
@@ -1300,6 +1451,86 @@ def debug_property_matching(properties, entities):
             query_bank = entities.get('bank_name', '')
             matches_bank = prop_bank == query_bank
             logger.info(f"     Matches bank '{query_bank}': {matches_bank}")
+
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Distance between two points in km (WGS84)."""
+    import math
+    R = 6371  # Earth radius in km
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlam = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+def _load_landmarks_data() -> Dict[str, Any]:
+    """Load landmark categories and points for map-based 'near X' filtering."""
+    path = os.path.join(PROJECT_ROOT, 'training', 'data', 'shared', 'landmarks_batangas.json')
+    try:
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.warning(f"⚠️ Could not load landmarks data: {e}")
+    return {}
+
+
+def _landmark_matches_property(
+    property_data: Dict[str, Any],
+    landmark_query: str,
+    landmarks_data: Dict[str, Any],
+    radius_km: float = 5.0
+) -> bool:
+    """
+    True if property is considered 'near' the landmark.
+    Uses (1) description/address text match, or (2) map distance when property has lat/lng.
+    """
+    if not landmarks_data or not landmark_query:
+        return True
+    q = landmark_query.lower().strip()
+    categories = landmarks_data.get('categories', {})
+    query_to_cat = landmarks_data.get('query_to_category', {})
+    radius_km = float(landmarks_data.get('radius_km', radius_km))
+
+    category = query_to_cat.get(q) or query_to_cat.get(q.rstrip('s'))
+    if not category or category not in categories:
+        desc = (property_data.get('description') or '') + ' ' + (property_data.get('address') or '')
+        return q in desc.lower()
+
+    cat_data = categories[category]
+    keywords = cat_data.get('keywords_for_description', [])
+    desc = (property_data.get('description') or '').lower()
+    address = (property_data.get('address') or '').lower()
+    searchable = desc + ' ' + address
+
+    if any(kw in searchable for kw in keywords):
+        return True
+    if q in searchable or category in searchable:
+        return True
+
+    try:
+        prop_lat = property_data.get('latitude')
+        prop_lng = property_data.get('longitude')
+        if prop_lat is None or prop_lng is None:
+            return False
+        prop_lat = float(prop_lat)
+        prop_lng = float(prop_lng)
+    except (TypeError, ValueError):
+        return False
+
+    points = cat_data.get('points', [])
+    for pt in points:
+        pt_lat = pt.get('lat')
+        pt_lng = pt.get('lng')
+        if pt_lat is None or pt_lng is None:
+            continue
+        dist_km = _haversine_km(prop_lat, prop_lng, float(pt_lat), float(pt_lng))
+        if dist_km <= radius_km:
+            return True
+    return False
+
 
 # Firestore queries - UPDATED WITH SPECIFIC BANK AND PAG-IBIG FILTERING
 def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -1582,7 +1813,8 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         
         # ========== COMPREHENSIVE CLIENT-SIDE FILTERING ==========
         filtered_properties = []
-        
+        landmarks_data = _load_landmarks_data() if entities.get('landmark') else {}
+
         for property_data in property_data_list:
             matches = True
             
@@ -1761,6 +1993,72 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                 if bedrooms > 2:  # More than 2 bedrooms not ideal for couples
                     matches = False
                     logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - {bedrooms} bedrooms not ideal for couples")
+
+            # Apply single-professional style filtering (room/studio/1BR/2BR max)
+            if (entities.get('need_type') == 'single' or 'single professional' in str(entities.get('lifestyle', '')).lower()) and matches:
+                prop_type = str(property_data.get('propertyType', '')).lower()
+                prop_bedrooms = property_data.get('bedrooms', 'Not specified')
+                bedrooms = get_bedroom_count_from_string(prop_bedrooms)
+                single_friendly_types = ['apartment', 'boarding_house', 'condo_unit', 'condominium', 'room', 'studio']
+                type_ok = any(t in prop_type for t in single_friendly_types) if prop_type else True
+                beds_ok = (bedrooms == 0 or bedrooms <= 2)
+                if not (type_ok and beds_ok):
+                    matches = False
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not ideal for single-professional profile")
+            
+            # ========== CLIENT-SIDE FEATURE/AMENITY FILTERING ==========
+            if entities.get('feature') and matches:
+                requested_feature = entities['feature'].lower()
+                prop_amenities = property_data.get('amenities', []) or []
+                prop_furnishing = (property_data.get('furnishing') or '').lower()
+                prop_description = (property_data.get('description') or '').lower()
+                # Build searchable text from amenities + furnishing + description
+                searchable = ' '.join([str(a).lower() for a in prop_amenities]) + ' ' + prop_furnishing + ' ' + prop_description
+                # Feature synonyms for flexible matching (query term -> possible DB values)
+                feature_synonyms = {
+                    'parking': ['parking', 'garage', 'carport', 'car park'],
+                    'swimming pool': ['pool', 'swimming pool', 'swimmingpool'],
+                    'garden': ['garden', 'backyard', 'yard', 'green space', 'landscaped'],
+                    'furnished': ['furnished', 'fully furnished', 'semi-furnished', 'partially furnished'],
+                    'security': ['security', 'guard', 'cctv', 'gated', '24/7'],
+                    'elevator': ['elevator', 'lift'],
+                    'wifi': ['wifi', 'internet', 'broadband', 'fiber'],
+                    'aircon': ['aircon', 'air conditioning', 'ac', 'air conditioner'],
+                    'balcony': ['balcony', 'terrace'],
+                    'maids room': ['maid', 'maids room', 'helpers quarter', 'staff room'],
+                }
+                match_terms = feature_synonyms.get(requested_feature, [requested_feature])
+                feature_found = any(term in searchable for term in match_terms)
+                if not feature_found:
+                    matches = False
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - no amenity match for '{requested_feature}'")
+
+            # ========== CLIENT-SIDE READY-TO-MOVE FILTERING ==========
+            if entities.get('has_ready_query') and matches:
+                title_text = (property_data.get('title') or '').lower()
+                desc_text = (property_data.get('description') or '').lower()
+                status_text = (property_data.get('status') or '').lower()
+                furnishing_text = (property_data.get('furnishing') or '').lower()
+                searchable_ready = f"{title_text} {desc_text} {status_text}"
+
+                ready_markers = [
+                    'ready to move', 'ready for occupancy', 'available now',
+                    'immediate occupancy', 'move in ready', 'ready now',
+                    'ready to occupy', 'immediate move in', 'available immediately',
+                    'rfo', 'pwede na lipatan', 'handa na tirahan', 'lipat agad'
+                ]
+                is_ready_by_text = any(marker in searchable_ready for marker in ready_markers)
+                # Treat fully furnished units as ready-to-move by default
+                is_ready_by_furnishing = furnishing_text in ['fully furnished', 'full furnished', 'furnished']
+                if not (is_ready_by_text or is_ready_by_furnishing):
+                    matches = False
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - no ready-to-move marker in title/description/status")
+            
+            # ========== CLIENT-SIDE LANDMARK FILTERING (MAP + DESCRIPTION) ==========
+            if entities.get('landmark') and matches:
+                if not _landmark_matches_property(property_data, entities['landmark'], landmarks_data):
+                    matches = False
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not near landmark '{entities['landmark']}'")
             
             if matches:
                 # Standardize property data for chatbot response
@@ -1801,7 +2099,7 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
     return properties
 
 # Generate criteria search response
-def generate_criteria_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+def generate_criteria_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]], language: str = 'en') -> str:
     """Generate response for property searches with specific criteria"""
     
     # Filter properties client-side as a fallback
@@ -1866,6 +2164,8 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
     
     criteria_desc = " ".join(criteria_parts)
     
+    is_tl = language == 'tl'
+
     # Generate response
     if properties:
         # Group by location
@@ -1876,10 +2176,16 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
                 properties_by_location[location] = []
             properties_by_location[location].append(prop)
         
-        response = f"🔍 **Found {len(properties)} {criteria_desc}**\n\n"
+        if is_tl:
+            response = f"🔍 **May nahanap na {len(properties)} {criteria_desc}**\n\n"
+        else:
+            response = f"🔍 **Found {len(properties)} {criteria_desc}**\n\n"
         
         for location, loc_props in properties_by_location.items():
-            response += f"📍 **{location}** ({len(loc_props)} available)\n"
+            if is_tl:
+                response += f"📍 **{location}** ({len(loc_props)} available)\n"
+            else:
+                response += f"📍 **{location}** ({len(loc_props)} available)\n"
             
             for prop in loc_props[:3]:  # Show max 3 per location
                 title = prop.get('title', 'Property')
@@ -1903,19 +2209,32 @@ def generate_criteria_search_response(entities: Dict[str, Any], properties: List
         
         # Add tips if few results
         if len(properties) < 3:
-            response += "💡 **Tips for more results:**\n"
-            response += "   • Expand your price range\n"
-            response += "   • Consider nearby locations\n"
+            if is_tl:
+                response += "💡 **Tips para mas maraming result:**\n"
+                response += "   • Palawakin ang budget range mo\n"
+                response += "   • Isama ang kalapit na locations\n"
+            else:
+                response += "💡 **Tips for more results:**\n"
+                response += "   • Expand your price range\n"
+                response += "   • Consider nearby locations\n"
             if entities.get('exact_bedrooms'):
-                response += "   • Try different bedroom counts\n"
+                response += "   • Subukan ang ibang bilang ng bedroom\n" if is_tl else "   • Try different bedroom counts\n"
         
     else:
-        response = f"❌ **No posted properties for: {criteria_desc}**\n\n"
-        response += "💡 **Suggestions:**\n"
-        response += "   • Try a different price range\n"
-        response += "   • Consider nearby locations\n"
-        response += "   • Adjust your bedroom requirements\n"
-        response += "   • Check back later for new listings\n"
+        if is_tl:
+            response = f"❌ **Walang posted properties para sa: {criteria_desc}**\n\n"
+            response += "💡 **Suggestions:**\n"
+            response += "   • Subukan ang ibang price range\n"
+            response += "   • Isaalang-alang ang kalapit na locations\n"
+            response += "   • I-adjust ang bedroom requirements mo\n"
+            response += "   • Bumalik ulit mamaya para sa bagong listings\n"
+        else:
+            response = f"❌ **No posted properties for: {criteria_desc}**\n\n"
+            response += "💡 **Suggestions:**\n"
+            response += "   • Try a different price range\n"
+            response += "   • Consider nearby locations\n"
+            response += "   • Adjust your bedroom requirements\n"
+            response += "   • Check back later for new listings\n"
     
     return response
 
@@ -2280,28 +2599,112 @@ def generate_financing_info_response(entities: Dict[str, Any]) -> str:
     return None
 
 # Generate response from training data templates - UPDATED FOR CRITERIA SEARCHES AND MEMBER3
+def render_intent_template(template: str, intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]], sample_data: Dict[str, Any] = None) -> str:
+    """Render an intent template by replacing known placeholders."""
+    if not template:
+        return ""
+
+    replacements = {
+        '{count}': str(len(properties)),
+        '{property_type}': entities.get('property_type', 'property'),
+        '{location}': entities.get('location', 'the area'),
+        '{sale_type}': entities.get('sale_type', 'financing'),
+        '{financing_type}': entities.get('financing_type', entities.get('sale_type', 'financing')),
+        '{feature}': entities.get('feature', 'feature'),
+        '{landmark}': entities.get('landmark', 'landmark'),
+        '{bedrooms}': str(entities.get('bedrooms', '')),
+        '{price_range}': entities.get('price_range', ''),
+        '{need}': entities.get('need', entities.get('need_type', 'need')),
+        '{price_quality}': entities.get('price_quality', 'good price'),
+        '{neighborhood_info}': '',
+    }
+
+    if properties:
+        property_list = "\n"
+        for i, prop in enumerate(properties[:3]):
+            title = prop.get('title', f'Property {i+1}')
+            price = prop.get('price', 'Price not available')
+            location = prop.get('location', 'Location not specified')
+            property_list += f"{i+1}. **{title}** in {location} - {price}\n"
+        replacements['{property_list}'] = property_list
+    else:
+        replacements['{property_list}'] = "No specific properties found with those criteria."
+
+    if sample_data:
+        for key, value in sample_data.items():
+            if key.startswith('location_description') or key.startswith('average_') or key in ['documents_list', 'requirements_list', 'key_features', 'average_prices', 'ideal_for', 'property_types']:
+                if value is not None:
+                    replacements[f'{{{key}}}'] = '\n'.join([f"• {item}" for item in value]) if isinstance(value, list) else str(value)
+
+    response = template
+    for placeholder, replacement in replacements.items():
+        response = response.replace(placeholder, '' if replacement is None else str(replacement))
+
+    if intent == 'location_info' and entities.get('location') and training_data and 'location_profiles' in training_data:
+        location_profile = training_data['location_profiles'].get(entities['location'])
+        if location_profile:
+            replacements['{neighborhood_info}'] = build_neighborhood_info(entities['location'], location_profile)
+            for key, value in location_profile.items():
+                if value is not None:
+                    response = response.replace(f'{{{key}}}', str(value))
+
+    return response
+
+
+def build_neighborhood_info(location_name: str, location_profile: Dict[str, Any]) -> str:
+    """Return neighborhood/living-area context for location_info responses."""
+    known_neighborhoods = {
+        'Batangas City': ['Poblacion', 'Alangilan', 'Balagtas', 'Kumintang', 'Bolbok'],
+        'Lipa City': ['Poblacion', 'Marauoy', 'Sabang', 'Tambo', 'Balintawak'],
+        'Nasugbu': ['Poblacion', 'Wawa', 'Punta Fuego area', 'Papaya', 'Natipuan'],
+        'Tanauan City': ['Poblacion', 'Darasa', 'Sambat', 'Ambulong', 'Pagaspas'],
+        'Sto. Tomas City': ['Poblacion', 'San Miguel', 'San Vicente', 'Sta. Anastacia', 'San Felix'],
+        'Taal': ['Poblacion', 'Balisong', 'Halang', 'Caysasay', 'Ilog'],
+    }
+
+    if location_name in known_neighborhoods:
+        return ', '.join(known_neighborhoods[location_name])
+
+    key_features = location_profile.get('key_features', []) if location_profile else []
+    if key_features:
+        short = [str(x) for x in key_features[:3]]
+        return "Mixed barangay areas; nearby strengths include: " + '; '.join(short)
+    return "Mixed residential and commercial barangays; visit the area to compare traffic, access, and amenities."
+
+
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
     """Generate response based on intent and entities using training data templates"""
 
     original_query = entities.get('original_query', '')
+    language = detect_language(original_query)
+    is_tl = language == 'tl'
     
     # ========== HANDLE MEMBER3 INTENTS FIRST ==========
     if intent == 'find_property_for_need':
-        return generate_family_needs_response(entities, properties)
+        return generate_family_needs_response(entities, properties, language)
     
     elif intent == 'find_with_feature':
-        return generate_feature_price_response(entities, properties)
+        return generate_feature_price_response(entities, properties, language)
     
     elif intent == 'process_info':
-        return generate_process_info_response(entities, properties)
+        return generate_process_info_response(entities, properties, language)
     
     elif intent == 'match_needs':
-        return generate_match_needs_response(entities, properties)
+        return generate_match_needs_response(entities, properties, language)
     
     
     # ========== HANDLE BASIC INTENTS FIRST ==========
     if intent == 'greeting':
+        dataset_template = intent_templates.get('greeting', {}).get('tl' if is_tl else 'en', '')
+        if dataset_template:
+            return render_intent_template(dataset_template, intent, entities, properties)
         greeting_responses = [
+            "👋 Kumusta! Ako si BahAI, ang iyong property assistant para sa Batangas.",
+            "👋 Hi! Nandito ako para tulungan kang maghanap ng properties sa Batangas.",
+            "👋 Welcome! Gabay mo ako sa paghanap ng properties sa Batangas.",
+            "👋 Kumusta! Matutulungan kitang humanap ng house, condo, at apartment sa Batangas.",
+            "👋 Hello! Paano kita matutulungan sa property search mo ngayon?"
+        ] if is_tl else [
             "👋 Hello! I'm BahAI, your property assistant for Batangas.",
             "👋 Hi there! I'm here to help you find properties in Batangas.",
             "👋 Welcome! I'm BahAI, your guide to properties in Batangas.",
@@ -2311,7 +2714,16 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return random.choice(greeting_responses)
     
     elif intent == 'thanks':
+        dataset_template = intent_templates.get('thanks', {}).get('tl' if is_tl else 'en', '')
+        if dataset_template:
+            return render_intent_template(dataset_template, intent, entities, properties)
         thanks_responses = [
+            "😊 Walang anuman! Masaya akong makatulong.",
+            "😊 Walang problema! Sabihin mo lang kung may kailangan ka pa.",
+            "😊 Buti nakatulong ako! Huwag mahiyang magtanong pa.",
+            "😊 You're welcome! Kailangan mo pa ba ng ibang tulong?",
+            "😊 Anytime! Nandito ako para sa property needs mo."
+        ] if is_tl else [
             "😊 You're welcome! Happy to help.",
             "😊 My pleasure! Let me know if you need anything else.",
             "😊 Glad I could assist! Feel free to ask more questions.",
@@ -2321,6 +2733,17 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return random.choice(thanks_responses)
     
     elif intent == 'help':
+        if is_tl:
+            return (
+                "🤖 **BahAI Property Assistant**\n\n"
+                "Matutulungan kita sa:\n"
+                "• Paghahanap ng properties ayon sa location, budget, at features\n"
+                "• Financing info (bank financing, installment, cash)\n"
+                "• Impormasyon tungkol sa mga lugar sa Batangas\n"
+                "• Matching ng property base sa needs mo (family, students, professionals)\n"
+                "• Steps, requirements, at timeline sa pagbili/pag-rent\n\n"
+                "Subukan mo: *'maghanap ng apartment sa Batangas City'* o *'bahay under 3M'*"
+            )
         help_response = "🤖 **BahAI Property Assistant**\n\n"
         help_response += "I can help you with:\n\n"
         help_response += "🔍 **Property Search**\n"
@@ -2362,6 +2785,20 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return help_response
     
     elif intent == 'about_system':
+        dataset_template = intent_templates.get('about_system', {}).get('tl' if is_tl else 'en', '')
+        if dataset_template:
+            return render_intent_template(dataset_template, intent, entities, properties)
+        if is_tl:
+            return (
+                "🏠 **BahAI - Property Assistant mo sa Batangas**\n\n"
+                "Isa akong AI chatbot na tumutulong sa paghahanap at pag-explore ng properties sa Batangas.\n\n"
+                "**Ano ang kaya ko:**\n"
+                "• Maghanap ng properties ayon sa location, type, at budget\n"
+                "• Magbigay ng financing at payment info\n"
+                "• Magbigay ng location insights at lifestyle notes\n"
+                "• Mag-match ng properties sa needs mo\n\n"
+                "Sabihin mo lang ang hinahanap mo, at tutulungan kita step by step."
+            )
         about_response = "🏠 **BahAI - Your Batangas Property Assistant** 🏝️\n\n"
         about_response += "Hi there! I'm an AI-powered chatbot designed to help you find and explore "
         about_response += "properties in Batangas province, Philippines. I'm here to make your property search easy and enjoyable! 😊\n\n"
@@ -2400,72 +2837,16 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
 
     # ========== BUYER ACCOUNT INTENTS WITH LANGUAGE DETECTION ==========
     elif intent.startswith('buyer_'):
-        # Detect language from the original query
-        language = detect_language(original_query)
-        
-        # Dictionary of responses in both languages
-        buyer_responses = {
-            'buyer_signup': {
-                'en': "📝 **Buyer Account Sign Up**\n\nTo sign up as a buyer:\n\n**Steps:**\n1. Go to the BahAI website\n2. Click 'Sign Up' or 'Register'\n3. Choose 'Buyer' account type\n4. Fill in your details:\n   • Full name\n   • Email address\n   • Phone number\n   • Create a strong password\n5. Verify your email address\n6. Complete OTP verification\n\n**Need help with specific steps?** Just ask!\n• 'What are the password requirements?'\n• 'How to verify my email?'\n• 'Phone number format'",
-                'tl': "📝 **Pag-Sign Up bilang Buyer**\n\nPara mag-sign up bilang buyer:\n\n**Mga Hakbang:**\n1. Pumunta sa BahAI website\n2. I-click ang 'Sign Up' o 'Register'\n3. Piliin ang 'Buyer' bilang account type\n4. Punan ang iyong mga detalye:\n   • Buong pangalan\n   • Email address\n   • Phone number\n   • Gumawa ng malakas na password\n5. I-verify ang iyong email address\n6. Kumpletuhin ang OTP verification\n\nMay tanong sa specific steps? Magtanong lang!\n• 'Ano ang mga password requirements?'\n• 'Paano i-verify ang email?'\n• 'Format ng phone number'"
-            },
-            'buyer_signup_requirements': {
-                'en': "📋 **Buyer Sign Up Requirements**\n\nYou'll need:\n\n**Personal Information:**\n• Full legal name\n• Valid email address\n• Active mobile number\n• Strong password\n\n**Verification:**\n• Email verification link\n• OTP code sent to your phone\n\n**Optional but helpful:**\n• Profile picture\n• Preferred contact method\n• Property preferences\n\nAll information is kept secure and private.",
-                'tl': "📋 **Mga Kailangan sa Pag-Sign Up**\n\nKailangan mo ang mga sumusunod:\n\n**Personal na Impormasyon:**\n• Buong pangalan\n• Wasto at aktibong email address\n• Aktibong mobile number\n• Malakas na password\n\n**Verification:**\n• Email verification link\n• OTP code na ipapadala sa iyong phone\n\n**Hindi required ngunit makakatulong:**\n• Profile picture\n• Preferred contact method\n• Mga property preferences\n\nLahat ng impormasyon ay ligtas at pribado."
-            },
-            'buyer_signup_password': {
-                'en': "🔐 **Password Requirements**\n\nYour password must:\n• Be at least 8 characters long\n• Include uppercase and lowercase letters\n• Include at least one number\n• Include at least one special character (!@#$%^&*)\n• Not be commonly used or easily guessed\n\n**Example of strong password:** `Batangas@2024`\n\n**Tips:**\n• Use a mix of characters\n• Avoid personal information\n• Don't reuse passwords from other sites",
-                'tl': "🔐 **Mga Requirement sa Password**\n\nAng iyong password ay dapat:\n• Hindi bababa sa 8 characters\n• May malaki at maliit na letra\n• May kahit isang numero\n• May kahit isang special character (!@#$%^&*)\n• Hindi karaniwan o madaling hulaan\n\n**Halimbawa ng malakas na password:** `Batangas@2024`\n\n**Tips:**\n• Gumamit ng iba't ibang karakter\n• Iwasan ang personal na impormasyon\n• Huwag gumamit ng password mula sa ibang sites"
-            },
-            'buyer_signup_phone': {
-                'en': "📱 **Phone Number Format**\n\nEnter your Philippine mobile number:\n\n**Accepted formats:**\n• 09171234567 (11 digits)\n• +639171234567 (International format)\n• 0917 123 4567 (With spaces)\n\n**Note:**\n• Must be a valid Globe, Smart, Sun, or DITO number\n• You'll receive an OTP code for verification\n• Keep your SIM active to receive codes",
-                'tl': "📱 **Format ng Phone Number**\n\nIlagay ang iyong Philippine mobile number:\n\n**Tanggap na format:**\n• 09171234567 (11 digits)\n• +639171234567 (International format)\n• 0917 123 4567 (May spaces)\n\n**Paalala:**\n• Dapat valid na Globe, Smart, Sun, o DITO number\n• Makakatanggap ka ng OTP code para sa verification\n• Panatilihing aktibo ang iyong SIM para makatanggap ng codes"
-            },
-            'buyer_login': {
-                'en': "🔑 **Buyer Login**\n\nTo log in to your buyer account:\n\n**Steps:**\n1. Go to BahAI website\n2. Click 'Login' or 'Sign In'\n3. Choose 'Buyer' as account type\n4. Enter your credentials:\n   • Email address\n   • Password\n5. Click 'Login'\n\n**Trouble logging in?**\n• 'Forgot password'\n• 'Login errors'\n• 'Contact support'",
-                'tl': "🔑 **Pag-Login bilang Buyer**\n\nPara mag-login sa iyong buyer account:\n\n**Mga Hakbang:**\n1. Pumunta sa BahAI website\n2. I-click ang 'Login' o 'Sign In'\n3. Piliin ang 'Buyer' bilang account type\n4. Ilagay ang iyong credentials:\n   • Email address\n   • Password\n5. I-click ang 'Login'\n\n**May problema sa pag-login?**\n• 'Nakalimutan ang password'\n• 'Login errors'\n• 'Contact support'"
-            },
-            'buyer_login_google': {
-                'en': "🔑 **Login with Google**\n\nYou can also log in using your Google account:\n\n**Steps:**\n1. Click 'Continue with Google'\n2. Select your Google account\n3. Grant necessary permissions\n4. You'll be automatically logged in\n\n**Benefits:**\n• No need to remember another password\n• Faster login process\n• Secure Google authentication\n\n*Note: Your Google email must match the one used for registration*",
-                'tl': "🔑 **Login gamit ang Google**\n\nPwede ka ring mag-login gamit ang iyong Google account:\n\n**Mga Hakbang:**\n1. I-click ang 'Continue with Google'\n2. Piliin ang iyong Google account\n3. Payagan ang mga permissions\n4. Awtomatiko kang ma-login\n\n**Benepisyo:**\n• Hindi na kailangan pang mag-memorya ng ibang password\n• Mas mabilis na login process\n• Secure na Google authentication\n\n*Paalala: Ang iyong Google email ay dapat tugma sa ginamit sa registration*"
-            },
-            'buyer_forgot_password': {
-                'en': "🔄 **Forgot Password**\n\nTo reset your password:\n\n**Steps:**\n1. Click 'Forgot Password' on login page\n2. Enter your registered email address\n3. Check your email for reset link\n4. Click the link (valid for 1 hour)\n5. Create a new strong password\n6. Log in with your new password\n\n**Tips:**\n• Check spam folder if email not received\n• Use a password you haven't used before\n• Contact support if you don't receive email",
-                'tl': "🔄 **Nakalimutan ang Password**\n\nPara i-reset ang iyong password:\n\n**Mga Hakbang:**\n1. I-click ang 'Forgot Password' sa login page\n2. Ilagay ang iyong registered email address\n3. Tingnan ang iyong email para sa reset link\n4. I-click ang link (valid ng 1 oras)\n5. Gumawa ng bagong malakas na password\n6. Mag-login gamit ang iyong bagong password\n\n**Tips:**\n• Tingnan ang spam folder kung hindi dumating ang email\n• Gumamit ng password na hindi mo pa nagagamit\n• Kontakin ang support kung wala pa ring email"
-            },
-            'buyer_email_verification': {
-                'en': "📧 **Email Verification**\n\nVerify your email address:\n\n**After sign up:**\n1. Check your inbox for verification email\n2. Click the verification link\n3. You'll be redirected to confirmation page\n4. Your email is now verified\n\n**Didn't receive email?**\n• Check spam/junk folder\n• Wait 5-10 minutes\n• Request 'resend verification'\n• Make sure email was typed correctly\n\n**Why verify?**\n• Secure your account\n• Receive important notifications\n• Enable all features",
-                'tl': "📧 **Email Verification**\n\nI-verify ang iyong email address:\n\n**Pagkatapos mag-sign up:**\n1. Tingnan ang iyong inbox para sa verification email\n2. I-click ang verification link\n3. Dadalhin ka sa confirmation page\n4. Verified na ang iyong email\n\n**Hindi nakuha ang email?**\n• Tingnan ang spam/junk folder\n• Maghintay ng 5-10 minuto\n• Mag-request ng 'resend verification'\n• Siguraduhing tama ang email na nilagay\n\n**Bakit kailangan i-verify?**\n• Para secure ang iyong account\n• Makatanggap ng importanteng notifications\n• Magamit ang lahat ng features"
-            },
-            'buyer_verify_otp': {
-                'en': "🔢 **OTP Verification**\n\nOne-Time Password (OTP) verification:\n\n**Process:**\n1. You'll receive a 6-digit code via SMS\n2. Enter the code in the verification form\n3. Click 'Verify' or 'Submit'\n4. Your phone number is now verified\n\n**Tips:**\n• Code expires in 5-10 minutes\n• Enter exactly as received\n• Request new code if expired\n• Keep your phone nearby",
-                'tl': "🔢 **OTP Verification**\n\nOne-Time Password (OTP) verification:\n\n**Proseso:**\n1. Makakatanggap ka ng 6-digit code sa pamamagitan ng SMS\n2. I-type ang code sa verification form\n3. I-click ang 'Verify' o 'Submit'\n4. Verified na ang iyong phone number\n\n**Tips:**\n• Ang code ay valid lang ng 5-10 minuto\n• I-type ng eksakto tulad ng natanggap\n• Mag-request ng bagong code kung expired\n• Itabi ang iyong phone para madaling makuha ang code"
-            },
-            'buyer_resend_otp': {
-                'en': "🔄 **Resend OTP Code**\n\nIf you didn't receive the OTP:\n\n**Steps to resend:**\n1. Click 'Resend Code' button\n2. Wait 30-60 seconds for new SMS\n3. Enter the new 6-digit code\n4. Complete verification\n\n**Still not receiving?**\n• Check mobile signal\n• Verify phone number is correct\n• Contact support if issue persists\n• Try using a different number",
-                'tl': "🔄 **Magpa-resend ng OTP Code**\n\nKung hindi mo natanggap ang OTP:\n\n**Mga hakbang para magpa-resend:**\n1. I-click ang 'Resend Code' na button\n2. Maghintay ng 30-60 segundo para sa bagong SMS\n3. I-type ang bagong 6-digit code\n4. Kumpletuhin ang verification\n\n**Wala pa ring natatanggap?**\n• Tingnan ang mobile signal\n• Siguraduhing tama ang phone number\n• Kontakin ang support kung hindi pa rin\n• Subukan gumamit ng ibang number"
-            },
-            'buyer_login_errors': {
-                'en': "⚠️ **Login Error Troubleshooting**\n\nCommon login issues and solutions:\n\n**❌ 'Invalid email or password'**\n• Check email spelling\n• Ensure caps lock is off\n• Reset password if forgotten\n\n**❌ 'Account not found'**\n• Verify you signed up as buyer\n• Check email was verified\n• Try signing up again\n\n**❌ 'Too many attempts'**\n• Wait 15-30 minutes\n• Reset your password\n• Contact support\n\n**Still stuck?** Contact our support team!",
-                'tl': "⚠️ **Pag-troubleshoot ng Login Error**\n\nKaraniwang login issues at solusyon:\n\n**❌ 'Invalid email or password'**\n• Tignan ang spelling ng email\n• Siguraduhing naka-off ang caps lock\n• I-reset ang password kung nakalimutan\n\n**❌ 'Account not found'**\n• Tiyakin na nag-sign up ka bilang buyer\n• Tignan kung na-verify ang email\n• Subukang mag-sign up muli\n\n**❌ 'Too many attempts'**\n• Maghintay ng 15-30 minuto\n• I-reset ang iyong password\n• Kontakin ang support\n\n**Wala pa rin?** Kontakin ang aming support team!"
-            },
-            'buyer_logout': {
-                'en': "👋 **Logout**\n\nTo log out of your buyer account:\n\n**Steps:**\n1. Click your profile icon\n2. Select 'Logout' or 'Sign Out'\n3. Confirm logout if prompted\n4. You'll return to login page\n\n**Tips:**\n• Always log out on shared devices\n• Clear browser cache for security\n• You'll need to log in again to access dashboard",
-                'tl': "👋 **Pag-Logout**\n\nPara mag-logout sa iyong buyer account:\n\n**Mga Hakbang:**\n1. I-click ang iyong profile icon\n2. Piliin ang 'Logout' o 'Sign Out'\n3. Kumpirmahin ang logout kung hinihingi\n4. Babalik ka sa login page\n\n**Tips:**\n• Laging mag-logout sa shared devices\n• I-clear ang browser cache para sa seguridad\n• Kailangan mong mag-login muli para magamit ang dashboard"
-            },
-            'buyer_account_settings': {
-                'en': "⚙️ **Account Settings**\n\nManage your buyer account:\n\n**You can update:**\n• Profile information (name, photo)\n• Email address (requires verification)\n• Phone number (requires OTP)\n• Password (for security)\n• Notification preferences\n• Privacy settings\n• Saved searches\n• Favorite properties\n\n**How to access:**\n1. Log in to your account\n2. Click profile icon\n3. Select 'Settings' or 'Profile'\n4. Make your changes\n5. Click 'Save Changes'",
-                'tl': "⚙️ **Account Settings**\n\nI-manage ang iyong buyer account:\n\n**Pwede mong baguhin:**\n• Profile information (pangalan, photo)\n• Email address (kailangan ng verification)\n• Phone number (kailangan ng OTP)\n• Password (para sa seguridad)\n• Notification preferences\n• Privacy settings\n• Saved searches\n• Favorite properties\n\n**Paano i-access:**\n1. Mag-login sa iyong account\n2. I-click ang profile icon\n3. Piliin ang 'Settings' o 'Profile'\n4. Gawin ang iyong mga pagbabago\n5. I-click ang 'Save Changes'"
-            },
-            'buyer_update_profile': {
-                'en': "👤 **Update Profile**\n\nTo update your profile information:\n\n**Steps:**\n1. Go to Account Settings\n2. Click 'Edit Profile'\n3. Update your information:\n   • Display name\n   • Profile picture\n   • Contact preferences\n   • Property interests\n4. Click 'Save Changes'\n\n**Note:**\n• Email changes require verification\n• Phone changes require OTP\n• Some fields may be read-only\n• Changes are immediate",
-                'tl': "👤 **Mag-update ng Profile**\n\nPara i-update ang iyong profile information:\n\n**Mga Hakbang:**\n1. Pumunta sa Account Settings\n2. I-click ang 'Edit Profile'\n3. I-update ang iyong impormasyon:\n   • Display name\n   • Profile picture\n   • Contact preferences\n   • Property interests\n4. I-click ang 'Save Changes'\n\n**Paalala:**\n• Ang pagpapalit ng email ay kailangan ng verification\n• Ang pagpapalit ng phone ay kailangan ng OTP\n• Ang ibang fields ay read-only\n• Agad nagkakabisa ang mga pagbabago"
-            },
-            'buyer_contact_support': {
-                'en': "📞 **Contact Support**\n\nNeed help with your buyer account?\n\n**Contact options:**\n• **Email:** support@bahai.com\n• **Phone:** (02) 1234-5678\n• **Chat:** Available on website\n• **Facebook:** @bahai.ph\n\n**When contacting us, please provide:**\n• Your registered email\n• Account type (buyer)\n• Description of the issue\n• Screenshots (if applicable)\n\n**Support hours:**\nMonday - Friday: 8:00 AM - 8:00 PM\nSaturday: 9:00 AM - 5:00 PM\nSunday: Closed\n\nWe typically respond within 24 hours!",
-                'tl': "📞 **Kontakin ang Support**\n\nKailangan ng tulong sa iyong buyer account?\n\n**Mga paraan para makontak kami:**\n• **Email:** support@bahai.com\n• **Phone:** (02) 1234-5678\n• **Chat:** Available sa website\n• **Facebook:** @bahai.ph\n\n**Kapag nag-email, pakilagay ang:**\n• Ang iyong registered email\n• Account type (buyer)\n• Deskripsyon ng problema\n• Screenshots (kung maaari)\n\n**Oras ng support:**\nMonday - Friday: 8:00 AM - 8:00 PM\nSaturday: 9:00 AM - 5:00 PM\nSunday: Sarado\n\nKaraniwan kaming nagre-respond within 24 oras!"
-            }
-        }
+        # Build buyer_responses from member5_buyer training data
+        buyer_responses = {}
+        if buyer_training_data and 'training_samples' in buyer_training_data:
+            for sample in buyer_training_data['training_samples']:
+                intent_name = sample.get('intent')
+                if intent_name and intent_name.startswith('buyer_'):
+                    en = sample.get('response_template_english', '')
+                    tl = sample.get('response_template_tagalog', '')
+                    if intent_name not in buyer_responses:
+                        buyer_responses[intent_name] = {'en': en, 'tl': tl}
         
         # Get the response in the appropriate language
         intent_response = buyer_responses.get(intent, {})
@@ -2477,7 +2858,16 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return response
 
     elif intent == 'goodbye':
+        dataset_template = intent_templates.get('goodbye', {}).get('tl' if is_tl else 'en', '')
+        if dataset_template:
+            return render_intent_template(dataset_template, intent, entities, properties)
         goodbye_responses = [
+            "👋 Paalam! Bumalik ka lang anytime kung kailangan mo ng tulong sa property.",
+            "👋 Ingat! Sana nakatulong ako sa property search mo sa Batangas.",
+            "👋 Kita-kits! Nandito lang ako para sa property needs mo.",
+            "👋 Take care! Balik ka lang kung kailangan mo pa ng property information.",
+            "👋 Bye! Good luck sa paghahanap ng perfect property mo."
+        ] if is_tl else [
             "👋 Goodbye! Feel free to return anytime for property assistance.",
             "👋 Farewell! Hope I helped with your property search in Batangas.",
             "👋 See you! Remember, I'm here to help with all your property needs.",
@@ -2729,31 +3119,36 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         
         criteria_desc = " ".join(criteria_parts) if criteria_parts else "your search criteria"
         
-        response = f"❌ **No posted properties for {criteria_desc}**\n\n"
-        response += "I couldn't find any properties matching your search.\n\n"
-        response += "💡 **Suggestions:**\n"
+        if is_tl:
+            response = f"❌ **Walang posted properties para sa {criteria_desc}**\n\n"
+            response += "Wala akong nahanap na properties na tumutugma sa search mo.\n\n"
+            response += "💡 **Suggestions:**\n"
+        else:
+            response = f"❌ **No posted properties for {criteria_desc}**\n\n"
+            response += "I couldn't find any properties matching your search.\n\n"
+            response += "💡 **Suggestions:**\n"
         
         if location and location != 'the specified location':
-            response += f"   • Try nearby locations instead of {location}\n"
+            response += f"   • Subukan ang nearby locations imbes na {location}\n" if is_tl else f"   • Try nearby locations instead of {location}\n"
         
         if entities.get('max_price'):
-            response += "   • Increase your budget or price range\n"
+            response += "   • Taasan ang budget o price range mo\n" if is_tl else "   • Increase your budget or price range\n"
         
         if entities.get('exact_bedrooms') is not None:
-            response += "   • Try different bedroom counts\n"
+            response += "   • Subukan ang ibang bedroom count\n" if is_tl else "   • Try different bedroom counts\n"
         
-        response += "   • Check back later for new listings\n"
-        response += "   • Contact us for custom property searches\n"
+        response += "   • Bumalik mamaya para sa bagong listings\n" if is_tl else "   • Check back later for new listings\n"
+        response += "   • Makipag-ugnayan para sa custom property search\n" if is_tl else "   • Contact us for custom property searches\n"
         
         return response
     
     # ========== NEW: Handle criteria-based searches ==========
     if intent == 'find_property_with_criteria':
-        return generate_criteria_search_response(entities, properties)
+        return generate_criteria_search_response(entities, properties, language)
     
     # ========== Handle general property searches (no location) ==========
     if intent == 'find_property' and entities.get('has_general_search'):
-        return generate_general_search_response(entities, properties)
+        return generate_general_search_response(entities, properties, language)
     
     # ========== Existing code for other intents ==========
     
@@ -2771,6 +3166,20 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         'find_property_with_criteria': "I can find properties matching specific criteria. What criteria do you have?",
         'unknown': "I understand you're looking for property information in Batangas. Could you provide more details about what you need?"
     }
+    if is_tl:
+        default_responses = {
+            'find_property': "Naiintindihan ko na naghahanap ka ng properties. Pwede mo bang i-specify ang location o property type?",
+            'find_near_landmark': "Matutulungan kitang maghanap ng properties malapit sa landmarks. Anong landmark ang gusto mo?",
+            'financing': "Makakapagbigay ako ng financing options. Aling financing type ang gusto mo?",
+            'location_info': "Maaari kitang bigyan ng impormasyon tungkol sa mga lugar sa Batangas. Anong location ang gusto mong malaman?",
+            'find_with_feature': "Matutulungan kitang maghanap ng properties na may specific feature. Anong feature ang hanap mo?",
+            'find_ready_property': "Matutulungan kitang maghanap ng ready-to-move-in properties. Saang location ka interesado?",
+            'process_info': "Maipapaliwanag ko ang proseso sa pagbili ng property. Anong process ang gusto mong malaman?",
+            'match_needs': "Matutulungan kitang mag-match ng properties sa needs mo. Ano ang specific requirements mo?",
+            'find_property_for_need': "Makakahanap ako ng properties para sa specific needs. Anong need ang hinahanap mo?",
+            'find_property_with_criteria': "Makakahanap ako ng properties ayon sa criteria mo. Ano ang criteria mo?",
+            'unknown': "Naiintindihan ko na naghahanap ka ng property information sa Batangas. Pwede mo bang i-detail ang kailangan mo?"
+        }
     
     # Try to find matching template from training data
     if training_data and 'training_samples' in training_data:
@@ -2793,64 +3202,27 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                     sample['match_score'] = match_score
                     best_sample = sample
             
-            if best_sample and 'response_template' in best_sample:
-                # Fill the template with actual data
-                template = best_sample['response_template']
-                
-                # Replace placeholders with actual values
-                replacements = {
-                    '{count}': str(len(properties)),
-                    '{property_type}': entities.get('property_type', 'property'),
-                    '{location}': entities.get('location', 'the area'),
-                    '{sale_type}': entities.get('sale_type', 'financing'),
-                    '{feature}': entities.get('feature', 'feature'),
-                    '{landmark}': entities.get('landmark', 'landmark'),
-                    '{bedrooms}': str(entities.get('bedrooms', '')),
-                    '{price_range}': entities.get('price_range', '')
-                }
-                
-                # Add property list if we have properties
-                if properties:
-                    property_list = "\n"
-                    for i, prop in enumerate(properties[:3]):
-                        title = prop.get('title', f'Property {i+1}')
-                        price = prop.get('price', 'Price not available')
-                        location = prop.get('location', 'Location not specified')
-                        property_list += f"{i+1}. **{title}** in {location} - {price}\n"
-                    replacements['{property_list}'] = property_list
+            if best_sample and (
+                'response_template' in best_sample
+                or 'response_template_english' in best_sample
+                or 'response_template_tagalog' in best_sample
+            ):
+                if is_tl and best_sample.get('response_template_tagalog'):
+                    template = best_sample.get('response_template_tagalog', '')
+                elif best_sample.get('response_template_english'):
+                    template = best_sample.get('response_template_english', '')
                 else:
-                    replacements['{property_list}'] = "No specific properties found with those criteria."
-                
-                # Add sample-specific data from training data
-                for key, value in best_sample.items():
-                    if key.startswith('location_description') or key.startswith('average_') or key in ['documents_list', 'requirements_list', 'key_features', 'average_prices', 'ideal_for', 'property_types']:
-                        if value is not None:
-                            if isinstance(value, list):
-                                replacements[f'{{{key}}}'] = '\n'.join([f"• {item}" for item in value])
-                            else:
-                                replacements[f'{{{key}}}'] = str(value)
-                
-                # Perform replacements
-                response = template
-                for placeholder, replacement in replacements.items():
-                    # Convert None to empty string
-                    if replacement is None:
-                        replacement = ''
-                    response = response.replace(placeholder, str(replacement))
-                
-                # Also replace generic placeholders like {description} and {lifestyle}
-                if intent == 'location_info' and entities.get('location'):
-                    location_name = entities['location']
-                    if training_data and 'location_profiles' in training_data:
-                        location_profile = training_data['location_profiles'].get(location_name)
-                        if location_profile:
-                            # Replace placeholders from location profile
-                            for key, value in location_profile.items():
-                                if value is not None:
-                                    response = response.replace(f'{{{key}}}', str(value))
-                
-                return response
+                    template = best_sample.get('response_template', '')
+
+                return render_intent_template(template, intent, entities, properties, best_sample)
     
+    # Fallback to dataset-level intent templates (member1/member2/member3/member4_general)
+    dataset_template = intent_templates.get(intent, {}).get('tl' if is_tl else 'en', '')
+    if not dataset_template:
+        dataset_template = intent_templates.get(intent, {}).get('en', '')
+    if dataset_template:
+        return render_intent_template(dataset_template, intent, entities, properties)
+
     # Fallback to default response
     response = default_responses.get(intent, default_responses['unknown'])
     
@@ -2867,6 +3239,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                 response = f"📍 **About {location_name}**\n"
                 response += f"**Description:** {description}\n\n"
                 response += f"**Lifestyle:** {lifestyle}\n\n"
+                response += f"**Neighborhoods & Living Experience:** {build_neighborhood_info(location_name, location_profile)}\n\n"
                 
                 if 'key_features' in location_profile and location_profile['key_features']:
                     response += "**Key Features:**\n"
@@ -2935,12 +3308,14 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     return response
 
 # NEW: Generate response for general searches (no location)
-def generate_general_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+def generate_general_search_response(entities: Dict[str, Any], properties: List[Dict[str, Any]], language: str = 'en') -> str:
     """Generate response for general property searches without location"""
     
     property_type = entities.get('property_type', 'properties')
     property_type_display = property_type.replace('_', ' ').title() if property_type else 'properties'
     
+    is_tl = language == 'tl'
+
     if properties:
         # Group properties by city for better organization
         properties_by_city = defaultdict(list)
@@ -2951,8 +3326,12 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
         # Sort cities by number of properties
         sorted_cities = sorted(properties_by_city.items(), key=lambda x: len(x[1]), reverse=True)
         
-        response = f"🔍 **{property_type_display} Available in Batangas**\n\n"
-        response += f"I found {len(properties)} {property_type_display.lower()} across different locations:\n\n"
+        if is_tl:
+            response = f"🔍 **Mga available na {property_type_display} sa Batangas**\n\n"
+            response += f"May nahanap akong {len(properties)} {property_type_display.lower()} sa iba't ibang locations:\n\n"
+        else:
+            response = f"🔍 **{property_type_display} Available in Batangas**\n\n"
+            response += f"I found {len(properties)} {property_type_display.lower()} across different locations:\n\n"
         
         # Show top locations with properties
         displayed_count = 0
@@ -2981,41 +3360,65 @@ def generate_general_search_response(entities: Dict[str, Any], properties: List[
             response += f"\n*Properties found in {len(properties_by_city)} different locations.*\n"
         
         # Add helpful tips
-        response += "\n💡 **Tips for better results:**\n"
-        response += "   • Add a location: *'find apartments in Batangas City'*\n"
-        response += "   • Specify budget: *'find houses under 3M'*\n"
-        response += "   • Add features: *'find condos with swimming pool'*\n"
-        response += "   • Specify needs: *'find properties for family'*\n"
+        if is_tl:
+            response += "\n💡 **Tips para mas magandang result:**\n"
+            response += "   • Maglagay ng location: *'find apartments in Batangas City'*\n"
+            response += "   • I-specify ang budget: *'find houses under 3M'*\n"
+            response += "   • Magdagdag ng features: *'find condos with swimming pool'*\n"
+            response += "   • I-specify ang needs: *'find properties for family'*\n"
+        else:
+            response += "\n💡 **Tips for better results:**\n"
+            response += "   • Add a location: *'find apartments in Batangas City'*\n"
+            response += "   • Specify budget: *'find houses under 3M'*\n"
+            response += "   • Add features: *'find condos with swimming pool'*\n"
+            response += "   • Specify needs: *'find properties for family'*\n"
         
         # Suggest popular locations based on property type
         if property_type in ['house', 'condo', 'apartment']:
-            response += "\n📍 **Popular locations for " + property_type_display.lower() + ":**\n"
-            response += "   • Batangas City (urban living, near port)\n"
-            response += "   • Lipa City (cool climate, educational hub)\n"
-            response += "   • Nasugbu (beachfront, vacation homes)\n"
-            response += "   • Sto. Tomas City (near Metro Manila)\n"
-            response += "   • Tanauan City (Taal Lake views)\n"
+            if is_tl:
+                response += "\n📍 **Mga sikat na location para sa " + property_type_display.lower() + ":**\n"
+                response += "   • Batangas City (urban living, malapit sa port)\n"
+                response += "   • Lipa City (cool climate, educational hub)\n"
+                response += "   • Nasugbu (beachfront, vacation homes)\n"
+                response += "   • Sto. Tomas City (malapit sa Metro Manila)\n"
+                response += "   • Tanauan City (Taal Lake views)\n"
+            else:
+                response += "\n📍 **Popular locations for " + property_type_display.lower() + ":**\n"
+                response += "   • Batangas City (urban living, near port)\n"
+                response += "   • Lipa City (cool climate, educational hub)\n"
+                response += "   • Nasugbu (beachfront, vacation homes)\n"
+                response += "   • Sto. Tomas City (near Metro Manila)\n"
+                response += "   • Tanauan City (Taal Lake views)\n"
         
     else:
-        response = f"❌ **No posted {property_type_display.lower()} available**\n\n"
-        response += "💡 **Try these suggestions:**\n"
-        response += "   • Check if the property type is spelled correctly\n"
-        response += "   • Try a broader search: *'find properties'*\n"
-        response += "   • Specify a location: *'find {property_type_display.lower()} in Lipa City'*\n"
-        response += "   • Check back later for new listings\n"
+        if is_tl:
+            response = f"❌ **Walang posted na available na {property_type_display.lower()}**\n\n"
+            response += "💡 **Subukan ito:**\n"
+            response += "   • I-check kung tama ang spelling ng property type\n"
+            response += "   • Subukan ang mas broad na search: *'find properties'*\n"
+            response += f"   • Maglagay ng location: *'find {property_type_display.lower()} in Lipa City'*\n"
+            response += "   • Bumalik mamaya para sa bagong listings\n"
+        else:
+            response = f"❌ **No posted {property_type_display.lower()} available**\n\n"
+            response += "💡 **Try these suggestions:**\n"
+            response += "   • Check if the property type is spelled correctly\n"
+            response += "   • Try a broader search: *'find properties'*\n"
+            response += f"   • Specify a location: *'find {property_type_display.lower()} in Lipa City'*\n"
+            response += "   • Check back later for new listings\n"
     
     return response
 
 # Placeholder functions for Member3 responses
-def generate_family_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+def generate_family_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]], language: str = 'en') -> str:
     """Generate response for family needs queries"""
-    need_type = entities.get('need_type', 'family')  
-    family_size = entities.get('family_size', 4)
+    need_type = entities.get('need_type') or 'family'
+    family_size = entities.get('family_size') or 4
     
-    response = f"👨‍👩‍👧‍👦 **Properties for {need_type.title()}**\n\n"
+    is_tl = language == 'tl'
+    response = f"👨‍👩‍👧‍👦 **Mga property para sa {need_type.title()}**\n\n" if is_tl else f"👨‍👩‍👧‍👦 **Properties for {need_type.title()}**\n\n"
     
     if properties:
-        response += f"I found {len(properties)} properties suitable for a family of {family_size}:\n\n"
+        response += f"May nahanap akong {len(properties)} properties na bagay para sa pamilyang may {family_size} miyembro:\n\n" if is_tl else f"I found {len(properties)} properties suitable for a family of {family_size}:\n\n"
         for i, prop in enumerate(properties[:3]):
             title = prop.get('title', f'Property {i+1}')
             price = prop.get('price', 'Price not available')
@@ -3024,47 +3427,69 @@ def generate_family_needs_response(entities: Dict[str, Any], properties: List[Di
             response += f"{i+1}. **{title}** in {location} - {price}\n"
             response += f"   🛏️ {bedrooms} bedroom{'s' if bedrooms != '1' else ''}\n\n"
         
-        response += "💡 **Family Tips:**\n"
-        response += "   • Look for properties near schools and parks\n"
-        response += "   • Consider neighborhoods with family-friendly amenities\n"
-        response += "   • Check for safety and security features\n"
+        if is_tl:
+            response += "💡 **Family Tips:**\n"
+            response += "   • Maghanap ng properties na malapit sa schools at parks\n"
+            response += "   • Pumili ng neighborhoods na may family-friendly amenities\n"
+            response += "   • I-check ang safety at security features\n"
+        else:
+            response += "💡 **Family Tips:**\n"
+            response += "   • Look for properties near schools and parks\n"
+            response += "   • Consider neighborhoods with family-friendly amenities\n"
+            response += "   • Check for safety and security features\n"
     else:
-        response += f"No properties found for a family of {family_size}.\n\n"
-        response += "💡 **Try:**\n"
-        response += "   • Adjusting your family size\n"
-        response += "   • Looking in different locations\n"
-        response += "   • Considering smaller families or different needs\n"
+        if is_tl:
+            response += f"Walang nahanap na properties para sa pamilyang may {family_size} miyembro.\n\n"
+            response += "💡 **Subukan:**\n"
+            response += "   • I-adjust ang family size\n"
+            response += "   • Tumingin sa ibang locations\n"
+            response += "   • Subukan ang ibang needs\n"
+        else:
+            response += f"No properties found for a family of {family_size}.\n\n"
+            response += "💡 **Try:**\n"
+            response += "   • Adjusting your family size\n"
+            response += "   • Looking in different locations\n"
+            response += "   • Considering smaller families or different needs\n"
     
     return response
 
-def generate_feature_price_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+def generate_feature_price_response(entities: Dict[str, Any], properties: List[Dict[str, Any]], language: str = 'en') -> str:
     """Generate response for feature with price quality queries"""
-    feature = entities.get('feature', 'featured')
-    price_quality = entities.get('price_quality', 'affordable')
+    feature = entities.get('feature') or 'feature'
+    price_quality = entities.get('price_quality') or 'good price'
     
-    response = f"💰 **{feature.title()} Properties at {price_quality.title()} Prices**\n\n"
+    is_tl = language == 'tl'
+    response = f"💰 **Mga property na may {feature.title()} at {price_quality.title()} na presyo**\n\n" if is_tl else f"💰 **{feature.title()} Properties at {price_quality.title()} Prices**\n\n"
     
     if properties:
-        response += f"I found {len(properties)} properties:\n\n"
+        response += f"May nahanap akong {len(properties)} properties:\n\n" if is_tl else f"I found {len(properties)} properties:\n\n"
         for i, prop in enumerate(properties[:3]):
             title = prop.get('title', f'Property {i+1}')
             price = prop.get('price', 'Price not available')
             location = prop.get('location', 'Location not specified')
             response += f"{i+1}. **{title}** in {location} - {price}\n"
     else:
-        response += f"No properties found with {feature} at {price_quality} prices.\n\n"
-        response += "💡 **Try:**\n"
-        response += "   • Adjusting your budget expectations\n"
-        response += "   • Looking for different features\n"
-        response += "   • Considering nearby areas\n"
+        if is_tl:
+            response += f"Walang nahanap na properties na may {feature} at {price_quality} na presyo.\n\n"
+            response += "💡 **Subukan:**\n"
+            response += "   • I-adjust ang budget expectations mo\n"
+            response += "   • Tumingin ng ibang features\n"
+            response += "   • Isama ang kalapit na areas\n"
+        else:
+            response += f"No properties found with {feature} at {price_quality} prices.\n\n"
+            response += "💡 **Try:**\n"
+            response += "   • Adjusting your budget expectations\n"
+            response += "   • Looking for different features\n"
+            response += "   • Considering nearby areas\n"
     
     return response
 
-def generate_process_info_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+def generate_process_info_response(entities: Dict[str, Any], properties: List[Dict[str, Any]], language: str = 'en') -> str:
     """Generate response for process information queries"""
-    process_type = entities.get('process_type', 'process')
+    process_type = entities.get('process_type') or 'process'
     
-    response = f"📋 **Property {process_type.title()} Information**\n\n"
+    is_tl = language == 'tl'
+    response = f"📋 **Impormasyon sa Property {process_type.title()}**\n\n" if is_tl else f"📋 **Property {process_type.title()} Information**\n\n"
     
     if 'step' in process_type or 'process' in process_type:
         response += "**Standard Property Buying Process:**\n"
@@ -3094,17 +3519,36 @@ def generate_process_info_response(entities: Dict[str, Any], properties: List[Di
         response += "• Document Processing: 2-4 weeks\n"
         response += "• Total Process: 1-3 months\n\n"
     
-    response += "💡 Contact us for specific guidance on your property purchase journey!"
+    response += "💡 Makipag-ugnayan sa amin para sa mas specific na gabay sa pagbili ng property!" if is_tl else "💡 Contact us for specific guidance on your property purchase journey!"
     return response
 
-def generate_match_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
+def generate_match_needs_response(entities: Dict[str, Any], properties: List[Dict[str, Any]], language: str = 'en') -> str:
     """Generate response for lifestyle matching queries"""
-    lifestyle = entities.get('lifestyle', 'your needs')
+    lifestyle = entities.get('lifestyle') or 'your needs'
+    budget_hint = None
+    if entities.get('max_price'):
+        max_price = entities['max_price']
+        budget_hint = f"under ₱{max_price/1000000:.1f}M" if max_price >= 1000000 else f"under ₱{max_price:,.0f}"
+    focus_landmark = entities.get('lifestyle_focus_landmark') or entities.get('landmark')
     
-    response = f"🎯 **Properties Matching {lifestyle.title()}**\n\n"
+    is_tl = language == 'tl'
+    response = f"🎯 **Mga property na match sa {lifestyle.title()}**\n\n" if is_tl else f"🎯 **Properties Matching {lifestyle.title()}**\n\n"
+    if budget_hint or focus_landmark:
+        if is_tl:
+            if budget_hint:
+                response += f"• Budget filter: {budget_hint}\n"
+            if focus_landmark:
+                response += f"• Lifestyle location focus: near {focus_landmark}\n"
+            response += "\n"
+        else:
+            if budget_hint:
+                response += f"• Budget filter: {budget_hint}\n"
+            if focus_landmark:
+                response += f"• Lifestyle location focus: near {focus_landmark}\n"
+            response += "\n"
     
     if properties:
-        response += f"I found {len(properties)} properties that align with your preferences:\n\n"
+        response += f"May nahanap akong {len(properties)} properties na tugma sa preferences mo:\n\n" if is_tl else f"I found {len(properties)} properties that align with your preferences:\n\n"
         for i, prop in enumerate(properties[:3]):
             title = prop.get('title', f'Property {i+1}')
             price = prop.get('price', 'Price not available')
@@ -3114,16 +3558,31 @@ def generate_match_needs_response(entities: Dict[str, Any], properties: List[Dic
             response += f"{i+1}. **{title}** in {location} - {price}\n"
             response += f"   ✨ {features_str}\n\n"
         
-        response += "💡 **How well does it match?**\n"
-        response += "   • Consider your daily commute\n"
-        response += "   • Check nearby amenities\n"
-        response += "   • Visit the neighborhood\n"
+        if is_tl:
+            response += "💡 **Gaano ito ka-match?**\n"
+            response += "   • Isaalang-alang ang daily commute mo\n"
+            response += "   • I-check ang nearby amenities\n"
+            response += "   • Bisitahin ang neighborhood\n"
+        else:
+            response += "💡 **How well does it match?**\n"
+            response += "   • Consider your daily commute\n"
+            response += "   • Check nearby amenities\n"
+            response += "   • Visit the neighborhood\n"
     else:
-        response += "No properties found matching your lifestyle preferences.\n\n"
-        response += "💡 **Try:**\n"
-        response += "   • Describing your ideal lifestyle\n"
-        response += "   • Specifying preferred features\n"
-        response += "   • Selecting a different location\n"
+        if is_tl:
+            response += "Walang nahanap na properties na tugma sa lifestyle preferences mo.\n\n"
+            response += "💡 **Subukan:**\n"
+            response += "   • Ilarawan ang ideal lifestyle mo\n"
+            response += "   • I-specify ang preferred features\n"
+            response += "   • Pumili ng ibang location\n"
+            response += "   • Maglagay ng budget (hal. under 2M)\n"
+        else:
+            response += "No properties found matching your lifestyle preferences.\n\n"
+            response += "💡 **Try:**\n"
+            response += "   • Describing your ideal lifestyle\n"
+            response += "   • Specifying preferred features\n"
+            response += "   • Selecting a different location\n"
+            response += "   • Adding a specific budget (e.g., under 2M)\n"
     
     return response
 
@@ -3158,6 +3617,68 @@ def chat():
                 
                 # ========== CRITICAL FIX: AGGRESSIVE INTENT OVERRIDE ==========
                 query_lower = query.lower()
+
+                # Buyer auth/account overrides (higher priority than model confusion)
+                if any(phrase in query_lower for phrase in [
+                    'sign up requirements', 'what do i need to sign up',
+                    'requirements for sign up', 'ano requirements para mag sign up',
+                    'anong kailangan para mag sign up'
+                ]):
+                    if intent != 'buyer_signup_requirements':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_signup_requirements")
+                    intent = 'buyer_signup_requirements'
+                    confidence = 0.99
+                elif any(phrase in query_lower for phrase in [
+                    'password requirements', 'password rules', 'requirements sa password',
+                    'ano dapat laman ng password', 'strong password'
+                ]):
+                    if intent != 'buyer_signup_password':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_signup_password")
+                    intent = 'buyer_signup_password'
+                    confidence = 0.99
+                elif any(phrase in query_lower for phrase in [
+                    'phone number format', 'mobile number format', 'format ng phone',
+                    'paano format ng phone number'
+                ]):
+                    if intent != 'buyer_signup_phone':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_signup_phone")
+                    intent = 'buyer_signup_phone'
+                    confidence = 0.99
+                elif any(phrase in query_lower for phrase in [
+                    'how to sign up', 'sign up', 'signup', 'register', 'create account',
+                    'create buyer account', 'buyer registration', 'paano mag sign up',
+                    'paano gumawa ng account', 'magparehistro', 'gusto ko mag sign up'
+                ]):
+                    if intent != 'buyer_signup':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_signup")
+                    intent = 'buyer_signup'
+                    confidence = 0.99
+                elif any(phrase in query_lower for phrase in [
+                    'how do save properties work', 'how do liked properties work', 'how do like properties work',
+                    'how do saved properties work', 'how to save properties', 'saved properties',
+                    'liked properties', 'like properties', 'save properties', 'favorite properties',
+                    'paano mag save ng property', 'paano gumagana ang liked properties'
+                ]):
+                    if intent != 'buyer_liked_saved_how':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_liked_saved_how")
+                    intent = 'buyer_liked_saved_how'
+                    confidence = 0.99
+                elif any(phrase in query_lower for phrase in [
+                    'for family', 'family of', 'for couples', 'for couple', 'for single'
+                ]):
+                    if intent != 'find_property_for_need':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Family/space query detected, changing intent from {intent} to find_property_for_need")
+                    intent = 'find_property_for_need'
+                    confidence = 0.99
+                elif any(phrase in query_lower for phrase in [
+                    'for students', 'properties for students', 'student housing', 'student accommodations',
+                    'for professionals', 'working professionals', 'single professional',
+                    'for retirees', 'for investors', 'doctor', 'nurse', 'gym', 'active lifestyle'
+                ]):
+                    if intent != 'match_needs':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Lifestyle query detected, changing intent from {intent} to match_needs")
+                    intent = 'match_needs'
+                    confidence = 0.99
                 
                 # Pattern 1: "find X in Y" should ALWAYS be find_property, not location_info
                 find_in_patterns = [
@@ -3176,6 +3697,34 @@ def chat():
                             intent = 'find_property'
                             confidence = 0.99  # Very high confidence
                         break
+
+                # Pattern 1B: generic property search ("find apartments", "show me houses", etc.)
+                property_verbs = ['find', 'search', 'look for', 'show me', 'i need', 'need', 'want']
+                property_types = [
+                    'apartment', 'apartments', 'house', 'houses', 'home', 'homes',
+                    'condo', 'condos', 'condominium', 'townhouse', 'townhouses',
+                    'commercial', 'office', 'retail', 'warehouse', 'lot', 'land',
+                    'bahay', 'kondo'
+                ]
+                info_only_terms = ['about', 'what is', 'who are you', 'system', 'chatbot', 'ai assistant']
+                has_property_verb = any(v in query_lower for v in property_verbs)
+                has_property_type = any(t in query_lower for t in property_types)
+                has_info_only_term = any(t in query_lower for t in info_only_terms)
+                if has_property_verb and has_property_type and not has_info_only_term:
+                    if intent != 'find_property':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Generic property search detected, changing intent from {intent} to find_property")
+                    intent = 'find_property'
+                    confidence = max(confidence, 0.99)
+
+                # Pattern 1C: criteria search with bed/bath/price should be find_property_with_criteria
+                has_price_criteria = bool(re.search(r'\b(under|below|less than|maximum|max|up to|\d+\s*m)\b', query_lower))
+                has_bed_criteria = bool(re.search(r'\b(\d+)\s*(bed|bedroom|br)s?\b', query_lower))
+                has_bath_criteria = bool(re.search(r'\b(\d+)\s*(bath|bathroom|banyo)s?\b', query_lower))
+                if has_property_type and (has_price_criteria or has_bed_criteria or has_bath_criteria):
+                    if intent != 'find_property_with_criteria':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Criteria pattern detected, changing intent from {intent} to find_property_with_criteria")
+                    intent = 'find_property_with_criteria'
+                    confidence = max(confidence, 0.99)
                 
                 # If still not fixed and query has "find apartments" or similar
                 if intent == 'location_info' and any(term in query_lower for term in ['find ', 'search ', 'looking for']):
@@ -3370,28 +3919,31 @@ def determine_intent_fallback(query: str) -> str:
 
     # ========== BUYER ACCOUNT INTENTS ==========
     if any(phrase in query_lower for phrase in [
-        'sign up buyer', 'buyer sign up', 'create buyer account',
-        'become a buyer', 'register as buyer', 'buyer registration'
-    ]):
-        return 'buyer_signup'
-
-    if any(phrase in query_lower for phrase in [
         'sign up requirements', 'what do i need to sign up',
-        'requirements for buyer', 'buyer sign up requirements'
+        'requirements for sign up', 'ano requirements para mag sign up',
+        'anong kailangan para mag sign up'
     ]):
         return 'buyer_signup_requirements'
 
     if any(phrase in query_lower for phrase in [
-        'password requirements', 'strong password', 'password rules',
-        'buyer password', 'password format'
+        'password requirements', 'password rules', 'requirements sa password',
+        'ano dapat laman ng password', 'strong password'
     ]):
         return 'buyer_signup_password'
 
     if any(phrase in query_lower for phrase in [
-        'phone number format', 'mobile number format',
-        'how to enter phone', 'phone number requirements'
+        'phone number format', 'mobile number format', 'format ng phone',
+        'paano format ng phone number'
     ]):
         return 'buyer_signup_phone'
+
+    if any(phrase in query_lower for phrase in [
+        'how to sign up', 'sign up', 'signup', 'register', 'create account',
+        'sign up buyer', 'buyer sign up', 'create buyer account',
+        'become a buyer', 'register as buyer', 'buyer registration',
+        'paano mag sign up', 'paano gumawa ng account', 'magparehistro'
+    ]):
+        return 'buyer_signup'
 
     if any(phrase in query_lower for phrase in [
         'buyer login', 'login to buyer', 'sign in buyer',
@@ -3455,10 +4007,55 @@ def determine_intent_fallback(query: str) -> str:
         return 'buyer_update_profile'
 
     if any(phrase in query_lower for phrase in [
-        'contact support', 'customer support', 'help email',
-        'report problem', 'support email', 'contact admin'
+        'guest', 'browse without login', 'guest mode', 'view without account',
+        'pwede ba mag browse kahit walang account', 'guest access', 'browse as guest'
     ]):
-        return 'buyer_contact_support'
+        return 'buyer_guest_access'
+
+    if any(phrase in query_lower for phrase in [
+        'kyc', 'verify identity', 'what is kyc', 'how does kyc work',
+        'kyc verification', 'guest vs logged in', 'what can guest access',
+        'ano ang kyc', 'paano mag kyc', 'bakit kailangan kyc'
+    ]):
+        return 'buyer_kyc'
+
+    if any(phrase in query_lower for phrase in [
+        'how does the chatbot work', 'how does the ai work', 'what is this chatbot',
+        'what is the ai assistant', 'who is the ai assistant', 'what is bahai assistant',
+        'how do i use the chatbot', 'what can the ai do', 'explain the chatbot',
+        'paano gumagana ang chatbot', 'paano gamitin ang chatbot', 'ano ang ai assistant'
+    ]):
+        return 'buyer_chatbot_how'
+
+    if any(phrase in query_lower for phrase in [
+        'how does the buyer dashboard work', 'what is the buyer dashboard',
+        'after login where do i go', 'what do i see when i log in',
+        'successfully logged in then what', 'where am i redirected after login',
+        'buyer interface', 'what pages do buyers have', 'paano gumagana ang buyer dashboard',
+        'pagkatapos mag login saan ako mapupunta'
+    ]):
+        return 'buyer_dashboard_flow'
+
+    if any(phrase in query_lower for phrase in [
+        'how do recommendations work', 'how are recommendations fetched',
+        'unlock recommendations', 'paano gumagana ang recommendations'
+    ]):
+        return 'buyer_recommendations_how'
+
+    if any(phrase in query_lower for phrase in [
+        'how do i message brokers', 'how do messages work', 'can i message without kyc',
+        'contact broker', 'paano mag message sa broker'
+    ]):
+        return 'buyer_messages_how'
+
+    if any(phrase in query_lower for phrase in [
+        'how do i save properties', 'what are saved properties', 'liked properties',
+        'where are my saved properties', 'paano mag save ng property',
+        'how do save properties work', 'how do like properties work',
+        'how do liked properties work', 'save properties', 'like properties',
+        'favorite properties', 'bookmarked properties'
+    ]):
+        return 'buyer_liked_saved_how'
         
     # ========== CRITICAL FIX: CHECK SPECIFIC PATTERNS FIRST ==========
     
@@ -3515,16 +4112,15 @@ def determine_intent_fallback(query: str) -> str:
     ]):
         return 'find_property_for_need'
 
-    # Other needs queries - EXPANDED
+    # Lifestyle matching queries routed to Question 10 intent
     if any(phrase in query_lower for phrase in [
         'for students', 'student housing', 'student accommodations',
-        'for professionals', 'working professionals',
-        'for couple', 'for couples', 'properties for couples',
-        'for retirees', 'retirement',
-        'for business', 'home business',
-        'for investors', 'for single'
+        'for professionals', 'working professionals', 'single professional',
+        'for retirees', 'retirement', 'for business', 'home business',
+        'for investors', 'doctor', 'nurse', 'medical worker',
+        'gym', 'active lifestyle'
     ]):
-        return 'find_property_for_need'
+        return 'match_needs'
     
     # Price quality queries
     if any(keyword in query_lower for keyword in ['good price', 'cheap', 'affordable', 'reasonable', 'good value']):
@@ -3610,6 +4206,15 @@ def determine_intent_fallback(query: str) -> str:
         'apartment for', 'condo for'
     ])
     
+    # Prioritize ready-to-move intent before generic property-search fallback
+    if any(phrase in query_lower for phrase in [
+        'ready to move', 'ready for occupancy', 'available now',
+        'immediate occupancy', 'move in ready', 'ready now',
+        'ready to occupy', 'immediate move in', 'available immediately',
+        'rfo', 'pwede na lipatan', 'handa na tirahan', 'lipat agad'
+    ]):
+        return 'find_ready_property'
+
     # Check for specific property types
     has_property_type = any(word in query_lower for word in [
         'apartment', 'condo', 'condominium', 'house', 'home',
@@ -3629,14 +4234,6 @@ def determine_intent_fallback(query: str) -> str:
             return 'find_property'
     
     # ========== CHECK FOR OTHER INTENTS ==========
-    
-    # Ready property intent
-    if any(phrase in query_lower for phrase in [
-        'ready to move', 'ready for occupancy', 'available now',
-        'immediate occupancy', 'move in ready', 'ready now',
-        'ready to occupy', 'immediate move in', 'available immediately'
-    ]):
-        return 'find_ready_property'
     
     # Process info intent
     if any(phrase in query_lower for phrase in [
@@ -3665,11 +4262,10 @@ def determine_intent_fallback(query: str) -> str:
     ]):
         return 'find_near_landmark'
     
-    # Property for need intent
+    # Property for need intent (Question 3: family/space count)
     if any(phrase in query_lower for phrase in [
-        'for family', 'for students', 'for professionals',
-        'for couple', 'for couples', 'for retirees', 'for business',
-        'for investors', 'for single', 'for workers'
+        'for family', 'family of', 'big family', 'large family',
+        'for couple', 'for couples', 'for single', 'for workers'
     ]):
         return 'find_property_for_need'
     
@@ -3679,8 +4275,29 @@ def determine_intent_fallback(query: str) -> str:
         'compatible with', 'what matches', 'recommendations for'
     ]):
         return 'match_needs'
+
+    if any(phrase in query_lower for phrase in [
+        'for students', 'student housing', 'student accommodations',
+        'for professionals', 'working professionals', 'single professional',
+        'for retirees', 'for business', 'for investors', 'doctor',
+        'nurse', 'medical worker', 'gym', 'active lifestyle'
+    ]):
+        return 'match_needs'
+
+    # Implicit lifestyle matching intent
+    if any(phrase in query_lower for phrase in [
+        'i am a doctor', 'doctor ako', 'nurse ako', 'medical worker',
+        'i am a student', 'student ako', 'single professional', 'young professional',
+        'retiree', 'retired'
+    ]) and any(term in query_lower for term in ['property', 'properties', 'bahay', 'apartment', 'condo', 'house']):
+        return 'match_needs'
     
     # Property with criteria intent
+    if re.search(r'\b(\d+)\s*(bed|bedroom|br|bath|bathroom|banyo)s?\b', query_lower) and any(word in query_lower for word in [
+        'apartment', 'apartments', 'house', 'houses', 'condo', 'condos', 'property', 'properties', 'bahay'
+    ]):
+        return 'find_property_with_criteria'
+
     if any(phrase in query_lower for phrase in [
         'under', 'below', 'less than', 'maximum', 'up to',
         'with bedroom', 'with bath', 'with bathrooms',
@@ -3694,7 +4311,9 @@ def determine_intent_fallback(query: str) -> str:
         'tell me about', 'what is', 'describe', 'about the',
         'information about', 'living in', 'like to live',
         'what\'s it like', 'is it good', 'lifestyle',
-        'about', 'information on', 'details about'
+        'about', 'information on', 'details about',
+        'neighborhood', 'neighbourhood', 'barangay', 'community vibe',
+        'kamusta tumira', 'living experience'
     ]
     
     for indicator in location_indicators:
@@ -3764,6 +4383,7 @@ def health_check():
     'buyer_signup_password',
     'buyer_signup_phone',
     'buyer_login',
+    'buyer_guest_access',
     'buyer_login_google',
     'buyer_forgot_password',
     'buyer_email_verification',
@@ -3773,7 +4393,12 @@ def health_check():
     'buyer_logout',
     'buyer_account_settings',
     'buyer_update_profile',
-    'buyer_contact_support'
+    'buyer_kyc',
+    'buyer_chatbot_how',
+    'buyer_dashboard_flow',
+    'buyer_recommendations_how',
+    'buyer_messages_how',
+    'buyer_liked_saved_how'
 ],
         'mock_data_mode': db is None,  # True if using mock data
         'timestamp': datetime.now().isoformat(),

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>KYC Verification - BahAI Real Estate</title>
+<title>Buyer KYC Verification - BahAI Real Estate</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -58,6 +58,35 @@
       align-items: center;
       padding: 20px;
       line-height: 1.5;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-sm);
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      body {
+        padding: 15px;
+      }
     }
 
     /* Header */
@@ -211,7 +240,7 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-
+    
     .status-not_submitted { 
       background: var(--warning-light);
       color: #92400e;
@@ -242,7 +271,7 @@
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    /* Main Content Container */
+    /* Main Container */
     .main-container {
       width: 100%;
       max-width: 1000px;
@@ -251,7 +280,7 @@
       align-items: center;
     }
 
-    /* KYC Form Container */
+    /* KYC Container */
     .kyc-container {
       background: var(--bg-white);
       padding: 40px;
@@ -274,20 +303,6 @@
       background: var(--accent-gradient);
     }
 
-    .role-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--primary-gradient);
-      color: white;
-      padding: 10px 22px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 25px;
-      box-shadow: var(--shadow-sm);
-    }
-
     /* Info Box */
     .info-box {
       background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(11, 46, 82, 0.04) 100%);
@@ -296,7 +311,6 @@
       padding: 25px;
       margin-bottom: 30px;
       border-left: 4px solid var(--accent);
-      position: relative;
     }
 
     .info-box h3 {
@@ -594,11 +608,6 @@
       color: var(--error);
     }
 
-    .verification-score {
-      font-size: 14px;
-      color: var(--text-light);
-    }
-
     /* Checkbox Container */
     .checkbox-container {
       background: var(--bg-lighter);
@@ -724,6 +733,13 @@
       display: flex;
     }
     
+    .message-box.info {
+      background: var(--info-light);
+      color: var(--primary-dark);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+    }
+    
     .message-box i {
       font-size: 18px;
     }
@@ -760,10 +776,6 @@
     }
 
     @media (max-width: 768px) {
-      body {
-        padding: 15px;
-      }
-      
       .page-header {
         padding: 20px;
       }
@@ -831,16 +843,23 @@
       }
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 
 <body>
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Include Sidebar -->
+<div id="sidebar-container"></div>
+
 <!-- Header -->
 <header class="header">
-  <a href="index.html" class="logo">Bah<span>AI</span> Real Estate</a>
+  <a href="buyer_dashboard.html" class="logo">Bah<span>AI</span> Real Estate</a>
   <div class="page-header">
-    <h1>KYC Verification</h1>
-    <p>Complete your identity verification to access all features</p>
+    <h1>Buyer KYC Verification</h1>
+    <p>Complete your identity verification to message brokers and landlords</p>
   </div>
 </header>
 
@@ -850,55 +869,38 @@
   <div class="status-grid">
     <div class="status-card">
       <div class="status-icon">
-        <i class="fas fa-user-tag"></i>
-      </div>
-      <div class="status-value" id="roleBadge">Loading...</div>
-      <div class="status-label">Your Role</div>
-    </div>
-    <div class="status-card">
-      <div class="status-icon">
-        <i class="fas fa-shield-check"></i>
+        <i class="fas fa-user-check"></i>
       </div>
       <div class="status-value">
         <span class="status-badge" id="statusBadge">Loading...</span>
       </div>
       <div class="status-label">Verification Status</div>
     </div>
+    <div class="status-card">
+      <div class="status-icon">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <div class="status-value" id="messageAccess">Restricted</div>
+      <div class="status-label">Messaging Access</div>
+    </div>
   </div>
 
-  <!-- KYC Form Container -->
+  <!-- KYC Container -->
   <div class="kyc-container">
-    <!-- Role-specific Information -->
-    <div id="brokerInfo" class="info-box hidden">
-      <h3><i class="fas fa-file-contract"></i> Required Documents for Brokers</h3>
+    <!-- Buyer Information Box -->
+    <div class="info-box">
+      <h3><i class="fas fa-id-card"></i> Why Verify Your Identity?</h3>
       <ul>
-        <li><strong>Professional License/ID Number</strong> - Your PRC License, Professional ID, or any license number</li>
-        <li><strong>License/ID Document</strong> - Clear photo/scan of your professional ID (PDF/JPG/PNG)</li>
-        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
+        <li><strong>Message Brokers & Landlords</strong> - Verified buyers can directly contact property owners</li>
+        <li><strong>Schedule Viewings</strong> - Book property visits with confidence</li>
+        <li><strong>Make Offers</strong> - Submit formal offers on properties</li>
+        <li><strong>Build Trust</strong> - Show sellers you're a serious, verified buyer</li>
+        <li><strong>Priority Support</strong> - Get faster responses from our team</li>
       </ul>
-      <p><strong>Note:</strong> The system will verify that your ID number matches the uploaded document.</p>
-    </div>
-
-    <div id="agentInfo" class="info-box hidden">
-      <h3><i class="fas fa-user-tie"></i> Required Documents for Agents</h3>
-      <ul>
-        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
-        <li><strong>Broker Accreditation (Optional)</strong> - Number or referral code from your broker</li>
-        <li><strong>Broker Endorsement (Optional)</strong> - Document from your broker if available</li>
-      </ul>
-      <p><strong>Note:</strong> Automatic face verification will be performed using Face++.</p>
-    </div>
-
-    <div id="landlordInfo" class="info-box hidden">
-      <h3><i class="fas fa-home"></i> Required Documents for Landlords/Sellers</h3>
-      <ul>
-        <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
-        <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
-        <li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
-      </ul>
-      <p><strong>Note:</strong> Face verification will be automatically processed using Face++ API.</p>
+      <p style="margin-top: 15px; color: var(--primary); font-weight: 500;">
+        <i class="fas fa-lock" style="margin-right: 5px;"></i> 
+        Your information is secure and encrypted using Face++ technology.
+      </p>
     </div>
 
     <!-- Face Verification Results -->
@@ -920,7 +922,7 @@
       </div>
       <div class="verification-item">
         <span class="verification-label">
-          <i class="fas fa-bullseye"></i> Threshold
+          <i class="fas fa-bullseye"></i> Required Threshold
         </span>
         <span class="verification-value">≥ 70%</span>
       </div>
@@ -933,61 +935,9 @@
     </div>
 
     <!-- Upload Form -->
-    <div id="uploadForm" class="hidden">
+    <div id="uploadForm">
       <form id="kycForm">
-        <!-- Broker-specific fields - UPDATED for ANY ID -->
-        <div id="brokerFields" class="form-section hidden">
-          <div class="section-title">Professional License Information</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="brokerIdNumber" class="form-label required">
-                <i class="fas fa-id-card"></i> License/ID Number
-              </label>
-              <input type="text" id="brokerIdNumber" class="form-input" placeholder="e.g., 1234567 or 1234-5678-9012-3456">
-              <div class="help-text">
-                <i class="fas fa-info-circle"></i> Enter the number exactly as it appears on your ID (dashes optional)
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="brokerIdDocument" class="form-label required">
-                <i class="fas fa-file-upload"></i> License/ID Document
-              </label>
-              <input type="file" id="brokerIdDocument" class="form-input file-input" accept="image/*,.pdf">
-              <div class="help-text">
-                <i class="fas fa-file-alt"></i> Accepted formats: JPG, PNG, PDF (Max 5MB)
-              </div>
-            </div>
-          </div>
-          <div class="preview-container" id="previewBrokerId"></div>
-        </div>
-
-        <!-- Agent-specific fields -->
-        <div id="agentFields" class="form-section hidden">
-          <div class="section-title">Agent Information</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="brokerAccreditation" class="form-label">
-                <i class="fas fa-handshake"></i> Broker Accreditation Number
-              </label>
-              <input type="text" id="brokerAccreditation" class="form-input" placeholder="Enter accreditation or referral code">
-              <div class="help-text">
-                <i class="fas fa-info-circle"></i> Optional - Required for broker-affiliated agents
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="brokerEndorsement" class="form-label">
-                <i class="fas fa-file-signature"></i> Broker Endorsement Document
-              </label>
-              <input type="file" id="brokerEndorsement" class="form-input file-input" accept="image/*,.pdf">
-              <div class="help-text">
-                <i class="fas fa-file-alt"></i> Optional - Upload endorsement document from your broker
-              </div>
-            </div>
-          </div>
-          <div class="preview-container" id="previewEndorsement"></div>
-        </div>
-
-        <!-- Common Fields -->
+        <!-- Identity Verification Section -->
         <div class="form-section">
           <div class="section-title">Identity Verification</div>
           <div class="form-grid">
@@ -997,7 +947,7 @@
               </label>
               <input type="file" id="govId" class="form-input file-input" accept="image/*" required>
               <div class="help-text">
-                <i class="fas fa-id-card"></i> National ID, Driver's License, Passport, SSS, UMID, etc.
+                <i class="fas fa-id-card"></i> National ID, Driver's License, Passport, UMID, etc.
               </div>
             </div>
             <div class="form-group">
@@ -1006,7 +956,7 @@
               </label>
               <input type="file" id="govIdBack" class="form-input file-input" accept="image/*">
               <div class="help-text">
-                <i class="fas fa-info-circle"></i> Optional - Back side of your ID
+                <i class="fas fa-info-circle"></i> Optional - Back side of your ID if applicable
               </div>
             </div>
           </div>
@@ -1023,22 +973,22 @@
             </label>
             <input type="file" id="selfieId" class="form-input file-input" accept="image/*" required>
             <div class="help-text">
-              <i class="fas fa-user-check"></i> Take a selfie while holding your ID next to your face
+              <i class="fas fa-user-check"></i> Take a clear selfie while holding your ID next to your face
             </div>
           </div>
           <div class="preview-container" id="previewSelfie"></div>
         </div>
 
-        <!-- Landlord-specific field -->
-        <div id="landlordFields" class="form-section hidden">
-          <div class="section-title">Address Verification</div>
+        <!-- Additional Information (Optional) -->
+        <div class="form-section">
+          <div class="section-title">Additional Information (Optional)</div>
           <div class="form-group">
             <label for="proofAddress" class="form-label">
               <i class="fas fa-map-marker-alt"></i> Proof of Address
             </label>
             <input type="file" id="proofAddress" class="form-input file-input" accept="image/*,.pdf">
             <div class="help-text">
-              <i class="fas fa-home"></i> Optional - Utility bill, bank statement, or official document with your address
+              <i class="fas fa-home"></i> Utility bill, bank statement, or official document with your address
             </div>
           </div>
           <div class="preview-container" id="previewAddress"></div>
@@ -1060,7 +1010,7 @@
         <div class="checkbox-container">
           <label>
             <input type="checkbox" id="confirmCheck" required>
-            <span id="confirmText">I confirm that the information provided is true and verifiable.</span>
+            <span id="confirmText">I confirm that the information provided is true and I am a legitimate buyer.</span>
           </label>
         </div>
 
@@ -1072,7 +1022,7 @@
           <button type="submit" id="submitBtn" class="submit-btn">
             <i class="fas fa-paper-plane"></i> Submit for Verification
           </button>
-          <a href="#" id="backLink" class="back-btn">
+          <a href="buyer_dashboard.html" id="backLink" class="back-btn">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
           </a>
         </div>
@@ -1084,30 +1034,53 @@
 <!-- Footer -->
 <footer class="footer">
   <p>© 2024 BahAI Real Estate. All rights reserved. | Need help? Contact <a href="mailto:support@bahai.com" style="color: var(--accent); text-decoration: none;">support@bahai.com</a></p>
-  <p style="margin-top: 5px; font-size: 13px;">Secure KYC verification powered by Face++ technology</p>
+  <p style="margin-top: 5px; font-size: 13px;">Secure buyer verification powered by Face++ technology</p>
 </footer>
 
-<!-- Firebase Script - UPDATED with improved OCR for Student/National IDs -->
+<!-- Sidebar Loader -->
+<script src="../sidebar-user.js"></script>
+<script src="buyer-sidebar-loader.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  loadBuyerSidebar('buyer-kyc.html');
+});
+</script>
+
+<!-- Firebase Script -->
 <script type="module">
-import { auth, db } from './firebase-common.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
+    authDomain: "bahai-1b76d.firebaseapp.com",
+    projectId: "bahai-1b76d",
+    storageBucket: "bahai-1b76d.firebasestorage.app",
+    messagingSenderId: "646878644941",
+    appId: "1:646878644941:web:5b4ccc3412250337587784"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 // Face++ API Configuration
 const FACE_API_KEY = "nwMEZVM-SXeV7Q6_tG9yNfQaVserEDGP";
 const FACE_API_SECRET = "rq7cw-SGGi37Yda4z5U_Z6KaGccXZA0w"; 
 const FACE_API_URL = "https://api-us.faceplusplus.com/facepp/v3/compare";
 
-const storage = getStorage();
-
-const roleBadge = document.getElementById("roleBadge");
+// DOM Elements
 const statusBadge = document.getElementById("statusBadge");
+const messageAccess = document.getElementById("messageAccess");
 const uploadForm = document.getElementById("uploadForm");
 const messageBox = document.getElementById("messageBox");
 const kycForm = document.getElementById("kycForm");
 const submitBtn = document.getElementById("submitBtn");
-const confirmText = document.getElementById("confirmText");
 const progressContainer = document.getElementById("progressContainer");
 const progressFill = document.getElementById("progressFill");
 const progressText = document.getElementById("progressText");
@@ -1118,12 +1091,9 @@ const verificationResult = document.getElementById("verificationResult");
 const processingTime = document.getElementById("processingTime");
 
 let currentUser = null;
-let userRole = null;
 let kycStatus = null;
 
 // Setup preview handlers
-setupPreview("brokerIdDocument", "previewBrokerId");
-setupPreview("brokerEndorsement", "previewEndorsement");
 setupPreview("govId", "previewGovId");
 setupPreview("govIdBack", "previewGovIdBack");
 setupPreview("selfieId", "previewSelfie");
@@ -1198,8 +1168,6 @@ async function uploadToStorage(file, path) {
         console.log(`Upload complete: ${path}`);
         
         const downloadURL = await getDownloadURL(snapshot.ref);
-        console.log(`Download URL obtained: ${downloadURL.substring(0, 50)}...`);
-        
         return downloadURL;
     } catch (error) {
         console.error(`Upload error for ${path}:`, error);
@@ -1224,8 +1192,6 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         formData.append('api_secret', FACE_API_SECRET);
         formData.append('image_base64_1', idImageBase64);
         formData.append('image_base64_2', selfieImageBase64);
-        formData.append('return_landmark', '0');
-        formData.append('return_attributes', '0');
         
         const response = await fetch(FACE_API_URL, {
             method: 'POST',
@@ -1242,11 +1208,7 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
         
         console.log("Face++ API Response:", result);
         
-        let confidence = 0;
-        if (result.confidence) {
-            confidence = parseFloat(result.confidence);
-        }
-        
+        let confidence = result.confidence ? parseFloat(result.confidence) : 0;
         const isVerified = confidence >= 70;
         
         verificationResults.classList.add("show");
@@ -1274,13 +1236,12 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
     } catch (error) {
         console.error("Face++ verification error:", error);
         const endTime = Date.now();
-        const processingTimeMs = endTime - startTime;
         
         verificationResults.classList.add("show");
         faceScore.textContent = "API Error";
         verificationResult.textContent = "Manual Review";
         verificationResult.className = "verification-value verification-pass";
-        processingTime.textContent = `${processingTimeMs}ms`;
+        processingTime.textContent = `${endTime - startTime}ms`;
         
         return {
             success: false,
@@ -1288,12 +1249,12 @@ async function verifyWithFacePlusPlus(idImageUrl, selfieImageUrl) {
             confidence: 0,
             error: error.message,
             requiresManualReview: true,
-            processingTime: processingTimeMs
+            processingTime: endTime - startTime
         };
     }
 }
 
-// Helper function to convert image URL to base64
+// Helper function to convert URL to base64
 async function urlToBase64(url) {
     try {
         const response = await fetch(url);
@@ -1314,6 +1275,7 @@ async function urlToBase64(url) {
     }
 }
 
+// Setup preview function
 function setupPreview(inputId, previewId) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -1367,21 +1329,81 @@ function setupPreview(inputId, previewId) {
                     previewItem.appendChild(img);
                     previewItem.appendChild(info);
                     previewItem.appendChild(quality);
+                    preview.appendChild(previewItem);
                 };
             }
-            
-            preview.appendChild(previewItem);
         }
     });
 }
 
-// Check user role and KYC status
+// Update progress function
+function updateProgress(percent, text) {
+    progressContainer.classList.remove("hidden");
+    progressFill.style.width = percent + '%';
+    progressText.textContent = percent + '%';
+    progressStatus.textContent = text || (percent + '% complete');
+}
+
+// Show message function
+function showMessage(text, type) {
+    let icon = '';
+    switch(type) {
+        case 'success': icon = '<i class="fas fa-check-circle"></i>'; break;
+        case 'error': icon = '<i class="fas fa-exclamation-circle"></i>'; break;
+        case 'warning': icon = '<i class="fas fa-exclamation-triangle"></i>'; break;
+        case 'info': icon = '<i class="fas fa-info-circle"></i>'; break;
+    }
+    
+    messageBox.innerHTML = `${icon} ${text}`;
+    messageBox.className = `message-box ${type}`;
+    
+    setTimeout(() => {
+        messageBox.className = 'message-box';
+        messageBox.innerHTML = '';
+    }, 8000);
+}
+
+// Update status display
+function updateStatusDisplay(status) {
+    statusBadge.className = `status-badge status-${status}`;
+    messageAccess.className = '';
+    
+    switch(status) {
+        case "not_submitted":
+            statusBadge.textContent = "Not Submitted";
+            messageAccess.textContent = "❌ Restricted";
+            messageAccess.style.color = "#ef4444";
+            break;
+        case "pending":
+        case "verifying":
+            statusBadge.textContent = "Pending Verification";
+            messageAccess.textContent = "⏳ Pending Approval";
+            messageAccess.style.color = "#f59e0b";
+            showMessage("Your KYC documents are being verified automatically. You'll be able to message once approved.", "info");
+            break;
+        case "approved":
+            statusBadge.textContent = "✅ Verified";
+            messageAccess.textContent = "✅ Full Access";
+            messageAccess.style.color = "#10b981";
+            showMessage("Your account is verified! You can now message brokers and landlords.", "success");
+            break;
+        case "rejected":
+            statusBadge.textContent = "❌ Rejected";
+            messageAccess.textContent = "❌ Restricted";
+            messageAccess.style.color = "#ef4444";
+            uploadForm.classList.remove("hidden");
+            showMessage("Your KYC was rejected. Please resubmit valid documents.", "error");
+            break;
+    }
+}
+
+// Check authentication and load user data
 onAuthStateChanged(auth, async (user) => {
     console.log("Auth state changed:", user ? "User logged in" : "No user");
     
     if (!user) {
         console.log("No user found, redirecting to login");
-        window.location.href = "login.html";
+        window.location.href = "../login.html";
         return;
     }
 
@@ -1400,174 +1422,25 @@ onAuthStateChanged(auth, async (user) => {
         const userData = userDoc.data();
         console.log("User data:", userData);
         
-        userRole = userData.role || "seller";
         kycStatus = userData.kycStatus || "not_submitted";
-        console.log("Role:", userRole, "KYC Status:", kycStatus);
+        console.log("KYC Status:", kycStatus);
 
-        roleBadge.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
-
-        const dashboardMap = {
-            broker: 'broker/broker_dashboard.html',
-            agent: 'broker/agent_dashboard.html',
-            seller: 'seller_dashboard.html',
-            landlord: 'landlord_dashboard.html'
-        };
-        const backLink = document.getElementById("backLink");
-        backLink.href = dashboardMap[userRole] || 'dashboard.html';
-
-        showRoleSpecificContent(userRole);
         updateStatusDisplay(kycStatus);
+
+        // If already approved, show success message and hide form
+        if (kycStatus === "approved") {
+            uploadForm.classList.add("hidden");
+        } else if (kycStatus === "pending" || kycStatus === "verifying") {
+            uploadForm.classList.add("hidden");
+        } else {
+            uploadForm.classList.remove("hidden");
+        }
 
     } catch (error) {
         console.error("Error loading user data:", error);
         showMessage("⚠️ Error loading verification status.", "error");
     }
 });
-
-function showRoleSpecificContent(role) {
-    document.getElementById("brokerInfo").classList.add("hidden");
-    document.getElementById("agentInfo").classList.add("hidden");
-    document.getElementById("landlordInfo").classList.add("hidden");
-    document.getElementById("brokerFields").classList.add("hidden");
-    document.getElementById("agentFields").classList.add("hidden");
-    document.getElementById("landlordFields").classList.add("hidden");
-
-    if (role === "broker") {
-        document.getElementById("brokerInfo").classList.remove("hidden");
-        document.getElementById("brokerFields").classList.remove("hidden");
-        confirmText.textContent = "I confirm that I am a licensed real estate broker.";
-        document.getElementById("brokerIdNumber").required = true;
-        document.getElementById("brokerIdDocument").required = true;
-    } else if (role === "agent") {
-        document.getElementById("agentInfo").classList.remove("hidden");
-        document.getElementById("agentFields").classList.remove("hidden");
-        confirmText.textContent = "I confirm that the information provided is true and verifiable.";
-    } else if (role === "seller" || role === "landlord") {
-        document.getElementById("landlordInfo").classList.remove("hidden");
-        document.getElementById("landlordFields").classList.remove("hidden");
-        confirmText.textContent = "I am the legitimate owner or authorized representative of properties I will list.";
-    }
-}
-
-function updateStatusDisplay(status) {
-    statusBadge.className = `status-badge status-${status}`;
-    
-    switch(status) {
-        case "not_submitted":
-            statusBadge.textContent = "Not Submitted";
-            uploadForm.classList.remove("hidden");
-            break;
-        case "pending":
-        case "verifying":
-            statusBadge.textContent = "Verifying";
-            showMessage("Your KYC documents are being verified automatically...", "warning");
-            break;
-        case "approved":
-            statusBadge.textContent = "Approved";
-            showMessage("Your account is verified! You can now post properties.", "success");
-            break;
-        case "rejected":
-            statusBadge.textContent = "Rejected";
-            uploadForm.classList.remove("hidden");
-            showMessage("Your KYC was rejected. Please resubmit valid documents.", "error");
-            break;
-    }
-}
-
-function updateProgress(percent, text) {
-    progressContainer.classList.remove("hidden");
-    progressFill.style.width = percent + '%';
-    progressText.textContent = percent + '%';
-    progressStatus.textContent = text || (percent + '% complete');
-}
-
-// ============= UPDATED OCR FUNCTIONS =============
-// Clean number by removing non-alphanumeric characters
-function cleanNumber(number) {
-    return number.replace(/[^A-Z0-9]/gi, "").toLowerCase();
-}
-
-// Check if numbers match (handles different formats)
-function numbersMatch(extracted, typed) {
-    const cleanExtracted = cleanNumber(extracted);
-    const cleanTyped = cleanNumber(typed);
-    
-    console.log("Cleaned extracted:", cleanExtracted);
-    console.log("Cleaned typed:", cleanTyped);
-    
-    // Check for exact match
-    if (cleanExtracted.includes(cleanTyped)) {
-        return true;
-    }
-    
-    // For long numbers (like national ID), check if the main part matches
-    if (cleanTyped.length > 10) {
-        const mainPart = cleanTyped.slice(-12);
-        if (cleanExtracted.includes(mainPart)) {
-            return true;
-        }
-    }
-    
-    // Check if typed number appears as a continuous sequence
-    const extractedNoSpaces = extracted.replace(/\s+/g, '');
-    const typedNoSpaces = typed.replace(/\s+/g, '');
-    
-    return extractedNoSpaces.includes(typedNoSpaces);
-}
-
-// Universal OCR verification - works with Student ID (0000000) and National ID (0000-0000-0000-0000)
-async function verifyIdNumber(file, typedNumber, documentType = "ID") {
-    if (!file || !typedNumber) {
-        throw new Error(`Please upload ${documentType} document and enter the number.`);
-    }
-
-    showMessage(`🔍 Scanning ${documentType} document for number...`, "warning");
-
-    try {
-        const { data: { text } } = await Tesseract.recognize(
-            file,
-            'eng',
-            { 
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        const percent = Math.round(m.progress * 100);
-                        console.log(`OCR Progress: ${percent}%`);
-                    }
-                }
-            }
-        );
-
-        console.log("OCR Raw Text:", text);
-        
-        // Check if numbers match using our smart matching function
-        const matchFound = numbersMatch(text, typedNumber);
-        
-        // Clean versions for logging
-        const cleanTyped = cleanNumber(typedNumber);
-        const cleanExtracted = cleanNumber(text);
-        
-        // Determine ID type for message
-        let detectedType = documentType;
-        if (cleanTyped.length === 7) {
-            detectedType = "Student ID";
-        } else if (cleanTyped.length === 16 || typedNumber.includes('-')) {
-            detectedType = "National ID";
-        }
-        
-        if (matchFound) {
-            showMessage(`✅ ${detectedType} number matched successfully!`, "success");
-            return true;
-        } else {
-            console.log("Extracted numbers:", cleanExtracted);
-            console.log("Typed numbers:", cleanTyped);
-            throw new Error(`${detectedType} number does NOT match the uploaded document. Please check and try again.`);
-        }
-    } catch (error) {
-        console.error("OCR Error:", error);
-        throw new Error(`OCR verification failed: ${error.message}`);
-    }
-}
-// ============= END UPDATED OCR FUNCTIONS =============
 
 // Form submission
 kycForm.addEventListener("submit", async (e) => {
@@ -1590,14 +1463,7 @@ kycForm.addEventListener("submit", async (e) => {
         const userId = currentUser.uid;
         const timestamp = Date.now();
         
-        const kycData = {
-            kycStatus: "verifying",
-            kycDocuments: {
-                submittedAt: serverTimestamp(),
-                faceVerification: {}
-            }
-        };
-
+        // Check required files
         const govIdFile = document.getElementById("govId").files[0];
         const selfieFile = document.getElementById("selfieId").files[0];
 
@@ -1610,96 +1476,63 @@ kycForm.addEventListener("submit", async (e) => {
 
         updateProgress(10, "Preparing uploads...");
 
+        // Upload Government ID
         updateProgress(20, "Uploading Government ID...");
         const govIdUrl = await uploadToStorage(
             govIdFile,
             `kyc/${userId}/gov_id_${timestamp}.jpg`
         );
-        kycData.kycDocuments.governmentId = govIdUrl;
 
+        // Upload Government ID Back (optional)
+        let govIdBackUrl = null;
         const govIdBackFile = document.getElementById("govIdBack").files[0];
         if (govIdBackFile) {
             updateProgress(35, "Uploading ID Back...");
-            const govIdBackUrl = await uploadToStorage(
+            govIdBackUrl = await uploadToStorage(
                 govIdBackFile,
                 `kyc/${userId}/gov_id_back_${timestamp}.jpg`
             );
-            kycData.kycDocuments.governmentIdBack = govIdBackUrl;
         }
 
+        // Upload Selfie
         updateProgress(50, "Uploading Selfie...");
         const selfieUrl = await uploadToStorage(
             selfieFile,
             `kyc/${userId}/selfie_${timestamp}.jpg`
         );
-        kycData.kycDocuments.selfieWithId = selfieUrl;
 
-        // Role-specific uploads with OCR verification
-        if (userRole === "broker") {
-            const brokerIdNumber = document.getElementById("brokerIdNumber").value.trim();
-            const brokerIdFile = document.getElementById("brokerIdDocument").files[0];
-
-            if (!brokerIdNumber || !brokerIdFile) {
-                showMessage("❌ License/ID Number and Document are required for brokers.", "error");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
-                return;
-            }
-
-            // 🔥 UPDATED OCR VERIFICATION - Works with Student ID and National ID formats
-            try {
-                await verifyIdNumber(brokerIdFile, brokerIdNumber, "Professional License");
-            } catch (error) {
-                showMessage(error.message, "error");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
-                progressContainer.classList.add("hidden");
-                return;
-            }
-
-            updateProgress(65, "Uploading License Document...");
-            const brokerIdUrl = await uploadToStorage(
-                brokerIdFile,
-                `kyc/${userId}/professional_id_${timestamp}.jpg`
+        // Upload Proof of Address (optional)
+        let proofAddressUrl = null;
+        const proofAddressFile = document.getElementById("proofAddress").files[0];
+        if (proofAddressFile) {
+            updateProgress(65, "Uploading Proof of Address...");
+            proofAddressUrl = await uploadToStorage(
+                proofAddressFile,
+                `kyc/${userId}/proof_address_${timestamp}.jpg`
             );
-            kycData.professionalLicenseNumber = brokerIdNumber;
-            kycData.kycDocuments.professionalLicense = brokerIdUrl;
         }
 
-        if (userRole === "agent") {
-            const brokerAccred = document.getElementById("brokerAccreditation").value.trim();
-            const endorsementFile = document.getElementById("brokerEndorsement").files[0];
-
-            if (brokerAccred) kycData.brokerAccreditationNumber = brokerAccred;
-            
-            if (endorsementFile) {
-                updateProgress(75, "Uploading Broker Endorsement...");
-                const endorsementUrl = await uploadToStorage(
-                    endorsementFile,
-                    `kyc/${userId}/broker_endorsement_${timestamp}.jpg`
-                );
-                kycData.kycDocuments.brokerEndorsement = endorsementUrl;
+        // Prepare KYC data
+        const kycData = {
+            kycStatus: "verifying",
+            kycDocuments: {
+                governmentId: govIdUrl,
+                governmentIdBack: govIdBackUrl,
+                selfieWithId: selfieUrl,
+                proofOfAddress: proofAddressUrl,
+                submittedAt: serverTimestamp()
             }
-        }
+        };
 
-        if (userRole === "seller" || userRole === "landlord") {
-            const proofAddressFile = document.getElementById("proofAddress").files[0];
-            
-            if (proofAddressFile) {
-                updateProgress(75, "Uploading Proof of Address...");
-                const proofAddressUrl = await uploadToStorage(
-                    proofAddressFile,
-                    `kyc/${userId}/proof_address_${timestamp}.jpg`
-                );
-                kycData.kycDocuments.proofOfAddress = proofAddressUrl;
-            }
-        }
-
+        // Update Firestore
         updateProgress(80, "Saving to database...");
-        await updateDoc(doc(db, "users", currentUser.uid), kycData);
+        await updateDoc(doc(db, "users", userId), kycData);
+        console.log("Firestore updated successfully");
 
+        // Perform Face++ verification
         const faceVerificationResult = await verifyWithFacePlusPlus(govIdUrl, selfieUrl);
         
+        // Update Firestore with verification results
         const finalKycData = {
             'kycStatus': faceVerificationResult.verified ? 'approved' : 'rejected',
             'kycDocuments.faceVerification': {
@@ -1715,13 +1548,14 @@ kycForm.addEventListener("submit", async (e) => {
         };
 
         updateProgress(95, "Finalizing verification...");
-        await updateDoc(doc(db, "users", currentUser.uid), finalKycData);
+        await updateDoc(doc(db, "users", userId), finalKycData);
 
+        // Show appropriate message
         if (faceVerificationResult.verified) {
-            showMessage("✅ Verification successful! Your account is now verified.", "success");
+            showMessage("✅ Verification successful! Your account is now verified. You can now message brokers and landlords.", "success");
             updateStatusDisplay("approved");
         } else if (faceVerificationResult.requiresManualReview) {
-            showMessage("⚠️ Verification requires manual review. Admin will review your documents shortly.", "warning");
+            showMessage("⚠️ Verification requires manual review. Admin will review your documents shortly.", "info");
             updateStatusDisplay("pending");
         } else {
             showMessage("❌ Face verification failed. Please ensure your selfie clearly shows your face and matches your ID.", "error");
@@ -1735,6 +1569,7 @@ kycForm.addEventListener("submit", async (e) => {
 
         updateProgress(100, "Complete!");
         
+        // Reload page after 3 seconds
         setTimeout(() => {
             window.location.reload();
         }, 3000);
@@ -1747,23 +1582,6 @@ kycForm.addEventListener("submit", async (e) => {
         progressContainer.classList.add("hidden");
     }
 });
-
-function showMessage(text, type) {
-    let icon = '';
-    switch(type) {
-        case 'success': icon = '<i class="fas fa-check-circle"></i>'; break;
-        case 'error': icon = '<i class="fas fa-exclamation-circle"></i>'; break;
-        case 'warning': icon = '<i class="fas fa-exclamation-triangle"></i>'; break;
-    }
-    
-    messageBox.innerHTML = `${icon} ${text}`;
-    messageBox.className = `message-box ${type}`;
-    
-    setTimeout(() => {
-        messageBox.className = 'message-box';
-        messageBox.innerHTML = '';
-    }, 8000);
-}
 </script>
 
 </body>

@@ -3,6 +3,8 @@
     {
       "query": "thank you",
       "intent": "thanks",
+      "response_template_english": "😊 You're welcome! Happy to help. Let me know if you need anything else.",
+      "response_template_tagalog": "😊 Walang anuman! Masaya akong makatulong. Sabihin mo lang kung may kailangan ka pa.",
       "variations": [
         "thanks",
         "thank you very much",

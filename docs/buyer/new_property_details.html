@@ -587,6 +587,152 @@ let currentUserInfo = null;
 let currentConversationId = null;
 let messageListener = null;
 
+// ========== KYC CHECK FUNCTIONS (ADDED) ==========
+
+// Check if user can message based on KYC status
+async function canUserMessage() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return false;
+    
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (!userDoc.exists()) return false;
+        
+        const userData = userDoc.data();
+        const kycStatus = userData.kycStatus || "not_submitted";
+        
+        // Only approved buyers can message
+        return kycStatus === "approved";
+    } catch (error) {
+        console.error("Error checking KYC status:", error);
+        return false;
+    }
+}
+
+// Show KYC required modal
+function showKYCRequiredModal() {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('kycRequiredModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'kycRequiredModal';
+        modal.className = 'message-modal';
+        modal.innerHTML = `
+            <div class="message-modal-content" style="max-width: 500px; text-align: center;">
+                <div class="message-header" style="background: var(--primary);">
+                    <h2 style="color: white;">KYC Verification Required</h2>
+                    <button class="message-close" id="closeKYCModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div style="padding: 30px;">
+                    <div style="font-size: 64px; margin-bottom: 20px; color: var(--accent);">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    
+                    <h3 style="margin-bottom: 15px; color: var(--text-dark);">
+                        Verify Your Identity to Message Providers
+                    </h3>
+                    
+                    <p style="color: var(--text-light); margin-bottom: 25px; line-height: 1.6;">
+                        To ensure a safe and trustworthy community, buyers need to complete 
+                        KYC (Know Your Customer) verification before messaging property owners or brokers.
+                    </p>
+                    
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: var(--radius); margin-bottom: 25px; text-align: left;">
+                        <h4 style="margin-bottom: 15px; color: var(--primary);">Benefits of Verification:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Message property owners and brokers directly
+                            </li>
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Schedule property viewings
+                            </li>
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Make formal offers on properties
+                            </li>
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Build trust with sellers
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <a href="buyer-kyc.html" class="search-button" style="min-width: 150px; background: var(--primary-gradient); color: white; padding: 12px 24px; border-radius: var(--radius); text-decoration: none; font-weight: 600;">
+                            <i class="fas fa-id-card"></i> Verify Now
+                        </a>
+                        <button class="reset-button" id="closeKYCModalBtn" style="min-width: 150px; background: white; border: 2px solid var(--border); padding: 12px 24px; border-radius: var(--radius); font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-times"></i> Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add close handlers
+        document.getElementById('closeKYCModal').addEventListener('click', () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        });
+        
+        document.getElementById('closeKYCModalBtn').addEventListener('click', () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        });
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+// Handle contact button clicks with KYC check
+async function handleContactClick(contactId, propertyId) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        window.location.href = '../login.html?redirect=buyer/new_property_details.html?id=' + propertyId;
+        return;
+    }
+    
+    // Check KYC status
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const kycStatus = userData.kycStatus || "not_submitted";
+            
+            if (kycStatus !== "approved") {
+                showKYCRequiredModal();
+                return;
+            }
+        } else {
+            showKYCRequiredModal();
+            return;
+        }
+    } catch (error) {
+        console.error("Error checking KYC:", error);
+        showKYCRequiredModal();
+        return;
+    }
+    
+    // If verified, proceed with opening message modal
+    openMessageModal(contactId, propertyId);
+}
+
+// ========== END OF KYC CHECK FUNCTIONS ==========
+
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
@@ -1547,12 +1693,10 @@ function renderProperty() {
     if (mainVideo) mainVideo.src = firstMedia;
   }
 
+  // UPDATED: Use handleContactClick instead of directly opening message modal
   document.getElementById('contactBtn').addEventListener('click', () => {
-    if (auth.currentUser) {
-      openMessageModal(contactId, l.id);
-    } else {
-      window.location.href = '../login.html?redirect=buyer/new_property_details.html?id=' + propertyId;
-    }
+    const contactId = l.agentId || l.brokerId || l.userId || l.landlordId || '';
+    handleContactClick(contactId, l.id);
   });
 
   // Initialize calculator
@@ -1822,6 +1966,7 @@ async function openMessageModal(userId, propId) {
   setTimeout(() => document.getElementById('messageInput').focus(), 300);
 }
 
+// window.contactBroker is kept for backward compatibility but we'll use handleContactClick for the button
 window.contactBroker = openMessageModal;
 
 document.getElementById('backBtn').addEventListener('click', function(e) {

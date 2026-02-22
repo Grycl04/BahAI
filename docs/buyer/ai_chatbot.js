@@ -423,7 +423,7 @@ export async function processChatMessage(userMessage) {
         
         // If properties were found, display them
         if (data && data.properties && data.properties.length > 0) {
-            displayPropertiesInChat(data.properties);
+            displayPropertiesInChat(data.properties, userMessage);
         }
         
         // Show appropriate prompts based on phase
@@ -549,7 +549,7 @@ function getDisplayPrice(property) {
     return 'Price on inquiry';
 }
 
-function displayPropertiesInChat(properties) {
+function displayPropertiesInChat(properties, userQuery = '') {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages || !properties || properties.length === 0) return;
     
@@ -586,7 +586,7 @@ function displayPropertiesInChat(properties) {
                         ${area && area !== 'N/A' ? `<span>📐 ${area} sqm</span>` : ''}
                     </div>
                     <p class="price">${price}</p>
-                    <a href="property_details.html?id=${prop.id || prop.property_id || ''}" 
+                    <a href="new_property_details.html?id=${prop.id || prop.property_id || ''}" 
                        target="_blank" 
                        class="view-btn">
                         View Details <i class="fas fa-arrow-right"></i>
@@ -599,9 +599,22 @@ function displayPropertiesInChat(properties) {
     html += '</div>';
     
     if (properties.length > 3) {
+        const propertyIds = [...new Set(
+            properties
+                .map(p => p.id || p.property_id || '')
+                .filter(Boolean)
+        )];
+        const chatbotFilters = {
+            propertyIds,
+            source: 'chatbot'
+        };
+        if (userQuery && userQuery.trim()) {
+            chatbotFilters.searchTerm = userQuery.trim();
+        }
+        const encodedFilters = encodeURIComponent(JSON.stringify(chatbotFilters));
         html += `
             <p style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
-                <a href="search_results.html" 
+                <a href="search_results.html?filters=${encodedFilters}" 
                    style="color: #0b6e4f; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
                     🔍 View all ${properties.length} properties in search results <i class="fas fa-arrow-right"></i>
                 </a>

@@ -106,7 +106,13 @@ class TeamNLUTrainer:
     'buyer_logout': 'buyer_logout',
     'buyer_account_settings': 'buyer_account_settings',
     'buyer_update_profile': 'buyer_update_profile',
-    'buyer_contact_support': 'buyer_contact_support',
+    'buyer_guest_access': 'buyer_guest_access',
+    'buyer_kyc': 'buyer_kyc',
+    'buyer_chatbot_how': 'buyer_chatbot_how',
+    'buyer_dashboard_flow': 'buyer_dashboard_flow',
+    'buyer_recommendations_how': 'buyer_recommendations_how',
+    'buyer_messages_how': 'buyer_messages_how',
+    'buyer_liked_saved_how': 'buyer_liked_saved_how',
         }
         
         # Intent keywords for better classification
@@ -130,7 +136,8 @@ class TeamNLUTrainer:
             'find_ready_property': ['ready to move in', 'ready for occupancy', 
                                    'available now', 'immediate occupancy', 
                                    'move in ready', 'ready now', 'ready to occupy',
-                                   'immediate move in', 'available immediately'],
+                                   'immediate move in', 'available immediately',
+                                   'rfo', 'pwede na lipatan', 'handa na tirahan', 'lipat agad'],
             'process_info': ['steps for', 'how to', 'process of', 'procedure', 
                             'timeline', 'requirements', 'documents', 'steps to',
                             'how do i', 'what are the steps', 'costs for',
@@ -140,6 +147,8 @@ class TeamNLUTrainer:
                                  'with wifi', 'with furniture', 'with aircon',
                                  'with feature', 'featuring', 'having',
                                  'parking', 'pool', 'garden', 'garage',  
+                                 'amenity', 'amenities', 'feature', 'features',
+                                 'na may', 'may parking', 'may pool',
                                  'apartments with parking', 'condos with parking' ],
             'find_near_landmark': ['near schools', 'near mall', 'near hospital', 
                                   'near port', 'near beach', 'near church',
@@ -147,14 +156,16 @@ class TeamNLUTrainer:
                                   'beside', 'next to', 'adjacent to'],
             'location_info': ['tell me about', 'what is', 'describe', 'about the',
                              'information about', 'living in', 'like to live',
-                             'what\'s it like', 'is it good', 'lifestyle'],
+                             'what\'s it like', 'is it good', 'lifestyle',
+                             'neighborhood', 'neighbourhood', 'barangay', 'community vibe',
+                             'kamusta tumira', 'anong neighborhood', 'living experience'],
             'find_property': ['find', 'search for', 'show me', 'looking for',
                              'need', 'want', 'locate', 'discover', 
                               'what apartments', 'what houses', 'what condos',  
                      'do you have', 'any properties', 'available properties'], 
-            'find_property_for_need': ['for family', 'for students', 'for professionals',
-                                      'for couple', 'for retirees', 'for business',
-                                      'for investors', 'for single', 'for workers'],
+            'find_property_for_need': ['for family', 'family of', 'big family',
+                                      'large family', 'for couple', 'for couples',
+                                      'for single', 'for workers'],
              'find_property_with_criteria': [
         'under', 'below', 'less than', 'maximum', 'up to',
         'with bedroom', 'with bath', 'with bathrooms',
@@ -162,7 +173,10 @@ class TeamNLUTrainer:
         'price range', 'budget', 'affordable', 'cheap'
     ],
             'match_needs': ['match my', 'suitable for', 'fitting my', 'appropriate for',
-                           'compatible with', 'what matches', 'recommendations for'],
+                           'compatible with', 'what matches', 'recommendations for',
+                           'for students', 'student housing', 'for professionals',
+                           'single professional', 'for retirees', 'doctor',
+                           'nurse', 'gym', 'active lifestyle'],
                 'buyer_signup': [
         'sign up', 'signup', 'register', 'create account', 'become buyer', 
         'join as buyer', 'create buyer', 'registration', 'new account',
@@ -220,9 +234,45 @@ class TeamNLUTrainer:
         'update profile', 'edit profile', 'change details', 'change name', 
         'update email', 'change phone', 'mag edit ng profile', 'baguhin ang pangalan'
     ],
-    'buyer_contact_support': [
-        'contact support', 'customer support', 'help email', 'report problem',
-        'support email', 'mag-email sa support', 'may problema sa account'
+    'buyer_guest_access': [
+        'guest', 'browse without login', 'guest mode', 'view without account',
+        'pwede ba mag browse kahit walang account', 'guest access', 'no account',
+        'browse as guest', 'can i browse without signing up', 'guest user'
+    ],
+    'buyer_kyc': [
+        'KYC', 'verify identity', 'what is KYC', 'how does KYC work', 'KYC verification',
+        'guest vs logged in', 'what can guest access', 'KYC requirements', 'identity verification',
+        'ano ang KYC', 'paano mag KYC', 'bakit kailangan KYC', 'pwede ba mag message kahit walang KYC'
+    ],
+    'buyer_chatbot_how': [
+        'how does the chatbot work', 'how does the AI work', 'what is this chatbot',
+        'what is the AI assistant', 'who is the AI assistant', 'what is BahAI assistant',
+        'how do I use the chatbot', 'what can the AI do', 'explain the chatbot',
+        'paano gumagana ang chatbot', 'ano ang ginagawa ng AI', 'paano gamitin ang chatbot',
+        'ano ang AI assistant'
+    ],
+    'buyer_dashboard_flow': [
+        'how does the buyer dashboard work', 'what is the buyer dashboard', 'explain buyer dashboard',
+        'what can I do on the dashboard', 'after login where do I go', 'what do I see when I log in',
+        'successfully logged in then what', 'where am I redirected after login',
+        'buyer interface', 'what pages do buyers have',
+        'paano gumagana ang buyer dashboard', 'ano ang buyer dashboard', 'anong pwedeng gawin sa dashboard',
+        'pagkatapos mag login saan ako mapupunta'
+    ],
+    'buyer_recommendations_how': [
+        'how do recommendations work', 'how are recommendations fetched', 'how do I get recommendations',
+        'what are AI recommendations', 'unlock recommendations', 'paano gumagana ang recommendations',
+        'bakit kailangan mag login para sa recommendations'
+    ],
+    'buyer_messages_how': [
+        'how do I message brokers', 'how do messages work', 'can I message without KYC',
+        'when can I send messages', 'contact broker', 'paano mag message sa broker',
+        'pwede ba mag message kahit walang KYC'
+    ],
+    'buyer_liked_saved_how': [
+        'how do I save properties', 'what are saved properties', 'liked properties',
+        'where are my saved properties', 'do I need to login to save', 'paano mag save ng property',
+        'kailangan ba mag login para mag save'
     ]
         }
         
@@ -1313,12 +1363,6 @@ def create_additional_training_file():
             {"text": "account settings", "intent": "buyer_account_settings"},
             {"text": "edit profile", "intent": "buyer_update_profile"},
             
-            # Contact support
-            {"text": "contact support", "intent": "buyer_contact_support"},
-            {"text": "help with my account", "intent": "buyer_contact_support"},
-            {"text": "customer service", "intent": "buyer_contact_support"},
-            {"text": "support email", "intent": "buyer_contact_support"},
-            
             # Logout
             {"text": "how to logout", "intent": "buyer_logout"},
             {"text": "sign out", "intent": "buyer_logout"},
@@ -1443,6 +1487,9 @@ def create_additional_training_file():
             # Ready property samples - more specific
             {"text": "ready to move in properties", "intent": "find_ready_property"},
             {"text": "available now properties", "intent": "find_ready_property"},
+            {"text": "ready to move in properties in batangas", "intent": "find_ready_property"},
+            {"text": "mga ready to move in na property", "intent": "find_ready_property"},
+            {"text": "pwede na lipatan na properties", "intent": "find_ready_property"},
             {"text": "immediate occupancy houses", "intent": "find_ready_property"},
             {"text": "move in ready condos", "intent": "find_ready_property"},
             {"text": "ready for occupancy apartments", "intent": "find_ready_property"},
@@ -1463,6 +1510,9 @@ def create_additional_training_file():
             # With feature samples
             {"text": "properties with swimming pool", "intent": "find_with_feature"},
             {"text": "houses with garden", "intent": "find_with_feature"},
+            {"text": "show me properties with amenities", "intent": "find_with_feature"},
+            {"text": "find properties with features", "intent": "find_with_feature"},
+            {"text": "mga property na may parking", "intent": "find_with_feature"},
             {"text": "apartments with parking", "intent": "find_with_feature"},
             {"text": "condos with security", "intent": "find_with_feature"},
             {"text": "properties with wifi", "intent": "find_with_feature"},
@@ -1482,6 +1532,9 @@ def create_additional_training_file():
             
             # More location info samples
             {"text": "tell me about lipa city", "intent": "location_info"},
+            {"text": "tell me about neighborhoods in lipa city", "intent": "location_info"},
+            {"text": "what neighborhood is good in batangas city", "intent": "location_info"},
+            {"text": "kamusta tumira sa batangas city neighborhood", "intent": "location_info"},
             {"text": "what is lipa city like", "intent": "location_info"},
             {"text": "describe tanauan city", "intent": "location_info"},
             {"text": "information about nasugbu", "intent": "location_info"},
@@ -1506,15 +1559,18 @@ def create_additional_training_file():
             # Property for need samples
             {"text": "properties for family needs in lipa", "intent": "find_property_for_need"},
             {"text": "houses for big family", "intent": "find_property_for_need"},
-            {"text": "apartments for students in batangas city", "intent": "find_property_for_need"},
-            {"text": "condos for professionals", "intent": "find_property_for_need"},
-            {"text": "properties for retirees", "intent": "find_property_for_need"},
+            {"text": "apartments for students in batangas city", "intent": "match_needs"},
+            {"text": "condos for professionals", "intent": "match_needs"},
+            {"text": "properties for retirees", "intent": "match_needs"},
             
             # Match needs samples
             {"text": "match properties to my budget", "intent": "match_needs"},
             {"text": "recommend properties for me", "intent": "match_needs"},
             {"text": "find suitable properties", "intent": "match_needs"},
             {"text": "what properties match my needs", "intent": "match_needs"},
+            {"text": "properties for students near schools", "intent": "match_needs"},
+            {"text": "i am a doctor, show properties near hospitals", "intent": "match_needs"},
+            {"text": "i like to gym, show properties near gym", "intent": "match_needs"},
             
             # Property with criteria samples
             {"text": "houses under 3M with 3 bedrooms", "intent": "find_property_with_criteria"},
@@ -1574,7 +1630,16 @@ def main():
                 "tell me about lipa city",
                 "available now apartments",
                 "houses for big family",
-                "condos near malls"
+                "condos near malls",
+                # buyer_guest_access
+                "can I browse without signing up",
+                "pwede ba mag browse kahit walang account",
+                "what can guest access",
+                # buyer_kyc
+                "what is KYC",
+                "how does KYC work",
+                "ano ang KYC",
+                "bakit kailangan KYC"
             ])
             
             # Also test with some general queries

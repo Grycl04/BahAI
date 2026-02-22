@@ -1240,7 +1240,17 @@
   "response_templates": {
     "find_property": "📍 **Found Properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location Highlights:** {location_description}\n**Average Price/Rent:** {average_price}",
     "financing": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
-    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}"
+    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhoods & Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}"
+  },
+  "response_templates_english": {
+    "find_property": "📍 **Found Properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location Highlights:** {location_description}\n**Average Price/Rent:** {average_price}",
+    "financing": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
+    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhoods & Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}"
+  },
+  "response_templates_tagalog": {
+    "find_property": "📍 **Mga Nahanap na Property sa {location}**\n\nMay nahanap akong {count} {property_type} na properties sa {location}. Narito ang mga available na options:\n\n{property_list}\n\n**Highlights ng Location:** {location_description}\n**Average na Presyo/Upa:** {average_price}",
+    "financing": "🏦 **Mga Property na Tumatanggap ng {financing_type}**\n\nMay nahanap akong {count} properties na tumatanggap ng {financing_type}. Narito ang ilang options:\n\n{property_list}\n\n**Mga Kailangang Dokumento:**\n{documents_list}\n\n**Pangunahing Requirements:**\n{requirements_list}",
+    "location_info": "📍 **Tungkol sa {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhood at Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average na Presyo ng Property:**\n{average_prices}\n\n**Ideal Para Kanino:** {ideal_for}\n\n**Mga Available na Uri ng Property:** {property_types}"
   },
   "location_profiles": {
     "Batangas City": {

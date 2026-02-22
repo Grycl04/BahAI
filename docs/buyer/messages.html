@@ -1582,7 +1582,7 @@ function debugLog(...args) {
   }
 }
 
-// Initialize on auth state change
+// Check KYC status when loading messages page
 onAuthStateChanged(auth, async (user) => {
   if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
   if (!user) {
@@ -1593,7 +1593,31 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   debugLog('👤 Buyer logged in:', user.uid, 'Email:', user.email);
   
-  // Initialize the page
+  // Check if user is KYC verified
+  try {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const kycStatus = userData.kycStatus || "not_submitted";
+      
+      if (kycStatus !== "approved") {
+        // Show KYC required message and redirect
+        alert('You need to complete KYC verification before accessing messages. Redirecting to KYC page.');
+        window.location.href = "buyer-kyc.html?required=true";
+        return;
+      }
+    } else {
+      window.location.href = "buyer-kyc.html?required=true";
+      return;
+    }
+  } catch (error) {
+    console.error("Error checking KYC:", error);
+    alert('Error verifying KYC status. Please try again.');
+    window.location.href = "buyer_dashboard.html";
+    return;
+  }
+  
+  // Initialize the page (only for verified users)
   initPage();
 });
 

@@ -3,6 +3,8 @@
     {
       "query": "hi",
       "intent": "greeting",
+      "response_template_english": "👋 Hello! I'm BahAI, your property assistant for Batangas. How can I help you today?",
+      "response_template_tagalog": "👋 Kumusta! Ako si BahAI, ang iyong property assistant para sa Batangas. Paano kita matutulungan ngayon?",
       "variations": [
         "hello",
         "hey",

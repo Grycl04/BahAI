@@ -285,22 +285,6 @@
       "intent": "buyer_update_profile"
     },
     {
-      "text": "contact support",
-      "intent": "buyer_contact_support"
-    },
-    {
-      "text": "help with my account",
-      "intent": "buyer_contact_support"
-    },
-    {
-      "text": "customer service",
-      "intent": "buyer_contact_support"
-    },
-    {
-      "text": "support email",
-      "intent": "buyer_contact_support"
-    },
-    {
       "text": "how to logout",
       "intent": "buyer_logout"
     },
@@ -669,6 +653,18 @@
       "intent": "find_ready_property"
     },
     {
+      "text": "ready to move in properties in batangas",
+      "intent": "find_ready_property"
+    },
+    {
+      "text": "mga ready to move in na property",
+      "intent": "find_ready_property"
+    },
+    {
+      "text": "pwede na lipatan na properties",
+      "intent": "find_ready_property"
+    },
+    {
       "text": "immediate occupancy houses",
       "intent": "find_ready_property"
     },
@@ -733,6 +729,18 @@
       "intent": "find_with_feature"
     },
     {
+      "text": "show me properties with amenities",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "find properties with features",
+      "intent": "find_with_feature"
+    },
+    {
+      "text": "mga property na may parking",
+      "intent": "find_with_feature"
+    },
+    {
       "text": "apartments with parking",
       "intent": "find_with_feature"
     },
@@ -790,6 +798,18 @@
     },
     {
       "text": "tell me about lipa city",
+      "intent": "location_info"
+    },
+    {
+      "text": "tell me about neighborhoods in lipa city",
+      "intent": "location_info"
+    },
+    {
+      "text": "what neighborhood is good in batangas city",
+      "intent": "location_info"
+    },
+    {
+      "text": "kamusta tumira sa batangas city neighborhood",
       "intent": "location_info"
     },
     {

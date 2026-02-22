@@ -680,6 +680,155 @@ let isUserAuthenticated = false;
 let currentConversationId = null;
 let messageListener = null;
 
+// ========== KYC CHECK FUNCTIONS (ADDED) ==========
+
+// Check if user can message based on KYC status
+async function canUserMessage() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return false;
+    
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (!userDoc.exists()) return false;
+        
+        const userData = userDoc.data();
+        const kycStatus = userData.kycStatus || "not_submitted";
+        
+        // Only approved buyers can message
+        return kycStatus === "approved";
+    } catch (error) {
+        console.error("Error checking KYC status:", error);
+        return false;
+    }
+}
+
+// Show KYC required modal
+function showKYCRequiredModal() {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('kycRequiredModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'kycRequiredModal';
+        modal.className = 'message-modal';
+        modal.innerHTML = `
+            <div class="message-modal-content" style="max-width: 500px; text-align: center;">
+                <div class="message-header" style="background: var(--primary);">
+                    <h2 style="color: white;">KYC Verification Required</h2>
+                    <button class="message-close" id="closeKYCModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div style="padding: 30px;">
+                    <div style="font-size: 64px; margin-bottom: 20px; color: var(--accent);">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    
+                    <h3 style="margin-bottom: 15px; color: var(--text-dark);">
+                        Verify Your Identity to Message Providers
+                    </h3>
+                    
+                    <p style="color: var(--text-light); margin-bottom: 25px; line-height: 1.6;">
+                        To ensure a safe and trustworthy community, buyers need to complete 
+                        KYC (Know Your Customer) verification before messaging property owners or brokers.
+                    </p>
+                    
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: var(--border-radius); margin-bottom: 25px; text-align: left;">
+                        <h4 style="margin-bottom: 15px; color: var(--primary);">Benefits of Verification:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Message property owners and brokers directly
+                            </li>
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Schedule property viewings
+                            </li>
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Make formal offers on properties
+                            </li>
+                            <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                Build trust with sellers
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <a href="buyer-kyc.html" class="search-button" style="min-width: 150px;">
+                            <i class="fas fa-id-card"></i> Verify Now
+                        </a>
+                        <button class="reset-button" id="closeKYCModalBtn" style="min-width: 150px;">
+                            <i class="fas fa-times"></i> Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add close handlers
+        document.getElementById('closeKYCModal').addEventListener('click', () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        });
+        
+        document.getElementById('closeKYCModalBtn').addEventListener('click', () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        });
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+// Handle contact button clicks with KYC check (NEW FUNCTION)
+window.handleContactClick = async function(userId, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        window.location.href = '../login.html';
+        return;
+    }
+    
+    // Check KYC status
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const kycStatus = userData.kycStatus || "not_submitted";
+            
+            if (kycStatus !== "approved") {
+                showKYCRequiredModal();
+                return;
+            }
+        } else {
+            showKYCRequiredModal();
+            return;
+        }
+    } catch (error) {
+        console.error("Error checking KYC:", error);
+        showKYCRequiredModal();
+        return;
+    }
+    
+    // If verified, proceed with contacting
+    window.contactBroker(userId);
+};
+
+// ========== END OF KYC CHECK FUNCTIONS ==========
+
 // ================================ BATANGAS PROPERTY CATEGORIES =============================
 // UPDATED TO MATCH EXACTLY FROM BUYER DASHBOARD
 const BATANGAS_PROPERTY_CATEGORIES = [
@@ -1522,6 +1671,9 @@ function updateActiveFiltersDisplay() {
         
         Object.entries(searchFilters).forEach(([key, value]) => {
             if (value) {
+                // Internal/system filters from chatbot should not show as raw chips
+                if (key === 'propertyIds' || key === 'source') return;
+                if (key === 'searchTerm' && searchFilters.source === 'chatbot') return;
                 const filterTag = document.createElement('div');
                 filterTag.className = 'filter-tag';
                 filterTag.style.cssText = `
@@ -1855,6 +2007,12 @@ function displayFilteredListings() {
 
     // Apply filters if any
     if (Object.keys(searchFilters).length > 0) {
+        // If coming from chatbot, first constrain to chatbot-provided property IDs
+        if (Array.isArray(searchFilters.propertyIds) && searchFilters.propertyIds.length > 0) {
+            const allowedIds = new Set(searchFilters.propertyIds.map(String));
+            filtered = filtered.filter(listing => allowedIds.has(String(listing.id)));
+        }
+
         // Apply location filter
         if (searchFilters.location) {
             filtered = filtered.filter(listing =>
@@ -1947,7 +2105,14 @@ function displayFilteredListings() {
         }
         
         // Apply name/keyword filter
-        if (searchFilters.searchTerm) {
+            // For chatbot-driven deep links, searchTerm is context text only.
+            // Do not re-apply keyword filtering on top of explicit propertyIds.
+            const shouldApplyKeywordFilter = searchFilters.searchTerm &&
+                !(searchFilters.source === 'chatbot' &&
+                  Array.isArray(searchFilters.propertyIds) &&
+                  searchFilters.propertyIds.length > 0);
+
+            if (shouldApplyKeywordFilter) {
             const searchTerm = searchFilters.searchTerm.toLowerCase().trim();
             filtered = filtered.filter(listing =>
                 (listing.title || "").toLowerCase().includes(searchTerm) ||
@@ -1972,7 +2137,12 @@ function displayFilteredListings() {
         if (searchFilters.transactionType) filterParts.push(`Type: ${searchFilters.transactionType}`);
         if (searchFilters.propertyCategory) filterParts.push(`Category: ${searchFilters.propertyCategory}`);
         if (searchFilters.propertyType) filterParts.push(`Property: ${searchFilters.propertyType}`);
-        if (searchFilters.searchTerm) filterParts.push(`Keyword: "${searchFilters.searchTerm}"`);
+        if (searchFilters.searchTerm && searchFilters.source !== 'chatbot') {
+            filterParts.push(`Keyword: "${searchFilters.searchTerm}"`);
+        }
+        if (Array.isArray(searchFilters.propertyIds) && searchFilters.propertyIds.length > 0) {
+            filterParts.push(`Source: Chatbot`);
+        }
 
         if (filterParts.length > 0) {
             summaryText += ` matching ${filterParts.join(', ')}`;
@@ -2160,6 +2330,7 @@ async function displayListings(listings) {
                             <button class="action-btn contact-btn" 
                                     data-user-id="${listing.userId}"
                                     data-user-name="${userInfo.displayName}"
+                                    onclick="handleContactClick('${listing.userId}', event)"
                                     aria-label="Contact ${userInfo.role === 'landlord' ? 'owner' : 'broker'}">
                                 <span class="contact-icon">📞</span>
                                 Contact ${userInfo.role === 'landlord' ? 'Owner' : 'Broker'}
@@ -2201,7 +2372,9 @@ function setupListingEventListeners() {
     });
 
     // Contact buttons - prevent card click when clicking contact button
-    document.querySelectorAll('.action-btn.contact-btn').forEach(btn => {
+    // Note: We're using onclick="handleContactClick" in the HTML, so no need for additional listeners here
+    // But we'll keep this for any dynamically added buttons
+    document.querySelectorAll('.action-btn.contact-btn:not([onclick])').forEach(btn => {
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
         

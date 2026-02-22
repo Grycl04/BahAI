@@ -9,7 +9,7 @@
   "training_samples": [
     {
       "query": "find properties for family of 4 in batangas city",
-      "intent": "find_property_for_need",
+      "intent": "match_needs",
       "entities": {
         "need": "family",
         "family_size": 4,
@@ -57,7 +57,7 @@
     },
     {
       "query": "spacious house for big family in lipa city",
-      "intent": "find_property_for_need",
+      "intent": "match_needs",
       "entities": {
         "need": "family",
         "space_requirement": "spacious",
@@ -405,7 +405,7 @@
     },
     {
       "query": "properties for students in batangas city",
-      "intent": "find_property_for_need",
+      "intent": "match_needs",
       "entities": {
         "need": "students",
         "location": "Batangas City"
@@ -431,7 +431,7 @@
         "find apartment for students in batangas",
         "student-ready properties in batangas"
       ],
-      "response_template": "Properties for {need} in {location}. Look for affordable options near educational institutions.",
+      "response_template": "Properties matching {need} lifestyle in {location}. Look for affordable options near educational institutions.",
       "student_features": [
         "Affordable pricing",
         "Near schools/universities",
@@ -443,7 +443,7 @@
     },
     {
       "query": "properties for professionals in lipa city",
-      "intent": "find_property_for_need",
+      "intent": "match_needs",
       "entities": {
         "need": "professionals",
         "location": "Lipa City"
@@ -469,7 +469,7 @@
         "find apartment for professionals in lipa",
         "professional-ready properties in lipa"
       ],
-      "response_template": "Properties for {need} in {location}. Look for convenient locations and modern amenities.",
+      "response_template": "Properties matching {need} lifestyle in {location}. Look for convenient locations and modern amenities.",
       "professional_features": [
         "Modern design",
         "Convenient location",
@@ -1523,16 +1523,28 @@
     "process_info": "📋 For {property_type}: • Steps: {steps} • Costs: {costs} • Timeline: {timeline}",
     "match_needs": "🎯 Properties matching your {need}: {property_list}. Lifestyle considerations: {lifestyle_notes}"
   },
+  "response_templates_english": {
+    "find_property_for_need": "🏠 Properties for {need} in {location}: {property_list}. Recommended: {bedroom_recommendations}",
+    "find_with_feature": "✅ Properties with {feature} at {price_quality}: {property_list}",
+    "process_info": "📋 For {property_type}: • Steps: {steps} • Costs: {costs} • Timeline: {timeline}",
+    "match_needs": "🎯 Properties matching your {need}: {property_list}. Lifestyle considerations: {lifestyle_notes}"
+  },
+  "response_templates_tagalog": {
+    "find_property_for_need": "🏠 Mga property para sa {need} sa {location}: {property_list}. Recommended: {bedroom_recommendations}",
+    "find_with_feature": "✅ Mga property na may {feature} sa presyong {price_quality}: {property_list}",
+    "process_info": "📋 Para sa {property_type}: • Steps: {steps} • Costs: {costs} • Timeline: {timeline}",
+    "match_needs": "🎯 Mga property na tumutugma sa {need} mo: {property_list}. Lifestyle considerations: {lifestyle_notes}"
+  },
   "metadata": {
     "total_samples": 34,
     "intent_distribution": {
-      "find_property_for_need": 10,
+      "find_property_for_need": 8,
       "find_with_feature": 8,
       "process_info": 8,
-      "match_needs": 8
+      "match_needs": 10
     },
     "created_date": "2024-01-22",
     "version": "3.2",
-    "training_notes": "Updated training data for member3 with focus on Question 3: Family/size/space needs. Added critical variations with 'find' + 'for family' + location patterns to fix classification issues. Enhanced family size, bedroom recommendations, and space requirements."
+    "training_notes": "Updated training data for member3 with strict intent split: Question 3 handles family/space-count needs, while lifestyle and profession-based queries (students, professionals, retirees) route to Question 10 match_needs."
   }
 }

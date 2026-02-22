@@ -538,6 +538,16 @@
     "find_near_landmark": "📍 Properties near that location: {property_list}",
     "find_ready_property": "✅ Ready to move in properties: {property_list}"
   },
+  "response_templates_english": {
+    "find_property_with_criteria": "Here are properties matching your criteria: {property_list}",
+    "find_near_landmark": "📍 Properties near that location: {property_list}",
+    "find_ready_property": "✅ Ready to move in properties: {property_list}"
+  },
+  "response_templates_tagalog": {
+    "find_property_with_criteria": "Narito ang mga property na tumutugma sa criteria mo: {property_list}",
+    "find_near_landmark": "📍 Mga property na malapit sa location na iyan: {property_list}",
+    "find_ready_property": "✅ Mga ready-to-move-in na property: {property_list}"
+  },
   "metadata": {
     "total_samples": 50,
     "intent_distribution": {
