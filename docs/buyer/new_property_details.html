@@ -735,6 +735,7 @@ async function handleContactClick(contactId, propertyId) {
 
 // Google Maps API Key
 const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+const CHATBOT_BACKEND_URL = "https://bahai.onrender.com";
 
 const labels = {
   propertyCategory: { residential: "Residential", commercial: "Commercial", land: "Land", condo: "Condominium", special: "Special Purpose" },
@@ -908,16 +909,69 @@ function initPropertyMap(lat, lng, title) {
       fullscreenControl: true
     });
 
-    // Add marker
+    // Property marker
     new google.maps.Marker({
       position: { lat: latitude, lng: longitude },
       map: map,
       title: title || "Property Location",
       animation: google.maps.Animation.DROP
     });
+
+    // Add nearest amenity markers (proof for "near schools/hospitals/etc.")
+    loadNearbyLandmarkProof(map, latitude, longitude);
   } catch (error) {
     console.error("Error initializing map:", error);
     showMapPlaceholder(lat, lng);
+  }
+}
+
+function getLandmarkMarkerIcon(category) {
+  const icons = {
+    school: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    hospital: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    mall: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
+    beach: "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+    church: "http://maps.google.com/mapfiles/ms/icons/purple-dot.png",
+    port: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png"
+  };
+  return icons[category] || "http://maps.google.com/mapfiles/ms/icons/ltblue-dot.png";
+}
+
+async function loadNearbyLandmarkProof(map, latitude, longitude) {
+  const proofEl = document.getElementById("nearbyProof");
+  try {
+    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=5`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
+      if (proofEl) proofEl.innerHTML = "<em>No nearby amenity proof available.</em>";
+      return;
+    }
+
+    const infoWindow = new google.maps.InfoWindow();
+    data.results.forEach((item) => {
+      const marker = new google.maps.Marker({
+        position: { lat: item.lat, lng: item.lng },
+        map,
+        icon: getLandmarkMarkerIcon(item.category),
+        title: `${item.name} (${item.distance_km} km)`
+      });
+      marker.addListener("click", () => {
+        infoWindow.setContent(
+          `<strong>${item.name}</strong><br/>Category: ${item.category}<br/>Distance: ${item.distance_km} km`
+        );
+        infoWindow.open(map, marker);
+      });
+    });
+
+    if (proofEl) {
+      proofEl.innerHTML = data.results
+        .map(item => `<div>• <strong>${item.name}</strong> (${item.category}) - ${item.distance_km} km</div>`)
+        .join("");
+    }
+  } catch (error) {
+    console.warn("Could not load nearby landmark proof:", error);
+    if (proofEl) proofEl.innerHTML = "<em>Unable to load nearby amenity proof.</em>";
   }
 }
 
@@ -1534,6 +1588,9 @@ function renderProperty() {
         <h3 class="card-title"><i class="fas fa-map-marked-alt"></i> Property Location</h3>
         <div class="map-container">
           <div id="propertyMap"></div>
+        </div>
+        <div id="nearbyProof" style="margin-top:10px;font-size:12px;color:var(--text-light);line-height:1.5;">
+          <em>Loading nearest amenities...</em>
         </div>
         <div style="margin-top: 12px; font-size: 12px; color: var(--text-light); display: flex; justify-content: space-between;">
           <span>Coordinates: ${parseFloat(l.latitude).toFixed(6)}, ${parseFloat(l.longitude).toFixed(6)}</span>

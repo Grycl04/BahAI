@@ -1552,6 +1552,59 @@ def _landmark_matches_property(
     return False
 
 
+def _resolve_landmark_category(landmark_query: str, landmarks_data: Dict[str, Any]) -> Optional[str]:
+    """Resolve free-text landmark query to a configured landmark category."""
+    if not landmark_query or not landmarks_data:
+        return None
+    q = str(landmark_query).lower().strip()
+    query_to_cat = landmarks_data.get('query_to_category', {})
+    return query_to_cat.get(q) or query_to_cat.get(q.rstrip('s'))
+
+
+def _get_nearest_landmark(
+    property_data: Dict[str, Any],
+    category: str,
+    landmarks_data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """Return nearest configured landmark point for a property and category."""
+    if not category or not landmarks_data:
+        return None
+
+    categories = landmarks_data.get('categories', {})
+    cat_data = categories.get(category, {})
+    points = cat_data.get('points', [])
+    if not points:
+        return None
+
+    try:
+        prop_lat = float(property_data.get('latitude'))
+        prop_lng = float(property_data.get('longitude'))
+    except (TypeError, ValueError):
+        return None
+
+    nearest = None
+    nearest_dist = None
+    for pt in points:
+        pt_lat = pt.get('lat')
+        pt_lng = pt.get('lng')
+        if pt_lat is None or pt_lng is None:
+            continue
+        dist_km = _haversine_km(prop_lat, prop_lng, float(pt_lat), float(pt_lng))
+        if nearest_dist is None or dist_km < nearest_dist:
+            nearest_dist = dist_km
+            nearest = pt
+
+    if nearest is None or nearest_dist is None:
+        return None
+
+    return {
+        'category': category,
+        'name': nearest.get('name', f'Nearest {category}'),
+        'city': nearest.get('city', ''),
+        'distance_km': round(float(nearest_dist), 2),
+    }
+
+
 # Firestore queries - UPDATED WITH SPECIFIC BANK AND PAG-IBIG FILTERING
 def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search properties in Firestore based on entities"""
@@ -1833,7 +1886,10 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         
         # ========== COMPREHENSIVE CLIENT-SIDE FILTERING ==========
         filtered_properties = []
-        landmarks_data = _load_landmarks_data() if entities.get('landmark') else {}
+        need_type = (entities.get('need_type') or '').lower()
+        landmark_focus = entities.get('lifestyle_focus_landmark') or entities.get('landmark')
+        landmarks_data = _load_landmarks_data() if landmark_focus else {}
+        focus_category = _resolve_landmark_category(landmark_focus, landmarks_data)
 
         for property_data in property_data_list:
             matches = True
@@ -2014,6 +2070,19 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     matches = False
                     logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - {bedrooms} bedrooms not ideal for couples")
 
+            # Apply student-lifestyle filtering: keep only student-suitable types
+            if need_type == 'students' and matches:
+                prop_type = str(property_data.get('propertyType', '')).lower()
+                student_friendly_types = ['boarding_house', 'apartment', 'condo_unit', 'condominium', 'room', 'studio']
+                # Explicitly exclude commercial/industrial options for student queries
+                blocked_types = ['commercial', 'warehouse', 'office', 'retail', 'industrial', 'farm', 'land']
+                is_blocked = any(bt in prop_type for bt in blocked_types)
+                type_ok = any(t in prop_type for t in student_friendly_types)
+                if is_blocked or not type_ok:
+                    matches = False
+                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not student-suitable type: {prop_type}")
+                    continue
+
             # Apply single-professional style filtering (room/studio/1BR/2BR max)
             if (entities.get('need_type') == 'single' or 'single professional' in str(entities.get('lifestyle', '')).lower()) and matches:
                 prop_type = str(property_data.get('propertyType', '')).lower()
@@ -2083,6 +2152,19 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             if matches:
                 # Standardize property data for chatbot response
                 standardized_property = standardize_property_data(property_data_with_price)
+                # Add nearest-landmark evidence to support "near X" recommendations
+                if landmarks_data:
+                    nearest_focus = _get_nearest_landmark(property_data, focus_category, landmarks_data) if focus_category else None
+                    if nearest_focus:
+                        standardized_property['nearest_landmark'] = nearest_focus
+
+                    nearby_landmarks = []
+                    for category in ['school', 'hospital', 'mall']:
+                        nearest_item = _get_nearest_landmark(property_data, category, landmarks_data)
+                        if nearest_item:
+                            nearby_landmarks.append(nearest_item)
+                    if nearby_landmarks:
+                        standardized_property['nearby_landmarks'] = nearby_landmarks
                 filtered_properties.append(standardized_property)
         
         # Update properties with client-side filtered results
@@ -2110,6 +2192,35 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         
         properties = unique_properties
         logger.info(f"🔍 After deduplication: {len(properties)} unique properties")
+
+        # Lifestyle-aware ranking so top results are practical for the user's need.
+        if properties:
+            def _rank_property(prop: Dict[str, Any]) -> float:
+                score = 0.0
+                ptype = str(prop.get('type', '')).lower()
+                beds = get_bedroom_count_from_string(prop.get('bedrooms', ''))
+                price_numeric = float(prop.get('price_numeric') or 0)
+
+                if need_type == 'students':
+                    if any(t in ptype for t in ['boarding_house', 'apartment', 'room', 'studio']):
+                        score += 30
+                    elif 'condo' in ptype:
+                        score += 22
+                    if beds <= 2:
+                        score += 15
+                    if 0 < price_numeric <= 20000:
+                        score += 12
+                    elif 0 < price_numeric <= 40000:
+                        score += 5
+
+                nearest_focus = prop.get('nearest_landmark') or {}
+                dist = nearest_focus.get('distance_km')
+                if isinstance(dist, (int, float)):
+                    # closer landmark -> higher score
+                    score += max(0, 20 - min(float(dist), 20))
+                return score
+
+            properties = sorted(properties, key=_rank_property, reverse=True)
         
     except Exception as e:
         logger.error(f"❌ Error searching Firestore: {e}")
@@ -3607,6 +3718,53 @@ def generate_match_needs_response(entities: Dict[str, Any], properties: List[Dic
     return response
 
 # API ENDPOINTS
+@app.route('/api/nearby_landmarks', methods=['GET'])
+def nearby_landmarks():
+    """Return nearest landmarks (school/hospital/mall/etc.) for map proof in property details."""
+    try:
+        lat = request.args.get('lat', type=float)
+        lng = request.args.get('lng', type=float)
+        category_filter = (request.args.get('category', 'all') or 'all').lower().strip()
+        limit = request.args.get('limit', default=3, type=int)
+        limit = max(1, min(limit, 8))
+
+        if lat is None or lng is None:
+            return jsonify({'success': False, 'error': 'lat and lng are required'}), 400
+
+        landmarks_data = _load_landmarks_data()
+        categories = landmarks_data.get('categories', {})
+        if not categories:
+            return jsonify({'success': True, 'results': []})
+
+        if category_filter != 'all' and category_filter not in categories:
+            return jsonify({'success': False, 'error': f"unknown category '{category_filter}'"}), 400
+
+        categories_to_scan = [category_filter] if category_filter != 'all' else list(categories.keys())
+        results = []
+        for category in categories_to_scan:
+            points = categories.get(category, {}).get('points', [])
+            for pt in points:
+                pt_lat = pt.get('lat')
+                pt_lng = pt.get('lng')
+                if pt_lat is None or pt_lng is None:
+                    continue
+                dist_km = _haversine_km(float(lat), float(lng), float(pt_lat), float(pt_lng))
+                results.append({
+                    'category': category,
+                    'name': pt.get('name', f'{category.title()} point'),
+                    'city': pt.get('city', ''),
+                    'lat': float(pt_lat),
+                    'lng': float(pt_lng),
+                    'distance_km': round(float(dist_km), 2)
+                })
+
+        results.sort(key=lambda x: x['distance_km'])
+        return jsonify({'success': True, 'results': results[:limit]})
+    except Exception as e:
+        logger.error(f"❌ Error in /api/nearby_landmarks: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """Main chatbot endpoint"""
