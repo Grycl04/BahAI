@@ -312,7 +312,7 @@ export async function processChatMessage(userMessage) {
             // Call backend with environment-specific timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 
-                backendUrl.includes('localhost') ? 10000 : 25000);
+                backendUrl.includes('localhost') ? 60000 : 45000);
             
             console.log("🌐 Attempting to connect to:", backendUrl);
             
@@ -366,7 +366,7 @@ export async function processChatMessage(userMessage) {
             
             try {
                 const alternativeController = new AbortController();
-                const alternativeTimeout = setTimeout(() => alternativeController.abort(), 15000);
+                const alternativeTimeout = setTimeout(() => alternativeController.abort(), 30000);
                 
                 const fallbackResponse = await fetch(alternativeUrl, {
                     method: 'POST',

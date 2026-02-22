@@ -733,9 +733,12 @@ async function handleContactClick(contactId, propertyId) {
 
 // ========== END OF KYC CHECK FUNCTIONS ==========
 
-// Google Maps API Key
-const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+// Runtime map config loaded from backend
+let GOOGLE_MAPS_API_KEY = "";
+// Temporary fallback so map still works if /api/public-config is unavailable.
+const LEGACY_GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 const CHATBOT_BACKEND_URL = "https://bahai.onrender.com";
+let runtimeConfigLoaded = false;
 
 const labels = {
   propertyCategory: { residential: "Residential", commercial: "Commercial", land: "Land", condo: "Condominium", special: "Special Purpose" },
@@ -861,15 +864,45 @@ async function loadProperty() {
 }
 
 // Google Maps Functions from old code
+async function loadRuntimePublicConfig() {
+  if (runtimeConfigLoaded) return;
+  try {
+    const response = await fetch(`${CHATBOT_BACKEND_URL}/api/public-config`);
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    if (!response.ok || !contentType.includes("application/json")) {
+      throw new Error(`public-config unavailable (status ${response.status}, content-type: ${contentType || "unknown"})`);
+    }
+    const data = await response.json();
+    if (data && data.success && data.google_maps_api_key) {
+      GOOGLE_MAPS_API_KEY = (data.google_maps_api_key || "").trim();
+    }
+  } catch (error) {
+    console.warn("Could not load public runtime config from backend:", error);
+    GOOGLE_MAPS_API_KEY = LEGACY_GOOGLE_MAPS_API_KEY;
+  } finally {
+    if (!GOOGLE_MAPS_API_KEY) {
+      GOOGLE_MAPS_API_KEY = LEGACY_GOOGLE_MAPS_API_KEY;
+    }
+    runtimeConfigLoaded = true;
+  }
+}
+
 async function loadGoogleMapsAPI() {
+  await loadRuntimePublicConfig();
+
   return new Promise((resolve, reject) => {
     if (window.google && window.google.maps) {
       resolve();
       return;
     }
 
+    if (!GOOGLE_MAPS_API_KEY) {
+      reject(new Error("Google Maps key is not configured. Set GOOGLE_MAPS_API_KEY in backend env."));
+      return;
+    }
+
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => {
@@ -927,20 +960,36 @@ function initPropertyMap(lat, lng, title) {
 
 function getLandmarkMarkerIcon(category) {
   const icons = {
-    school: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-    hospital: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-    mall: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
-    beach: "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
-    church: "http://maps.google.com/mapfiles/ms/icons/purple-dot.png",
-    port: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png"
+    school: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    hospital: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    mall: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+    gym: "https://maps.google.com/mapfiles/ms/icons/pink-dot.png",
+    park: "https://maps.google.com/mapfiles/ms/icons/ltblue-dot.png",
+    beach: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+    church: "https://maps.google.com/mapfiles/ms/icons/purple-dot.png",
+    port: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
   };
-  return icons[category] || "http://maps.google.com/mapfiles/ms/icons/ltblue-dot.png";
+  return icons[category] || "https://maps.google.com/mapfiles/ms/icons/ltblue-dot.png";
+}
+
+function formatLandmarkCategory(category) {
+  const labels = {
+    school: "School",
+    hospital: "Hospital",
+    mall: "Mall",
+    gym: "Gym",
+    park: "Park",
+    beach: "Beach",
+    church: "Church",
+    port: "Port"
+  };
+  return labels[category] || (category || "Amenity");
 }
 
 async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
-    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=5`;
+    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=5&max_distance_km=5`;
     const response = await fetch(url);
     const data = await response.json();
     if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
@@ -958,7 +1007,7 @@ async function loadNearbyLandmarkProof(map, latitude, longitude) {
       });
       marker.addListener("click", () => {
         infoWindow.setContent(
-          `<strong>${item.name}</strong><br/>Category: ${item.category}<br/>Distance: ${item.distance_km} km`
+          `<strong>${item.name}</strong><br/>Category: ${formatLandmarkCategory(item.category)}<br/>Distance: ${item.distance_km} km`
         );
         infoWindow.open(map, marker);
       });
@@ -966,7 +1015,7 @@ async function loadNearbyLandmarkProof(map, latitude, longitude) {
 
     if (proofEl) {
       proofEl.innerHTML = data.results
-        .map(item => `<div>• <strong>${item.name}</strong> (${item.category}) - ${item.distance_km} km</div>`)
+        .map(item => `<div>• <strong>${item.name}</strong> (${formatLandmarkCategory(item.category)}) - ${item.distance_km} km</div>`)
         .join("");
     }
   } catch (error) {

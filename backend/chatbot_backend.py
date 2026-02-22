@@ -19,8 +19,11 @@ import random
 import sys
 import hashlib
 from collections import defaultdict
+import requests
+import time
 
-load_dotenv('.env.local') 
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BACKEND_DIR, '.env.local'))
 # Debug: Check if env var is loaded
 print("\n" + "="*60)
 print("🔍 ENVIRONMENT VARIABLE CHECK")
@@ -76,6 +79,14 @@ MEMBER4_GENERAL_PATHS = [
     _resolve_data_path('member4_general', 'goodbye.json'),
     _resolve_data_path('member4_general', 'about_system.json'),
 ]
+
+# Frontend map key (public by design, should be HTTP-referrer restricted in Google Cloud).
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '').strip()
+# Nearby Places key: fallback to maps key so one key can work if Places is enabled.
+GOOGLE_PLACES_API_KEY = os.getenv('GOOGLE_PLACES_API_KEY', GOOGLE_MAPS_API_KEY).strip()
+GOOGLE_PLACES_NEARBY_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+_PLACES_CACHE: Dict[str, Dict[str, Any]] = {}
+_PLACES_CACHE_TTL_SECONDS = 300
 
 # Global variables
 vectorizer = None
@@ -1512,19 +1523,21 @@ def _landmark_matches_property(
     True if property is considered 'near' the landmark.
     Uses (1) description/address text match, or (2) map distance when property has lat/lng.
     """
-    if not landmarks_data or not landmark_query:
+    if not landmark_query:
         return True
     q = landmark_query.lower().strip()
-    categories = landmarks_data.get('categories', {})
-    query_to_cat = landmarks_data.get('query_to_category', {})
-    radius_km = float(landmarks_data.get('radius_km', radius_km))
+    categories = (landmarks_data or {}).get('categories', {})
+    query_to_cat = (landmarks_data or {}).get('query_to_category', {})
+    radius_km = float((landmarks_data or {}).get('radius_km', radius_km))
 
     category = query_to_cat.get(q) or query_to_cat.get(q.rstrip('s'))
-    if not category or category not in categories:
+    if not category:
+        category = _resolve_landmark_category(q, landmarks_data)
+    if not category:
         desc = (property_data.get('description') or '') + ' ' + (property_data.get('address') or '')
         return q in desc.lower()
 
-    cat_data = categories[category]
+    cat_data = categories.get(category, {})
     keywords = cat_data.get('keywords_for_description', [])
     desc = (property_data.get('description') or '').lower()
     address = (property_data.get('address') or '').lower()
@@ -1545,6 +1558,18 @@ def _landmark_matches_property(
     except (TypeError, ValueError):
         return False
 
+    # Live map-based check using Google Places
+    live_matches = _fetch_live_nearby_places(
+        lat=prop_lat,
+        lng=prop_lng,
+        category=category,
+        radius_m=int(radius_km * 1000),
+        limit=1
+    )
+    if live_matches:
+        return True
+
+    # Static fallback using curated landmark points
     points = cat_data.get('points', [])
     for pt in points:
         pt_lat = pt.get('lat')
@@ -1559,11 +1584,115 @@ def _landmark_matches_property(
 
 def _resolve_landmark_category(landmark_query: str, landmarks_data: Dict[str, Any]) -> Optional[str]:
     """Resolve free-text landmark query to a configured landmark category."""
-    if not landmark_query or not landmarks_data:
+    if not landmark_query:
         return None
     q = str(landmark_query).lower().strip()
-    query_to_cat = landmarks_data.get('query_to_category', {})
-    return query_to_cat.get(q) or query_to_cat.get(q.rstrip('s'))
+    query_to_cat = (landmarks_data or {}).get('query_to_category', {})
+    category = query_to_cat.get(q) or query_to_cat.get(q.rstrip('s'))
+    if category:
+        return category
+
+    # Fallback mapping for categories not present in static dataset
+    if any(term in q for term in ['school', 'university', 'college', 'campus']):
+        return 'school'
+    if any(term in q for term in ['hospital', 'clinic', 'medical']):
+        return 'hospital'
+    if any(term in q for term in ['mall', 'shopping']):
+        return 'mall'
+    if any(term in q for term in ['gym', 'fitness']):
+        return 'gym'
+    if any(term in q for term in ['park', 'playground']):
+        return 'park'
+    if any(term in q for term in ['church', 'chapel', 'cathedral']):
+        return 'church'
+    if any(term in q for term in ['beach', 'coast', 'shore']):
+        return 'beach'
+    if any(term in q for term in ['port', 'pier']):
+        return 'port'
+    return None
+
+
+def _fetch_live_nearby_places(
+    lat: float,
+    lng: float,
+    category: str,
+    radius_m: int = 5000,
+    limit: int = 5
+) -> List[Dict[str, Any]]:
+    """Fetch nearby places using Google Places Nearby Search (live), with cache."""
+    if not GOOGLE_PLACES_API_KEY:
+        return []
+
+    category = (category or '').strip().lower()
+    if not category:
+        return []
+
+    place_type_map = {
+        'school': ['school', 'university'],
+        'hospital': ['hospital'],
+        'mall': ['shopping_mall'],
+        'gym': ['gym'],
+        'park': ['park'],
+        'church': ['church'],
+        'beach': ['tourist_attraction'],
+        'port': ['transit_station'],
+    }
+    requested_types = place_type_map.get(category, [category])
+    radius_m = max(500, min(int(radius_m), 10000))
+    limit = max(1, min(int(limit), 10))
+
+    rounded_lat = round(float(lat), 4)
+    rounded_lng = round(float(lng), 4)
+    # Cache independently from requested limit so repeated calls can reuse the same payload.
+    cache_key = f"{rounded_lat}:{rounded_lng}:{category}:{radius_m}"
+    cache_hit = _PLACES_CACHE.get(cache_key)
+    now = time.time()
+    if cache_hit and now - cache_hit.get('ts', 0) < _PLACES_CACHE_TTL_SECONDS:
+        return cache_hit.get('results', [])[:limit]
+
+    merged = []
+    seen = set()
+    for place_type in requested_types:
+        try:
+            params = {
+                'key': GOOGLE_PLACES_API_KEY,
+                'location': f"{lat},{lng}",
+                'radius': radius_m,
+                'type': place_type,
+            }
+            resp = requests.get(GOOGLE_PLACES_NEARBY_URL, params=params, timeout=6)
+            if resp.status_code != 200:
+                continue
+            payload = resp.json()
+            for item in payload.get('results', []):
+                geom = item.get('geometry', {}).get('location', {})
+                p_lat = geom.get('lat')
+                p_lng = geom.get('lng')
+                if p_lat is None or p_lng is None:
+                    continue
+                dist_km = _haversine_km(float(lat), float(lng), float(p_lat), float(p_lng))
+                entry = {
+                    'category': category,
+                    'name': item.get('name', f'Nearby {category}'),
+                    'vicinity': item.get('vicinity', ''),
+                    'place_id': item.get('place_id', ''),
+                    'lat': float(p_lat),
+                    'lng': float(p_lng),
+                    'distance_km': round(float(dist_km), 2),
+                }
+                dedupe_key = (entry['name'].lower(), entry['lat'], entry['lng'])
+                if dedupe_key in seen:
+                    continue
+                seen.add(dedupe_key)
+                merged.append(entry)
+        except Exception:
+            continue
+
+    merged.sort(key=lambda x: x['distance_km'])
+    # Keep a slightly larger cached list; callers can request smaller slices.
+    cached_results = merged[:10]
+    _PLACES_CACHE[cache_key] = {'ts': now, 'results': cached_results}
+    return cached_results[:limit]
 
 
 def _get_nearest_landmark(
@@ -1572,19 +1701,32 @@ def _get_nearest_landmark(
     landmarks_data: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
     """Return nearest configured landmark point for a property and category."""
-    if not category or not landmarks_data:
-        return None
-
-    categories = landmarks_data.get('categories', {})
-    cat_data = categories.get(category, {})
-    points = cat_data.get('points', [])
-    if not points:
+    if not category:
         return None
 
     try:
         prop_lat = float(property_data.get('latitude'))
         prop_lng = float(property_data.get('longitude'))
     except (TypeError, ValueError):
+        return None
+
+    live = _fetch_live_nearby_places(prop_lat, prop_lng, category, radius_m=5000, limit=1)
+    if live:
+        nearest_live = live[0]
+        return {
+            'category': category,
+            'name': nearest_live.get('name', f'Nearest {category}'),
+            'city': nearest_live.get('vicinity', ''),
+            'distance_km': nearest_live.get('distance_km', 0.0),
+            'lat': nearest_live.get('lat'),
+            'lng': nearest_live.get('lng'),
+            'source': 'google_places',
+        }
+
+    categories = (landmarks_data or {}).get('categories', {})
+    cat_data = categories.get(category, {})
+    points = cat_data.get('points', [])
+    if not points:
         return None
 
     nearest = None
@@ -1607,6 +1749,9 @@ def _get_nearest_landmark(
         'name': nearest.get('name', f'Nearest {category}'),
         'city': nearest.get('city', ''),
         'distance_km': round(float(nearest_dist), 2),
+        'lat': nearest.get('lat'),
+        'lng': nearest.get('lng'),
+        'source': 'static_landmarks',
     }
 
 
@@ -1893,8 +2038,14 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         filtered_properties = []
         need_type = (entities.get('need_type') or '').lower()
         landmark_focus = entities.get('lifestyle_focus_landmark') or entities.get('landmark')
-        landmarks_data = _load_landmarks_data() if landmark_focus else {}
-        focus_category = _resolve_landmark_category(landmark_focus, landmarks_data)
+        needs_landmark_filtering = bool(entities.get('landmark'))
+        needs_landmark_enrichment = bool(
+            needs_landmark_filtering
+            or entities.get('has_match_query')
+            or entities.get('lifestyle_focus_landmark')
+        )
+        landmarks_data = _load_landmarks_data() if needs_landmark_enrichment else {}
+        focus_category = _resolve_landmark_category(landmark_focus, landmarks_data) if needs_landmark_enrichment else None
 
         for property_data in property_data_list:
             matches = True
@@ -2157,19 +2308,25 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
             if matches:
                 # Standardize property data for chatbot response
                 standardized_property = standardize_property_data(property_data_with_price)
-                # Add nearest-landmark evidence to support "near X" recommendations
-                if landmarks_data:
+                # Only enrich landmark evidence when query needs proximity logic.
+                if needs_landmark_enrichment:
                     nearest_focus = _get_nearest_landmark(property_data, focus_category, landmarks_data) if focus_category else None
                     if nearest_focus:
                         standardized_property['nearest_landmark'] = nearest_focus
 
-                    nearby_landmarks = []
-                    for category in ['school', 'hospital', 'mall']:
-                        nearest_item = _get_nearest_landmark(property_data, category, landmarks_data)
-                        if nearest_item:
-                            nearby_landmarks.append(nearest_item)
-                    if nearby_landmarks:
-                        standardized_property['nearby_landmarks'] = nearby_landmarks
+                    # For direct "near X" queries, avoid heavy all-category enrichment.
+                    if needs_landmark_filtering:
+                        if nearest_focus:
+                            standardized_property['nearby_landmarks'] = [nearest_focus]
+                    else:
+                        nearby_landmarks = []
+                        for category in ['school', 'hospital', 'mall', 'gym', 'park']:
+                            nearest_item = _get_nearest_landmark(property_data, category, landmarks_data)
+                            if nearest_item:
+                                nearby_landmarks.append(nearest_item)
+                        if nearby_landmarks:
+                            nearby_landmarks.sort(key=lambda x: x.get('distance_km', 9999))
+                            standardized_property['nearby_landmarks'] = nearby_landmarks[:5]
                 filtered_properties.append(standardized_property)
         
         # Update properties with client-side filtered results
@@ -2740,6 +2897,16 @@ def render_intent_template(template: str, intent: str, entities: Dict[str, Any],
     if not template:
         return ""
 
+    # For livability-focused prompts, return only top-place recommendations.
+    query_lower = str(entities.get('original_query', '')).lower()
+    livability_phrases = ['where to live', 'best place to live', 'best neighborhood', 'saan maganda tumira', 'magandang tirhan']
+    if intent == 'location_info' and entities.get('location') and any(p in query_lower for p in livability_phrases):
+        location_profile = {}
+        if training_data and 'location_profiles' in training_data:
+            location_profile = training_data['location_profiles'].get(entities['location'], {})
+        is_tl = detect_language(query_lower) == 'tl'
+        return build_best_places_to_live(entities['location'], location_profile, is_tl=is_tl)
+
     replacements = {
         '{count}': str(len(properties)),
         '{property_type}': entities.get('property_type', 'property'),
@@ -2770,7 +2937,14 @@ def render_intent_template(template: str, intent: str, entities: Dict[str, Any],
         for key, value in sample_data.items():
             if key.startswith('location_description') or key.startswith('average_') or key in ['documents_list', 'requirements_list', 'key_features', 'average_prices', 'ideal_for', 'property_types']:
                 if value is not None:
-                    replacements[f'{{{key}}}'] = '\n'.join([f"• {item}" for item in value]) if isinstance(value, list) else str(value)
+                    if isinstance(value, list):
+                        normalized_items = []
+                        for item in value:
+                            item_text = str(item).strip()
+                            normalized_items.append(item_text if item_text.startswith('•') else f"• {item_text}")
+                        replacements[f'{{{key}}}'] = '\n'.join(normalized_items)
+                    else:
+                        replacements[f'{{{key}}}'] = str(value)
 
     response = template
     for placeholder, replacement in replacements.items():
@@ -2783,7 +2957,6 @@ def render_intent_template(template: str, intent: str, entities: Dict[str, Any],
             for key, value in location_profile.items():
                 if value is not None:
                     response = response.replace(f'{{{key}}}', str(value))
-
     return response
 
 
@@ -3418,7 +3591,15 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     
     # Add location-specific information for location_info intent
     if intent == 'location_info' and entities.get('location'):
+        location_query = str(entities.get('original_query', '')).lower()
+        livability_phrases = ['where to live', 'best place to live', 'best neighborhood', 'saan maganda tumira', 'magandang tirhan']
         location_name = entities['location']
+        if any(p in location_query for p in livability_phrases):
+            profile = {}
+            if training_data and 'location_profiles' in training_data:
+                profile = training_data['location_profiles'].get(location_name, {})
+            return build_best_places_to_live(location_name, profile, is_tl=is_tl)
+
         if training_data and 'location_profiles' in training_data:
             location_profile = training_data['location_profiles'].get(location_name)
             if location_profile:
@@ -3802,18 +3983,65 @@ def generate_match_needs_response(entities: Dict[str, Any], properties: List[Dic
     return response
 
 # API ENDPOINTS
+@app.route('/api/public-config', methods=['GET'])
+def public_config():
+    """Return non-sensitive runtime config for frontend pages."""
+    return jsonify({
+        'success': True,
+        'google_maps_api_key': GOOGLE_MAPS_API_KEY,
+        'has_google_places_key': bool(GOOGLE_PLACES_API_KEY)
+    })
+
+
 @app.route('/api/nearby_landmarks', methods=['GET'])
 def nearby_landmarks():
-    """Return nearest landmarks (school/hospital/mall/etc.) for map proof in property details."""
+    """Return nearest landmarks for map proof (live Places with static fallback)."""
     try:
         lat = request.args.get('lat', type=float)
         lng = request.args.get('lng', type=float)
         category_filter = (request.args.get('category', 'all') or 'all').lower().strip()
         limit = request.args.get('limit', default=3, type=int)
         limit = max(1, min(limit, 8))
+        max_distance_km = request.args.get('max_distance_km', default=5.0, type=float)
+        max_distance_km = max(0.5, min(max_distance_km, 25.0))
 
         if lat is None or lng is None:
             return jsonify({'success': False, 'error': 'lat and lng are required'}), 400
+
+        preferred_live_categories = ['school', 'hospital', 'mall', 'gym', 'park']
+        if category_filter != 'all':
+            live_results = _fetch_live_nearby_places(
+                lat, lng, category_filter,
+                radius_m=int(max_distance_km * 1000),
+                limit=limit
+            )
+            if live_results:
+                return jsonify({
+                    'success': True,
+                    'source': 'google_places',
+                    'results': live_results[:limit]
+                })
+        else:
+            merged_live_results = []
+            seen = set()
+            for live_category in preferred_live_categories:
+                for item in _fetch_live_nearby_places(
+                    lat, lng, live_category,
+                    radius_m=int(max_distance_km * 1000),
+                    limit=limit
+                ):
+                    dedupe = (item.get('name', '').lower(), item.get('lat'), item.get('lng'))
+                    if dedupe in seen:
+                        continue
+                    seen.add(dedupe)
+                    merged_live_results.append(item)
+            if merged_live_results:
+                merged_live_results.sort(key=lambda x: x.get('distance_km', 9999))
+                return jsonify({
+                    'success': True,
+                    'source': 'google_places',
+                    'results': merged_live_results[:limit]
+                })
 
         landmarks_data = _load_landmarks_data()
         categories = landmarks_data.get('categories', {})
@@ -3833,6 +4061,8 @@ def nearby_landmarks():
                 if pt_lat is None or pt_lng is None:
                     continue
                 dist_km = _haversine_km(float(lat), float(lng), float(pt_lat), float(pt_lng))
+                if dist_km > max_distance_km:
+                    continue
                 results.append({
                     'category': category,
                     'name': pt.get('name', f'{category.title()} point'),
@@ -3843,7 +4073,11 @@ def nearby_landmarks():
                 })
 
         results.sort(key=lambda x: x['distance_km'])
-        return jsonify({'success': True, 'results': results[:limit]})
+        return jsonify({
+            'success': True,
+            'source': 'static_landmarks',
+            'results': results[:limit]
+        })
     except Exception as e:
         logger.error(f"❌ Error in /api/nearby_landmarks: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -3940,6 +4174,12 @@ def chat():
                     if intent != 'match_needs':
                         logger.info(f"⚠️ FORCE OVERRIDE: Lifestyle query detected, changing intent from {intent} to match_needs")
                     intent = 'match_needs'
+                    confidence = 0.99
+                elif ('na may' in query_lower and any(w in query_lower for w in ['property', 'properties', 'bahay', 'apartment', 'condo', 'house'])) or \
+                     ('mga property na may' in query_lower):
+                    if intent != 'find_with_feature':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Feature query detected, changing intent from {intent} to find_with_feature")
+                    intent = 'find_with_feature'
                     confidence = 0.99
                 
                 # Pattern 1: "find X in Y" should ALWAYS be find_property, not location_info

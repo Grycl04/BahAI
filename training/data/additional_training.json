@@ -845,6 +845,18 @@
       "intent": "location_info"
     },
     {
+      "text": "saan maganda tumira sa batangas city",
+      "intent": "location_info"
+    },
+    {
+      "text": "where to live in lipa city",
+      "intent": "location_info"
+    },
+    {
+      "text": "best place to live in sto tomas",
+      "intent": "location_info"
+    },
+    {
       "text": "i want to find a house in batangas",
       "intent": "find_property"
     },
