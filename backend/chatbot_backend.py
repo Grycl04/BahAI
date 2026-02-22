@@ -1056,7 +1056,13 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     # Check for features
     for feature, keywords in feature_keywords.items():
         for keyword in keywords:
-            if keyword in query_lower:
+            # Avoid false positives for very short tokens (e.g., "ac" in "accept")
+            if len(keyword) <= 2:
+                matched = re.search(rf'\b{re.escape(keyword)}\b', query_lower) is not None
+            else:
+                matched = keyword in query_lower
+
+            if matched:
                 entities['feature'] = feature
                 logger.info(f"🏷️ Detected feature: {feature} (keyword: '{keyword}')")
                 break

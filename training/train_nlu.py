@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 
 class TeamNLUTrainer:
     def __init__(self):
+        self.training_dir = os.path.dirname(os.path.abspath(__file__))
+        self.data_dir = os.path.join(self.training_dir, 'data')
+
         # Try to load spaCy, fallback if not available
         try:
             self.nlp = spacy.load("en_core_web_sm")
@@ -281,7 +284,7 @@ class TeamNLUTrainer:
 
     def load_batangas_data(self):
         """Load Batangas complete data for location-based training"""
-        batangas_file = 'data/shared/batangas_complete.json'
+        batangas_file = os.path.join(self.data_dir, 'shared', 'batangas_complete.json')
         if not os.path.exists(batangas_file):
             logger.warning(f"⚠️ Batangas data file not found: {batangas_file}")
             return {}
@@ -443,16 +446,16 @@ class TeamNLUTrainer:
         
         # Also look in the current directory's data folder
         if not member_files:
-            member_files.extend(glob.glob(os.path.join('data', 'member[0-9]', 'training_data.json')))
-            member_files.extend(glob.glob(os.path.join('data', 'member*_buyer', 'training_data.json')))
+            member_files.extend(glob.glob(os.path.join(self.data_dir, 'member[0-9]', 'training_data.json')))
+            member_files.extend(glob.glob(os.path.join(self.data_dir, 'member*_buyer', 'training_data.json')))
         
         if not member_files:
             logger.warning("❌ No member training files found!")
             # Debug: Print what folders exist
-            print("\n🔍 Debug: Checking what folders exist in 'data' directory:")
-            if os.path.exists('data'):
-                for item in os.listdir('data'):
-                    item_path = os.path.join('data', item)
+            print(f"\n🔍 Debug: Checking what folders exist in '{self.data_dir}' directory:")
+            if os.path.exists(self.data_dir):
+                for item in os.listdir(self.data_dir):
+                    item_path = os.path.join(self.data_dir, item)
                     if os.path.isdir(item_path):
                         print(f"   Found folder: {item}")
                         # Check if training_data.json exists in this folder
@@ -524,7 +527,7 @@ class TeamNLUTrainer:
         texts = []
         intents = []
         
-        general_files = glob.glob(os.path.join('data/member4_general', '*.json'))
+        general_files = glob.glob(os.path.join(self.data_dir, 'member4_general', '*.json'))
         
         if not general_files:
             print("   ⚠️ No member4_general files found")
@@ -869,10 +872,12 @@ class TeamNLUTrainer:
         print(f"   ✅ Generated {len(texts)} samples from Batangas data")
         return texts, intents
 
-    def load_additional_training(self, filepath='data/additional_training.json'):
+    def load_additional_training(self, filepath=None):
         """Load additional training data"""
         texts = []
         intents = []
+        if filepath is None:
+            filepath = os.path.join(self.data_dir, 'additional_training.json')
         
         if not os.path.exists(filepath):
             return texts, intents
@@ -1271,7 +1276,7 @@ def test_predictions(trainer, test_queries):
         except Exception as e:
             print(f"❌ Error predicting '{query}': {e}")
 
-def create_additional_training_file():
+def create_additional_training_file(data_dir):
     """Create/update additional training data file"""
     additional_data = {
         "additional_samples": [
@@ -1592,8 +1597,8 @@ def create_additional_training_file():
         ]
     }
     
-    os.makedirs('data', exist_ok=True)
-    with open('data/additional_training.json', 'w', encoding='utf-8') as f:
+    os.makedirs(data_dir, exist_ok=True)
+    with open(os.path.join(data_dir, 'additional_training.json'), 'w', encoding='utf-8') as f:
         json.dump(additional_data, f, indent=2)
     
     print("✅ Created/updated additional_training.json with specific intent corrections")
@@ -1606,14 +1611,17 @@ def main():
     print("   (With intent classification fixes)")
     print("="*60)
     
+    training_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(training_dir, 'data')
+
     # Create/update additional training data file
-    create_additional_training_file()
+    create_additional_training_file(data_dir)
     
     # Initialize trainer
     trainer = TeamNLUTrainer()
     
     # Load and train using ALL data sources
-    texts, intents = trainer.load_all_training_data('data')
+    texts, intents = trainer.load_all_training_data(data_dir)
     
     if texts:
         if trainer.train(texts, intents):
