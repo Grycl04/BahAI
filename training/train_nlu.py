@@ -161,7 +161,9 @@ class TeamNLUTrainer:
                              'information about', 'living in', 'like to live',
                              'what\'s it like', 'is it good', 'lifestyle',
                              'neighborhood', 'neighbourhood', 'barangay', 'community vibe',
-                             'kamusta tumira', 'anong neighborhood', 'living experience'],
+                             'kamusta tumira', 'anong neighborhood', 'living experience',
+                             'where to live in', 'best place to live in', 'best neighborhood in',
+                             'saan maganda tumira', 'magandang tirhan ba'],
             'find_property': ['find', 'search for', 'show me', 'looking for',
                              'need', 'want', 'locate', 'discover', 
                               'what apartments', 'what houses', 'what condos',  
@@ -1548,6 +1550,9 @@ def create_additional_training_file(data_dir):
             {"text": "what's it like to live in taal", "intent": "location_info"},
             {"text": "describe mabini batangas", "intent": "location_info"},
             {"text": "information about sto. tomas city", "intent": "location_info"},
+            {"text": "saan maganda tumira sa batangas city", "intent": "location_info"},
+            {"text": "where to live in lipa city", "intent": "location_info"},
+            {"text": "best place to live in sto tomas", "intent": "location_info"},
             
             # ============================================
             # ADDITIONAL CONTEXTUAL SAMPLES

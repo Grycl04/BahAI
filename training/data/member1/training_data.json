@@ -713,6 +713,9 @@
         "batangas city details",
         "paano ang buhay sa batangas city",
         "maganda ba tumira sa batangas city",
+        "saan maganda tumira sa batangas city",
+        "where to live in batangas city",
+        "best place to live in batangas city",
         "batangas city living experience",
         "residing in batangas city",
         "batangas city environment"
@@ -768,6 +771,9 @@
         "lipa city details",
         "paano ang buhay sa lipa city",
         "maganda ba tumira sa lipa city",
+        "saan maganda tumira sa lipa city",
+        "where to live in lipa city",
+        "best place to live in lipa city",
         "lipa city living experience",
         "residing in lipa city",
         "lipa city environment",
@@ -936,7 +942,10 @@
         "describe living in tanauan city",
         "tanauan city community",
         "life in tanauan city",
-        "tanauan city details"
+        "tanauan city details",
+        "saan maganda tumira sa tanauan city",
+        "where to live in tanauan city",
+        "best place to live in tanauan city"
       ],
       "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
       "description": "Tanauan City is a growing urban center known for its historical significance and scenic views of Taal Lake. It's strategically located along major transportation routes.",
@@ -982,7 +991,10 @@
         "what's it like in sto. tomas",
         "sto tomas living conditions",
         "sto tomas overview",
-        "sto tomas information"
+        "sto tomas information",
+        "saan maganda tumira sa sto tomas",
+        "where to live in sto tomas city",
+        "best place to live in sto tomas"
       ],
       "response_template": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
       "description": "Sto. Tomas City is a fast-growing city known as the 'Northern Gateway to Batangas'. It's becoming a major residential and industrial hub with proximity to Metro Manila.",
@@ -1208,7 +1220,12 @@
       "how is life in",
       "describe living in",
       "about living in",
-      "residing in"
+      "residing in",
+      "where to live in",
+      "best place to live in",
+      "best neighborhood in",
+      "saan maganda tumira sa",
+      "magandang tirhan ba ang"
     ],
     "greeting_terms": [
       "hi",

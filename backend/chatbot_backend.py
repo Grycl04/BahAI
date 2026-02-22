@@ -960,6 +960,8 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     batangas_locations = {
         # Major cities
         'batangas city': 'Batangas City',
+        'matangas city': 'Batangas City',
+        'matangas': 'Batangas City',
         'lipa': 'Lipa City', 'lipa city': 'Lipa City',
         'nasugbu': 'Nasugbu',
         'tanauan': 'Tanauan City', 'tanauan city': 'Tanauan City',
@@ -992,7 +994,10 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'lemery': 'Lemery',
         'ibaan': 'Ibaan',
         'lobo': 'Lobo',
-        'tingloy': 'Tingloy'
+        'tingloy': 'Tingloy',
+        'balete': 'Balete',
+        'san jose': 'San Jose',
+        'calaca': 'Calaca'
     }
     
     for location_key, location_value in batangas_locations.items():
@@ -2791,6 +2796,31 @@ def build_neighborhood_info(location_name: str, location_profile: Dict[str, Any]
         'Tanauan City': ['Poblacion', 'Darasa', 'Sambat', 'Ambulong', 'Pagaspas'],
         'Sto. Tomas City': ['Poblacion', 'San Miguel', 'San Vicente', 'Sta. Anastacia', 'San Felix'],
         'Taal': ['Poblacion', 'Balisong', 'Halang', 'Caysasay', 'Ilog'],
+        'Bauan': ['Poblacion', 'Aplaya', 'Manghinao', 'Sinala', 'San Roque'],
+        'Balayan': ['Poblacion', 'Calan', 'Dalig', 'Gumamela', 'Sambat'],
+        'San Juan': ['Poblacion', 'Subukin', 'Buhay na Sapa', 'Lipahan', 'Calubcub'],
+        'Calatagan': ['Poblacion', 'Bucal', 'Balibago', 'Talisay', 'Lucsuhin'],
+        'Mabini': ['Poblacion', 'Anilao East', 'Anilao Proper', 'Bagalangit', 'Mainit'],
+        'Malvar': ['Poblacion', 'Santiago', 'San Juan', 'Luta Sur', 'Luta Norte'],
+        'Rosario': ['Poblacion', 'Nasi', 'Mavalor', 'Bayawang', 'Quilib'],
+        'Tuy': ['Poblacion', 'Acle', 'Bolbok', 'Luna', 'Rillo'],
+        'Lian': ['Poblacion', 'Binubusan', 'Matabungkay', 'Lumaniag', 'Malaruhatan'],
+        'Taysan': ['Poblacion', 'Bilogo', 'Palanas', 'Piña', 'Santo Niño'],
+        'San Luis': ['Poblacion', 'Balite', 'Luya', 'Abiacao', 'San Isidro'],
+        'Padre Garcia': ['Poblacion', 'Banaba', 'Maugat East', 'Maugat West', 'Payapa'],
+        'Laurel': ['Poblacion', 'As-is', 'Niyugan', 'Ticub', 'Leviste'],
+        'Agoncillo': ['Poblacion', 'Banyaga', 'Bilibinwang', 'Pansipit', 'Subic Ibaba'],
+        'San Pascual': ['Poblacion', 'San Antonio', 'Sambat', 'Alalum', 'Pook ni Banal'],
+        'Cuenca': ['Poblacion', 'Bungahan', 'Calzada', 'Dalipit East', 'Dalipit West'],
+        'Alitagtag': ['Poblacion', 'Concepcion', 'Dominador East', 'Dominador West', 'Mabini'],
+        'San Nicolas': ['Poblacion', 'Abelo', 'Balete', 'Bancoro', 'Poblacion East'],
+        'Mataas Na Kahoy': ['Poblacion', 'Kinalaglagan', 'Nangkaan', 'Santol', 'Lumang Lipa'],
+        'Talisay': ['Poblacion', 'Aya', 'Banga', 'Buco', 'Quiling'],
+        'La Paz': ['Poblacion', 'Bugaan', 'Calaocan', 'Maugat', 'Tambo'],
+        'Lemery': ['Poblacion', 'Bagong Pook', 'Bukal', 'Matingain', 'Payapa Ilaya'],
+        'Ibaan': ['Poblacion', 'Bago', 'Bungahan', 'Calamias', 'Lapu-lapu'],
+        'Lobo': ['Poblacion', 'Balatbat', 'Calumpit', 'Nagtalongtong', 'Sawang'],
+        'Tingloy': ['Poblacion', 'Gamao', 'Mataas na Bayan', 'Papaya', 'San Jose']
     }
 
     if location_name in known_neighborhoods:
@@ -2801,6 +2831,35 @@ def build_neighborhood_info(location_name: str, location_profile: Dict[str, Any]
         short = [str(x) for x in key_features[:3]]
         return "Mixed barangay areas; nearby strengths include: " + '; '.join(short)
     return "Mixed residential and commercial barangays; visit the area to compare traffic, access, and amenities."
+
+
+def build_best_places_to_live(location_name: str, location_profile: Dict[str, Any], is_tl: bool = False) -> str:
+    """Build top recommended places in a city/municipality with reasons."""
+    neighborhood_text = build_neighborhood_info(location_name, location_profile or {})
+    raw_places = [p.strip() for p in neighborhood_text.split(',') if p.strip()]
+    top_places = raw_places[:3] if raw_places else ['Poblacion', 'Central area', 'Accessible barangay']
+
+    key_features = ' '.join([str(x).lower() for x in (location_profile or {}).get('key_features', [])])
+    lifestyle = str((location_profile or {}).get('lifestyle', '')).lower()
+    signal_text = f"{key_features} {lifestyle}"
+
+    if any(k in signal_text for k in ['school', 'university', 'college', 'educational']):
+        reason = "malapit sa schools, daily essentials, at commuting routes" if is_tl else "close to schools, daily essentials, and commuting routes"
+    elif any(k in signal_text for k in ['hospital', 'medical', 'healthcare']):
+        reason = "malapit sa hospitals/clinics at essential services" if is_tl else "close to hospitals/clinics and essential services"
+    elif any(k in signal_text for k in ['beach', 'coastal', 'resort']):
+        reason = "may relaxed coastal lifestyle at tourism-driven amenities" if is_tl else "offers a relaxed coastal lifestyle with tourism-driven amenities"
+    elif any(k in signal_text for k in ['industrial', 'business', 'commercial']):
+        reason = "maganda para sa trabaho dahil sa access sa industrial/business zones" if is_tl else "works well for working professionals due to access to industrial/business zones"
+    else:
+        reason = "balanced ang access sa amenities, transport, at neighborhood convenience" if is_tl else "has balanced access to amenities, transport, and neighborhood convenience"
+
+    if is_tl:
+        lines = [f"• {place} — {reason}" for place in top_places]
+        return "🏘️ **Top places na puwedeng pag-consider sa " + location_name + ":**\n" + '\n'.join(lines)
+
+    lines = [f"• {place} — {reason}" for place in top_places]
+    return "🏘️ **Top places to consider in " + location_name + ":**\n" + '\n'.join(lines)
 
 
 def generate_response(intent: str, entities: Dict[str, Any], properties: List[Dict[str, Any]]) -> str:
@@ -3366,29 +3425,43 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                 # Get description and lifestyle, provide defaults if missing
                 description = location_profile.get('description', 'No description available.')
                 lifestyle = location_profile.get('lifestyle', 'No lifestyle information available.')
-                
-                response = f"📍 **About {location_name}**\n"
-                response += f"**Description:** {description}\n\n"
-                response += f"**Lifestyle:** {lifestyle}\n\n"
-                response += f"**Neighborhoods & Living Experience:** {build_neighborhood_info(location_name, location_profile)}\n\n"
+                neighborhood_info = build_neighborhood_info(location_name, location_profile)
+                best_places_block = build_best_places_to_live(location_name, location_profile, is_tl=is_tl)
+
+                if is_tl:
+                    response = f"📍 **Tungkol sa {location_name}**\n"
+                    response += f"**Description:** {description}\n\n"
+                    response += f"**Lifestyle:** {lifestyle}\n\n"
+                    response += f"**Neighborhood at Living Experience:** {neighborhood_info}\n\n"
+                    response += f"{best_places_block}\n\n"
+                else:
+                    response = f"📍 **About {location_name}**\n"
+                    response += f"**Description:** {description}\n\n"
+                    response += f"**Lifestyle:** {lifestyle}\n\n"
+                    response += f"**Neighborhoods & Living Experience:** {neighborhood_info}\n\n"
+                    response += f"{best_places_block}\n\n"
                 
                 if 'key_features' in location_profile and location_profile['key_features']:
-                    response += "**Key Features:**\n"
+                    response += "**Key Features:**\n" if not is_tl else "**Mga Key Features:**\n"
                     for feature in location_profile['key_features']:
                         response += f"• {feature}\n"
                     response += "\n"
                 
                 if 'average_prices' in location_profile and location_profile['average_prices']:
-                    response += "**Average Property Prices:**\n"
+                    response += "**Average Property Prices:**\n" if not is_tl else "**Average na Presyo ng Property:**\n"
                     for price_info in location_profile['average_prices']:
                         response += f"• {price_info}\n"
                     response += "\n"
                 
                 if 'ideal_for' in location_profile and location_profile['ideal_for']:
-                    response += f"**Ideal For:** {', '.join(location_profile['ideal_for'])}\n\n"
+                    response += (f"**Ideal For:** {', '.join(location_profile['ideal_for'])}\n\n"
+                                 if not is_tl else
+                                 f"**Ideal Para Kanino:** {', '.join(location_profile['ideal_for'])}\n\n")
                 
                 if 'property_types' in location_profile and location_profile['property_types']:
-                    response += f"**Property Types Available:** {', '.join(location_profile['property_types'])}\n"
+                    response += (f"**Property Types Available:** {', '.join(location_profile['property_types'])}\n"
+                                 if not is_tl else
+                                 f"**Mga Available na Uri ng Property:** {', '.join(location_profile['property_types'])}\n")
                 
                 # Add property details if available
                 if properties and len(properties) > 0:
@@ -3402,9 +3475,20 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
                 return response
         else:
             # No location profile found, provide generic response
-            response = f"I can tell you about {location_name} in Batangas.\n\n"
-            response += f"{location_name} is one of the key locations in Batangas province with various property options available.\n\n"
-            response += "If you're interested in properties here, you might want to specify what type of property you're looking for (apartment, house, condo, etc.) or your budget range."
+            neighborhood_info = build_neighborhood_info(location_name, {})
+            best_places_block = build_best_places_to_live(location_name, {}, is_tl=is_tl)
+            if is_tl:
+                response = f"📍 **Tungkol sa {location_name}**\n\n"
+                response += f"{location_name} ay isa sa mga mahalagang lugar sa Batangas na may iba't ibang property options.\n\n"
+                response += f"**Neighborhood at Living Experience:** {neighborhood_info}\n\n"
+                response += f"{best_places_block}\n\n"
+                response += "💡 Para mas accurate, maaari mong sabihin kung ang hanap mo ay student-friendly, family-friendly, o malapit sa work/schools/hospitals."
+            else:
+                response = f"📍 **About {location_name}**\n\n"
+                response += f"{location_name} is one of the key locations in Batangas with a mix of property options.\n\n"
+                response += f"**Neighborhoods & Living Experience:** {neighborhood_info}\n\n"
+                response += f"{best_places_block}\n\n"
+                response += "💡 For more precise recommendations, tell me if you prefer student-friendly, family-friendly, or near work/schools/hospitals areas."
     
     # For other intents, add property details if available
     elif properties and len(properties) > 0:
@@ -4265,6 +4349,9 @@ def determine_intent_fallback(query: str) -> str:
         r'^information\s+about\s+\w+',  # "information about X"
         r'^about\s+\w+\s+city$',  # "about X city"
         r'^about\s+\w+\s+town$',  # "about X town"
+        r'^where\s+to\s+live\s+in\s+\w+',
+        r'^best\s+place\s+to\s+live\s+in\s+\w+',
+        r'^saan\s+maganda\s+tumira\s+sa\s+\w+',
     ]
     
     for pattern in location_info_patterns:
@@ -4491,7 +4578,9 @@ def determine_intent_fallback(query: str) -> str:
         'what\'s it like', 'is it good', 'lifestyle',
         'about', 'information on', 'details about',
         'neighborhood', 'neighbourhood', 'barangay', 'community vibe',
-        'kamusta tumira', 'living experience'
+        'kamusta tumira', 'living experience',
+        'where to live in', 'best place to live in', 'best neighborhood in',
+        'saan maganda tumira', 'magandang tirhan ba'
     ]
     
     for indicator in location_indicators:
