@@ -1595,7 +1595,11 @@ def _resolve_landmark_category(landmark_query: str, landmarks_data: Dict[str, An
     # Fallback mapping for categories not present in static dataset
     if any(term in q for term in ['school', 'university', 'college', 'campus']):
         return 'school'
-    if any(term in q for term in ['hospital', 'clinic', 'medical']):
+    if any(term in q for term in ['dental', 'dentist', 'orthodontic']):
+        return 'dental'
+    if any(term in q for term in ['clinic', 'diagnostic', 'health center', 'healthcare']):
+        return 'clinic'
+    if any(term in q for term in ['hospital', 'medical']):
         return 'hospital'
     if any(term in q for term in ['mall', 'shopping']):
         return 'mall'
@@ -1635,6 +1639,8 @@ def _fetch_live_nearby_places(
     place_type_map = {
         'school': ['school', 'university'],
         'hospital': ['hospital'],
+        'clinic': ['doctor'],
+        'dental': ['dentist'],
         'mall': ['shopping_mall'],
         'gym': ['gym'],
         'park': ['park'],
@@ -1695,6 +1701,35 @@ def _fetch_live_nearby_places(
                     break
 
                 for item in payload.get('results', []):
+                    place_name = str(item.get('name', ''))
+                    place_vicinity = str(item.get('vicinity', ''))
+                    place_types = [str(t).lower() for t in item.get('types', [])]
+                    place_text = f"{place_name} {place_vicinity}".lower()
+
+                    # Keep category-specific lists clean and practical.
+                    if category == 'hospital':
+                        hospital_like = any(t in place_text for t in [
+                            'hospital', 'medical center', 'district hospital', 'general hospital'
+                        ]) or ('hospital' in place_types)
+                        non_hospital_terms = [
+                            'clinic', 'lying-in', 'diagnostic', 'laboratory',
+                            'animal bite', 'dental', 'dentist', 'veterinary', 'vet'
+                        ]
+                        if not hospital_like or any(t in place_text for t in non_hospital_terms):
+                            continue
+                    elif category == 'clinic':
+                        clinic_like = any(t in place_text for t in [
+                            'clinic', 'diagnostic', 'health center', 'healthcare', 'lying-in'
+                        ]) or ('doctor' in place_types)
+                        if not clinic_like or 'hospital' in place_text:
+                            continue
+                    elif category == 'dental':
+                        dental_like = any(t in place_text for t in [
+                            'dental', 'dentist', 'orthodontic'
+                        ]) or ('dentist' in place_types)
+                        if not dental_like:
+                            continue
+
                     geom = item.get('geometry', {}).get('location', {})
                     p_lat = geom.get('lat')
                     p_lng = geom.get('lng')
@@ -4043,13 +4078,13 @@ def nearby_landmarks():
         limit = max(1, min(limit, 300))
         max_distance_raw = request.args.get('max_distance_km')
         if max_distance_raw is None or str(max_distance_raw).strip() == '':
-            max_distance_km = 50.0
+            max_distance_km = 10.0
         else:
             try:
                 parsed_distance = float(max_distance_raw)
-                max_distance_km = 50.0 if parsed_distance <= 0 else max(0.5, min(parsed_distance, 50.0))
+                max_distance_km = 10.0 if parsed_distance <= 0 else max(0.5, min(parsed_distance, 10.0))
             except (TypeError, ValueError):
-                max_distance_km = 50.0
+                max_distance_km = 10.0
         use_static_fallback_raw = (request.args.get('use_static_fallback', '1') or '1').strip().lower()
         use_static_fallback = use_static_fallback_raw in ['1', 'true', 'yes', 'y']
 

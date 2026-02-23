@@ -582,7 +582,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
 const isFromAI = urlParams.get('source') === 'ai';
 const amenityCategoryFromQuery = (urlParams.get('amenity') || '').toLowerCase().trim();
-const shouldLoadNearbyAmenityProof = ['school', 'hospital', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery);
+const shouldLoadNearbyAmenityProof = ['school', 'hospital', 'clinic', 'dental', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery);
 
 let currentListing = null;
 let currentUserInfo = null;
@@ -998,6 +998,8 @@ function getLandmarkMarkerIcon(category) {
   const icons = {
     school: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
     hospital: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    clinic: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    dental: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
     mall: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
     gym: "https://maps.google.com/mapfiles/ms/icons/pink-dot.png",
     park: "https://maps.google.com/mapfiles/ms/icons/ltblue-dot.png",
@@ -1012,6 +1014,8 @@ function formatLandmarkCategory(category) {
   const labels = {
     school: "School",
     hospital: "Hospital",
+    clinic: "Clinic",
+    dental: "Dental",
     mall: "Mall",
     gym: "Gym",
     park: "Park",
@@ -1025,10 +1029,10 @@ function formatLandmarkCategory(category) {
 async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
-    const validCategory = ['school', 'hospital', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery)
+    const validCategory = ['school', 'hospital', 'clinic', 'dental', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery)
       ? amenityCategoryFromQuery
       : 'all';
-    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(validCategory)}&limit=200&max_distance_km=0&use_static_fallback=0`;
+    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(validCategory)}&limit=200&max_distance_km=10&use_static_fallback=0`;
     const response = await fetch(url);
     const data = await response.json();
     if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {

@@ -552,7 +552,9 @@ function getDisplayPrice(property) {
 function detectAmenityFromQuery(query = '') {
     const q = String(query || '').toLowerCase();
     if (!q) return '';
-    if (q.includes('hospital') || q.includes('clinic')) return 'hospital';
+    if (q.includes('dental') || q.includes('dentist') || q.includes('orthodontic')) return 'dental';
+    if (q.includes('clinic') || q.includes('health center') || q.includes('diagnostic')) return 'clinic';
+    if (q.includes('hospital')) return 'hospital';
     if (q.includes('school') || q.includes('university') || q.includes('college')) return 'school';
     if (q.includes('mall') || q.includes('shopping')) return 'mall';
     if (q.includes('park')) return 'park';
