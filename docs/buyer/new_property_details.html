@@ -582,6 +582,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
 const isFromAI = urlParams.get('source') === 'ai';
 const amenityCategoryFromQuery = (urlParams.get('amenity') || '').toLowerCase().trim();
+const shouldLoadNearbyAmenityProof = ['school', 'hospital', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery);
 
 let currentListing = null;
 let currentUserInfo = null;
@@ -980,8 +981,13 @@ function initPropertyMap(lat, lng, title) {
       animation: google.maps.Animation.DROP
     });
 
-    // Add nearest amenity markers (proof for "near schools/hospitals/etc.")
-    loadNearbyLandmarkProof(map, latitude, longitude);
+    // Only load nearby amenity proof for AI "near amenity" flows.
+    const proofEl = document.getElementById("nearbyProof");
+    if (shouldLoadNearbyAmenityProof) {
+      loadNearbyLandmarkProof(map, latitude, longitude);
+    } else if (proofEl) {
+      proofEl.innerHTML = "";
+    }
   } catch (error) {
     console.error("Error initializing map:", error);
     showMapPlaceholder(lat, lng);
