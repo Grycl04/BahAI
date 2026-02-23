@@ -843,6 +843,8 @@
       }
     }
 </style>
+<!-- Add Tesseract.js for OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 
 <body>
@@ -937,10 +939,19 @@
     <!-- Upload Form -->
     <div id="uploadForm">
       <form id="kycForm">
-        <!-- Identity Verification Section -->
+        <!-- Identity Verification Section - UPDATED with ID Number field -->
         <div class="form-section">
           <div class="section-title">Identity Verification</div>
           <div class="form-grid">
+            <div class="form-group">
+              <label for="govIdNumber" class="form-label required">
+                <i class="fas fa-id-number"></i> ID Number
+              </label>
+              <input type="text" id="govIdNumber" class="form-input" placeholder="e.g., 1234567 or 1234-5678-9012-3456" required>
+              <div class="help-text">
+                <i class="fas fa-info-circle"></i> Enter the ID number exactly as it appears on your ID (dashes optional)
+              </div>
+            </div>
             <div class="form-group">
               <label for="govId" class="form-label required">
                 <i class="fas fa-id-badge"></i> Government ID (Front)
@@ -1046,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Firebase Script -->
+<!-- Firebase Script with OCR Added -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
@@ -1098,6 +1109,96 @@ setupPreview("govId", "previewGovId");
 setupPreview("govIdBack", "previewGovIdBack");
 setupPreview("selfieId", "previewSelfie");
 setupPreview("proofAddress", "previewAddress");
+
+// ============= OCR FUNCTIONS =============
+// Clean number by removing non-alphanumeric characters
+function cleanNumber(number) {
+    return number.replace(/[^A-Z0-9]/gi, "").toLowerCase();
+}
+
+// Check if numbers match (handles different formats)
+function numbersMatch(extracted, typed) {
+    const cleanExtracted = cleanNumber(extracted);
+    const cleanTyped = cleanNumber(typed);
+    
+    console.log("Cleaned extracted:", cleanExtracted);
+    console.log("Cleaned typed:", cleanTyped);
+    
+    // Check for exact match
+    if (cleanExtracted.includes(cleanTyped)) {
+        return true;
+    }
+    
+    // For long numbers (like national ID), check if the main part matches
+    if (cleanTyped.length > 10) {
+        const mainPart = cleanTyped.slice(-12);
+        if (cleanExtracted.includes(mainPart)) {
+            return true;
+        }
+    }
+    
+    // Check if typed number appears as a continuous sequence
+    const extractedNoSpaces = extracted.replace(/\s+/g, '');
+    const typedNoSpaces = typed.replace(/\s+/g, '');
+    
+    return extractedNoSpaces.includes(typedNoSpaces);
+}
+
+// Universal OCR verification - works with ANY ID type
+async function verifyIdNumber(file, typedNumber, documentType = "ID") {
+    if (!file || !typedNumber) {
+        throw new Error(`Please upload ${documentType} document and enter the number.`);
+    }
+
+    showMessage(`🔍 Scanning ${documentType} document for number...`, "info");
+
+    try {
+        const { data: { text } } = await Tesseract.recognize(
+            file,
+            'eng',
+            { 
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        const percent = Math.round(m.progress * 100);
+                        console.log(`OCR Progress: ${percent}%`);
+                    }
+                }
+            }
+        );
+
+        console.log("OCR Raw Text:", text);
+        
+        // Check if numbers match using our smart matching function
+        const matchFound = numbersMatch(text, typedNumber);
+        
+        // Clean versions for logging
+        const cleanTyped = cleanNumber(typedNumber);
+        const cleanExtracted = cleanNumber(text);
+        
+        // Determine ID type for message
+        let detectedType = documentType;
+        if (cleanTyped.length === 7) {
+            detectedType = "Student ID";
+        } else if (cleanTyped.length === 16 || typedNumber.includes('-')) {
+            detectedType = "National ID";
+        } else if (cleanTyped.length >= 8 && cleanTyped.length <= 12) {
+            detectedType = "Government ID";
+        }
+        
+        if (matchFound) {
+            showMessage(`✅ ${detectedType} number matched successfully!`, "success");
+            return true;
+        } else {
+            console.log("Extracted numbers:", cleanExtracted);
+            console.log("Typed numbers:", cleanTyped);
+            throw new Error(`${detectedType} number does NOT match the uploaded document. Please check and try again.`);
+        }
+    } catch (error) {
+        console.error("OCR Error:", error);
+        throw new Error(`OCR verification failed: ${error.message}`);
+    }
+}
+// ============= END OCR FUNCTIONS =============
 
 // Image preprocessing function
 function preprocessImage(file) {
@@ -1442,7 +1543,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Form submission
+// Form submission - UPDATED with OCR verification
 kycForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -1464,13 +1565,33 @@ kycForm.addEventListener("submit", async (e) => {
         const timestamp = Date.now();
         
         // Check required files
+        const govIdNumber = document.getElementById("govIdNumber").value.trim();
         const govIdFile = document.getElementById("govId").files[0];
         const selfieFile = document.getElementById("selfieId").files[0];
+
+        if (!govIdNumber) {
+            showMessage("❌ Please enter your ID number.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+            return;
+        }
 
         if (!govIdFile || !selfieFile) {
             showMessage("❌ Government ID and Selfie with ID are required.", "error");
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+            return;
+        }
+
+        // 🔥 OCR VERIFICATION - Check ID number matches uploaded document
+        updateProgress(5, "Starting OCR verification...");
+        try {
+            await verifyIdNumber(govIdFile, govIdNumber, "Government ID");
+        } catch (error) {
+            showMessage(error.message, "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+            progressContainer.classList.add("hidden");
             return;
         }
 
@@ -1515,6 +1636,8 @@ kycForm.addEventListener("submit", async (e) => {
         // Prepare KYC data
         const kycData = {
             kycStatus: "verifying",
+            govIdNumber: govIdNumber,
+            govIdNumberVerified: true,
             kycDocuments: {
                 governmentId: govIdUrl,
                 governmentIdBack: govIdBackUrl,
