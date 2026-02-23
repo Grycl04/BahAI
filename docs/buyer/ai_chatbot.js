@@ -549,6 +549,17 @@ function getDisplayPrice(property) {
     return 'Price on inquiry';
 }
 
+function detectAmenityFromQuery(query = '') {
+    const q = String(query || '').toLowerCase();
+    if (!q) return '';
+    if (q.includes('hospital') || q.includes('clinic')) return 'hospital';
+    if (q.includes('school') || q.includes('university') || q.includes('college')) return 'school';
+    if (q.includes('mall') || q.includes('shopping')) return 'mall';
+    if (q.includes('park')) return 'park';
+    if (q.includes('gym') || q.includes('fitness')) return 'gym';
+    return '';
+}
+
 function displayPropertiesInChat(properties, userQuery = '') {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages || !properties || properties.length === 0) return;
@@ -563,6 +574,8 @@ function displayPropertiesInChat(properties, userQuery = '') {
         <div class="properties-grid">
     `;
     
+    const amenityFilter = detectAmenityFromQuery(userQuery);
+
     // Show max 3 properties in chat
     properties.slice(0, 3).forEach(prop => {
         const price = getDisplayPrice(prop);
@@ -573,6 +586,10 @@ function displayPropertiesInChat(properties, userQuery = '') {
         const photo = prop.photos?.[0] || prop.imageUrls?.[0] || 
             `https://via.placeholder.com/300x200/0b2e52/white?text=${encodeURIComponent(title.substring(0, 20))}`;
         
+        const detailsUrl = `new_property_details.html?id=${prop.id || prop.property_id || ''}${
+            amenityFilter ? `&amenity=${encodeURIComponent(amenityFilter)}` : ''
+        }`;
+
         html += `
             <div class="property-card-chat">
                 <div class="property-image">
@@ -586,7 +603,7 @@ function displayPropertiesInChat(properties, userQuery = '') {
                         ${area && area !== 'N/A' ? `<span>📐 ${area} sqm</span>` : ''}
                     </div>
                     <p class="price">${price}</p>
-                    <a href="new_property_details.html?id=${prop.id || prop.property_id || ''}" 
+                    <a href="${detailsUrl}" 
                        target="_blank" 
                        class="view-btn">
                         View Details <i class="fas fa-arrow-right"></i>

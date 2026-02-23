@@ -581,6 +581,7 @@ window.firebaseApp = app;
 const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
 const isFromAI = urlParams.get('source') === 'ai';
+const amenityCategoryFromQuery = (urlParams.get('amenity') || '').toLowerCase().trim();
 
 let currentListing = null;
 let currentUserInfo = null;
@@ -1018,12 +1019,17 @@ function formatLandmarkCategory(category) {
 async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
-    // Request a broad, map-like nearby search (up to 50km and many places).
-    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=200&max_distance_km=0&use_static_fallback=0`;
+    const validCategory = ['school', 'hospital', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery)
+      ? amenityCategoryFromQuery
+      : 'all';
+    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(validCategory)}&limit=200&max_distance_km=0&use_static_fallback=0`;
     const response = await fetch(url);
     const data = await response.json();
     if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
-      if (proofEl) proofEl.innerHTML = "<em>No live nearby amenity proof available right now.</em>";
+      if (proofEl) {
+        const label = validCategory === 'all' ? 'amenity' : formatLandmarkCategory(validCategory).toLowerCase();
+        proofEl.innerHTML = `<em>No live nearby ${label} proof available right now.</em>`;
+      }
       return;
     }
 
@@ -1044,7 +1050,10 @@ async function loadNearbyLandmarkProof(map, latitude, longitude) {
     });
 
     if (proofEl) {
-      proofEl.innerHTML = `<div style="margin-bottom:6px;"><strong>${data.results.length}</strong> nearby places found.</div>` +
+      const titleText = validCategory === 'all'
+        ? `${data.results.length} nearby places found.`
+        : `${data.results.length} nearby ${formatLandmarkCategory(validCategory).toLowerCase()} places found.`;
+      proofEl.innerHTML = `<div style="margin-bottom:6px;"><strong>${titleText}</strong></div>` +
         data.results
           .map(item => `<div>• <strong>${item.name}</strong> (${formatLandmarkCategory(item.category)}) - ${item.distance_km} km</div>`)
           .join("");
