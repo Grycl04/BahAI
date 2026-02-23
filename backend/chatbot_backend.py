@@ -4004,6 +4004,8 @@ def nearby_landmarks():
         limit = max(1, min(limit, 8))
         max_distance_km = request.args.get('max_distance_km', default=5.0, type=float)
         max_distance_km = max(0.5, min(max_distance_km, 25.0))
+        use_static_fallback_raw = (request.args.get('use_static_fallback', '1') or '1').strip().lower()
+        use_static_fallback = use_static_fallback_raw in ['1', 'true', 'yes', 'y']
 
         if lat is None or lng is None:
             return jsonify({'success': False, 'error': 'lat and lng are required'}), 400
@@ -4042,6 +4044,9 @@ def nearby_landmarks():
                     'source': 'google_places',
                     'results': merged_live_results[:limit]
                 })
+
+        if not use_static_fallback:
+            return jsonify({'success': True, 'source': 'google_places_unavailable', 'results': []})
 
         landmarks_data = _load_landmarks_data()
         categories = landmarks_data.get('categories', {})

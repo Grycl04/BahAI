@@ -965,7 +965,10 @@ function initPropertyMap(lat, lng, title) {
       zoom: 16,
       mapTypeControl: true,
       streetViewControl: true,
-      fullscreenControl: true
+      fullscreenControl: true,
+      gestureHandling: "greedy",
+      scrollwheel: true,
+      draggable: true
     });
 
     // Property marker
@@ -1015,11 +1018,11 @@ function formatLandmarkCategory(category) {
 async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
-    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=5&max_distance_km=5`;
+    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=5&max_distance_km=5&use_static_fallback=0`;
     const response = await fetch(url);
     const data = await response.json();
     if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
-      if (proofEl) proofEl.innerHTML = "<em>No nearby amenity proof available.</em>";
+      if (proofEl) proofEl.innerHTML = "<em>No live nearby amenity proof available right now.</em>";
       return;
     }
 
