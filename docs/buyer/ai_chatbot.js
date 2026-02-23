@@ -588,7 +588,7 @@ function displayPropertiesInChat(properties, userQuery = '') {
         const photo = prop.photos?.[0] || prop.imageUrls?.[0] || 
             `https://via.placeholder.com/300x200/0b2e52/white?text=${encodeURIComponent(title.substring(0, 20))}`;
         
-        const detailsUrl = `new_property_details.html?id=${prop.id || prop.property_id || ''}${
+        const detailsUrl = `new_property_details.html?id=${prop.id || prop.property_id || ''}&source=ai${
             amenityFilter ? `&amenity=${encodeURIComponent(amenityFilter)}` : ''
         }`;
 
@@ -627,6 +627,9 @@ function displayPropertiesInChat(properties, userQuery = '') {
             propertyIds,
             source: 'chatbot'
         };
+        if (amenityFilter) {
+            chatbotFilters.amenity = amenityFilter;
+        }
         if (userQuery && userQuery.trim()) {
             chatbotFilters.searchTerm = userQuery.trim();
         }

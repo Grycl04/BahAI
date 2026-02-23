@@ -894,11 +894,12 @@
     <div id="landlordInfo" class="info-box hidden">
       <h3><i class="fas fa-home"></i> Required Documents for Landlords/Sellers</h3>
       <ul>
+        <li><strong>Valid Government ID Number</strong> - Enter the ID number from your government ID</li>
         <li><strong>Valid Government ID</strong> - National ID, Driver's License, Passport, etc.</li>
         <li><strong>Selfie with ID</strong> - Hold your ID next to your face</li>
         <li><strong>Proof of Address (Optional)</strong> - Utility bill, bank statement, etc.</li>
       </ul>
-      <p><strong>Note:</strong> Face verification will be automatically processed using Face++ API.</p>
+      <p><strong>Note:</strong> The system will verify that your ID number matches the uploaded document.</p>
     </div>
 
     <!-- Face Verification Results -->
@@ -935,7 +936,7 @@
     <!-- Upload Form -->
     <div id="uploadForm" class="hidden">
       <form id="kycForm">
-        <!-- Broker-specific fields - UPDATED for ANY ID -->
+        <!-- Broker-specific fields -->
         <div id="brokerFields" class="form-section hidden">
           <div class="section-title">Professional License Information</div>
           <div class="form-grid">
@@ -987,10 +988,19 @@
           <div class="preview-container" id="previewEndorsement"></div>
         </div>
 
-        <!-- Common Fields -->
+        <!-- Common Fields - UPDATED with ID Number field -->
         <div class="form-section">
           <div class="section-title">Identity Verification</div>
           <div class="form-grid">
+            <div class="form-group">
+              <label for="govIdNumber" class="form-label required">
+                <i class="fas fa-id-number"></i> Government ID Number
+              </label>
+              <input type="text" id="govIdNumber" class="form-input" placeholder="e.g., 1234567 or 1234-5678-9012-3456" required>
+              <div class="help-text">
+                <i class="fas fa-info-circle"></i> Enter the ID number exactly as it appears on your ID (dashes optional)
+              </div>
+            </div>
             <div class="form-group">
               <label for="govId" class="form-label required">
                 <i class="fas fa-id-badge"></i> Government ID (Front)
@@ -1087,7 +1097,7 @@
   <p style="margin-top: 5px; font-size: 13px;">Secure KYC verification powered by Face++ technology</p>
 </footer>
 
-<!-- Firebase Script - UPDATED with improved OCR for Student/National IDs -->
+<!-- Firebase Script - UPDATED with OCR for all roles -->
 <script type="module">
 import { auth, db } from './firebase-common.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
@@ -1407,7 +1417,7 @@ onAuthStateChanged(auth, async (user) => {
         roleBadge.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
         const dashboardMap = {
-            broker: 'broker/broker_dashboard.html',
+            broker: 'broker_dashboard.html',
             agent: 'broker/agent_dashboard.html',
             seller: 'seller_dashboard.html',
             landlord: 'landlord_dashboard.html'
@@ -1481,7 +1491,7 @@ function updateProgress(percent, text) {
     progressStatus.textContent = text || (percent + '% complete');
 }
 
-// ============= UPDATED OCR FUNCTIONS =============
+// ============= OCR FUNCTIONS =============
 // Clean number by removing non-alphanumeric characters
 function cleanNumber(number) {
     return number.replace(/[^A-Z0-9]/gi, "").toLowerCase();
@@ -1515,7 +1525,7 @@ function numbersMatch(extracted, typed) {
     return extractedNoSpaces.includes(typedNoSpaces);
 }
 
-// Universal OCR verification - works with Student ID (0000000) and National ID (0000-0000-0000-0000)
+// Universal OCR verification - works with any ID type
 async function verifyIdNumber(file, typedNumber, documentType = "ID") {
     if (!file || !typedNumber) {
         throw new Error(`Please upload ${documentType} document and enter the number.`);
@@ -1567,9 +1577,9 @@ async function verifyIdNumber(file, typedNumber, documentType = "ID") {
         throw new Error(`OCR verification failed: ${error.message}`);
     }
 }
-// ============= END UPDATED OCR FUNCTIONS =============
+// ============= END OCR FUNCTIONS =============
 
-// Form submission
+// Form submission - UPDATED with OCR for ALL roles
 kycForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -1598,6 +1608,7 @@ kycForm.addEventListener("submit", async (e) => {
             }
         };
 
+        // Common documents
         const govIdFile = document.getElementById("govId").files[0];
         const selfieFile = document.getElementById("selfieId").files[0];
 
@@ -1605,6 +1616,26 @@ kycForm.addEventListener("submit", async (e) => {
             showMessage("❌ Government ID and Selfie with ID are required.", "error");
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+            return;
+        }
+
+        // 🔥 OCR VERIFICATION for Government ID (ALL ROLES)
+        const govIdNumber = document.getElementById("govIdNumber").value.trim();
+        if (!govIdNumber) {
+            showMessage("❌ Please enter your Government ID number.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+            return;
+        }
+
+        updateProgress(5, "Starting OCR verification...");
+        try {
+            await verifyIdNumber(govIdFile, govIdNumber, "Government ID");
+        } catch (error) {
+            showMessage(error.message, "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+            progressContainer.classList.add("hidden");
             return;
         }
 
@@ -1616,6 +1647,8 @@ kycForm.addEventListener("submit", async (e) => {
             `kyc/${userId}/gov_id_${timestamp}.jpg`
         );
         kycData.kycDocuments.governmentId = govIdUrl;
+        kycData.govIdNumber = govIdNumber;
+        kycData.govIdNumberVerified = true;
 
         const govIdBackFile = document.getElementById("govIdBack").files[0];
         if (govIdBackFile) {
@@ -1634,7 +1667,7 @@ kycForm.addEventListener("submit", async (e) => {
         );
         kycData.kycDocuments.selfieWithId = selfieUrl;
 
-        // Role-specific uploads with OCR verification
+        // Role-specific uploads
         if (userRole === "broker") {
             const brokerIdNumber = document.getElementById("brokerIdNumber").value.trim();
             const brokerIdFile = document.getElementById("brokerIdDocument").files[0];
@@ -1646,7 +1679,7 @@ kycForm.addEventListener("submit", async (e) => {
                 return;
             }
 
-            // 🔥 UPDATED OCR VERIFICATION - Works with Student ID and National ID formats
+            // OCR VERIFICATION for Broker ID
             try {
                 await verifyIdNumber(brokerIdFile, brokerIdNumber, "Professional License");
             } catch (error) {

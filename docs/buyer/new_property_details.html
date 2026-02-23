@@ -582,7 +582,16 @@ const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
 const isFromAI = urlParams.get('source') === 'ai';
 const amenityCategoryFromQuery = (urlParams.get('amenity') || '').toLowerCase().trim();
-const shouldLoadNearbyAmenityProof = ['school', 'hospital', 'clinic', 'dental', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery);
+const allowedAmenityCategories = ['school', 'hospital', 'clinic', 'dental', 'mall', 'gym', 'park'];
+const effectiveAmenityCategory = allowedAmenityCategories.includes(amenityCategoryFromQuery)
+  ? amenityCategoryFromQuery
+  : 'all';
+const shouldLoadNearbyAmenityProof = allowedAmenityCategories.includes(amenityCategoryFromQuery);
+const detailsContextSuffix = `${isFromAI ? '&source=ai' : ''}${shouldLoadNearbyAmenityProof ? `&amenity=${encodeURIComponent(effectiveAmenityCategory)}` : ''}`;
+
+function buildPropertyDetailsUrl(id) {
+  return `new_property_details.html?id=${encodeURIComponent(id || '')}${detailsContextSuffix}`;
+}
 
 let currentListing = null;
 let currentUserInfo = null;
@@ -981,7 +990,7 @@ function initPropertyMap(lat, lng, title) {
       animation: google.maps.Animation.DROP
     });
 
-    // Only load nearby amenity proof for AI "near amenity" flows.
+    // Load nearby proof only when amenity was explicitly provided by user query flow.
     const proofEl = document.getElementById("nearbyProof");
     if (shouldLoadNearbyAmenityProof) {
       loadNearbyLandmarkProof(map, latitude, longitude);
@@ -1029,15 +1038,20 @@ function formatLandmarkCategory(category) {
 async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
-    const validCategory = ['school', 'hospital', 'clinic', 'dental', 'mall', 'gym', 'park'].includes(amenityCategoryFromQuery)
-      ? amenityCategoryFromQuery
-      : 'all';
-    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(validCategory)}&limit=200&max_distance_km=10&use_static_fallback=0`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const buildNearbyUrl = (category, useStaticFallback) =>
+      `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(category)}&limit=200&max_distance_km=10&use_static_fallback=${useStaticFallback ? 1 : 0}`;
+
+    // First try live places only, then retry with static fallback if needed.
+    let response = await fetch(buildNearbyUrl(effectiveAmenityCategory, false));
+    let data = await response.json();
+    if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
+      response = await fetch(buildNearbyUrl(effectiveAmenityCategory, true));
+      data = await response.json();
+    }
+
     if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
       if (proofEl) {
-        const label = validCategory === 'all' ? 'amenity' : formatLandmarkCategory(validCategory).toLowerCase();
+        const label = effectiveAmenityCategory === 'all' ? 'amenity' : formatLandmarkCategory(effectiveAmenityCategory).toLowerCase();
         proofEl.innerHTML = `<em>No live nearby ${label} proof available right now.</em>`;
       }
       return;
@@ -1060,9 +1074,9 @@ async function loadNearbyLandmarkProof(map, latitude, longitude) {
     });
 
     if (proofEl) {
-      const titleText = validCategory === 'all'
+      const titleText = effectiveAmenityCategory === 'all'
         ? `${data.results.length} nearby places found.`
-        : `${data.results.length} nearby ${formatLandmarkCategory(validCategory).toLowerCase()} places found.`;
+        : `${data.results.length} nearby ${formatLandmarkCategory(effectiveAmenityCategory).toLowerCase()} places found.`;
       proofEl.innerHTML = `<div style="margin-bottom:6px;"><strong>${titleText}</strong></div>` +
         data.results
           .map(item => `<div>• <strong>${item.name}</strong> (${formatLandmarkCategory(item.category)}) - ${item.distance_km} km</div>`)
@@ -1140,7 +1154,7 @@ function renderSimilarProperties(properties) {
     const img = (p.photos || p.imageUrls || [])[0] || 'https://via.placeholder.com/280x160/0b2e52/white?text=No+Image';
     const title = (p.title || 'Untitled').substring(0, 50) + ((p.title || '').length > 50 ? '…' : '');
     const loc = (p.location || p.address || 'Location not specified').substring(0, 40) + ((p.location || p.address || '').length > 40 ? '…' : '');
-    return `<a href="new_property_details.html?id=${p.id}" class="similar-property-card">
+    return `<a href="${buildPropertyDetailsUrl(p.id)}" class="similar-property-card">
       <img src="${img}" alt="${title}">
       <div class="similar-property-card-content">
         <div class="similar-property-card-title">${title}</div>
@@ -1982,7 +1996,7 @@ function updateMessagingModal(userInfo, property) {
     const type = property.monthlyRent ? 'rent' : property.annualRent ? 'lease' : 'sale';
     const price = type === 'rent' ? `₱${(property.monthlyRent||0).toLocaleString()}/mo` : type === 'lease' ? `₱${(property.annualRent||0).toLocaleString()}/yr` : `₱${(property.pricing||property.salePrice||0).toLocaleString()}`;
     document.getElementById('messagePropertyPrice').textContent = price;
-    ctxEl.onclick = () => { closeMessageModal(); window.location.href = 'new_property_details.html?id=' + (property.id || propertyId); };
+    ctxEl.onclick = () => { closeMessageModal(); window.location.href = buildPropertyDetailsUrl(property.id || propertyId); };
   } else {
     ctxEl.style.display = 'none';
     unavEl.style.display = 'block';

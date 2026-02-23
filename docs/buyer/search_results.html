@@ -1672,7 +1672,7 @@ function updateActiveFiltersDisplay() {
         Object.entries(searchFilters).forEach(([key, value]) => {
             if (value) {
                 // Internal/system filters from chatbot should not show as raw chips
-                if (key === 'propertyIds' || key === 'source') return;
+                if (key === 'propertyIds' || key === 'source' || key === 'amenity') return;
                 if (key === 'searchTerm' && searchFilters.source === 'chatbot') return;
                 const filterTag = document.createElement('div');
                 filterTag.className = 'filter-tag';
@@ -2255,9 +2255,13 @@ async function displayListings(listings) {
         const bathrooms = listing.bathrooms || 0;
         const area = listing.floorArea || listing.totalArea || 'N/A';
 
+        const amenitySuffix = searchFilters.amenity
+            ? `&amenity=${encodeURIComponent(searchFilters.amenity)}&source=ai`
+            : '';
+
         return `
         <div class="listing-card-wrapper">
-            <a href="new_property_details.html?id=${listing.id}" class="listing-card-link">
+            <a href="new_property_details.html?id=${listing.id}${amenitySuffix}" class="listing-card-link">
                 <div class="listing-card">
                     <div class="listing-card-image-container">
                         <img src="${mainPhoto}" alt="${listing.title || 'Property'}" class="listing-image">
