@@ -586,6 +586,8 @@ let currentListing = null;
 let currentUserInfo = null;
 let currentConversationId = null;
 let messageListener = null;
+let propertyLoadStarted = false;
+let googleMapsLoadPromise = null;
 
 // ========== KYC CHECK FUNCTIONS (ADDED) ==========
 
@@ -890,8 +892,16 @@ async function loadRuntimePublicConfig() {
 async function loadGoogleMapsAPI() {
   await loadRuntimePublicConfig();
 
-  return new Promise((resolve, reject) => {
-    if (window.google && window.google.maps) {
+  if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
+    return Promise.resolve();
+  }
+
+  if (googleMapsLoadPromise) {
+    return googleMapsLoadPromise;
+  }
+
+  googleMapsLoadPromise = new Promise((resolve, reject) => {
+    if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
       resolve();
       return;
     }
@@ -901,8 +911,21 @@ async function loadGoogleMapsAPI() {
       return;
     }
 
+    const existingScript = document.getElementById("googleMapsScript");
+    if (existingScript) {
+      existingScript.addEventListener("load", () => {
+        if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
+          resolve();
+        } else {
+          reject(new Error("Google Maps API loaded but Map constructor is unavailable"));
+        }
+      }, { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Failed to load existing Google Maps script")), { once: true });
+      return;
+    }
+
     const script = document.createElement('script');
-    // Keep classic loader flow here; `loading=async` may resolve before Map constructor is ready in this page flow.
+    script.id = "googleMapsScript";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
     script.async = true;
     script.defer = true;
@@ -916,6 +939,8 @@ async function loadGoogleMapsAPI() {
     script.onerror = () => reject(new Error("Failed to load Google Maps script"));
     document.head.appendChild(script);
   });
+
+  return googleMapsLoadPromise;
 }
 
 function initPropertyMap(lat, lng, title) {
@@ -2102,10 +2127,16 @@ document.getElementById('messageBahaiSuggestions').addEventListener('click', (e)
 
 onAuthStateChanged(auth, (user) => {
   if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
-  if (propertyId) loadProperty();
+  if (propertyId && !propertyLoadStarted) {
+    propertyLoadStarted = true;
+    loadProperty();
+  }
 });
 
-if (propertyId) loadProperty();
+if (propertyId && !propertyLoadStarted) {
+  propertyLoadStarted = true;
+  loadProperty();
+}
 </script>
 
 <script src="../sidebar-user.js"></script>
