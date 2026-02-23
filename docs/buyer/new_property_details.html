@@ -1018,7 +1018,8 @@ function formatLandmarkCategory(category) {
 async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
-    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=5&max_distance_km=5&use_static_fallback=0`;
+    // Request a broad, map-like nearby search (up to 50km and many places).
+    const url = `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=all&limit=200&max_distance_km=0&use_static_fallback=0`;
     const response = await fetch(url);
     const data = await response.json();
     if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
@@ -1043,9 +1044,10 @@ async function loadNearbyLandmarkProof(map, latitude, longitude) {
     });
 
     if (proofEl) {
-      proofEl.innerHTML = data.results
-        .map(item => `<div>• <strong>${item.name}</strong> (${formatLandmarkCategory(item.category)}) - ${item.distance_km} km</div>`)
-        .join("");
+      proofEl.innerHTML = `<div style="margin-bottom:6px;"><strong>${data.results.length}</strong> nearby places found.</div>` +
+        data.results
+          .map(item => `<div>• <strong>${item.name}</strong> (${formatLandmarkCategory(item.category)}) - ${item.distance_km} km</div>`)
+          .join("");
     }
   } catch (error) {
     console.warn("Could not load nearby landmark proof:", error);

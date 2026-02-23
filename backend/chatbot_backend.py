@@ -1619,7 +1619,12 @@ def _fetch_live_nearby_places(
     radius_m: int = 5000,
     limit: int = 5
 ) -> List[Dict[str, Any]]:
-    """Fetch nearby places using Google Places Nearby Search (live), with cache."""
+    """Fetch nearby places using Google Places Nearby Search (live), with cache.
+
+    Notes:
+    - Nearby Search max radius is 50,000 meters.
+    - API pagination is capped to 3 pages per request chain.
+    """
     if not GOOGLE_PLACES_API_KEY:
         return []
 
@@ -1638,8 +1643,8 @@ def _fetch_live_nearby_places(
         'port': ['transit_station'],
     }
     requested_types = place_type_map.get(category, [category])
-    radius_m = max(500, min(int(radius_m), 10000))
-    limit = max(1, min(int(limit), 10))
+    radius_m = max(500, min(int(radius_m), 50000))
+    limit = max(1, min(int(limit), 300))
 
     rounded_lat = round(float(lat), 4)
     rounded_lng = round(float(lng), 4)
@@ -1653,44 +1658,78 @@ def _fetch_live_nearby_places(
     merged = []
     seen = set()
     for place_type in requested_types:
-        try:
-            params = {
-                'key': GOOGLE_PLACES_API_KEY,
-                'location': f"{lat},{lng}",
-                'radius': radius_m,
-                'type': place_type,
-            }
-            resp = requests.get(GOOGLE_PLACES_NEARBY_URL, params=params, timeout=6)
-            if resp.status_code != 200:
-                continue
-            payload = resp.json()
-            for item in payload.get('results', []):
-                geom = item.get('geometry', {}).get('location', {})
-                p_lat = geom.get('lat')
-                p_lng = geom.get('lng')
-                if p_lat is None or p_lng is None:
+        pages_fetched = 0
+        next_page_token = None
+        token_retries = 0
+
+        while pages_fetched < 3:
+            try:
+                if next_page_token:
+                    # Google may require a brief delay before next_page_token becomes valid.
+                    time.sleep(2)
+                    params = {
+                        'key': GOOGLE_PLACES_API_KEY,
+                        'pagetoken': next_page_token,
+                    }
+                else:
+                    params = {
+                        'key': GOOGLE_PLACES_API_KEY,
+                        'location': f"{lat},{lng}",
+                        'radius': radius_m,
+                        'type': place_type,
+                    }
+
+                resp = requests.get(GOOGLE_PLACES_NEARBY_URL, params=params, timeout=8)
+                if resp.status_code != 200:
+                    break
+
+                payload = resp.json()
+                status = payload.get('status', '')
+
+                if status == 'INVALID_REQUEST' and next_page_token and token_retries < 2:
+                    token_retries += 1
                     continue
-                dist_km = _haversine_km(float(lat), float(lng), float(p_lat), float(p_lng))
-                entry = {
-                    'category': category,
-                    'name': item.get('name', f'Nearby {category}'),
-                    'vicinity': item.get('vicinity', ''),
-                    'place_id': item.get('place_id', ''),
-                    'lat': float(p_lat),
-                    'lng': float(p_lng),
-                    'distance_km': round(float(dist_km), 2),
-                }
-                dedupe_key = (entry['name'].lower(), entry['lat'], entry['lng'])
-                if dedupe_key in seen:
-                    continue
-                seen.add(dedupe_key)
-                merged.append(entry)
-        except Exception:
-            continue
+                token_retries = 0
+
+                if status not in ['OK', 'ZERO_RESULTS', '']:
+                    break
+
+                for item in payload.get('results', []):
+                    geom = item.get('geometry', {}).get('location', {})
+                    p_lat = geom.get('lat')
+                    p_lng = geom.get('lng')
+                    if p_lat is None or p_lng is None:
+                        continue
+                    dist_km = _haversine_km(float(lat), float(lng), float(p_lat), float(p_lng))
+                    entry = {
+                        'category': category,
+                        'name': item.get('name', f'Nearby {category}'),
+                        'vicinity': item.get('vicinity', ''),
+                        'place_id': item.get('place_id', ''),
+                        'lat': float(p_lat),
+                        'lng': float(p_lng),
+                        'distance_km': round(float(dist_km), 2),
+                    }
+                    dedupe_key = (
+                        entry['place_id'] or entry['name'].lower(),
+                        entry['lat'],
+                        entry['lng']
+                    )
+                    if dedupe_key in seen:
+                        continue
+                    seen.add(dedupe_key)
+                    merged.append(entry)
+
+                pages_fetched += 1
+                next_page_token = payload.get('next_page_token')
+                if not next_page_token:
+                    break
+            except Exception:
+                break
 
     merged.sort(key=lambda x: x['distance_km'])
-    # Keep a slightly larger cached list; callers can request smaller slices.
-    cached_results = merged[:10]
+    # Keep a larger cached list for "show all nearby" use-cases.
+    cached_results = merged[:300]
     _PLACES_CACHE[cache_key] = {'ts': now, 'results': cached_results}
     return cached_results[:limit]
 
@@ -4000,10 +4039,17 @@ def nearby_landmarks():
         lat = request.args.get('lat', type=float)
         lng = request.args.get('lng', type=float)
         category_filter = (request.args.get('category', 'all') or 'all').lower().strip()
-        limit = request.args.get('limit', default=3, type=int)
-        limit = max(1, min(limit, 8))
-        max_distance_km = request.args.get('max_distance_km', default=5.0, type=float)
-        max_distance_km = max(0.5, min(max_distance_km, 25.0))
+        limit = request.args.get('limit', default=120, type=int)
+        limit = max(1, min(limit, 300))
+        max_distance_raw = request.args.get('max_distance_km')
+        if max_distance_raw is None or str(max_distance_raw).strip() == '':
+            max_distance_km = 50.0
+        else:
+            try:
+                parsed_distance = float(max_distance_raw)
+                max_distance_km = 50.0 if parsed_distance <= 0 else max(0.5, min(parsed_distance, 50.0))
+            except (TypeError, ValueError):
+                max_distance_km = 50.0
         use_static_fallback_raw = (request.args.get('use_static_fallback', '1') or '1').strip().lower()
         use_static_fallback = use_static_fallback_raw in ['1', 'true', 'yes', 'y']
 
