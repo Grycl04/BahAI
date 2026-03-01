@@ -38,6 +38,90 @@
       ]
     },
     {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hi there! Welcome to BahAI. I'm here to help you find your perfect property in Batangas. What are you looking for?",
+      "response_template_tagalog": "👋 Hi! Welcome sa BahAI. Nandito ako para tulungan kang humanap ng property sa Batangas. Ano ang hinahanap mo?"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hey! Great to see you. I'm BahAI — your Batangas property guide. Ask me anything about houses, condos, or land!",
+      "response_template_tagalog": "👋 Kumusta! Good to see you. Ako si BahAI, gabay mo sa properties sa Batangas. Tanong lang tungkol sa bahay, condo, o lupa!"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hello! Ready to explore Batangas properties? I can help you search by location, price, or type. Just say what you need!",
+      "response_template_tagalog": "👋 Hello! Handa na mag-explore ng properties sa Batangas? Pwede kitang tulungan sa location, presyo, o tipo. Sabihin mo lang!"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hi! I'm BahAI, your property assistant. Whether you're buying, renting, or just browsing — I've got you covered in Batangas.",
+      "response_template_tagalog": "👋 Kumusta! Ako si BahAI, property assistant mo. Bili, rent, o browse lang — nandito ako para sa Batangas properties mo."
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hey there! Welcome. I help people find homes and lots in Batangas. What can I do for you today?",
+      "response_template_tagalog": "👋 Uy, welcome! Tumutulong ako maghanap ng bahay at lupa sa Batangas. Ano ang maitutulong ko ngayon?"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hello! Nice to meet you. I'm here to make your Batangas property search easy. Try asking for houses, condos, or apartments!",
+      "response_template_tagalog": "👋 Kumusta! Nice to meet you. Nandito ako para gawing madali ang property search mo sa Batangas. Subukan mong magtanong ng bahay, condo, o apartment!"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hi! I'm BahAI — think of me as your Batangas property buddy. Need something? Just ask.",
+      "response_template_tagalog": "👋 Hi! Ako si BahAI — parang property buddy mo sa Batangas. May kailangan ka? Tanong lang."
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Greetings! I'm your Batangas property assistant. Looking for a house, condo, or land? I can help you find it.",
+      "response_template_tagalog": "👋 Magandang araw! Ako ang Batangas property assistant mo. Naghahanap ng bahay, condo, o lupa? Pwede kitang tulungan."
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hey! Good to have you here. Tell me what you're looking for in Batangas — location, budget, or type — and I'll help.",
+      "response_template_tagalog": "👋 Uy! Good to have you here. Sabihin mo lang ano ang hanap mo sa Batangas — location, budget, o tipo — tutulungan kita."
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hello! I'm BahAI. From Lipa to Nasugbu, I can help you discover Batangas properties. What do you need?",
+      "response_template_tagalog": "👋 Kumusta! Ako si BahAI. Mula Lipa hanggang Nasugbu, pwede kitang tulungan mag-discover ng properties sa Batangas. Ano ang kailangan mo?"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hi! Welcome to BahAI. Search for properties by saying things like 'houses in Lipa' or 'condos under 5M'. I'm here to help!",
+      "response_template_tagalog": "👋 Hi! Welcome sa BahAI. Maghanap ng properties sa pamamagitan ng 'mga bahay sa Lipa' o 'condo under 5M'. Nandito ako para tumulong!"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hey! I'm your go-to for Batangas real estate. Ask me about financing, locations, or ready-to-move-in properties.",
+      "response_template_tagalog": "👋 Hey! Ako ang go-to mo para sa Batangas real estate. Magtanong tungkol sa financing, location, o ready-to-move-in na properties."
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hello! Ready to find your next home in Batangas? I can show you listings by area, price, or type. What's your preference?",
+      "response_template_tagalog": "👋 Hello! Handa na humanap ng susunod na bahay sa Batangas? Pwede kitang bigyan ng listings ayon sa lugar, presyo, o tipo. Ano ang preference mo?"
+    },
+    {
+      "query": "hi",
+      "intent": "greeting",
+      "response_template_english": "👋 Hi there! I'm BahAI — here to help with your Batangas property search. Try: 'near hospital', 'under 3M', or 'for family'.",
+      "response_template_tagalog": "👋 Kumusta! Ako si BahAI — nandito para sa Batangas property search mo. Subukan: 'malapit sa hospital', 'under 3M', o 'para sa pamilya'."
+    },
+    {
       "query": "good morning",
       "intent": "greeting",
       "variations": [

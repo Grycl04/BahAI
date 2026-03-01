@@ -83,6 +83,7 @@ class TeamNLUTrainer:
             'thanks': 'thanks',
             'help': 'help',
             'about_system': 'about_system',
+            'out_of_scope': 'out_of_scope',
             'goodbye': 'goodbye',
             'type_price_features': 'find_property_with_criteria',
             'near_landmark': 'find_near_landmark',

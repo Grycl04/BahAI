@@ -1087,6 +1087,47 @@
       ],
       "ideal_for": "Diving enthusiasts, resort investors, retirees, vacation homeowners",
       "property_types": "Houses, resort properties, beachfront lots, residential lots"
+    },
+    {
+      "query": "how to schedule a viewing",
+      "intent": "schedule_viewing",
+      "entities": {},
+      "variations": [
+        "how to book a viewing",
+        "how to schedule a viewing",
+        "how can i schedule a viewing",
+        "how do i schedule a viewing",
+        "how to book a viewing",
+        "how can i book a viewing",
+        "how do i book a viewing",
+        "schedule a viewing",
+        "book a viewing",
+        "schedule viewing",
+        "book viewing",
+        "how to schedule property viewing",
+        "how to book property viewing",
+        "paano mag-schedule ng viewing",
+        "paano mag-book ng viewing",
+        "set up a viewing",
+        "arrange a viewing",
+        "request a viewing",
+        "schedule property viewing",
+        "book property viewing",
+        "want to schedule a viewing",
+        "want to book a viewing",
+        "how do i set up a viewing",
+        "how can i arrange a viewing",
+        "how to request a viewing",
+        "how to set up a property viewing",
+        "can i schedule a viewing",
+        "can i book a viewing",
+        "steps to schedule a viewing",
+        "steps to book a viewing",
+        "process to schedule viewing",
+        "how does scheduling a viewing work",
+        "how does booking a viewing work"
+      ],
+      "response_template": "📅 **How to schedule a property viewing**\n\nHere's how it works on our platform:\n\n1️⃣ **Find a property** – Choose a listing you want to see (from search results or property details).\n\n2️⃣ **Message the broker or landlord** – Click Contact or Message on the property listing to start a conversation.\n\n3️⃣ **Click Schedule Viewing** – In Messages (your conversation with the broker/landlord), click the **Schedule Viewing** button.\n\n4️⃣ **Fill out the viewing form** – Select your Preferred Date (within 30 days, no Sundays), Preferred Time (9 AM–5 PM), and optional notes, then click **Request Viewing**.\n\n5️⃣ **Wait for confirmation** – The broker or landlord can Confirm, Decline, or Suggest alternative time. You'll get updates in Messages.\n\n💡 You need to be logged in and verified (KYC) to contact brokers and schedule viewings."
     }
   ],
   "entity_dictionary": {
@@ -1257,17 +1298,20 @@
   "response_templates": {
     "find_property": "📍 **Found Properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location Highlights:** {location_description}\n**Average Price/Rent:** {average_price}",
     "financing": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
-    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhoods & Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}"
+    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhoods & Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+    "schedule_viewing": "📅 **How to schedule a property viewing**\n\n1. Find a property and message the broker/landlord (Contact or Message).\n2. In Messages, click **Schedule Viewing**.\n3. On the Schedule Property Viewing page, pick date (within 30 days), time (9 AM–5 PM), and click **Request Viewing**.\n4. Broker/landlord will Confirm, Decline, or Suggest alternative; you get updates in Messages.\n\n💡 Log in and complete KYC to contact brokers and schedule viewings."
   },
   "response_templates_english": {
     "find_property": "📍 **Found Properties in {location}**\n\nI found {count} {property_type} properties in {location}. Here are some available options:\n\n{property_list}\n\n**Location Highlights:** {location_description}\n**Average Price/Rent:** {average_price}",
     "financing": "🏦 **Properties Accepting {financing_type}**\n\nI found {count} properties that accept {financing_type}. Here are some options:\n\n{property_list}\n\n**Required Documents:**\n{documents_list}\n\n**Basic Requirements:**\n{requirements_list}",
-    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhoods & Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}"
+    "location_info": "📍 **About {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhoods & Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average Property Prices:**\n{average_prices}\n\n**Ideal For:** {ideal_for}\n\n**Property Types Available:** {property_types}",
+    "schedule_viewing": "📅 **How to schedule a property viewing**\n\n1. Find a property and message the broker/landlord (Contact or Message).\n2. In Messages, click **Schedule Viewing**.\n3. On the Schedule Property Viewing page, pick date (within 30 days), time (9 AM–5 PM), and click **Request Viewing**.\n4. Broker/landlord will Confirm, Decline, or Suggest alternative; you get updates in Messages.\n\n💡 Log in and complete KYC to contact brokers and schedule viewings."
   },
   "response_templates_tagalog": {
     "find_property": "📍 **Mga Nahanap na Property sa {location}**\n\nMay nahanap akong {count} {property_type} na properties sa {location}. Narito ang mga available na options:\n\n{property_list}\n\n**Highlights ng Location:** {location_description}\n**Average na Presyo/Upa:** {average_price}",
     "financing": "🏦 **Mga Property na Tumatanggap ng {financing_type}**\n\nMay nahanap akong {count} properties na tumatanggap ng {financing_type}. Narito ang ilang options:\n\n{property_list}\n\n**Mga Kailangang Dokumento:**\n{documents_list}\n\n**Pangunahing Requirements:**\n{requirements_list}",
-    "location_info": "📍 **Tungkol sa {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhood at Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average na Presyo ng Property:**\n{average_prices}\n\n**Ideal Para Kanino:** {ideal_for}\n\n**Mga Available na Uri ng Property:** {property_types}"
+    "location_info": "📍 **Tungkol sa {location}**\n\n**Description:** {description}\n\n**Lifestyle:** {lifestyle}\n\n**Neighborhood at Living Experience:** {neighborhood_info}\n\n**Key Features:**\n{key_features}\n\n**Average na Presyo ng Property:**\n{average_prices}\n\n**Ideal Para Kanino:** {ideal_for}\n\n**Mga Available na Uri ng Property:** {property_types}",
+    "schedule_viewing": "📅 **Paano mag-schedule ng property viewing**\n\n1. Maghanap ng property at mag-message sa broker/landlord (Contact o Message).\n2. Sa Messages, i-click ang **Schedule Viewing**.\n3. Sa Schedule Property Viewing page, piliin ang date (within 30 days), time (9 AM–5 PM), tapos i-click ang **Request Viewing**.\n4. Pwedeng i-Confirm, i-Decline, o mag-Suggest ng alternative ang broker/landlord; makikita mo ang update sa Messages.\n\n💡 Kailangan naka-log in at KYC verified para makapag-contact at mag-schedule ng viewing."
   },
   "location_profiles": {
     "Batangas City": {

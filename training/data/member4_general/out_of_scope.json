@@ -1,0 +1,155 @@
+{
+  "training_samples": [
+    {
+      "query": "why is the sky blue",
+      "intent": "out_of_scope",
+      "response_template_english": "This is a real estate platform—we help with properties, finding a place to live, and connecting with agents. Please ask a property-related question (e.g. search for a house, location info, or how to contact an agent).",
+      "response_template_tagalog": "Real estate platform po ito—tumutulong kami sa property, paghahanap ng bahay o lupang tinitirhan, at sa mga broker/agent. Magtanong po tungkol sa property, lokasyon, o paano makipag-ugnayan sa agent.",
+      "variations": [
+        "why is the sky blue",
+        "why is the sea blue",
+        "how does gravity work",
+        "what is photosynthesis",
+        "science question",
+        "general knowledge"
+      ]
+    },
+    {
+      "query": "how do i cook adobo",
+      "intent": "out_of_scope",
+      "variations": [
+        "how to cook adobo",
+        "adobo recipe",
+        "recipe for sinigang",
+        "how to cook sinigang",
+        "filipino recipes",
+        "cooking tips",
+        "what ingredients for adobo",
+        "paano magluto ng adobo",
+        "recipe ng adobo"
+      ]
+    },
+    {
+      "query": "tell me a joke",
+      "intent": "out_of_scope",
+      "variations": [
+        "tell me a joke",
+        "say something funny",
+        "make me laugh",
+        "do you have a joke",
+        "funny story",
+        "kwento ng nakakatawa",
+        "joke please"
+      ]
+    },
+    {
+      "query": "what is the weather today",
+      "intent": "out_of_scope",
+      "variations": [
+        "what is the weather",
+        "weather today",
+        "will it rain",
+        "temperature today",
+        "weather forecast",
+        "ano ang weather ngayon",
+        "ulan ba ngayon"
+      ]
+    },
+    {
+      "query": "who won the basketball game",
+      "intent": "out_of_scope",
+      "variations": [
+        "basketball score",
+        "sports news",
+        "football results",
+        "who won the game",
+        "sino nanalo",
+        "game result"
+      ]
+    },
+    {
+      "query": "recommend a movie",
+      "intent": "out_of_scope",
+      "variations": [
+        "recommend a movie",
+        "best movie to watch",
+        "what movie should i see",
+        "movie recommendation",
+        "anong pelikula maganda",
+        "suggest a film"
+      ]
+    },
+    {
+      "query": "how do i fix my phone",
+      "intent": "out_of_scope",
+      "variations": [
+        "how to fix my phone",
+        "phone not working",
+        "technical support",
+        "computer problem",
+        "how to code",
+        "programming help",
+        "paano ayusin ang phone"
+      ]
+    },
+    {
+      "query": "medical advice",
+      "intent": "out_of_scope",
+      "variations": [
+        "i feel sick",
+        "medical advice",
+        "doctor recommendation",
+        "hospital near me",
+        "medicine for headache",
+        "health question",
+        "may sakit ako"
+      ]
+    },
+    {
+      "query": "help with homework",
+      "intent": "out_of_scope",
+      "variations": [
+        "help with homework",
+        "math problem",
+        "solve this equation",
+        "school assignment",
+        "tulong sa assignment",
+        "exam review"
+      ]
+    },
+    {
+      "query": "best restaurant in manila",
+      "intent": "out_of_scope",
+      "variations": [
+        "best restaurant",
+        "where to eat",
+        "food recommendation",
+        "restaurant near me",
+        "saan masarap kumain",
+        "good food place"
+      ]
+    },
+    {
+      "query": "what is the meaning of life",
+      "intent": "out_of_scope",
+      "variations": [
+        "meaning of life",
+        "philosophy question",
+        "random question",
+        "off topic",
+        "unrelated question"
+      ]
+    },
+    {
+      "query": "translate this to spanish",
+      "intent": "out_of_scope",
+      "variations": [
+        "translate to spanish",
+        "translation help",
+        "how do you say in french",
+        "language translation",
+        "translate this"
+      ]
+    }
+  ]
+}

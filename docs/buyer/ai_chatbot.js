@@ -297,12 +297,15 @@ export async function processChatMessage(userMessage) {
         // Show typing indicator
         const typingMessage = addTypingIndicator();
         
-        // Prepare request to Python backend
+        // Prepare request to Python backend (include previous context for conversational follow-ups)
         const requestData = {
             query: userMessage,
             user_id: currentUser ? currentUser.uid : 'anonymous'
         };
-        
+        if (window.lastChatContext?.previous_query != null && window.lastChatContext?.previous_entities != null) {
+            requestData.previous_query = window.lastChatContext.previous_query;
+            requestData.previous_entities = window.lastChatContext.previous_entities;
+        }
         console.log("📤 Sending to backend:", requestData);
         
         let data;
@@ -412,6 +415,16 @@ export async function processChatMessage(userMessage) {
             typingMessage.remove();
         }
         
+        // Store context for conversational follow-ups (so "in Lipa City" / "under 2M" refines last search)
+        if (data && (data.response || data.message) && data.success !== false) {
+            window.lastChatContext = {
+                previous_query: userMessage,
+                previous_entities: data.entities && typeof data.entities === 'object' ? data.entities : {}
+            };
+        } else {
+            window.lastChatContext = null;
+        }
+        
         // Display response
         if (data && data.response) {
             addMessageToChat(data.response, 'bot');
@@ -421,9 +434,9 @@ export async function processChatMessage(userMessage) {
             addMessageToChat("I received your message but couldn't process it properly. Please try again.", 'bot');
         }
         
-        // If properties were found, display them
+        // If properties were found, display them (pass landmark_category so we only load nearby amenities when search was "near X")
         if (data && data.properties && data.properties.length > 0) {
-            displayPropertiesInChat(data.properties, userMessage);
+            displayPropertiesInChat(data.properties, userMessage, data.landmark_category);
         }
         
         // Show appropriate prompts based on phase
@@ -562,7 +575,7 @@ function detectAmenityFromQuery(query = '') {
     return '';
 }
 
-function displayPropertiesInChat(properties, userQuery = '') {
+function displayPropertiesInChat(properties, userQuery = '', landmarkCategoryFromApi = null) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages || !properties || properties.length === 0) return;
     
@@ -576,7 +589,8 @@ function displayPropertiesInChat(properties, userQuery = '') {
         <div class="properties-grid">
     `;
     
-    const amenityFilter = detectAmenityFromQuery(userQuery);
+    // Only add amenity to links when search was "near X" (from API). Do not use query text so we avoid loading Google Places when not needed.
+    const amenityFilter = landmarkCategoryFromApi || '';
 
     // Show max 3 properties in chat
     properties.slice(0, 3).forEach(prop => {
@@ -685,74 +699,9 @@ async function logChatInteraction(query, response, user) {
 // ============================================
 
 function addInitialPrompts() {
-    // Remove any existing prompt containers
+    // Quick prompts removed – we now rely on a concise welcome text only.
     const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
-    
-    const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages) return;
-    
-    // Reset phase tracker
-    if (!window.chatbotPhase) {
-        window.chatbotPhase = {
-            showInitialPrompts: true,
-            initialPromptsUsed: false
-        };
-    }
-    
-    // Only show initial prompts if we're in the initial phase
-    if (!window.chatbotPhase.showInitialPrompts) {
-        addQuickPrompts();
-        return;
-    }
-    
-    const demoSection = document.createElement('div');
-    demoSection.className = 'demo-prompts-container initial-prompts';
-    demoSection.innerHTML = `
-        <div class="demo-prompts-title">
-            <i class="fas fa-lightbulb" style="color: #667eea;"></i> Try these quick prompts
-        </div>
-        <div class="demo-prompts-buttons" style="grid-template-columns: repeat(3, 1fr);">
-            ${INITIAL_PROMPTS.map(prompt => `
-                <button class="demo-prompt-btn initial-prompt-btn" 
-                        data-full-prompt="${prompt.fullPrompt}" 
-                        data-id="${prompt.id}"
-                        title="${prompt.fullPrompt}">
-                    <span class="prompt-icon">${prompt.emoji}</span>
-                    <span class="prompt-text">${prompt.displayText}</span>
-                </button>
-            `).join('')}
-        </div>
-    `;
-    
-    chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
-    
-    // Add event listeners to initial prompt buttons
-    setTimeout(() => {
-        document.querySelectorAll('.initial-prompt-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const fullPrompt = this.getAttribute('data-full-prompt');
-                const chatInput = document.getElementById('chatInput');
-                
-                if (chatInput && fullPrompt) {
-                    // Set the FULL expanded prompt in the input field
-                    chatInput.value = fullPrompt;
-                    chatInput.focus();
-                    
-                    // Visual feedback
-                    this.style.transform = 'scale(0.95)';
-                    this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
-                    setTimeout(() => {
-                        this.style.transform = '';
-                        this.style.boxShadow = '';
-                    }, 200);
-                }
-            });
-        });
-    }, 100);
 }
 
 // ============================================
@@ -761,96 +710,9 @@ function addInitialPrompts() {
 // ============================================
 
 function addQuickPrompts() {
-    // Remove any existing prompt containers
+    // Quick prompts removed – keep any old containers cleared.
     const existingPrompts = document.querySelector('.demo-prompts-container');
     if (existingPrompts) existingPrompts.remove();
-    
-    const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages) return;
-    
-    // Shuffle and select 4 random prompts
-    const shuffled = [...ALL_QUICK_PROMPTS].sort(() => Math.random() - 0.5);
-    const selectedPrompts = shuffled.slice(0, 4);
-    
-    const demoSection = document.createElement('div');
-    demoSection.className = 'demo-prompts-container quick-prompts';
-    demoSection.innerHTML = `
-        <div class="demo-prompts-title">
-            <i class="fas fa-bolt" style="color: #667eea;"></i> Quick Prompts
-            <span class="prompt-count-badge">
-                <i class="fas fa-sync-alt"></i> 4 random questions
-            </span>
-        </div>
-        <div class="demo-prompts-buttons" style="grid-template-columns: repeat(2, 1fr);">
-            ${selectedPrompts.map(prompt => `
-                <button class="demo-prompt-btn quick-prompt-btn" 
-                        data-full-prompt="${prompt.fullPrompt}" 
-                        data-id="${prompt.id}"
-                        title="${prompt.fullPrompt}">
-                    <span class="prompt-icon">${prompt.emoji}</span>
-                    <span class="prompt-text">${prompt.displayText}</span>
-                </button>
-            `).join('')}
-        </div>
-        <div class="prompts-footer">
-            <div class="prompts-info">
-                <i class="fas fa-info-circle"></i> New set every time
-            </div>
-            <button id="refreshPrompts" class="shuffle-button">
-                <i class="fas fa-redo-alt"></i> New set
-            </button>
-        </div>
-    `;
-    
-    chatMessages.parentNode.insertBefore(demoSection, chatMessages.nextSibling);
-    
-    // Add event listeners to quick prompt buttons
-    setTimeout(() => {
-        document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const fullPrompt = this.getAttribute('data-full-prompt');
-                const chatInput = document.getElementById('chatInput');
-                
-                if (chatInput && fullPrompt) {
-                    // Set the FULL expanded prompt in the input field
-                    chatInput.value = fullPrompt;
-                    chatInput.focus();
-                    
-                    // Visual feedback
-                    this.style.transform = 'scale(0.95)';
-                    this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.3)';
-                    setTimeout(() => {
-                        this.style.transform = '';
-                        this.style.boxShadow = '';
-                    }, 200);
-                }
-            });
-        });
-        
-        // Add refresh button functionality
-        const refreshBtn = document.getElementById('refreshPrompts');
-        if (refreshBtn) {
-            const newRefreshBtn = refreshBtn.cloneNode(true);
-            refreshBtn.parentNode.replaceChild(newRefreshBtn, refreshBtn);
-            
-            newRefreshBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Generate new random prompts
-                addQuickPrompts();
-                
-                // Button feedback
-                newRefreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-                setTimeout(() => {
-                    newRefreshBtn.innerHTML = '<i class="fas fa-redo-alt"></i> New set';
-                }, 500);
-            });
-        }
-    }, 100);
 }
 
 // ============================================
@@ -887,8 +749,16 @@ function showWelcomeMessage() {
                         </div>
                     </div>
                     <p style="color: var(--text-dark); margin-bottom: 15px; line-height: 1.5;">
-                        Hello! I'm your AI assistant for Batangas real estate. Try clicking one of the quick prompts below, then click Send when you're ready!
+                        Hello! I'm your AI assistant for Batangas real estate. You can ask in English or Tagalog about properties, locations, or how the buyer features work.
                     </p>
+                    <div style="font-size: 13px; color: #555; margin-bottom: 10px;">
+                        Here are some example questions you can try:
+                    </div>
+                    <ul style="padding-left: 18px; margin: 0 0 10px 0; font-size: 13px; color: #333;">
+                        <li>“Find apartments in Lipa under 3M”</li>
+                        <li>“Tell me about Lipa City” / “kamusta tumira sa Lipa?”</li>
+                        <li>“How can I reach out with an agent?” / “paano makipag-ugnayan sa broker?”</li>
+                    </ul>
                     ${isProduction ? `
                         <p style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 15px;">
                             <i class="fas fa-clock"></i> <strong>First-time startup:</strong> The AI service may take 30-60 seconds to respond initially (free hosting).
