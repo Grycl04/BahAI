@@ -1417,10 +1417,10 @@ onAuthStateChanged(auth, async (user) => {
         roleBadge.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
         const dashboardMap = {
-            broker: 'broker_dashboard.html',
+            broker: 'broker/broker_dashboard.html',
             agent: 'broker/agent_dashboard.html',
             seller: 'seller_dashboard.html',
-            landlord: 'landlord_dashboard.html'
+            landlord: 'landlord/landlord_dashboard.html'
         };
         const backLink = document.getElementById("backLink");
         backLink.href = dashboardMap[userRole] || 'dashboard.html';

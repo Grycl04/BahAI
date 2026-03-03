@@ -488,7 +488,18 @@
         "why cant message them",
         "can't message them",
         "bakit hindi ako makapag-message",
-        "bakit hindi makapag-message"
+        "bakit hindi makapag-message",
+        "paano ako makakasiguradong safe ito",
+        "safe ba ito",
+        "safe ba ang platform",
+        "is it safe",
+        "how safe is this",
+        "mapagkakatiwalaan ba",
+        "trustworthy ba",
+        "how can I be sure it's safe",
+        "is this platform safe",
+        "secure ba ang bahai",
+        "bakit safe ito"
       ],
       "response_template_english": "🪪 **Buyer KYC – What It Is & How It Works**\n\n**What is KYC?**\nKYC (Know Your Customer) is identity verification. It confirms you are a real person using a valid ID and a face match check.\n\n**Why is KYC needed?**\n• **Safer accounts** – Reduces fake or spam accounts\n• **Protects you & sellers** – Brokers/landlords know they’re talking to verified buyers\n• **More secure platform** – Helps keep BahAI trustworthy for everyone\n\n**What do you need to do?**\n1️⃣ Upload a **valid Government ID** (National ID, Driver’s License, Passport, UMID, etc.)\n2️⃣ Take a **selfie with your ID** (hold ID next to your face)\n3️⃣ The system runs a **face match** – your selfie is compared to your ID photo\n4️⃣ You must pass a **70% match score** to be verified\n\n**How it works:**\nYour ID and selfie are checked using **Face++** technology. The system compares your face in the selfie with the photo on your ID. If the match is 70% or higher, your account is verified. Your data is encrypted and secure.\n\n**What you can access when KYC verified:**\n✅ Message brokers and landlords directly\n✅ Schedule property viewings\n✅ Make formal offers on properties\n✅ Build trust with sellers\n\n**Complete KYC here:** https://bahai-frontend.onrender.com/buyer/buyer-kyc.html\n\n**Access without KYC:**\n• **Guest:** View only – no save, message, or schedule\n• **Logged in (no KYC):** Can save/like properties, but cannot message or schedule viewings",
       "response_template_tagalog": "🪪 **Buyer KYC – Ano Ito at Paano Gumagana**\n\n**Ano ang KYC?**\nAng KYC (Know Your Customer) ay identity verification. Pinapatunayan nito na tunay kang tao gamit ang valid ID at face match check.\n\n**Bakit kailangan ang KYC?**\n• **Mas ligtas na accounts** – Mas kaunti ang fake o spam accounts\n• **Proteksyon para sa iyo at sellers** – Alam ng brokers/landlords na verified buyer ang kausap nila\n• **Mas secure na platform** – Tumutulong panatilihing mapagkakatiwalaan ang BahAI para sa lahat\n\n**Ano ang kailangan mong gawin?**\n1️⃣ Mag-upload ng **valid Government ID** (National ID, Driver’s License, Passport, UMID, etc.)\n2️⃣ Kumuha ng **selfie with ID** (hawak ang ID sa tabi ng mukha)\n3️⃣ Magra-run ang system ng **face match** – ikinumpara ang selfie mo sa photo sa ID\n4️⃣ Dapat **70% o higit** ang match score para ma-verify\n\n**Paano gumagana:**\nTine-check ang ID at selfie mo gamit ang **Face++** technology. Ikumpara ng system ang mukha mo sa selfie sa photo sa ID. Kung 70% o mas mataas ang match, verified na ang account mo. Encrypted at secure ang iyong data.\n\n**Ano ang pwede mong gawin kapag KYC verified:**\n✅ Mag-message sa brokers at landlords\n✅ Mag-schedule ng property viewings\n✅ Mag-submit ng formal offers sa properties\n✅ Mag-build ng trust sa sellers\n\n**Mag-complete ng KYC dito:** https://bahai-frontend.onrender.com/buyer/buyer-kyc.html\n\n**Access kapag walang KYC:**\n• **Guest:** View only – walang save, message, o schedule\n• **Naka-login (walang KYC):** Pwede mag-save/like ng properties, pero hindi pwede mag-message o mag-schedule ng viewing"

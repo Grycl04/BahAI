@@ -3633,6 +3633,16 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return help_response
     
     elif intent == 'about_system':
+        # Follow-up in same conversation (e.g. user said "sino sino ang mga landlord" then "agent")
+        follow_up_role = entities.get('follow_up_about_system_role')
+        if follow_up_role:
+            lang = detect_language(entities.get('previous_query') or entities.get('original_query') or '')
+            body = generate_roles_list_response(lang, roles=[follow_up_role])
+            if lang == 'tl':
+                intro = "👥 **Oo, eto ang mga " + ("agent" if follow_up_role == 'agent' else "landlord" if follow_up_role == 'landlord' else "broker") + " sa system:**\n\n"
+            else:
+                intro = "👥 **Sure — here are the " + ("agents" if follow_up_role == 'agent' else "landlords" if follow_up_role == 'landlord' else "brokers") + ":**\n\n"
+            return intro + body
         # Special-case: user is explicitly asking "sino-sino ang mga broker/landlord/agents"
         original_query = str(entities.get('original_query') or '').lower()
         # If user is explicitly asking for lists of brokers/landlords/agents, show examples from system.
@@ -3642,6 +3652,14 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
             return generate_roles_list_response(language, roles=['landlord'])
         if 'sino sino ang mga agent' in original_query or 'who are the agents' in original_query or 'list of agents' in original_query:
             return generate_roles_list_response(language, roles=['agent'])
+        # Short standalone: "agent", "agents", "landlord", "broker" (e.g. follow-up or single-word ask)
+        q = original_query.strip()
+        if q in ('agent', 'agents'):
+            return generate_roles_list_response(language, roles=['agent'])
+        if q in ('landlord', 'landlords'):
+            return generate_roles_list_response(language, roles=['landlord'])
+        if q in ('broker', 'brokers'):
+            return generate_roles_list_response(language, roles=['broker'])
 
         dataset_template = _get_intent_template('about_system', is_tl, random_choice=False)
         if dataset_template:
@@ -3670,6 +3688,75 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         if dataset_template:
             return dataset_template
         return get_out_of_scope_message(language)
+
+    # ========== BUYER KYC – SPLIT BY QUESTION TYPE (don't dump everything) ==========
+    elif intent == 'buyer_kyc':
+        q = str(entities.get('original_query') or '').lower().strip()
+        # 1) Safety question: "paano magiging safe" / "how can I be safe" → brief KYC as assurance
+        if any(p in q for p in ['safe', 'sigurado', 'safety', 'secure', 'kaligtasan', 'mapagkakatiwalaan', 'trustworthy']):
+            if is_tl:
+                return (
+                    "🛡️ **Paano ka magiging safe dito?**\n\n"
+                    "Ang BahAI ay gumagamit ng **KYC (Know Your Customer)** para masiguro ang kaligtasan mo. "
+                    "Kinikilala nito na tunay kang buyer gamit ang valid ID at face verification. "
+                    "Mas ligtas ang platform dahil na-verify ang mga user, at alam ng brokers/landlords na verified ka.\n\n"
+                    "💡 **Para ma-verify:** Mag-complete ng KYC dito: https://bahai-frontend.onrender.com/buyer/buyer-kyc.html\n\n"
+                    "May iba ka pang tanong? Subukan: *'Ano ang KYC?'* o *'Paano ang KYC?'*"
+                )
+            return (
+                "🛡️ **How can you be safe here?**\n\n"
+                "BahAI uses **KYC (Know Your Customer)** to keep you safe. "
+                "It verifies you're a real person using a valid ID and face check. "
+                "The platform is safer because users are verified, and brokers/landlords know they're talking to verified buyers.\n\n"
+                "💡 **To get verified:** Complete KYC here: https://bahai-frontend.onrender.com/buyer/buyer-kyc.html\n\n"
+                "More questions? Try: *'What is KYC?'* or *'How does KYC work?'*"
+            )
+        # 2) What is KYC? → definition only
+        if any(p in q for p in ['what is', 'whats ', "what's ", 'ano ang ', 'ano ang kyc', 'anong kyc']):
+            if is_tl:
+                return (
+                    "🪪 **Ano ang KYC?**\n\n"
+                    "Ang KYC (Know Your Customer) ay **identity verification**. "
+                    "Pinapatunayan nito na tunay kang tao gamit ang valid Government ID at face match check.\n\n"
+                    "💡 Para sa steps o paano gumagana, itanong: *'Paano ang KYC?'*"
+                )
+            return (
+                "🪪 **What is KYC?**\n\n"
+                "KYC (Know Your Customer) is **identity verification**. "
+                "It confirms you're a real person using a valid Government ID and a face match check.\n\n"
+                "💡 For steps or how it works, ask: *'How does KYC work?'*"
+            )
+        # 3) How does KYC work? / Paano ang KYC? → step-by-step only
+        if any(p in q for p in ['how does', 'how do ', 'paano ang', 'paano gumagana', 'paano mag ', 'how to do kyc', 'steps']):
+            if is_tl:
+                return (
+                    "📋 **Paano ang KYC – Hakbang-hakbang**\n\n"
+                    "1️⃣ Mag-upload ng **valid Government ID** (National ID, Driver's License, Passport, UMID, etc.)\n"
+                    "2️⃣ Kumuha ng **selfie with ID** (hawak ang ID sa tabi ng mukha)\n"
+                    "3️⃣ Magra-run ang system ng **face match** – ikinumpara ang selfie mo sa photo sa ID\n"
+                    "4️⃣ Dapat **70% o higit** ang match score para ma-verify\n\n"
+                    "Tine-check gamit ang **Face++** technology. Encrypted at secure ang iyong data.\n\n"
+                    "**Mag-KYC dito:** https://bahai-frontend.onrender.com/buyer/buyer-kyc.html"
+                )
+            return (
+                "📋 **How does KYC work – Step-by-step**\n\n"
+                "1️⃣ Upload a **valid Government ID** (National ID, Driver's License, Passport, UMID, etc.)\n"
+                "2️⃣ Take a **selfie with your ID** (hold ID next to your face)\n"
+                "3️⃣ The system runs a **face match** – your selfie is compared to your ID photo\n"
+                "4️⃣ You need a **70% or higher match score** to be verified\n\n"
+                "Checked using **Face++** technology. Your data is encrypted and secure.\n\n"
+                "**Complete KYC here:** https://bahai-frontend.onrender.com/buyer/buyer-kyc.html"
+            )
+        # Fallback: short combined (e.g. "KYC" with no clear subtype)
+        if is_tl:
+            return (
+                "🪪 **KYC** – Identity verification para sa safety mo sa platform. "
+                "Para sa detalye: *'Ano ang KYC?'* o *'Paano ang KYC?'*"
+            )
+        return (
+            "🪪 **KYC** – Identity verification for your safety on the platform. "
+            "For details: *'What is KYC?'* or *'How does KYC work?'*"
+        )
 
     # ========== BUYER ACCOUNT INTENTS WITH LANGUAGE DETECTION ==========
     elif intent.startswith('buyer_'):
@@ -4645,6 +4732,7 @@ def chat():
         query = data.get('query', '').strip()
         previous_query = (data.get('previous_query') or '').strip()
         previous_entities = data.get('previous_entities')
+        previous_intent = (data.get('previous_intent') or '').strip()
         if isinstance(previous_entities, list):
             previous_entities = None
         if not isinstance(previous_entities, dict):
@@ -4751,6 +4839,18 @@ def chat():
                     if intent != 'buyer_liked_saved_how':
                         logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_liked_saved_how")
                     intent = 'buyer_liked_saved_how'
+                    confidence = 0.99
+                # Safety/trust in platform (not place) → buyer_kyc (system's KYC answer, not AI generic)
+                if any(phrase in query_lower for phrase in [
+                    'paano ako makakasiguradong safe', 'makakasiguradong safe ito', 'safe ba ito',
+                    'safe ba ang platform', 'is it safe', 'how safe is this', 'is this safe',
+                    'mapagkakatiwalaan ba', 'trustworthy ba', 'secure ba', 'kaligtasan',
+                    'how can i be sure', 'how can i ensure', 'is this platform safe',
+                    'safe bang platform', 'safe ang bahai', 'bakit safe ito'
+                ]) and not any(loc in query_lower for loc in [' in lipa', ' in batangas', ' in tanauan', ' sa lipa', ' sa batangas']):
+                    if intent != 'buyer_kyc':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Platform safety/trust query → buyer_kyc (KYC answer)")
+                    intent = 'buyer_kyc'
                     confidence = 0.99
                 elif any(phrase in query_lower for phrase in [
                     'for family', 'family of', 'for couples', 'for couple', 'for single'
@@ -4864,9 +4964,39 @@ def chat():
             # Model not loaded - use fallback
             intent = determine_intent_fallback(query)
         
+        # Continuity override (runs for both model and fallback): after "sino sino ang mga landlord/broker/agent"
+        # - Just "agent"/"landlord"/"broker" → stay on about_system, show that role's list (continuous conversation)
+        # - "how to contact"/"message them" → buyer_messages_how
+        follow_up_about_system_role = None
+        query_lower = query.lower().strip()
+        if previous_intent == 'about_system' and len(query.split()) <= 4:
+            has_contact_intent = any(w in query_lower for w in ['contact', 'message', 'paano makontak', 'how to contact', 'how to message', 'reach', 'makipag-ugnayan'])
+            if has_contact_intent:
+                logger.info(f"⚠️ FORCE OVERRIDE: Follow-up to about_system ('{query}') → buyer_messages_how")
+                intent = 'buyer_messages_how'
+                confidence = 0.99
+            elif any(w in query_lower for w in ['agent', 'agents']):
+                follow_up_about_system_role = 'agent'
+                intent = 'about_system'
+                confidence = 0.99
+                logger.info(f"⚠️ FORCE OVERRIDE: Follow-up to about_system ('{query}') → about_system (show agents)")
+            elif any(w in query_lower for w in ['landlord', 'landlords']):
+                follow_up_about_system_role = 'landlord'
+                intent = 'about_system'
+                confidence = 0.99
+                logger.info(f"⚠️ FORCE OVERRIDE: Follow-up to about_system ('{query}') → about_system (show landlords)")
+            elif any(w in query_lower for w in ['broker', 'brokers']):
+                follow_up_about_system_role = 'broker'
+                intent = 'about_system'
+                confidence = 0.99
+                logger.info(f"⚠️ FORCE OVERRIDE: Follow-up to about_system ('{query}') → about_system (show brokers)")
+        
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
         entities['original_query'] = query
+        if follow_up_about_system_role:
+            entities['follow_up_about_system_role'] = follow_up_about_system_role
+            entities['previous_query'] = previous_query
         logger.info(f"🏷️ Entities: {entities}")
 
         # AI fallback when NLU is not confident (Groq free or OpenAI)
@@ -5020,7 +5150,16 @@ def chat():
                 else:
                     response_text = generate_response(intent, entities, properties)
 
-        # Step 5: Add conversational follow-up line for property searches (so users know they can refine)
+        # Step 5a: Add continuity bridge when "agent"/"contact" follows "sino sino ang mga landlord"
+        if (intent == 'buyer_messages_how' and previous_intent == 'about_system' and
+                response_text and 'binanggit ko' not in response_text and 'I mentioned' not in response_text):
+            if detect_language(query) == 'tl':
+                bridge = "Para makontak ang mga agent at landlord na binanggit ko, ganito ang gagawin:\n\n"
+            else:
+                bridge = "To contact the agents and landlords I mentioned, here's how:\n\n"
+            response_text = bridge + response_text
+
+        # Step 5b: Add conversational follow-up line for property searches (so users know they can refine)
         search_intents_for_followup = [
             'find_property', 'find_property_with_criteria', 'find_near_landmark',
             'match_needs', 'find_ready_property', 'find_property_for_need', 'find_with_feature'
@@ -5229,7 +5368,10 @@ def determine_intent_fallback(query: str) -> str:
     if any(phrase in query_lower for phrase in [
         'kyc', 'verify identity', 'what is kyc', 'how does kyc work',
         'kyc verification', 'guest vs logged in', 'what can guest access',
-        'ano ang kyc', 'paano mag kyc', 'bakit kailangan kyc'
+        'ano ang kyc', 'paano mag kyc', 'bakit kailangan kyc',
+        'paano ako makakasiguradong safe', 'safe ba ito', 'safe ba ang platform',
+        'is it safe', 'how safe is this', 'mapagkakatiwalaan ba', 'trustworthy ba',
+        'how can i be sure', 'is this platform safe', 'secure ba', 'kaligtasan'
     ]):
         return 'buyer_kyc'
 
