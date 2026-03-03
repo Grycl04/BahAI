@@ -2143,10 +2143,12 @@ import {
     doc,
     addDoc,
     deleteDoc,
+    updateDoc,
     orderBy,
     serverTimestamp,
     setDoc,
-    onSnapshot
+    onSnapshot,
+    increment
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 // Firebase Config
@@ -3660,6 +3662,13 @@ async function loadPropertyDetails() {
             } catch (error) {
                 console.error("Error loading user data:", error);
             }
+        }
+
+        // Count this as a view when buyer opens the property details page
+        try {
+            await updateDoc(doc(db, "properties", propertyId), { views: increment(1) });
+        } catch (viewErr) {
+            console.warn("Could not increment property views:", viewErr);
         }
 
         displayPropertyDetails(currentListing, userInfo);

@@ -280,6 +280,42 @@
         gap: 30px;
         margin-top: 25px;
     }
+    .properties-pagination {
+        margin-top: 22px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .pagination-btn {
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: var(--text-dark);
+        min-width: 38px;
+        height: 38px;
+        padding: 0 10px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .pagination-btn:hover {
+        border-color: #d4af37;
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    .pagination-btn.active {
+        background: var(--primary-dark);
+        color: #fff;
+        border-color: var(--primary-dark);
+    }
+    .pagination-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+    }
     .listing-card-wrapper { transition: all 0.3s ease; }
     .listing-card-wrapper:hover { transform: translateY(-5px); }
     .listing-card {
@@ -1012,6 +1048,7 @@
                     <option value="Cuenca">Cuenca</option>
                     <option value="Laurel">Laurel</option>
                     <option value="Mataasnakahoy">Mataasnakahoy</option>
+                    <option value="Malvar">Malvar</option>
                     <option value="San Jose">San Jose</option>
                     <option value="San Luis">San Luis</option>
                     <option value="San Pascual">San Pascual</option>
@@ -1142,6 +1179,7 @@
             <p>Loading properties...</p>
         </div>
     </div>
+    <div class="properties-pagination" id="propertiesPagination" style="display: none;"></div>
 </div>
 
 <!-- Sidebar Loader -->
@@ -1259,6 +1297,10 @@ let userMap = new Map();
 let selectedCategory = '';
 let currentConversationId = null;
 let messageListener = null;
+const PROPERTIES_PER_PAGE = 24;
+let dashboardCurrentListings = [];
+let dashboardCurrentSavedMap = new Map();
+let dashboardCurrentPage = 1;
 
 // Welcome text element
 const welcomeText = document.getElementById("welcomeText");
@@ -2588,20 +2630,29 @@ function displayFilteredListings() {
     if (filtered.length === 0) {
         displayNoListings();
     } else {
-        displayListings(filtered);
+        displayListings(filtered, 1, true);
     }
 }
 
-async function displayListings(listings) {
+async function displayListings(listings, page = 1, refreshData = true) {
   const container = document.getElementById('listingsContainer');
+  const sourceListings = Array.isArray(listings) ? listings : [];
+  if (refreshData) {
+    dashboardCurrentListings = sourceListings;
+    dashboardCurrentPage = 1;
+    await ensureUserDataForListings(dashboardCurrentListings);
+    // Check which properties are already saved (only for logged-in users)
+    dashboardCurrentSavedMap = auth.currentUser ? await checkSavedStatus(dashboardCurrentListings) : new Map();
+  }
 
-  await ensureUserDataForListings(listings);
-  
-  // Check which properties are already saved (only for logged-in users)
-  const savedMap = auth.currentUser ? await checkSavedStatus(listings) : new Map();
-  
-  container.innerHTML = listings.map(listing => {
-    const isSaved = savedMap.has(listing.id);
+  const totalPages = Math.max(1, Math.ceil(dashboardCurrentListings.length / PROPERTIES_PER_PAGE));
+  dashboardCurrentPage = Math.max(1, Math.min(page, totalPages));
+  const startIndex = (dashboardCurrentPage - 1) * PROPERTIES_PER_PAGE;
+  const endIndex = startIndex + PROPERTIES_PER_PAGE;
+  const pageListings = dashboardCurrentListings.slice(startIndex, endIndex);
+
+  container.innerHTML = pageListings.map(listing => {
+    const isSaved = dashboardCurrentSavedMap.has(listing.id);
     const ownerId = getListingOwnerId(listing);
     const userInfo = userMap.get(ownerId) || getFallbackUserInfo(ownerId);
     
@@ -2721,12 +2772,70 @@ async function displayListings(listings) {
 </div>
     `;
   }).join('');
+
+    renderPropertiesPagination(totalPages, dashboardCurrentPage);
   
     setTimeout(() => {
         setupListingEventListeners();
         makePropertyCardsClickable();
         forceBadgeVisibility();
     }, 100);
+}
+
+function renderPropertiesPagination(totalPages, currentPage) {
+    const paginationContainer = document.getElementById('propertiesPagination');
+    if (!paginationContainer) return;
+
+    if (!dashboardCurrentListings.length || totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+        paginationContainer.innerHTML = '';
+        return;
+    }
+
+    const pagesToRender = [];
+    for (let page = 1; page <= totalPages; page += 1) {
+        if (
+            page === 1 ||
+            page === totalPages ||
+            Math.abs(page - currentPage) <= 1
+        ) {
+            pagesToRender.push(page);
+        }
+    }
+    const dedupedPages = Array.from(new Set(pagesToRender)).sort((a, b) => a - b);
+
+    let paginationHtml = `
+        <button type="button" class="pagination-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>
+    `;
+
+    dedupedPages.forEach((page, index) => {
+        if (index > 0 && page - dedupedPages[index - 1] > 1) {
+            paginationHtml += `<span style="padding: 0 2px; color: #6b7280;">...</span>`;
+        }
+        paginationHtml += `
+            <button type="button" class="pagination-btn ${page === currentPage ? 'active' : ''}" data-page="${page}">
+                ${page}
+            </button>
+        `;
+    });
+
+    paginationHtml += `
+        <button type="button" class="pagination-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+    `;
+
+    paginationContainer.innerHTML = paginationHtml;
+    paginationContainer.style.display = 'flex';
+
+    paginationContainer.querySelectorAll('.pagination-btn[data-page]').forEach(button => {
+        if (button.disabled) return;
+        button.addEventListener('click', () => {
+            const targetPage = Number(button.getAttribute('data-page'));
+            if (!Number.isFinite(targetPage)) return;
+            displayListings(dashboardCurrentListings, targetPage, false);
+            const section = document.querySelector('.properties-section');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
 }
 
 // Add this function to make cards clickable
@@ -2778,6 +2887,7 @@ function makePropertyCardsClickable() {
 
 function displayNoListings() {
     const container = document.getElementById('listingsContainer');
+    const paginationContainer = document.getElementById('propertiesPagination');
     container.innerHTML = `
         <div class="empty-state">
             <div class="empty-state-icon">🏠</div>
@@ -2789,6 +2899,10 @@ function displayNoListings() {
             </button>
         </div>
     `;
+    if (paginationContainer) {
+        paginationContainer.style.display = 'none';
+        paginationContainer.innerHTML = '';
+    }
     
     // Add event listener to Try Again button
     const tryAgainBtn = document.getElementById('tryAgainBtn');
@@ -2799,6 +2913,7 @@ function displayNoListings() {
 
 function displayError(error) {
     const container = document.getElementById('listingsContainer');
+    const paginationContainer = document.getElementById('propertiesPagination');
     container.innerHTML = `
         <div class="error-state">
             <div class="error-icon">⚠️</div>
@@ -2810,6 +2925,10 @@ function displayError(error) {
             </button>
         </div>
     `;
+    if (paginationContainer) {
+        paginationContainer.style.display = 'none';
+        paginationContainer.innerHTML = '';
+    }
     
     // Add event listener to Try Again button
     const tryAgainBtn = document.getElementById('tryAgainBtn2');
@@ -2841,6 +2960,7 @@ async function toggleSaveProperty(propertyId, buttonElement) {
             
             if (!snapshot.empty) {
                 await deleteDoc(snapshot.docs[0].ref);
+                dashboardCurrentSavedMap.delete(propertyId);
                 buttonElement.innerHTML = '<i class="far fa-heart save-icon" aria-hidden="true"></i>';
                 buttonElement.setAttribute('data-is-saved', 'false');
                 buttonElement.setAttribute('aria-label', 'Save property');
@@ -2859,6 +2979,7 @@ async function toggleSaveProperty(propertyId, buttonElement) {
             
             // Log save event
             await logSaveEvent(currentUser.uid, propertyId);
+            dashboardCurrentSavedMap.set(propertyId, true);
             
             buttonElement.innerHTML = '<i class="fas fa-heart save-icon" aria-hidden="true"></i>';
             buttonElement.setAttribute('data-is-saved', 'true');

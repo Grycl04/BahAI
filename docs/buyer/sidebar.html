@@ -21,7 +21,10 @@
       </a>
       <a href="messages.html" class="top-nav-link sidebar-link">
         <i class="fas fa-comments"></i>
-        <span>Messages</span>
+        <span class="top-nav-link-label">
+          Messages
+          <span id="topNavMessagesBadge" class="top-nav-message-badge">0</span>
+        </span>
       </a>
       <a href="liked_properties.html" class="top-nav-link sidebar-link">
         <i class="fas fa-heart"></i>
@@ -142,6 +145,31 @@
 .top-nav-link.active {
   background: rgba(212, 175, 55, 0.25);
   color: #d4af37;
+}
+
+.top-nav-link-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-nav-message-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+  color: #ffffff;
+}
+
+.top-nav-message-badge.show {
+  display: inline-flex;
 }
 
 .top-nav-ai {
@@ -345,6 +373,9 @@
   var profileLink = document.getElementById('topNavProfileLink');
   var logoutBtn = document.getElementById('topNavLogoutBtn');
   var loginLink = document.getElementById('topNavLoginLink');
+  var messagesBadgeEl = document.getElementById('topNavMessagesBadge');
+  var messagesBadgeUnsubscribe = null;
+  var firestoreApi = null;
 
   if (!trigger || !dropdown) return;
 
@@ -368,6 +399,85 @@
   dropdown.addEventListener('click', function(e) {
     e.stopPropagation();
   });
+
+  function setMessagesBadgeCount(count) {
+    if (!messagesBadgeEl) return;
+    var value = Number(count || 0);
+    if (value > 0) {
+      messagesBadgeEl.textContent = value > 99 ? '99+' : String(value);
+      messagesBadgeEl.classList.add('show');
+    } else {
+      messagesBadgeEl.textContent = '0';
+      messagesBadgeEl.classList.remove('show');
+    }
+  }
+
+  function stopMessagesBadgeListener() {
+    if (typeof messagesBadgeUnsubscribe === 'function') {
+      messagesBadgeUnsubscribe();
+      messagesBadgeUnsubscribe = null;
+    }
+    setMessagesBadgeCount(0);
+  }
+
+  function ensureFirestoreApi() {
+    if (firestoreApi) return Promise.resolve(firestoreApi);
+    return import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js').then(function(mod) {
+      firestoreApi = mod;
+      return mod;
+    });
+  }
+
+  function startMessagesBadgeListener(user) {
+    if (!user || !user.uid || !messagesBadgeEl) {
+      stopMessagesBadgeListener();
+      return;
+    }
+
+    var maxAttempts = 80;
+    var attempts = 0;
+
+    function tryStart() {
+      if (!window.firebaseDB) {
+        attempts += 1;
+        if (attempts <= maxAttempts) {
+          setTimeout(tryStart, 150);
+        }
+        return;
+      }
+
+      if (typeof messagesBadgeUnsubscribe === 'function') {
+        messagesBadgeUnsubscribe();
+        messagesBadgeUnsubscribe = null;
+      }
+
+      ensureFirestoreApi()
+        .then(function(fs) {
+          var conversationsRef = fs.collection(window.firebaseDB, 'conversations');
+          var q = fs.query(
+            conversationsRef,
+            fs.where('participants', 'array-contains', user.uid)
+          );
+
+          messagesBadgeUnsubscribe = fs.onSnapshot(q, function(snapshot) {
+            var totalUnread = 0;
+            snapshot.forEach(function(conversationDoc) {
+              var data = conversationDoc.data() || {};
+              var unread = data.unreadCount && data.unreadCount[user.uid];
+              totalUnread += Number(unread || 0);
+            });
+            setMessagesBadgeCount(totalUnread);
+          }, function() {
+            setMessagesBadgeCount(0);
+          });
+        })
+        .catch(function() {
+          setMessagesBadgeCount(0);
+        });
+    }
+
+    tryStart();
+  }
 
   function setLoginMode() {
     if (nameEl) nameEl.textContent = 'Guest';
@@ -438,8 +548,10 @@
       var userData = null;
       try { userData = JSON.parse(localStorage.getItem('userData') || 'null'); } catch (e) {}
       setLogoutMode(userData || { fullName: user.displayName || user.email, email: user.email, photoURL: user.photoURL });
+      startMessagesBadgeListener(user);
     } else {
       setLoginMode();
+      stopMessagesBadgeListener();
     }
   }
 

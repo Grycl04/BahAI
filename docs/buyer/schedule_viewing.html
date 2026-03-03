@@ -598,6 +598,7 @@ const brokerId = urlParams.get('brokerId');
 const propertyId = urlParams.get('propertyId');
 const brokerName = urlParams.get('brokerName') ? decodeURIComponent(urlParams.get('brokerName')) : 'Broker';
 const propertyName = urlParams.get('propertyName') ? decodeURIComponent(urlParams.get('propertyName')) : 'Property';
+const conversationIdFromUrl = urlParams.get('conversationId');
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -870,6 +871,13 @@ function showExistingSchedule(schedule) {
         <i class="fas fa-edit"></i> Reschedule
       </button>
     `;
+  } else if (schedule.status === 'confirmed' && !isBroker) {
+    // Buyer can request a change even after confirmation
+    actionButtons.innerHTML = `
+      <button class="schedule-action-btn primary" onclick="showScheduleForm()">
+        <i class="fas fa-edit"></i> Reschedule
+      </button>
+    `;
   } else if (schedule.status === 'alternative') {
     // Alternative time suggested by broker
     actionButtons.innerHTML = `
@@ -965,27 +973,49 @@ async function submitScheduleRequest() {
   
   try {
     // Get or create conversation ID
-    const conversationId = [currentUser.uid, brokerId].sort().join('_');
+    const conversationId = conversationIdFromUrl || [currentUser.uid, brokerId].sort().join('_');
     
-    // Create schedule document
-    const scheduleData = {
-      buyerId: currentUser.uid,
-      brokerId: brokerId,
-      propertyId: propertyId,
-      proposedDate: selectedDate,
-      proposedTime: selectedTime,
-      notes: notes || null,
-      status: 'pending',
-      conversationId: conversationId,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-    
-    // Add schedule to Firestore
-    const scheduleRef = await addDoc(collection(db, 'schedules'), scheduleData);
-    viewingScheduleId = scheduleRef.id;
-    
-    console.log('✅ Schedule request submitted:', scheduleRef.id);
+    // If there's an existing schedule for this buyer/broker/property,
+    // treat "reschedule again" as an UPDATE (single schedule thread),
+    // rather than creating a new schedule doc each time.
+    if (viewingScheduleId) {
+      const scheduleRef = doc(db, 'schedules', viewingScheduleId);
+      await updateDoc(scheduleRef, {
+        proposedDate: selectedDate,
+        proposedTime: selectedTime,
+        notes: notes || null,
+        status: 'pending',
+        // clear fields from previous states
+        brokerNotes: null,
+        declineReason: null,
+        alternativeDate: null,
+        alternativeTime: null,
+        confirmedAt: null,
+        declinedAt: null,
+        cancelledAt: null,
+        rescheduledAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      console.log('✅ Schedule request updated:', viewingScheduleId);
+    } else {
+      // Create new schedule document (first request)
+      const scheduleData = {
+        buyerId: currentUser.uid,
+        brokerId: brokerId,
+        propertyId: propertyId,
+        proposedDate: selectedDate,
+        proposedTime: selectedTime,
+        notes: notes || null,
+        status: 'pending',
+        conversationId: conversationId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const scheduleRef = await addDoc(collection(db, 'schedules'), scheduleData);
+      viewingScheduleId = scheduleRef.id;
+      console.log('✅ Schedule request submitted:', scheduleRef.id);
+    }
     
     // Send notification message to broker
     await sendScheduleNotification(conversationId, 'pending', null);
@@ -1031,7 +1061,7 @@ async function brokerCreateSchedule() {
   submitBtn.disabled = true;
   
   try {
-    const conversationId = [buyerId, currentUser.uid].sort().join('_');
+    const conversationId = conversationIdFromUrl || [buyerId, currentUser.uid].sort().join('_');
     const scheduleData = {
       buyerId: buyerId,
       brokerId: currentUser.uid,
@@ -1210,7 +1240,7 @@ async function suggestAlternativeTime() {
     
     // Close window after delay
     setTimeout(() => {
-      if (window.opposer) {
+      if (window.opener) {
         window.opener.postMessage({ type: 'schedule_alternative', scheduleId: viewingScheduleId }, '*');
       }
       window.close();

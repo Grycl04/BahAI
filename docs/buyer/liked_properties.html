@@ -21,6 +21,7 @@
             --bg-white: #ffffff;
             --border: #e2e8f0;
             --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --border-radius: 16px;
@@ -40,10 +41,9 @@
 
         body {
             font-family: 'Inter', Arial, sans-serif;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            background: #f1f5f9;
             color: var(--text-dark);
             min-height: 100vh;
-            display: flex;
         }
 
         .mobile-menu-toggle {
@@ -172,52 +172,6 @@
             margin: 0;
         }
 
-        /* AI Insights panel: BahAI decision-support */
-        .bahai-insights-panel {
-            background: linear-gradient(135deg, rgba(11,46,82,0.04) 0%, rgba(212,175,55,0.08) 100%);
-            border: 1px solid rgba(212,175,55,0.25);
-            border-radius: var(--border-radius-sm);
-            padding: 20px 24px;
-            margin-bottom: 28px;
-        }
-        .bahai-insights-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .bahai-insights-label i { color: var(--accent); }
-        .bahai-insights-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .bahai-insights-list li {
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            padding: 6px 0;
-            padding-left: 20px;
-            position: relative;
-            line-height: 1.4;
-        }
-        .bahai-insights-list li::before {
-            content: '•';
-            color: var(--accent);
-            font-weight: 700;
-            position: absolute;
-            left: 0;
-        }
-        .bahai-insights-footer {
-            font-size: 0.7rem;
-            color: var(--text-light);
-            margin-top: 12px;
-            font-style: italic;
-        }
 
         /* Stats Section */
         .liked-stats {
@@ -256,30 +210,72 @@
             font-weight: 500;
         }
 
-        /* Listings Grid */
+        /* Listings Grid - match buyer_dashboard */
+        .listing-card-wrapper { transition: all 0.3s ease; }
+        .listing-card-wrapper:hover { transform: translateY(-5px); }
         .listings-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
             margin-bottom: 40px;
         }
 
         .listing-card {
-            background: var(--bg-white);
+            background: white;
             border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border);
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 100%;
             position: relative;
             cursor: pointer;
         }
+        .listing-card:hover { box-shadow: var(--card-hover-shadow); }
 
-        .listing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent);
+        .card-link-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0;
+            cursor: pointer;
         }
+
+        .listing-card-image-container {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+        }
+        .listing-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .listing-card:hover .listing-image { transform: scale(1.05); }
+
+        .listing-type-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: white;
+            z-index: 2;
+        }
+        .listing-type-badge.type-rent,
+        .listing-type-badge.rent,
+        .listing-type-badge.type-lease,
+        .listing-type-badge.lease { background: #10b981; }
+        .listing-type-badge.type-sale,
+        .listing-type-badge.sale { background: #3b82f6; }
+
         /* Recommended by BahAI badge */
         .listing-bahai-badge {
             position: absolute;
@@ -293,198 +289,164 @@
             color: white;
             z-index: 2;
         }
-        /* Card action buttons: View Details, Message, Remove */
-        .listing-card-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-        .listing-action-btn {
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            border: none;
-        }
-        .listing-action-btn.btn-view {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-        }
-        .listing-action-btn.btn-view:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
-        .listing-action-btn.btn-message {
-            background: rgba(212,175,55,0.15);
-            color: var(--primary);
-            border: 1px solid rgba(212,175,55,0.4);
-        }
-        .listing-action-btn.btn-message:hover { background: rgba(212,175,55,0.25); }
-        .listing-action-btn.btn-remove {
-            background: transparent;
-            color: var(--text-light);
-            border: 1px solid var(--border);
-        }
-        .listing-action-btn.btn-remove:hover { color: var(--danger); border-color: var(--danger); }
-
-        .listing-image-container {
-            position: relative;
-            height: 220px;
-            overflow: hidden;
-        }
-
-        .listing-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .listing-card:hover .listing-image {
-            transform: scale(1.05);
-        }
-
-        .listing-type-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: white;
-            z-index: 2;
-        }
-
-        .type-rent { background: var(--rent-color); }
-        .type-sale { background: var(--sale-color); }
-        .type-lease { background: var(--lease-color); }
 
         .remove-saved-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--danger);
-            color: white;
+            top: 12px;
+            right: 12px;
+            width: auto;
+            height: auto;
+            padding: 0;
+            border-radius: 0;
+            background: transparent;
             border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 18px;
-            z-index: 2;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
+            z-index: 3;
+            box-shadow: none;
+            transition: transform 0.2s ease;
+        }
+        .remove-saved-btn .save-icon {
+            color: #d4af37;
+            line-height: 1;
+            font-size: 1.4rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+            transition: color 0.2s ease, filter 0.2s ease;
+        }
+        .remove-saved-btn:hover { transform: scale(1.08); }
+        .remove-saved-btn:hover .save-icon {
+            color: #b8860b;
+            filter: drop-shadow(0 2px 5px rgba(184, 134, 11, 0.38));
         }
 
-        .remove-saved-btn:hover {
-            background: #dc2626;
-            transform: scale(1.1);
-        }
-
-        .listing-content {
-            padding: 20px;
-        }
-
+        .listing-content { padding: 18px; }
         .listing-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
+            gap: 15px;
         }
-
+        .listing-header > div:first-child { flex: 1; min-width: 0; overflow: hidden; }
         .listing-title {
-            font-size: 18px;
+            font-size: 1.2rem;
             font-weight: 600;
             color: var(--text-dark);
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            max-height: 3.6em;
         }
-
-        .listing-price {
-            font-size: 20px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .price-rent { color: var(--rent-color); }
-        .price-sale { color: var(--sale-color); }
-        .price-lease { color: var(--lease-color); }
-
         .listing-location {
-            color: var(--text-light);
-            font-size: 14px;
-            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
+        .listing-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            white-space: normal !important;
+            word-break: break-word;
+            text-align: right;
+            min-width: fit-content;
+            flex-shrink: 0;
+            max-width: 45%;
+        }
+        .price-rent { color: var(--primary-dark); }
+        .price-sale { color: var(--primary-dark); }
+        .price-lease { color: var(--primary-dark); }
 
         .listing-details {
             display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
         }
-
         .detail {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 14px;
+            gap: 6px;
             color: var(--text-light);
+            font-size: 0.9rem;
+            flex: 1 1 0;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+        .detail i { flex-shrink: 0; }
 
         .listing-broker {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 15px;
-            padding: 12px;
-            background: var(--bg-light);
-            border-radius: 10px;
+            margin-bottom: 0;
         }
-
         .broker-avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
             font-weight: 600;
-            font-size: 14px;
-            flex-shrink: 0;
+            font-size: 0.9rem;
+            overflow: hidden;
         }
-
-        .broker-info {
-            flex: 1;
-            min-width: 0;
+        .broker-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-
+        .broker-info { flex: 1; }
         .broker-name {
-            font-size: 14px;
             font-weight: 600;
             color: var(--text-dark);
-            white-space: nowrap;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
-
-        .broker-role {
-            font-size: 12px;
+        .broker-contact {
+            font-size: 0.8rem;
             color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
+        .listing-status {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+        .listing-status.status-active,
+        .status-active { background: #10b981 !important; color: white !important; }
+        .listing-status.status-pending,
+        .status-pending { background: var(--accent) !important; color: white !important; }
 
         /* Empty State */
         .empty-state {
@@ -915,14 +877,6 @@
                 font-size: 1.6rem;
             }
             
-            .bahai-insights-panel {
-                padding: 16px 18px;
-            }
-            
-            .bahai-insights-list li {
-                font-size: 0.9rem;
-            }
-            
             .next-actions-section {
                 padding: 20px;
             }
@@ -935,14 +889,11 @@
                 justify-content: center;
             }
             
-            .listing-card-actions {
-                flex-direction: column;
-            }
-            
             .listings-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
+            .listing-card-image-container { height: 150px; }
             
             .liked-stats {
                 grid-template-columns: repeat(2, 1fr);
@@ -996,6 +947,9 @@
             .container {
                 padding: 15px;
             }
+            .listing-card-image-container { height: 105px; }
+            .listing-broker { display: none; }
+            .detail-unit { display: none; }
             
             .liked-header {
                 padding: 20px;
@@ -1047,31 +1001,11 @@
             <p>Properties you're interested in — curated by you and BahAI</p>
         </header>
 
-        <!-- AI Insights panel: decision-support (populated by JS when properties exist) -->
-        <div class="bahai-insights-panel" id="bahaiInsightsPanel" style="display: none;">
-            <div class="bahai-insights-label"><i class="fas fa-robot"></i> BahAI Insights</div>
-            <ul class="bahai-insights-list" id="bahaiInsightsList"></ul>
-            <div class="bahai-insights-footer">Generated by BahAI</div>
-        </div>
-
         <!-- Saved Properties Grid -->
         <div class="listings-grid" id="likedPropertiesContainer">
             <div class="loading-state">
                 <div class="spinner"></div>
                 <p>Loading your liked properties...</p>
-            </div>
-        </div>
-
-        <!-- Next actions: Compare & Ask BahAI (shown when properties exist) -->
-        <div class="next-actions-section" id="nextActionsSection" style="display: none;">
-            <div class="next-actions-title">What would you like to do next?</div>
-            <div class="next-actions-buttons">
-                <a href="buyer_dashboard.html#ai-chatbot-section" class="next-action-btn" onclick="window.location.href='buyer_dashboard.html#ai-chatbot-section'; return false;">
-                    <i class="fas fa-robot"></i> Ask BahAI for Recommendations
-                </a>
-                <a href="buyer_dashboard.html#ai-chatbot-section" class="next-action-btn" onclick="window.location.href='buyer_dashboard.html#ai-chatbot-section'; return false;">
-                    <i class="fas fa-balance-scale"></i> Compare Properties
-                </a>
             </div>
         </div>
 
@@ -1425,7 +1359,8 @@ ${error.stack || error.message}
                         displayName: userData.fullName || userData.email?.split('@')[0] || `User ${userId.substring(0, 8)}`,
                         email: userData.email || 'Email not available',
                         phone: userData.phone || 'Phone not available',
-                        role: userData.role || 'user'
+                        role: userData.role || 'user',
+                        photoURL: userData.photoURL || userData.profilePhotoURL || null
                     });
                     return;
                 }
@@ -1437,7 +1372,8 @@ ${error.stack || error.message}
                         displayName: brokerData.fullName || `Broker ${userId.substring(0, 8)}`,
                         email: brokerData.email || 'Email not available',
                         phone: brokerData.phone || 'Phone not available',
-                        role: 'broker'
+                        role: brokerData.role || 'broker',
+                        photoURL: brokerData.photoURL || brokerData.profilePhoto || brokerData.profileImage || null
                     });
                     return;
                 }
@@ -1446,7 +1382,8 @@ ${error.stack || error.message}
                     displayName: `User ${userId.substring(0, 8)}`,
                     email: 'Email not available',
                     phone: 'Phone not available',
-                    role: 'user'
+                    role: 'user',
+                    photoURL: null
                 });
                 
             } catch (error) {
@@ -1455,45 +1392,18 @@ ${error.stack || error.message}
                     displayName: `User ${userId.substring(0, 8)}`,
                     email: 'Email not available',
                     phone: 'Phone not available',
-                    role: 'user'
+                    role: 'user',
+                    photoURL: null
                 });
             }
         }
 
-        // Compute AI insights from saved properties (for BahAI Insights panel)
-        function computeBahaiInsights(properties) {
-            if (!properties || properties.length === 0) return [];
-            const insights = [];
-            const locs = properties.map(p => (p.location || p.address || '').split(',')[0].trim()).filter(Boolean);
-            const locCounts = {};
-            locs.forEach(l => { locCounts[l] = (locCounts[l] || 0) + 1; });
-            const topLoc = Object.entries(locCounts).sort((a, b) => b[1] - a[1])[0];
-            if (topLoc && topLoc[1] >= 2) {
-                insights.push(`Most saved properties are in ${topLoc[0]}`);
-            }
-            const types = properties.map(p => p.propertyType || p.propertyCategory || '').filter(Boolean);
-            const typeCounts = {};
-            types.forEach(t => { typeCounts[t] = (typeCounts[t] || 0) + 1; });
-            const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
-            if (topType && topType[0]) {
-                const typeLabel = (topType[0] || '').replace(/_/g, ' ').trim().toLowerCase();
-                insights.push(`You seem interested in ${typeLabel} more than other types`);
-            }
-            const prices = properties.map(p => p.pricing || p.salePrice || p.monthlyRent || (p.annualRent || 0) / 12 || 0).filter(p => p > 0);
-            if (prices.length >= 2) {
-                const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
-                const inRange = prices.filter(p => Math.abs(p - avg) / avg < 0.25).length;
-                if (inRange >= 2) {
-                    insights.push(`${inRange} properties match your budget preference`);
-                }
-            }
-            if (insights.length === 0) {
-                insights.push(`You have ${properties.length} saved ${properties.length === 1 ? 'property' : 'properties'}. Consider comparing them to decide.`);
-            }
-            return insights;
+        function getRoleDisplayText(role) {
+            const roleMap = { 'landlord': 'Property Owner', 'seller': 'Property Seller', 'broker': 'Licensed Broker', 'agent': 'Property Agent', 'admin': 'Administrator' };
+            return roleMap[role] || 'Posted by';
         }
 
-        // Display liked properties with decision-focused cards
+        // Display liked properties with decision-focused cards (same design as buyer_dashboard)
         function displayLikedProperties(properties) {
             const container = document.getElementById('likedPropertiesContainer');
             
@@ -1501,17 +1411,6 @@ ${error.stack || error.message}
                 showEmptyState();
                 return;
             }
-            
-            // Show AI insights and next actions
-            const insights = computeBahaiInsights(properties);
-            const insightsPanel = document.getElementById('bahaiInsightsPanel');
-            const insightsList = document.getElementById('bahaiInsightsList');
-            if (insightsPanel && insightsList && insights.length > 0) {
-                insightsList.innerHTML = insights.map(i => `<li>${i}</li>`).join('');
-                insightsPanel.style.display = 'block';
-            }
-            const nextSection = document.getElementById('nextActionsSection');
-            if (nextSection) nextSection.style.display = 'block';
             
             container.innerHTML = properties.map(property => {
                 const userInfo = userMap.get(property.userId) || {
@@ -1538,61 +1437,74 @@ ${error.stack || error.message}
                     mainPhoto = 'https://via.placeholder.com/400x220/0b2e52/white?text=No+Image';
                 }
                 
-                const bedrooms = property.bedrooms || (listingType === 'rent' && property.propertyType === 'studio' ? 'Studio' : 0);
+                const bedrooms = property.bedrooms ?? 0;
                 const bathrooms = property.bathrooms || 0;
-                const squareFootage = property.floorArea || property.totalArea || property.squareFootage || 'N/A';
-                const title = (property.title || 'Untitled Property').replace(/"/g, '&quot;');
-                const loc = (property.location || 'Location not specified').replace(/"/g, '&quot;');
-                
+                const area = property.floorArea || property.totalArea || 'N/A';
+
+                const title = property.title || 'Untitled Property';
+                const truncatedTitle = title.length > 50 ? title.substring(0, 50) + '...' : title;
+                const locationDisplay = property.location || property.address || 'Location not specified';
+                const truncatedAddress = locationDisplay.length > 40 ? locationDisplay.substring(0, 40) + '...' : locationDisplay;
+                const brokerName = userInfo.displayName;
+                const truncatedBrokerName = brokerName.length > 20 ? brokerName.substring(0, 20) + '...' : brokerName;
+
+                const brokerAvatarHtml = userInfo.photoURL
+                    ? `<img src="${userInfo.photoURL}" alt="${(userInfo.displayName || '').replace(/"/g, '&quot;')}" onerror="var p=this.parentElement;p.innerHTML=p.getAttribute('data-fallback')||'U'">`
+                    : userInitials;
+                const brokerAvatarWrapper = userInfo.photoURL
+                    ? `<div class="broker-avatar" data-fallback="${(userInitials || 'U').replace(/"/g, '&quot;')}" aria-label="Broker avatar">${brokerAvatarHtml}</div>`
+                    : `<div class="broker-avatar" aria-label="Broker avatar">${userInitials}</div>`;
+
+                let statusText = property.status || 'available';
+                let statusClass = 'status-active';
+                let showStatus = true;
+                if (statusText.toLowerCase() === 'active' || statusText.toLowerCase() === 'available' || statusText.toLowerCase() === 'published') {
+                    statusText = '';
+                    statusClass = '';
+                    showStatus = false;
+                } else if (statusText.toLowerCase() === 'pending') {
+                    statusClass = 'status-pending';
+                }
+
                 return `
-                <div class="listing-card" data-property-id="${property.id}" onclick="window.location.href='new_property_details.html?id=${property.id}'">
-                    <div class="listing-image-container">
-                        <img src="${mainPhoto}" alt="${title}" class="listing-image">
-                        <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
-                        ${showBahaiBadge ? '<span class="listing-bahai-badge">Recommended by BahAI</span>' : ''}
-                        <button class="remove-saved-btn" 
-                                onclick="event.stopPropagation(); window.removeFromLiked('${property.savedId}', '${property.id}')"
-                                title="Remove from saved">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="listing-content">
-                        <div class="listing-header">
-                            <div>
-                                <h3 class="listing-title">${property.title || 'Untitled Property'}</h3>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> ${property.location || 'Location not specified'}
-                                </div>
-                            </div>
-                            <div class="listing-price ${priceClass}">${displayPrice}</div>
-                        </div>
-                        
-                        <div class="listing-details">
-                            <div class="detail">
-                                <i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-bath"></i> ${bathrooms} baths
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-ruler-combined"></i> ${squareFootage} ${property.floorArea || property.totalArea ? 'sqm' : ''}
-                            </div>
-                        </div>
-                        
-                        <div class="listing-card-actions">
-                            <a href="new_property_details.html?id=${property.id}" class="listing-action-btn btn-view" onclick="event.stopPropagation(); return true;">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
-                            <a href="new_property_details.html?id=${property.id}" class="listing-action-btn btn-message" onclick="event.stopPropagation(); return true;">
-                                <i class="fas fa-envelope"></i> Message Seller
-                            </a>
-                            <button type="button" class="listing-action-btn btn-remove" onclick="event.stopPropagation(); window.removeFromLiked('${property.savedId}', '${property.id}')">
-                                <i class="fas fa-heart-broken"></i> Remove from Saved
-                            </button>
-                        </div>
-                    </div>
+<div class="listing-card-wrapper">
+    <div class="listing-card" data-listing-id="${property.id}">
+        <a href="new_property_details.html?id=${property.id}" class="card-link-overlay" aria-label="View ${title.replace(/"/g, '&quot;')}"></a>
+        <div class="listing-card-image-container">
+            <button type="button" class="remove-saved-btn" onclick="event.preventDefault();event.stopPropagation();window.removeFromLiked('${property.savedId}', '${property.id}')" title="Remove from saved" aria-label="Remove from saved">
+                <i class="fas fa-heart save-icon" aria-hidden="true"></i>
+            </button>
+            <img src="${mainPhoto}" alt="${(property.title || 'Property').replace(/"/g, '&quot;')}" class="listing-image">
+            <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
+            ${showBahaiBadge ? '<span class="listing-bahai-badge">Recommended by BahAI</span>' : ''}
+        </div>
+        <div class="listing-content">
+            <div class="listing-header">
+                <div style="flex: 1; min-width: 0;">
+                    <h3 class="listing-title" title="${title.replace(/"/g, '&quot;')}">${truncatedTitle.replace(/"/g, '&quot;')}</h3>
                 </div>
+                <div class="listing-price ${priceClass}">${displayPrice}</div>
+            </div>
+            <div class="listing-location">
+                <i class="fas fa-map-marker-alt" style="flex-shrink: 0;"></i>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${locationDisplay.replace(/"/g, '&quot;')}">${truncatedAddress.replace(/"/g, '&quot;')}</span>
+            </div>
+            <div class="listing-details">
+                <div class="detail"><i class="fas fa-bed"></i> ${bedrooms}<span class="detail-unit">${bedrooms === 'Studio' ? '' : ' beds'}</span></div>
+                <div class="detail"><i class="fas fa-bath"></i> ${bathrooms}<span class="detail-unit"> baths</span></div>
+                <div class="detail"><i class="fas fa-ruler-combined"></i> ${area}<span class="detail-unit"> sqm</span></div>
+            </div>
+            <div class="listing-broker">
+                ${brokerAvatarWrapper}
+                <div class="broker-info">
+                    <div class="broker-name" title="${brokerName.replace(/"/g, '&quot;')}">${truncatedBrokerName.replace(/"/g, '&quot;')}</div>
+                    <div class="broker-contact">${getRoleDisplayText(userInfo.role)} · ${property.propertyType || 'Property'}</div>
+                </div>
+            </div>
+            ${showStatus ? `<div class="listing-status ${statusClass}">${statusText}</div>` : ''}
+        </div>
+    </div>
+</div>
                 `;
             }).join('');
         }
@@ -1936,10 +1848,6 @@ ${error.stack || error.message}
             `;
             
             document.getElementById('similarSuggestions').style.display = 'none';
-            const insightsPanel = document.getElementById('bahaiInsightsPanel');
-            const nextSection = document.getElementById('nextActionsSection');
-            if (insightsPanel) insightsPanel.style.display = 'none';
-            if (nextSection) nextSection.style.display = 'none';
         }
 
         // Update statistics (analytics removed)
@@ -2082,31 +1990,42 @@ ${error.stack || error.message}
                 }
                 
                 const bedrooms = property.bedrooms || (listingType === 'rent' && property.propertyType === 'studio' ? 'Studio' : 0);
+                const bathrooms = property.bathrooms || 0;
+                const title = property.title || 'Untitled Property';
+                const truncatedTitle = title.length > 50 ? title.substring(0, 50) + '...' : title;
+                const locationDisplay = property.location || property.address || 'Location not specified';
+                const truncatedLocation = locationDisplay.length > 40 ? locationDisplay.substring(0, 40) + '...' : locationDisplay;
                 
                 return `
-                <div class="listing-card" onclick="window.showPropertyModal('${property.id}')">
-                    <div class="listing-image-container">
-                        <img src="${mainPhoto}" alt="${property.title}" class="listing-image">
-                        <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
-                    </div>
-                    
-                    <div class="listing-content">
-                        <div class="listing-header">
-                            <div>
-                                <h3 class="listing-title">${property.title || 'Untitled Property'}</h3>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> ${property.location || 'Location not specified'}
-                                </div>
-                            </div>
-                            <div class="listing-price ${priceClass}">${displayPrice}</div>
+                <div class="listing-card-wrapper">
+                    <div class="listing-card" data-listing-id="${property.id}">
+                        <a href="new_property_details.html?id=${property.id}" class="card-link-overlay" aria-label="View ${title.replace(/"/g, '&quot;')}"></a>
+                        <div class="listing-card-image-container">
+                            <img src="${mainPhoto}" alt="${(property.title || 'Property').replace(/"/g, '&quot;')}" class="listing-image">
+                            <div class="listing-type-badge ${typeBadgeClass}">${typeBadgeText}</div>
                         </div>
-                        
-                        <div class="listing-details">
-                            <div class="detail">
-                                <i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}
+                        <div class="listing-content">
+                            <div class="listing-header">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h3 class="listing-title" title="${title.replace(/"/g, '&quot;')}">
+                                        ${truncatedTitle.replace(/"/g, '&quot;')}
+                                    </h3>
+                                </div>
+                                <div class="listing-price ${priceClass}">${displayPrice}</div>
                             </div>
-                            <div class="detail">
-                                <i class="fas fa-bath"></i> ${property.bathrooms || 0} baths
+                            <div class="listing-location">
+                                <i class="fas fa-map-marker-alt" style="flex-shrink: 0;"></i>
+                                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${locationDisplay.replace(/"/g, '&quot;')}">
+                                    ${truncatedLocation.replace(/"/g, '&quot;')}
+                                </span>
+                            </div>
+                            <div class="listing-details">
+                                <div class="detail">
+                                    <i class="fas fa-bed"></i> ${bedrooms} ${bedrooms === 'Studio' ? '' : 'beds'}
+                                </div>
+                                <div class="detail">
+                                    <i class="fas fa-bath"></i> ${bathrooms} baths
+                                </div>
                             </div>
                         </div>
                     </div>

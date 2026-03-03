@@ -239,6 +239,42 @@
         flex-wrap: wrap;
         gap: 15px;
     }
+    .properties-pagination {
+        margin-top: 22px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .pagination-btn {
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: var(--text-dark);
+        min-width: 38px;
+        height: 38px;
+        padding: 0 10px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .pagination-btn:hover {
+        border-color: #d4af37;
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    .pagination-btn.active {
+        background: var(--primary-dark);
+        color: #fff;
+        border-color: var(--primary-dark);
+    }
+    .pagination-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+    }
     .listings-grid, .recommendations-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -717,61 +753,27 @@
     </div>
   </div>
 
-  <!-- Search / Filter Section - UPDATED with new filters -->
+  <!-- Search / Filter Section - same design as buyer dashboard -->
   <div class="search-section">
     <div class="search-title">
       <i class="fas fa-filter"></i>
       Filter Properties
     </div>
     <div class="search-grid">
-      <!-- Location Dropdown (All Batangas Cities & Municipalities) -->
       <div class="search-group">
         <label class="search-label">
-          <i class="fas fa-map-marker-alt"></i>
-          Location
+          <i class="fas fa-home"></i>
+          Property Type
         </label>
-<select class="search-select" id="filterLocation">
-    <option value="">All Locations</option>
-    <!-- Cities (alphabetical) -->
-    <option value="Batangas City">Batangas City</option>
-    <option value="Calaca City">Calaca City</option>
-    <option value="Lipa City">Lipa City</option>
-    <option value="Sto. Tomas City">Sto. Tomas City</option>
-    <option value="Tanauan City">Tanauan City</option>
-    <!-- Municipalities (alphabetical) -->
-    <option value="Agoncillo">Agoncillo</option>
-    <option value="Alitagtag">Alitagtag</option>
-    <option value="Balayan">Balayan</option>
-    <option value="Balete">Balete</option>
-    <option value="Bauan">Bauan</option>
-    <option value="Calatagan">Calatagan</option>
-    <option value="Cuenca">Cuenca</option>
-    <option value="Ibaan">Ibaan</option>
-    <option value="Laurel">Laurel</option>
-    <option value="Lemery">Lemery</option>
-    <option value="Lian">Lian</option>
-    <option value="Lobo">Lobo</option>
-    <option value="Mabini">Mabini</option>
-    <option value="Malvar">Malvar</option>
-    <option value="Mataasnakahoy">Mataasnakahoy</option>
-    <option value="Nasugbu">Nasugbu</option>
-    <option value="Padre Garcia">Padre Garcia</option>
-    <option value="Rosario">Rosario</option>
-    <option value="San Jose">San Jose</option>
-    <option value="San Juan">San Juan</option>
-    <option value="San Luis">San Luis</option>
-    <option value="San Nicolas">San Nicolas</option>
-    <option value="San Pascual">San Pascual</option>
-    <option value="Santa Teresita">Santa Teresita</option>
-    <option value="Taal">Taal</option>
-    <option value="Talisay">Talisay</option>
-    <option value="Taysan">Taysan</option>
-    <option value="Tingloy">Tingloy</option>
-    <option value="Tuy">Tuy</option>
-</select>
-</div>
-
-      <!-- Listing Type -->
+        <select class="search-select" id="filterType">
+          <option value="">All Types</option>
+          <option value="House">House</option>
+          <option value="Condo">Condo</option>
+          <option value="Apartment">Apartment</option>
+          <option value="Land">Land</option>
+          <option value="Commercial">Commercial</option>
+        </select>
+      </div>
       <div class="search-group">
         <label class="search-label">
           <i class="fas fa-handshake"></i>
@@ -784,25 +786,6 @@
           <option value="lease">For Lease</option>
         </select>
       </div>
-
-      <!-- Property Categories (from buyer dashboard) -->
-      <div class="search-group">
-        <label class="search-label">
-          <i class="fas fa-th-large"></i>
-          Property Category
-        </label>
-        <select class="search-select" id="filterCategory">
-          <option value="">All Categories</option>
-          <option value="Residential">Residential</option>
-          <option value="Commercial">Commercial</option>
-          <option value="Land / Lot">Land / Lot</option>
-          <option value="Condominium">Condominium</option>
-          <option value="Industrial">Industrial</option>
-          <option value="Special Purpose">Special Purpose</option>
-        </select>
-      </div>
-
-      <!-- Price Range -->
       <div class="search-group">
         <label class="search-label">
           <i class="fas fa-peso-sign"></i>
@@ -813,10 +796,15 @@
           <option value="0-1000000">Under ₱1M</option>
           <option value="1000000-5000000">₱1M - ₱5M</option>
           <option value="5000000-10000000">₱5M - ₱10M</option>
-          <option value="10000000-20000000">₱10M - ₱20M</option>
-          <option value="20000000-50000000">₱20M - ₱50M</option>
-          <option value="50000000-999999999">Over ₱50M</option>
+          <option value="10000000-999999999">Over ₱10M</option>
         </select>
+      </div>
+      <div class="search-group">
+        <label class="search-label">
+          <i class="fas fa-map-marker-alt"></i>
+          Location
+        </label>
+        <input type="text" class="search-input" id="filterLocation" placeholder="Enter location...">
       </div>
     </div>
     <div class="search-actions">
@@ -853,6 +841,7 @@
         <p>Loading properties...</p>
       </div>
     </div>
+    <div class="properties-pagination" id="propertiesPagination" style="display: none;"></div>
   </div>
 </div>
 
@@ -955,6 +944,9 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
 let allListings = [];
 let userMap = new Map();
+const PROPERTIES_PER_PAGE = 24;
+let brokerCurrentListings = [];
+let brokerCurrentPage = 1;
 
 // Helper function to get role display text
 function getRoleDisplayText(role) {
@@ -1059,7 +1051,7 @@ async function loadAllListings() {
       const countEl = document.getElementById('propertiesCount');
       if (countEl) countEl.textContent = 'No active properties';
     } else {
-      displayListings(allListings);
+      displayListings(allListings, 1);
       updateStats(allListings);
     }
     
@@ -1169,16 +1161,24 @@ async function loadUserData(userIds) {
   console.log(`✅ Loaded ${userMap.size} user profiles`);
 }
 
-// Display listings in the grid
-function displayListings(listings) {
+// Display listings in the grid with pagination (24 per page)
+function displayListings(listings, page = 1) {
+  brokerCurrentListings = Array.isArray(listings) ? listings : [];
+  brokerCurrentPage = page;
   const container = document.getElementById('listingsContainer');
-  
-  if (listings.length === 0) {
+
+  if (!brokerCurrentListings.length) {
     displayNoListings();
     return;
   }
-  
-  container.innerHTML = listings.map(listing => {
+
+  const totalPages = Math.max(1, Math.ceil(brokerCurrentListings.length / PROPERTIES_PER_PAGE));
+  brokerCurrentPage = Math.max(1, Math.min(brokerCurrentPage, totalPages));
+  const startIndex = (brokerCurrentPage - 1) * PROPERTIES_PER_PAGE;
+  const endIndex = startIndex + PROPERTIES_PER_PAGE;
+  const pageListings = brokerCurrentListings.slice(startIndex, endIndex);
+
+  container.innerHTML = pageListings.map(listing => {
     // Get user/agent ID (prefer agent so listing shows assigned agent profile)
     const userId = listing.agentId || listing.userId || listing.ownerId || listing.brokerId || listing.listedBy || 'unknown';
     const userInfo = userMap.get(userId) || {
@@ -1267,6 +1267,64 @@ function displayListings(listings) {
     </div>
     `;
   }).join('');
+
+  renderBrokerPagination(totalPages, brokerCurrentPage);
+}
+
+function renderBrokerPagination(totalPages, currentPage) {
+  const paginationContainer = document.getElementById('propertiesPagination');
+  if (!paginationContainer) return;
+
+  if (!brokerCurrentListings.length || totalPages <= 1) {
+    paginationContainer.style.display = 'none';
+    paginationContainer.innerHTML = '';
+    return;
+  }
+
+  const pagesToRender = [];
+  for (let page = 1; page <= totalPages; page += 1) {
+    if (
+      page === 1 ||
+      page === totalPages ||
+      Math.abs(page - currentPage) <= 1
+    ) {
+      pagesToRender.push(page);
+    }
+  }
+  const dedupedPages = Array.from(new Set(pagesToRender)).sort((a, b) => a - b);
+
+  let paginationHtml = `
+        <button type="button" class="pagination-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>
+    `;
+
+  dedupedPages.forEach((page, index) => {
+    if (index > 0 && page - dedupedPages[index - 1] > 1) {
+      paginationHtml += `<span style="padding: 0 2px; color: #6b7280;">...</span>`;
+    }
+    paginationHtml += `
+            <button type="button" class="pagination-btn ${page === currentPage ? 'active' : ''}" data-page="${page}">
+                ${page}
+            </button>
+        `;
+  });
+
+  paginationHtml += `
+        <button type="button" class="pagination-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+    `;
+
+  paginationContainer.innerHTML = paginationHtml;
+  paginationContainer.style.display = 'flex';
+
+  paginationContainer.querySelectorAll('.pagination-btn[data-page]').forEach(button => {
+    if (button.disabled) return;
+    button.addEventListener('click', () => {
+      const targetPage = Number(button.getAttribute('data-page'));
+      if (!Number.isFinite(targetPage)) return;
+      displayListings(brokerCurrentListings, targetPage);
+      const section = document.querySelector('.properties-section');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
 }
 
 // Display empty state
@@ -1282,6 +1340,11 @@ function displayNoListings() {
       </a>
     </div>
   `;
+  const paginationContainer = document.getElementById('propertiesPagination');
+  if (paginationContainer) {
+    paginationContainer.style.display = 'none';
+    paginationContainer.innerHTML = '';
+  }
 }
 
 // Display error state
@@ -1300,6 +1363,11 @@ function displayError(error) {
       </button>
     </div>
   `;
+  const paginationContainer = document.getElementById('propertiesPagination');
+  if (paginationContainer) {
+    paginationContainer.style.display = 'none';
+    paginationContainer.innerHTML = '';
+  }
 }
 
 // Update dashboard statistics
@@ -1350,101 +1418,17 @@ function updateStats(listings) {
   if (countEl) countEl.textContent = `${total} propert${total === 1 ? 'y' : 'ies'} on the platform`;
 }
 
-// Category filter helper function
-function propertyBelongsToCategory(listing, category) {
-  const propertyType = (listing.propertyType || '').toLowerCase();
-  const propertyCategory = (listing.propertyCategory || '').toLowerCase();
-  const listingTitle = (listing.title || '').toLowerCase();
-  const listingDescription = (listing.description || '').toLowerCase();
-  const searchText = `${propertyType} ${propertyCategory} ${listingTitle} ${listingDescription}`;
-
-  // Define categories similar to buyer dashboard
-  const categories = {
-    'Residential': {
-      propertyTypes: ['house', 'townhouse', 'bungalow', 'duplex', 'village_lot', 'apartment', 'boarding_house', 'room', 'dormitory'],
-      keywords: ['residential', 'house', 'apartment', 'condo', 'condominium', 'townhouse', 'dormitory', 'room', 'bedspace', 'home', 'villa', 'bungalow', 'duplex', 'boarding', 'dorm'],
-      excludeKeywords: ['commercial', 'industrial', 'land', 'lot', 'plot', 'agricultural', 'warehouse', 'factory', 'office', 'retail', 'shop', 'establishment']
-    },
-    'Commercial': {
-      propertyTypes: ['commercial_building', 'office_space', 'retail_space', 'warehouse', 'showroom', 'office_unit', 'food_stall', 'shop', 'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 'showroom_lease', 'warehouse_lease'],
-      keywords: ['commercial', 'office', 'retail', 'shop', 'kiosk', 'stall', 'store', 'mall', 'business', 'establishment', 'showroom', 'warehouse', 'building', 'floor', 'space'],
-      excludeKeywords: ['residential', 'house', 'apartment', 'condo', 'land', 'lot']
-    },
-    'Land / Lot': {
-      propertyTypes: ['residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 'beachfront', 'development_land', 'vacant_lot'],
-      keywords: ['land', 'lot', 'plot', 'agricultural', 'farm', 'agriculture', 'property', 'vacant', 'empty', 'beachfront', 'undeveloped', 'raw land', 'development', 'industrial', 'commercial'],
-      excludeKeywords: ['house', 'apartment', 'building', 'condo', 'villa']
-    },
-    'Condominium': {
-      propertyTypes: ['condo_unit', 'penthouse', 'studio', 'loft', 'condo'],
-      keywords: ['condominium', 'condo', 'penthouse', 'studio unit', 'loft unit'],
-      excludeKeywords: ['house', 'apartment', 'townhouse', 'duplex', 'villa']
-    },
-    'Industrial': {
-      propertyTypes: ['warehouse', 'storage_unit', 'factory', 'workshop'],
-      keywords: ['industrial', 'warehouse', 'factory', 'storage', 'manufacturing', 'plant', 'facility', 'workshop', 'production'],
-      excludeKeywords: ['residential', 'house', 'apartment', 'commercial', 'office', 'retail', 'shop']
-    },
-    'Special Purpose': {
-      propertyTypes: ['resort_property', 'event_venue', 'parking_area', 'school_property', 'hospitality', 'sports_facility'],
-      keywords: ['resort', 'event', 'venue', 'school', 'sports', 'facility', 'special', 'purpose', 'institutional', 'hotel', 'motel', 'inn', 'parking', 'hospitality', 'tourism', 'recreational'],
-      excludeKeywords: ['house', 'apartment', 'condo', 'office', 'retail', 'warehouse']
-    }
-  };
-
-  const catData = categories[category];
-  if (!catData) return false;
-
-  // Check property types first (exact matches)
-  for (const type of catData.propertyTypes) {
-    const typeLower = type.toLowerCase();
-    if (propertyType === typeLower || propertyType.includes(typeLower)) {
-      return true;
-    }
-  }
-
-  // Check keywords
-  for (const keyword of catData.keywords) {
-    if (searchText.includes(keyword.toLowerCase())) {
-      // Check exclusions
-      if (catData.excludeKeywords) {
-        let shouldExclude = false;
-        for (const excludeKeyword of catData.excludeKeywords) {
-          if (searchText.includes(excludeKeyword.toLowerCase())) {
-            shouldExclude = true;
-            break;
-          }
-        }
-        if (!shouldExclude) {
-          return true;
-        }
-      } else {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 // Apply filters to listings
-// Apply filters to listings - UPDATED TO MATCH BUYER DASHBOARD LOGIC
 function applyFilters() {
-  const locationFilter = document.getElementById('filterLocation').value;
+  const typeFilter = document.getElementById('filterType').value.toLowerCase();
   const listingTypeFilter = document.getElementById('filterListingType').value.toLowerCase();
-  const categoryFilter = document.getElementById('filterCategory').value;
   const priceFilter = document.getElementById('filterPrice').value;
+  const locationFilter = document.getElementById('filterLocation').value.toLowerCase();
   
   const filtered = allListings.filter(listing => {
-    // Location filter - MATCHES BUYER DASHBOARD LOGIC
-    if (locationFilter) {
-      const locationMatch = 
-        (listing.location || "").includes(locationFilter) ||
-        (listing.city || "").includes(locationFilter) ||
-        (listing.province || "").includes(locationFilter) ||
-        (listing.address || "").includes(locationFilter);
-      
-      if (!locationMatch) return false;
+    // Property type filter
+    if (typeFilter && listing.propertyType && !listing.propertyType.toLowerCase().includes(typeFilter)) {
+      return false;
     }
     
     // Listing type filter
@@ -1453,18 +1437,17 @@ function applyFilters() {
       if (listingType !== listingTypeFilter) return false;
     }
     
-    // Category filter
-    if (categoryFilter) {
-      if (!propertyBelongsToCategory(listing, categoryFilter)) {
-        return false;
-      }
-    }
-    
     // Price filter
     if (priceFilter) {
       const [min, max] = priceFilter.split('-').map(Number);
       const priceInfo = getPriceInfo(listing);
       if (priceInfo.price < min || priceInfo.price > max) return false;
+    }
+    
+    // Location filter
+    if (locationFilter) {
+      const location = (listing.address || listing.location || '').toLowerCase();
+      if (!location.includes(locationFilter)) return false;
     }
     
     return true;
@@ -1480,26 +1463,28 @@ function applyFilters() {
     `;
     const countEl = document.getElementById('propertiesCount');
     if (countEl) countEl.textContent = '0 properties match filters';
+    const paginationContainer = document.getElementById('propertiesPagination');
+    if (paginationContainer) {
+      paginationContainer.style.display = 'none';
+      paginationContainer.innerHTML = '';
+    }
   } else {
-    displayListings(filtered);
+    displayListings(filtered, 1);
     const countEl = document.getElementById('propertiesCount');
     if (countEl) countEl.textContent = `${filtered.length} propert${filtered.length === 1 ? 'y' : 'ies'} match your filters`;
   }
 }
 
-// Reset filters function
-function resetFilters() {
-  document.getElementById('filterLocation').value = '';
-  document.getElementById('filterListingType').value = '';
-  document.getElementById('filterCategory').value = '';
-  document.getElementById('filterPrice').value = '';
-  displayListings(allListings);
-  updateStats(allListings);
-}
-
 // Event Listeners
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
-document.getElementById('resetFilters').addEventListener('click', resetFilters);
+document.getElementById('resetFilters').addEventListener('click', function() {
+  document.getElementById('filterType').value = '';
+  document.getElementById('filterListingType').value = '';
+  document.getElementById('filterPrice').value = '';
+  document.getElementById('filterLocation').value = '';
+  displayListings(allListings, 1);
+  updateStats(allListings);
+});
 
 // Initialize on page load
 onAuthStateChanged(auth, async (user) => {

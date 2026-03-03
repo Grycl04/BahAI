@@ -58,6 +58,11 @@
       color: var(--text-dark);
       display: flex;
       min-height: 100vh;
+      overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+    }
+
+    .sidebar-overlay {
+      display: none;
     }
 
     /* Mobile Menu Toggle - same as buyer dashboard */
@@ -66,7 +71,7 @@
       position: fixed;
       top: 20px;
       left: 20px;
-      z-index: 1001;
+      z-index: 1003;
       background: var(--primary-gradient);
       color: white;
       border: none;
@@ -78,6 +83,79 @@
       box-shadow: var(--card-hover-shadow);
     }
 
+    /* Fix top-nav overlap on mobile */
+    .top-nav {
+      z-index: 1000;
+    }
+
+    .top-nav-menu {
+      z-index: 1001;
+    }
+
+    /* Ensure top-nav menu is properly hidden on desktop */
+    @media (min-width: 1025px) {
+      .top-nav-menu {
+        display: flex !important;
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      /* Ensure top-nav menu is hidden by default and properly positioned */
+      .top-nav-menu {
+        position: fixed !important;
+        top: 64px !important;
+        left: 0 !important;
+        right: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        z-index: 1002 !important;
+        transition: max-height 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .top-nav-menu.open {
+        max-height: 400px !important;
+        overflow-y: auto;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Adjust container padding when menu is open to prevent overlap */
+      body.top-nav-menu-open .container {
+        padding-top: 464px;
+        transition: padding-top 0.3s ease;
+      }
+
+      body.top-nav-menu-open .messages-container {
+        min-height: calc(100vh - 464px);
+        height: calc(100vh - 464px);
+      }
+
+      .mobile-menu-toggle {
+        top: 76px;
+        left: 16px;
+        z-index: 1003;
+        transition: opacity 0.3s ease;
+      }
+
+      /* Hide mobile toggle when top-nav menu is open */
+      body.top-nav-menu-open .mobile-menu-toggle {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Ensure conversations sidebar doesn't overlap when menu is open */
+      body.top-nav-menu-open .conversations-sidebar {
+        margin-top: 0;
+      }
+    }
+
     .container {
       flex: 1;
       margin-left: 0;
@@ -87,6 +165,18 @@
       flex-direction: column;
       min-height: 100vh;
       overflow: hidden;
+    }
+
+    /* Account for top-nav height on mobile */
+    @media (max-width: 1024px) {
+      .container {
+        padding-top: 64px;
+      }
+    }
+
+    /* Hide hero section in mobile chat view */
+    body.mobile-chat-view .hero-section {
+      display: none;
     }
 
     /* Hero Section - same as buyer dashboard */
@@ -186,6 +276,8 @@
     .conversations-header {
       padding: 20px;
       border-bottom: 1px solid var(--border);
+      position: relative;
+      z-index: 1;
     }
     .conversations-header-title {
       font-size: 1.35rem;
@@ -195,6 +287,23 @@
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    .incoming-notification-pill {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: var(--secondary-gradient);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .incoming-notification-pill.show {
+      display: inline-flex;
     }
     .conversations-header-title i {
       color: #d4af37;
@@ -561,15 +670,6 @@
       font-size: 10px;
     }
 
-    /* Property thumbnail in conversation list */
-    .conversation-property-thumb {
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
-      border-radius: 8px;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
 
     .conversation-badge {
       position: absolute;
@@ -635,9 +735,53 @@
       justify-content: space-between;
       align-items: center;
       background: white;
+      position: relative;
+      gap: 12px;
+    }
+
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       flex-shrink: 0;
-      flex-wrap: wrap;
-      gap: 15px;
+    }
+
+    .chat-header-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-light);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--primary);
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .chat-header-icon-btn:hover {
+      background: white;
+      border-color: #d4af37;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
+    }
+
+    .chat-back-to-list {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-dark);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .chat-back-to-list:hover {
+      background: var(--bg-light);
     }
 
     .chat-user-info {
@@ -673,6 +817,7 @@
     .chat-user-details {
       flex: 1;
       min-width: 0;
+      overflow: hidden;
     }
 
     .chat-user-details h3 {
@@ -683,6 +828,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .chat-user-details p {
@@ -833,20 +979,6 @@
       display: flex;
       gap: 12px;
       align-items: flex-end;
-      position: relative;
-    }
-
-    .chat-input-wrapper .ai-icon-near-input {
-      position: absolute;
-      left: 14px;
-      bottom: 16px;
-      color: #d4af37;
-      font-size: 14px;
-      pointer-events: none;
-    }
-
-    .chat-input-wrapper.has-ai-icon .chat-input {
-      padding-left: 38px;
     }
 
     .chat-input {
@@ -868,48 +1000,6 @@
       box-shadow: 0 0 0 3px rgba(11, 46, 82, 0.15);
     }
 
-    /* BahAI Assist panel - suggested replies (core feature) */
-    .bahai-assist-panel {
-      margin-bottom: 16px;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, rgba(11, 46, 82, 0.04) 0%, rgba(212, 175, 55, 0.08) 100%);
-      border: 1px solid rgba(212, 175, 55, 0.25);
-      border-radius: var(--border-radius-sm);
-    }
-    .bahai-assist-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--primary-dark);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .bahai-assist-label i {
-      color: #d4af37;
-    }
-    .bahai-assist-suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .bahai-suggestion-chip {
-      padding: 8px 14px;
-      background: white;
-      border: 1px solid rgba(212, 175, 55, 0.4);
-      border-radius: 20px;
-      font-size: 13px;
-      color: var(--text-dark);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .bahai-suggestion-chip:hover {
-      background: rgba(212, 175, 55, 0.12);
-      border-color: #d4af37;
-    }
     .send-button {
       background: var(--primary-gradient);
       color: white;
@@ -1139,12 +1229,14 @@
       z-index: 10000;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transition: all 0.3s ease;
     }
 
     .modal-overlay.active {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
     }
 
     .modal {
@@ -1228,6 +1320,109 @@
       transform: translateY(-2px);
     }
 
+    /* Property picker for scheduling */
+    #propertyPickerModal .modal {
+      max-width: 900px;
+      width: min(900px, 95vw);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top left, rgba(212, 175, 55, 0.08), transparent 55%), #ffffff;
+    }
+
+    #propertyPickerModal .modal-header {
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    #propertyPickerModal .modal-content h3 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    #propertyPickerModal .modal-content p {
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    #propertyPickerModal .modal-actions {
+      margin-top: 18px;
+    }
+
+    .property-picker-list {
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 8px;
+      padding-right: 4px;
+      padding-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .property-picker-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--bg-light);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .property-picker-item:hover {
+      transform: translateY(-1px);
+      border-color: #d4af37;
+      background: #ffffff;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    }
+
+    .property-picker-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: #e5e7eb;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .property-picker-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .property-picker-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .property-picker-meta {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 2px;
+    }
+
+    .property-picker-price {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .property-picker-empty,
+    .property-picker-loading {
+      font-size: 14px;
+      color: var(--text-light);
+      padding: 12px 0;
+    }
+
     /* ===== RESPONSIVE DESIGN ===== */
     
     /* Tablet */
@@ -1241,6 +1436,29 @@
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      body.sidebar-open {
+        overflow: hidden;
+      }
+
+      body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
       }
       
       .messages-container {
@@ -1266,90 +1484,571 @@
     @media (max-width: 768px) {
       .container {
         padding: 0;
+        padding-top: 64px;
       }
+
+      body.mobile-chat-view .container {
+        padding-top: 0;
+      }
+
+      body.mobile-chat-view .hero-section {
+        display: none;
+      }
+
       .mobile-menu-toggle {
-        top: 15px;
-        left: 15px;
+        top: 76px;
+        left: 16px;
         width: 45px;
         height: 45px;
         font-size: 20px;
+        z-index: 1003;
       }
-      .hero-section h1 {
-        font-size: 1.8rem;
+
+      body.mobile-chat-view .mobile-menu-toggle {
+        top: 16px;
+        z-index: 1003;
       }
+
+      /* Ensure top-nav menu doesn't overlap content when open */
+      .top-nav-menu {
+        max-height: 0 !important;
+        overflow: hidden !important;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .top-nav-menu.open {
+        z-index: 1002;
+        max-height: 400px !important;
+        overflow-y: auto;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.top-nav-menu-open .container {
+        padding-top: 464px;
+      }
+
+      body.top-nav-menu-open .messages-container {
+        min-height: calc(100vh - 464px);
+        height: calc(100vh - 464px);
+      }
+
+      /* Adjust chat container and header when top-nav menu is open */
+      body.top-nav-menu-open.mobile-chat-view .chat-container {
+        top: 464px;
+        height: calc(100vh - 464px);
+      }
+
+      body.top-nav-menu-open .chat-header,
+      body.top-nav-menu-open body.mobile-chat-view .chat-header {
+        top: 464px;
+      }
+
       .hero-section {
-        padding: 30px 24px;
+        padding: 24px 20px;
+        margin: 0 12px 16px 12px;
+        border-radius: 12px;
       }
+
+      .hero-section h1 {
+        font-size: 1.6rem;
+        line-height: 1.3;
+      }
+
+      .hero-section p {
+        font-size: 0.95rem;
+      }
+
       .hero-actions {
-        margin-top: 20px;
+        margin-top: 16px;
+        flex-direction: column;
+        align-items: stretch;
       }
+
       .refresh-btn {
-        align-self: flex-start;
+        align-self: stretch;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        justify-content: center;
+        min-height: 44px;
+      }
+      
+      .messages-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        min-height: calc(100vh - 64px);
+        height: calc(100vh - 64px);
+      }
+
+      body.mobile-chat-view .messages-container {
+        min-height: 100vh;
+        height: 100vh;
+      }
+
+      .conversations-sidebar {
+        border-right: none;
+        border-bottom: none;
+        max-height: none;
+        min-height: 0;
+      }
+
+      .conversations-header {
+        padding: 16px;
+      }
+
+      .conversations-header-title {
+        font-size: 1.2rem;
+        margin-bottom: 6px;
+      }
+
+      .conversations-header-subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+      }
+
+      .conversations-search {
+        margin-top: 12px;
+      }
+
+      .conversations-search input {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-height: 44px;
+      }
+
+      .index-notice {
+        padding: 10px 12px;
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+
+      .empty-state {
+        padding: 30px 20px;
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .empty-state h3 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+      }
+
+      .empty-state p {
+        font-size: 0.9rem;
+      }
+
+      .conversation-item {
+        padding: 14px 16px;
+        min-height: 60px;
+      }
+
+      .conversation-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 15px;
+      }
+
+      .conversation-name {
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .conversation-preview {
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .conversation-property {
+        font-size: 11px;
+        margin-top: 4px;
+      }
+
+      /* Mobile chat view: hide chat container by default, show when body has class */
+      body:not(.mobile-chat-view) .chat-container {
+        display: none;
+      }
+
+      body.mobile-chat-view .conversations-sidebar {
+        display: none;
+      }
+
+      /* Chat container sits below top nav (64px) to avoid overlap */
+      body.mobile-chat-view .chat-container {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: calc(100vh - 64px);
+        min-height: 0;
+        z-index: 1;
+        background: var(--bg-light);
+      }
+
+      .chat-header {
+        padding: 14px 50px 14px 14px;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        min-height: 60px;
+        background: white;
+        flex-shrink: 0;
+      }
+
+      body.mobile-chat-view .chat-header {
+        top: 0;
+      }
+
+      .chat-back-to-list {
+        display: block;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .chat-user-info {
+        flex: 1;
+        min-width: 0;
+        padding-right: 10px;
+      }
+
+      .chat-user-details h3 {
+        font-size: 15px;
+        line-height: 1.3;
+      }
+
+      .chat-user-details p {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .chat-messages-container {
+        padding: 16px 12px;
       }
       
       .message-bubble {
         max-width: 85%;
+        padding: 12px 16px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .chat-input-container {
+        padding: 12px;
+      }
+
+      .chat-input-wrapper {
+        gap: 8px;
+      }
+
+      .chat-input {
+        font-size: 14px;
+        padding: 12px 14px;
+        min-height: 44px;
+      }
+
+      .send-button {
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
       }
       
       .filter-buttons {
         flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
       }
 
-      /* BahAI Assist: remain accessible on mobile */
-      .bahai-assist-panel {
+      .filter-btn {
         padding: 10px 14px;
+        font-size: 13px;
+        min-height: 40px;
       }
-      .bahai-assist-suggestions {
-        gap: 6px;
+
+      .quick-actions {
+        flex-wrap: wrap;
+        gap: 8px;
       }
-      .bahai-suggestion-chip {
-        padding: 6px 12px;
-        font-size: 12px;
+
+      .action-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+        min-height: 40px;
+        flex: 1;
+        min-width: calc(50% - 4px);
       }
+
+      .modal {
+        width: 95%;
+        max-width: 400px;
+        padding: 24px 20px;
+        margin: 20px;
+      }
+
+      .modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .modal-btn {
+        width: 100%;
+        padding: 14px 20px;
+        min-height: 44px;
+      }
+
     }
 
     /* Small Mobile */
     @media (max-width: 480px) {
       .container {
         padding: 0;
+        padding-top: 64px;
+      }
+
+      body.mobile-chat-view .container {
+        padding-top: 0;
+      }
+
+      body.mobile-chat-view .hero-section {
+        display: none;
       }
       
       .mobile-menu-toggle {
-        top: 10px;
-        left: 10px;
+        top: 76px;
+        left: 12px;
         width: 40px;
         height: 40px;
         font-size: 18px;
+        z-index: 1003;
+      }
+
+      body.mobile-chat-view .mobile-menu-toggle {
+        top: 12px;
+        z-index: 1003;
+      }
+
+      /* Ensure top-nav menu doesn't overlap content when open */
+      .top-nav-menu {
+        max-height: 0 !important;
+        overflow: hidden !important;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .top-nav-menu.open {
+        z-index: 1002;
+        max-height: 400px !important;
+        overflow-y: auto;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.top-nav-menu-open .container {
+        padding-top: 464px;
+      }
+
+      body.top-nav-menu-open .messages-container {
+        min-height: calc(100vh - 464px);
+        height: calc(100vh - 464px);
+      }
+
+      /* Adjust chat container and header when top-nav menu is open */
+      body.top-nav-menu-open.mobile-chat-view .chat-container {
+        top: 464px;
+        height: calc(100vh - 464px);
+      }
+
+      body.top-nav-menu-open .chat-header,
+      body.top-nav-menu-open body.mobile-chat-view .chat-header {
+        top: 464px;
+      }
+
+      .hero-section {
+        padding: 20px 16px;
+        margin: 0 12px 16px 12px;
+        border-radius: 12px;
+      }
+
+      .hero-section h1 {
+        font-size: 1.5rem;
+        line-height: 1.3;
+      }
+
+      .hero-section p {
+        font-size: 0.9rem;
+      }
+
+      .messages-container {
+        min-height: calc(100vh - 64px);
+        height: calc(100vh - 64px);
+      }
+
+      body.mobile-chat-view .messages-container {
+        min-height: 100vh;
+        height: 100vh;
       }
       
-      .page-header h1 {
-        font-size: 22px;
+      .conversations-header {
+        padding: 14px 12px;
+      }
+
+      .conversations-header-title {
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+      }
+
+      .conversations-header-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+      }
+
+      .conversations-search {
+        margin-top: 10px;
+      }
+
+      .conversations-search input {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-height: 44px;
+      }
+
+      .index-notice {
+        padding: 10px 12px;
+        font-size: 11px;
+        margin-bottom: 10px;
+      }
+
+      .empty-state {
+        padding: 24px 16px;
+      }
+
+      .empty-state-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+
+      .empty-state h3 {
+        font-size: 1rem;
+        margin-bottom: 6px;
+      }
+
+      .empty-state p {
+        font-size: 0.85rem;
       }
       
       .conversation-item {
-        padding: 12px 15px;
+        padding: 12px 14px;
+        min-height: 60px;
       }
       
       .conversation-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 14px;
+      }
+
+      .conversation-info {
+        min-width: 0;
+      }
+
+      .conversation-name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .conversation-preview {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .conversation-property {
+        font-size: 10px;
+        margin-top: 3px;
+      }
+      
+      .chat-header {
+        padding: 12px 45px 12px 12px;
+        min-height: 60px;
+      }
+
+      .chat-back-to-list {
+        right: 8px;
+        width: 34px;
+        height: 34px;
+        padding: 6px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .chat-user-avatar {
         width: 40px;
         height: 40px;
         font-size: 14px;
       }
-      
-      .chat-header {
-        padding: 15px;
+
+      .chat-user-details h3 {
+        font-size: 14px;
+        line-height: 1.3;
+      }
+
+      .chat-user-details p {
+        font-size: 11px;
+        line-height: 1.4;
       }
       
       .chat-messages-container {
-        padding: 15px;
+        padding: 12px 10px;
       }
       
       .chat-input-container {
-        padding: 15px;
+        padding: 10px;
+      }
+
+      .chat-input-wrapper {
+        gap: 6px;
+      }
+
+      .chat-input {
+        font-size: 14px;
+        padding: 10px 12px;
+        min-height: 44px;
+      }
+
+      .send-button {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 14px;
       }
       
       .message-bubble {
         max-width: 90%;
+        padding: 10px 14px;
+        font-size: 13px;
+        line-height: 1.5;
       }
       
       .property-quick-view {
@@ -1361,6 +2060,61 @@
         width: 100%;
         height: 120px;
       }
+
+      .refresh-btn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        min-height: 44px;
+      }
+
+      .filter-buttons {
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .filter-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 38px;
+      }
+
+      .quick-actions {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .action-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+        min-height: 40px;
+        flex: 1;
+        min-width: calc(50% - 3px);
+      }
+
+      .modal {
+        width: 95%;
+        max-width: 360px;
+        padding: 20px 16px;
+        margin: 16px;
+      }
+
+      .modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .modal-btn {
+        width: 100%;
+        padding: 12px 18px;
+        min-height: 44px;
+      }
+
     }
 </style>
 </head>
@@ -1371,6 +2125,7 @@
 
 <!-- Include Sidebar -->
 <div id="sidebar-container"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Main - same layout as buyer dashboard -->
 <div class="container">
@@ -1378,13 +2133,12 @@
     <!-- Conversations Sidebar -->
     <div class="conversations-sidebar">
       <div class="conversations-header">
-        <h2 class="conversations-header-title"><i class="fas fa-comments"></i> Messages</h2>
-        <p class="conversations-header-subtitle">AI-assisted communication with property owners and brokers</p>
+        <h2 class="conversations-header-title">
+          <i class="fas fa-comments"></i> Messages
+          <span id="incomingNotificationBadge" class="incoming-notification-pill">0</span>
+        </h2>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <span style="font-size: 0.9rem; color: var(--text-light);">Conversations</span>
-          <button class="refresh-btn" id="refreshBtn">
-            <i class="fas fa-sync-alt"></i> Refresh
-          </button>
         </div>
         
         <div class="index-notice" id="indexNotice">
@@ -1427,6 +2181,17 @@
             <p id="chatUserStatus"><i class="fas fa-circle" style="color: #ccc; font-size: 8px;"></i> Choose a conversation to start messaging</p>
           </div>
         </div>
+        <div class="chat-header-actions">
+          <button type="button" class="chat-header-icon-btn" id="scheduleViewingBtn" title="Schedule viewing">
+            <i class="fas fa-calendar-check"></i>
+          </button>
+          <button type="button" class="chat-header-icon-btn" id="deleteConversationBtn" title="Delete conversation">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <button type="button" class="chat-back-to-list" id="chatBackToList" aria-label="Back to conversations">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+        </div>
       </div>
 
       <div class="chat-messages-container" id="chatMessagesContainer">
@@ -1438,39 +2203,10 @@
       </div>
 
       <div class="chat-input-container" id="chatInputContainer" style="display: none;">
-        <!-- BahAI Assist: Suggested replies (auto-fill input, user confirms before send) -->
-        <div class="bahai-assist-panel" id="bahaiAssistPanel">
-          <div class="bahai-assist-label">
-            <i class="fas fa-robot"></i>
-            Suggested by BahAI
-          </div>
-          <div class="bahai-assist-suggestions">
-            <button type="button" class="bahai-suggestion-chip" data-suggestion="Is this property still available? I'm very interested.">Ask about availability</button>
-            <button type="button" class="bahai-suggestion-chip" data-suggestion="I'd like to schedule a site visit. When would be a good time?">Request a site visit</button>
-            <button type="button" class="bahai-suggestion-chip" data-suggestion="I'm interested in this property. Is there any flexibility on the price?">Negotiate price</button>
-          </div>
-        </div>
-        
-        <div class="chat-input-wrapper has-ai-icon">
-          <i class="fas fa-sparkles ai-icon-near-input" title="BahAI can help you compose messages"></i>
-          <textarea class="chat-input" id="chatInput" placeholder="Type your message or use BahAI suggestions…" rows="1"></textarea>
+        <div class="chat-input-wrapper">
+          <textarea class="chat-input" id="chatInput" placeholder="Type your message…" rows="1"></textarea>
           <button class="send-button" id="sendButton">
             <i class="fas fa-paper-plane"></i>
-          </button>
-        </div>
-        
-        <div class="quick-actions" id="quickActions" style="display: none;">
-          <button class="action-btn" id="sendEmailBtn">
-            <i class="fas fa-envelope"></i> Send Email
-          </button>
-          <button class="action-btn" id="makeCallBtn">
-            <i class="fas fa-phone"></i> Make Call
-          </button>
-          <button class="action-btn primary" id="scheduleViewingBtn">
-            <i class="fas fa-calendar-check"></i> Schedule Viewing
-          </button>
-          <button class="action-btn" id="deleteConversationBtn" style="background: #fee; color: var(--error); border-color: var(--error);">
-            <i class="fas fa-trash-alt"></i> Delete Conversation
           </button>
         </div>
       </div>
@@ -1493,6 +2229,27 @@
     <div class="modal-actions">
       <button class="modal-btn cancel" id="cancelDelete">Cancel</button>
       <button class="modal-btn delete" id="confirmDelete">Delete Conversation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Viewing: Property Picker Modal -->
+<div class="modal-overlay" id="propertyPickerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div class="modal-content">
+        <h3>Select a property to schedule</h3>
+        <p id="propertyPickerSubtitle">Choose one of this contact's properties to schedule a viewing.</p>
+      </div>
+    </div>
+    <div id="propertyPickerList" class="property-picker-list">
+      <div class="property-picker-loading">Loading properties...</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="propertyPickerCancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -1573,6 +2330,9 @@ let activeFilter = 'all';
 let searchTerm = '';
 let isLoadingMessages = false;
 let conversationToDelete = null;
+let unreadSnapshotMap = new Map();
+let hasProcessedRealtimeSnapshot = false;
+const defaultMessagesPageTitle = document.title;
 
 // Debug mode
 const DEBUG = true;
@@ -1582,7 +2342,90 @@ function debugLog(...args) {
   }
 }
 
-// Check KYC status when loading messages page
+function getConversationUnreadCount(conversationData) {
+  if (!conversationData || !currentUser) return 0;
+  return Number(conversationData.unreadCount?.[currentUser.uid] || 0);
+}
+
+function getTotalUnreadMessages() {
+  if (!currentUser) return 0;
+  return allConversations.reduce((sum, conv) => sum + getConversationUnreadCount(conv), 0);
+}
+
+function updateIncomingNotificationIndicators() {
+  const unreadTotal = getTotalUnreadMessages();
+  const badge = document.getElementById('incomingNotificationBadge');
+  const navBadge = document.getElementById('topNavMessagesBadge');
+  if (badge) {
+    if (unreadTotal > 0) {
+      badge.textContent = unreadTotal > 99 ? '99+' : String(unreadTotal);
+      badge.classList.add('show');
+    } else {
+      badge.textContent = '0';
+      badge.classList.remove('show');
+    }
+  }
+  if (navBadge) {
+    if (unreadTotal > 0) {
+      navBadge.textContent = unreadTotal > 99 ? '99+' : String(unreadTotal);
+      navBadge.classList.add('show');
+    } else {
+      navBadge.textContent = '0';
+      navBadge.classList.remove('show');
+    }
+  }
+
+  document.title = unreadTotal > 0
+    ? `(${unreadTotal}) ${defaultMessagesPageTitle}`
+    : defaultMessagesPageTitle;
+}
+
+function getConversationContactName(conversationData) {
+  const participants = Array.isArray(conversationData?.participants) ? conversationData.participants : [];
+  const otherUserId = conversationData?.brokerId || participants.find(id => id !== currentUser?.uid);
+  if (!otherUserId) return 'your contact';
+  const userInfo = userMap.get(otherUserId);
+  return userInfo?.displayName || `Contact ${String(otherUserId).substring(0, 8)}`;
+}
+
+function triggerIncomingMessageNotification(conversationId, conversationData) {
+  if (!currentUser || !hasProcessedRealtimeSnapshot) return;
+  const unreadNow = getConversationUnreadCount(conversationData);
+  const unreadBefore = Number(unreadSnapshotMap.get(conversationId) || 0);
+  unreadSnapshotMap.set(conversationId, unreadNow);
+
+  if (unreadNow <= unreadBefore) return;
+
+  const isActiveConversation = conversationId === currentConversationId;
+  const canSkipForegroundAlert = isActiveConversation && document.hasFocus();
+  if (canSkipForegroundAlert) return;
+
+  const contactName = getConversationContactName(conversationData);
+  const messagePreview = (conversationData?.lastMessage || 'You have a new message').toString();
+  const shortPreview = messagePreview.length > 90 ? `${messagePreview.slice(0, 90)}...` : messagePreview;
+
+  showToast(`New message from ${contactName}`, 'success');
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(`New message from ${contactName}`, {
+        body: shortPreview,
+        tag: `buyer-message-${conversationId}`
+      });
+    } catch (error) {
+      debugLog('Notification API failed:', error);
+    }
+  }
+}
+
+function seedUnreadSnapshotState() {
+  unreadSnapshotMap.clear();
+  allConversations.forEach(conv => {
+    unreadSnapshotMap.set(conv.id, getConversationUnreadCount(conv));
+  });
+}
+
+// Initialize on auth state change
 onAuthStateChanged(auth, async (user) => {
   if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
   if (!user) {
@@ -1593,31 +2436,7 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   debugLog('👤 Buyer logged in:', user.uid, 'Email:', user.email);
   
-  // Check if user is KYC verified
-  try {
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      const kycStatus = userData.kycStatus || "not_submitted";
-      
-      if (kycStatus !== "approved") {
-        // Show KYC required message and redirect
-        alert('You need to complete KYC verification before accessing messages. Redirecting to KYC page.');
-        window.location.href = "buyer-kyc.html?required=true";
-        return;
-      }
-    } else {
-      window.location.href = "buyer-kyc.html?required=true";
-      return;
-    }
-  } catch (error) {
-    console.error("Error checking KYC:", error);
-    alert('Error verifying KYC status. Please try again.');
-    window.location.href = "buyer_dashboard.html";
-    return;
-  }
-  
-  // Initialize the page (only for verified users)
+  // Initialize the page
   initPage();
 });
 
@@ -1630,6 +2449,112 @@ function getUrlParam(name) {
 // Initialize the page
 async function initPage() {
   debugLog('🚀 Initializing messages page...');
+  
+  // Check if a specific conversation should be opened (e.g. on mobile deep link)
+  const conversationIdFromUrl = getUrlParam('conversationId');
+  if (conversationIdFromUrl && typeof conversationIdFromUrl === 'string' && conversationIdFromUrl.trim().length > 0) {
+    // Mark body so CSS shows chat full screen on mobile and hides list
+    document.body.classList.add('mobile-chat-view');
+  } else {
+    document.body.classList.remove('mobile-chat-view');
+  }
+
+  // Setup mobile menu toggle and sidebar overlay
+  const mobileToggle = document.getElementById('mobileMenuToggle');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', function() {
+      document.body.classList.toggle('sidebar-open');
+    });
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', function() {
+      document.body.classList.remove('sidebar-open');
+    });
+  }
+
+  // Setup back to list button (mobile)
+  const chatBackToList = document.getElementById('chatBackToList');
+  if (chatBackToList) {
+    chatBackToList.addEventListener('click', function() {
+      if (window.innerWidth <= 768) {
+        // On mobile, go back in history or clear conversationId param
+        if (document.referrer && document.referrer !== window.location.href) {
+          window.history.back();
+        } else {
+          // Clear conversationId from URL
+          const url = new URL(window.location);
+          url.searchParams.delete('conversationId');
+          window.history.replaceState({}, document.title, url.pathname + url.search);
+          document.body.classList.remove('mobile-chat-view');
+        }
+      }
+    });
+  }
+
+  // Reset mobile-chat-view when resizing to desktop
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+      document.body.classList.remove('mobile-chat-view');
+      document.body.classList.remove('sidebar-open');
+      document.body.classList.remove('top-nav-menu-open');
+    }
+  });
+
+  // Watch for top-nav menu open/close to adjust container padding
+  function setupTopNavMenuWatcher() {
+    const topNavMenu = document.getElementById('topNavMenu');
+    const topNavToggle = document.getElementById('topNavToggle');
+    
+    if (topNavMenu && topNavToggle) {
+      // Use MutationObserver to watch for class changes
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            if (topNavMenu.classList.contains('open')) {
+              document.body.classList.add('top-nav-menu-open');
+            } else {
+              document.body.classList.remove('top-nav-menu-open');
+            }
+          }
+        });
+      });
+      
+      observer.observe(topNavMenu, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      // Also listen to toggle clicks as backup
+      topNavToggle.addEventListener('click', function() {
+        setTimeout(function() {
+          if (topNavMenu.classList.contains('open')) {
+            document.body.classList.add('top-nav-menu-open');
+          } else {
+            document.body.classList.remove('top-nav-menu-open');
+          }
+        }, 50);
+      });
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 1024 && 
+            !topNavToggle.contains(e.target) && 
+            !topNavMenu.contains(e.target)) {
+          topNavMenu.classList.remove('open');
+          document.body.classList.remove('top-nav-menu-open');
+        }
+      });
+    } else {
+      // Retry if elements aren't loaded yet
+      setTimeout(setupTopNavMenuWatcher, 100);
+    }
+  }
+  
+  // Setup watcher after sidebar loads
+  setTimeout(setupTopNavMenuWatcher, 500);
   
   const targetUserId = getUrlParam('userId');
   
@@ -1646,20 +2571,81 @@ async function initPage() {
   // Load conversations
   await loadConversations();
   
-  // If userId in URL, auto-open existing conversation with that user
-  if (targetUserId && allConversations.length > 0) {
-    const conv = allConversations.find(c => {
-      const brokerId = c.brokerId || (c.participants && c.participants.find(id => id !== currentUser.uid));
-      return brokerId === targetUserId;
-    });
+  // If conversationId in URL, open that conversation (mobile deep link)
+  if (conversationIdFromUrl && allConversations.length > 0) {
+    const conv = allConversations.find(c => c.id === conversationIdFromUrl.trim());
+    if (conv) {
+      const brokerId = conv.brokerId || (conv.participants && conv.participants.find(id => id !== currentUser.uid));
+      await selectConversation(conv.id, brokerId, conv.propertyId || null, false); // false = don't navigate again
+    }
+  }
+  
+  // If userId in URL, auto-open existing conversation with that user,
+  // or create a new empty conversation if none exists (e.g. from broker profile page)
+  if (targetUserId) {
+    let conv = null;
+    if (allConversations.length > 0) {
+      conv = allConversations.find(c => {
+        const brokerId = c.brokerId || (c.participants && c.participants.find(id => id !== currentUser.uid));
+        return brokerId === targetUserId;
+      });
+    }
+
     if (conv) {
       const brokerId = conv.brokerId || conv.participants.find(id => id !== currentUser.uid);
       await selectConversation(conv.id, brokerId, conv.propertyId || null);
-      // Clear URL param so back button works naturally
-      if (window.history.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      try {
+        const conversationsRef = collection(db, 'conversations');
+        const newConvRef = doc(conversationsRef);
+        const convData = {
+          participants: [currentUser.uid, targetUserId],
+          buyerId: currentUser.uid,
+          brokerId: targetUserId,
+          propertyId: null,
+          lastMessage: '',
+          lastMessageTime: serverTimestamp(),
+          unreadCount: { [targetUserId]: 0 },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        await setDoc(newConvRef, convData);
+        processConversation(newConvRef.id, convData);
+        await selectConversation(newConvRef.id, targetUserId, null);
+      } catch (e) {
+        console.error('Error creating new conversation from profile:', e);
       }
     }
+
+    // Clear URL param so back button works naturally
+    if (window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    return; // Don't apply \"last conversation\" logic when coming from a profile deep link
+  }
+
+  // If no deep link, restore last opened conversation from localStorage (desktop & mobile)
+  try {
+    const raw = localStorage.getItem('bahai_buyer_messages_last_conversation');
+    if (raw && allConversations.length > 0) {
+      let stored = null;
+      try { stored = JSON.parse(raw); } catch (_) {}
+      const lastId = stored && stored.conversationId ? stored.conversationId : raw;
+      if (lastId && typeof lastId === 'string') {
+        const conv = allConversations.find(c => c.id === lastId);
+        if (conv) {
+          const brokerId = conv.brokerId || (conv.participants && conv.participants.find(id => id !== currentUser.uid));
+          if (brokerId) {
+            await selectConversation(conv.id, brokerId, conv.propertyId || null, false);
+          }
+        } else {
+          // Conversation no longer exists; clear stale value
+          localStorage.removeItem('bahai_buyer_messages_last_conversation');
+        }
+      }
+    }
+  } catch (e) {
+    debugLog('⚠️ Could not restore last conversation:', e?.message || e);
   }
 }
 
@@ -1689,13 +2675,13 @@ async function loadCurrentUserData() {
       }
     } else {
       currentUser.displayName = 'Buyer';
-      // Fallback: use auth user for sidebar
-        const profileData = {
-          fullName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
-          email: currentUser.email,
-          role: 'user',
-          photoURL: userData.photoURL || userData.profilePhotoURL
-        };
+      // Fallback: use auth user for sidebar (no userDoc found)
+      const profileData = {
+        fullName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+        email: currentUser.email,
+        role: 'user',
+        photoURL: currentUser.photoURL || null
+      };
       try { localStorage.setItem('userData', JSON.stringify(profileData)); } catch (e) {}
       if (typeof window.updateSidebarUserProfile === 'function') {
         window.updateSidebarUserProfile(profileData);
@@ -1709,10 +2695,6 @@ async function loadCurrentUserData() {
 
 // Setup event listeners
 function setupEventListeners() {
-  // Refresh button
-  document.getElementById('refreshBtn').addEventListener('click', refreshConversations);
-  
-  
   // Filter buttons
   document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
   document.getElementById('filterUnread').addEventListener('click', () => setFilter('unread'));
@@ -1726,18 +2708,6 @@ function setupEventListeners() {
   
   // Send message
   document.getElementById('sendButton').addEventListener('click', sendMessage);
-  
-  // BahAI Assist: suggestion chips auto-fill input (user confirms before send)
-  document.querySelectorAll('.bahai-suggestion-chip').forEach(chip => {
-    chip.addEventListener('click', function() {
-      const suggestion = this.getAttribute('data-suggestion');
-      const input = document.getElementById('chatInput');
-      if (suggestion && input) {
-        input.value = suggestion;
-        input.focus();
-      }
-    });
-  });
   
   // Enter key for sending messages
   document.getElementById('chatInput').addEventListener('keydown', function(e) {
@@ -1754,14 +2724,26 @@ function setupEventListeners() {
   });
   
   // Quick actions
-  document.getElementById('sendEmailBtn').addEventListener('click', sendEmailToBroker);
-  document.getElementById('makeCallBtn').addEventListener('click', makeCallToBroker);
   document.getElementById('scheduleViewingBtn').addEventListener('click', scheduleViewing);
   document.getElementById('deleteConversationBtn').addEventListener('click', openDeleteModal);
   
   // Delete modal buttons
   document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
   document.getElementById('confirmDelete').addEventListener('click', deleteConversation);
+
+  // Property picker modal buttons
+  const pickerCancel = document.getElementById('propertyPickerCancel');
+  if (pickerCancel) {
+    pickerCancel.addEventListener('click', closeSchedulePropertyPicker);
+  }
+  const pickerModal = document.getElementById('propertyPickerModal');
+  if (pickerModal) {
+    pickerModal.addEventListener('click', function(e) {
+      if (e.target === pickerModal) {
+        closeSchedulePropertyPicker();
+      }
+    });
+  }
   
   // Close modal when clicking outside
   document.getElementById('deleteModal').addEventListener('click', function(e) {
@@ -1819,10 +2801,13 @@ async function loadConversations() {
       
       // Update notice
       document.getElementById('indexNotice').style.display = 'none';
-      
-      // Set up real-time listener for conversations
-      setupConversationsListener();
     }
+
+    seedUnreadSnapshotState();
+    updateIncomingNotificationIndicators();
+    hasProcessedRealtimeSnapshot = false;
+    // Set up real-time listener for conversations (even when empty)
+    setupConversationsListener();
     
   } catch (error) {
     console.error('❌ Error loading conversations:', error);
@@ -1956,6 +2941,7 @@ function setupConversationsListener() {
           // New conversation added
           debugLog('➕ New conversation added:', conversationId);
           processConversation(conversationId, conversationData);
+          triggerIncomingMessageNotification(conversationId, conversationData);
           needsRefresh = true;
         } else if (change.type === 'modified') {
           // Conversation updated
@@ -1972,6 +2958,7 @@ function setupConversationsListener() {
                 conversationData.lastMessageTime.toDate() : 
                 new Date(conversationData.lastMessageTime || Date.now())
             };
+            triggerIncomingMessageNotification(conversationId, conversationData);
             needsRefresh = true;
           }
         } else if (change.type === 'removed') {
@@ -1980,6 +2967,7 @@ function setupConversationsListener() {
           const index = allConversations.findIndex(c => c.id === conversationId);
           if (index !== -1) {
             allConversations.splice(index, 1);
+            unreadSnapshotMap.delete(conversationId);
             needsRefresh = true;
           }
         }
@@ -1990,7 +2978,9 @@ function setupConversationsListener() {
         await loadAllUsersForConversations();
         await loadAllPropertiesForConversations();
         filterConversations();
+        updateIncomingNotificationIndicators();
       }
+      hasProcessedRealtimeSnapshot = true;
     });
     
   } catch (error) {
@@ -2001,6 +2991,7 @@ function setupConversationsListener() {
 // Show no conversations state
 function showNoConversations() {
   const conversationsList = document.getElementById('conversationsList');
+  updateIncomingNotificationIndicators();
   conversationsList.innerHTML = `
     <div class="empty-state" style="padding: 40px;">
       <div class="empty-state-icon">💬</div>
@@ -2162,6 +3153,7 @@ function extractUserName(userData) {
 // Display conversations in the sidebar
 function displayConversations(conversations) {
   const conversationsList = document.getElementById('conversationsList');
+  updateIncomingNotificationIndicators();
   
   if (conversations.length === 0) {
     let message = 'No conversations found';
@@ -2226,12 +3218,10 @@ function displayConversations(conversations) {
     const lastMessage = conversation.lastMessage || 'No messages yet';
     const preview = lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage;
     
-    const propPhoto = propertyInfo ? (getPropertyThumb(propertyInfo) || 'https://via.placeholder.com/44x44/0b2e52/white?text=Property') : null;
     const title = propertyInfo?.title || '';
     const regardingText = propertyInfo ? `Regarding: ${title.length > 25 ? title.substring(0, 25) + '...' : title || 'Property'}` : displayInfo.roleDisplay;
 
     conversationElement.innerHTML = `
-      ${propPhoto ? `<img class="conversation-property-thumb" src="${propPhoto.replace(/"/g, '&quot;')}" alt="">` : ''}
       <div class="conversation-avatar" style="background: ${photoURL ? 'transparent' : getAvatarColor(displayInfo.displayName)}">
         ${avatarHtml}
         ${hasPendingSchedule ? '<span style="position: absolute; bottom: -2px; right: -2px; background: #f59e0b; color: white; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; z-index: 1;">📅</span>' : ''}
@@ -2282,13 +3272,33 @@ function displayConversations(conversations) {
 // ==================== MESSAGES MANAGEMENT ====================
 
 // Select a conversation
-async function selectConversation(conversationId, brokerId, propertyId = null) {
+async function selectConversation(conversationId, brokerId, propertyId = null, shouldNavigate = true) {
   debugLog('💬 Selecting conversation:', conversationId, 'Broker:', brokerId);
   
   // Prevent multiple clicks
   if (isLoadingMessages) {
     debugLog('⚠️ Already loading messages, please wait...');
     return;
+  }
+
+  // Remember last opened conversation so it can be restored
+  try {
+    const state = {
+      conversationId,
+      brokerId,
+      propertyId: propertyId || null
+    };
+    localStorage.setItem('bahai_buyer_messages_last_conversation', JSON.stringify(state));
+  } catch (e) {
+    debugLog('⚠️ Could not persist last conversation:', e?.message || e);
+  }
+
+  // On mobile (≤768px), navigate to URL with conversationId for full-screen chat view
+  if (shouldNavigate && window.innerWidth <= 768) {
+    const url = new URL(window.location);
+    url.searchParams.set('conversationId', conversationId);
+    window.location.href = url.toString();
+    return; // Navigation will reload page, so return early
   }
   
   currentConversationId = conversationId;
@@ -2338,26 +3348,8 @@ async function selectConversation(conversationId, brokerId, propertyId = null) {
     await loadPropertyData(propertyId);
   }
   
-  // Show chat input and quick actions
+  // Show chat input
   document.getElementById('chatInputContainer').style.display = 'block';
-  document.getElementById('quickActions').style.display = 'flex';
-  
-  // Update quick action buttons
-  if (finalBrokerInfo.email && finalBrokerInfo.email !== 'No email') {
-    document.getElementById('sendEmailBtn').disabled = false;
-    document.getElementById('sendEmailBtn').title = `Send email to ${finalBrokerInfo.email}`;
-  } else {
-    document.getElementById('sendEmailBtn').disabled = true;
-    document.getElementById('sendEmailBtn').title = 'No email available';
-  }
-  
-  if (finalBrokerInfo.phone && finalBrokerInfo.phone !== 'No phone') {
-    document.getElementById('makeCallBtn').disabled = false;
-    document.getElementById('makeCallBtn').title = `Call ${finalBrokerInfo.phone}`;
-  } else {
-    document.getElementById('makeCallBtn').disabled = true;
-    document.getElementById('makeCallBtn').title = 'No phone number available';
-  }
   
   // Load messages for this conversation
   await loadMessages(conversationId, brokerId);
@@ -2671,10 +3663,12 @@ async function markConversationAsRead(conversationId) {
             ...allConversations[conversationIndex].unreadCount,
             [currentUser.uid]: 0
           };
+          unreadSnapshotMap.set(conversationId, 0);
           
           // Update stats and UI
           updateStats();
           filterConversations();
+          updateIncomingNotificationIndicators();
         }
       }
     }
@@ -2858,6 +3852,21 @@ async function deleteConversation() {
     
     debugLog('✅ Conversation and messages deleted successfully');
     
+    // Clear persisted last conversation if it was this one
+    try {
+      const raw = localStorage.getItem('bahai_buyer_messages_last_conversation');
+      if (raw) {
+        let stored = null;
+        try { stored = JSON.parse(raw); } catch (_) {}
+        const lastId = stored && stored.conversationId ? stored.conversationId : raw;
+        if (lastId === conversationId) {
+          localStorage.removeItem('bahai_buyer_messages_last_conversation');
+        }
+      }
+    } catch (e) {
+      debugLog('⚠️ Could not clear last conversation after delete:', e?.message || e);
+    }
+    
     // Close modal
     closeDeleteModal();
     
@@ -2912,9 +3921,8 @@ function resetChatUI() {
     </div>
   `;
   
-  // Hide input and actions
+  // Hide input
   document.getElementById('chatInputContainer').style.display = 'none';
-  document.getElementById('quickActions').style.display = 'none';
 }
 
 // ==================== SCHEDULE MESSAGE FUNCTIONS ====================
@@ -3048,18 +4056,18 @@ function renderScheduleMessage(message) {
           <i class="fas fa-clock"></i> Suggest Alternative
         </button>
       </div>
-    ` : scheduleStatus === 'alternative' && isSent ? `
+    ` : scheduleStatus === 'alternative' && !isSent ? `
       <div class="schedule-actions">
         <button class="schedule-action-btn primary" onclick="acceptAlternativeFromMessage('${scheduleId}', '${message.conversationId}')">
           <i class="fas fa-check"></i> Accept Alternative
         </button>
-        <button class="schedule-action-btn secondary" onclick="suggestNewTimeFromMessage('${message.conversationId}')">
+        <button class="schedule-action-btn secondary" onclick="suggestNewTimeFromMessage('${message.conversationId}', '${message.senderId}', '${message.propertyId || ''}')">
           <i class="fas fa-clock"></i> Suggest Another Time
         </button>
       </div>
-    ` : scheduleStatus === 'declined' && isSent ? `
+    ` : scheduleStatus === 'declined' && !isSent ? `
       <div class="schedule-actions">
-        <button class="schedule-action-btn primary" onclick="suggestNewTimeFromMessage('${message.conversationId}')">
+        <button class="schedule-action-btn primary" onclick="suggestNewTimeFromMessage('${message.conversationId}', '${message.senderId}', '${message.propertyId || ''}')">
           <i class="fas fa-clock"></i> Suggest Another Time
         </button>
       </div>
@@ -3279,21 +4287,24 @@ window.acceptAlternativeFromMessage = async function(scheduleId, conversationId)
   }
 };
 
-window.suggestNewTimeFromMessage = function(conversationId) {
-  if (!currentPropertyId || !currentBrokerId) {
+window.suggestNewTimeFromMessage = function(conversationId, brokerIdFromMessage, propertyIdFromMessage) {
+  const effectiveBrokerId = brokerIdFromMessage || currentBrokerId;
+  const effectivePropertyId = propertyIdFromMessage || currentPropertyId;
+
+  if (!effectivePropertyId || !effectiveBrokerId) {
     showError('Please select a conversation with a property');
     return;
   }
   
-  const brokerInfo = userMap.get(currentBrokerId);
-  const propertyInfo = propertyMap.get(currentPropertyId);
+  const brokerInfo = userMap.get(effectiveBrokerId);
+  const propertyInfo = propertyMap.get(effectivePropertyId);
   
   if (!brokerInfo || !propertyInfo) {
     showError('Unable to schedule viewing');
     return;
   }
   
-  const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+  const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${effectiveBrokerId}&propertyId=${effectivePropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}&conversationId=${encodeURIComponent(conversationId)}`;
   
   window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
 };
@@ -3357,44 +4368,184 @@ window.suggestNewTime = function(conversationId) {
     return;
   }
   
-  const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
+  const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}&conversationId=${encodeURIComponent(conversationId || currentConversationId || '')}`;
   
   window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
 };
 
 // Schedule viewing
 function scheduleViewing() {
-  if (!currentBrokerId || !currentPropertyId) {
-    showError('Please select a conversation with a property');
+  if (!currentBrokerId) {
+    showError('Please select a conversation first');
     return;
   }
-  
+
+  // Prefer the property tied to this conversation (e.g. from property details)
+  let effectivePropertyId = currentPropertyId;
+
+  // Fallback: if for some reason currentPropertyId is not set,
+  // try to read it from the conversation object we have in memory
+  if (!effectivePropertyId && currentConversationId && allConversations.length > 0) {
+    const conv = allConversations.find(c => c.id === currentConversationId);
+    if (conv && conv.propertyId) {
+      effectivePropertyId = conv.propertyId;
+    }
+  }
+
+  if (effectivePropertyId) {
+    scheduleViewingForProperty(effectivePropertyId);
+    return;
+  }
+
+  // Otherwise (e.g. conversation started from broker/landlord profile),
+  // let the buyer choose from all of this contact's properties.
+  openSchedulePropertyPicker();
+}
+
+// Load all properties for the current broker/landlord so buyer can pick one
+async function loadBrokerPropertiesForSchedule(brokerId) {
+  const propsRef = collection(db, 'properties');
+  const seen = new Set();
+  const list = [];
+
+  async function addFromQuery(q) {
+    try {
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        if (seen.has(d.id)) return;
+        seen.add(d.id);
+        const data = d.data();
+        const photos = data.photos || data.imageUrls || data.galleryImages || [];
+        const prop = {
+          id: d.id,
+          title: data.title || 'Untitled Property',
+          location: data.location || data.address || data.city || 'Location not specified',
+          type: data.propertyType || data.type || 'Property',
+          photos: photos,
+          imageUrls: data.imageUrls || photos,
+          userId: data.userId || null,
+          listingType: data.listingType || data.type,
+          monthlyRent: data.monthlyRent,
+          annualRent: data.annualRent,
+          salePrice: data.salePrice,
+          pricing: data.pricing,
+          price: data.pricing || data.monthlyRent || data.salePrice || data.price || 0,
+          status: data.status
+        };
+        propertyMap.set(d.id, prop);
+        list.push(prop);
+      });
+    } catch (e) {
+      debugLog('⚠️ Error loading properties for schedule:', e?.message || e);
+    }
+  }
+
+  // Properties directly owned/listed by this user
+  await addFromQuery(query(propsRef, where('userId', '==', brokerId)));
+  // Properties where this user is stored as broker/landlord (if schema uses these fields)
+  await addFromQuery(query(propsRef, where('brokerId', '==', brokerId)));
+  await addFromQuery(query(propsRef, where('landlordId', '==', brokerId)));
+
+  // Only show active/available listings
+  return list.filter(p => !p.status || p.status === 'active' || p.status === 'available');
+}
+
+function openSchedulePropertyPicker() {
+  const modal = document.getElementById('propertyPickerModal');
+  const listEl = document.getElementById('propertyPickerList');
+  if (!modal || !listEl) {
+    showError('Unable to open property picker');
+    return;
+  }
+
+  listEl.innerHTML = '<div class="property-picker-loading">Loading properties...</div>';
+  modal.classList.add('active');
+
+  loadBrokerPropertiesForSchedule(currentBrokerId).then(properties => {
+    if (!properties || properties.length === 0) {
+      listEl.innerHTML = '<div class="property-picker-empty">This contact has no available properties for scheduling.</div>';
+      return;
+    }
+
+    const itemsHtml = properties.map(p => {
+      const photo = getPropertyThumb(p) || 'https://via.placeholder.com/80x80/0b2e52/white?text=Property';
+      const title = (p.title || 'Untitled Property').replace(/</g, '&lt;');
+      const loc = (p.location || 'Location not specified').replace(/</g, '&lt;');
+      const price = formatPropertyPrice(p);
+      return `
+        <div class="property-picker-item" data-schedule-property-id="${p.id}">
+          <img class="property-picker-thumb" src="${photo.replace(/"/g, '&quot;')}" alt="${title}">
+          <div class="property-picker-main">
+            <div class="property-picker-title">${title}</div>
+            <div class="property-picker-meta">${loc}</div>
+            <div class="property-picker-price">${price}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listEl.innerHTML = itemsHtml;
+
+    listEl.querySelectorAll('[data-schedule-property-id]').forEach(el => {
+      el.addEventListener('click', () => {
+        const pid = el.getAttribute('data-schedule-property-id');
+        if (pid) {
+          scheduleViewingForProperty(pid);
+        }
+      });
+    });
+  }).catch(err => {
+    debugLog('❌ Failed to load properties for picker:', err?.message || err);
+    listEl.innerHTML = '<div class="property-picker-empty">Failed to load properties.</div>';
+  });
+}
+
+function closeSchedulePropertyPicker() {
+  const modal = document.getElementById('propertyPickerModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+// Schedule viewing for a specific property (used both from conversation context and picker)
+async function scheduleViewingForProperty(propertyId) {
+  if (!currentBrokerId) {
+    showError('Please select a conversation first');
+    return;
+  }
+
+  if (!propertyId) {
+    showError('No property selected');
+    return;
+  }
+
+  if (!propertyMap.has(propertyId)) {
+    await loadPropertyData(propertyId);
+  }
+
   const brokerInfo = userMap.get(currentBrokerId);
-  const propertyInfo = propertyMap.get(currentPropertyId);
-  
+  const propertyInfo = propertyMap.get(propertyId);
+
   if (!brokerInfo || !propertyInfo) {
     showError('Unable to schedule viewing');
     return;
   }
-  
-  // Check if there's already a pending schedule
-  checkForExistingSchedule(currentPropertyId, currentBrokerId).then(hasExisting => {
+
+  try {
+    const hasExisting = await checkForExistingSchedule(propertyId, currentBrokerId);
+    const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${propertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}&conversationId=${encodeURIComponent(currentConversationId || '')}`;
+
     if (hasExisting) {
       if (confirm('You already have a pending viewing request for this property. Would you like to view it or schedule a new one?')) {
-        // Show existing schedule details
-        viewExistingSchedule(currentPropertyId, currentBrokerId);
+        await viewExistingSchedule(propertyId, currentBrokerId);
       } else {
-        // Schedule new viewing
-        openSchedulePage();
+        window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
       }
     } else {
-      openSchedulePage();
+      window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
     }
-  });
-  
-  function openSchedulePage() {
-    const scheduleUrl = `schedule_viewing.html?buyerId=${currentUser.uid}&brokerId=${currentBrokerId}&propertyId=${currentPropertyId}&brokerName=${encodeURIComponent(brokerInfo.displayName)}&propertyName=${encodeURIComponent(propertyInfo.title)}`;
-    window.open(scheduleUrl, '_blank', 'width=800,height=700,scrollbars=yes');
+  } finally {
+    closeSchedulePropertyPicker();
   }
 }
 
@@ -3670,20 +4821,8 @@ function setFilter(filterName) {
 
 // Refresh conversations
 function refreshConversations() {
-  const refreshBtn = document.getElementById('refreshBtn');
-  const originalHTML = refreshBtn.innerHTML;
-  
-  refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing';
-  refreshBtn.classList.add('refreshing');
-  
-  // Clear and reload conversations
+  // Programmatic refresh only (button removed)
   loadConversations();
-  
-  // Reset button after 2 seconds
-  setTimeout(() => {
-    refreshBtn.innerHTML = originalHTML;
-    refreshBtn.classList.remove('refreshing');
-  }, 2000);
 }
 
 // Send email to broker
