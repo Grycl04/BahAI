@@ -112,11 +112,13 @@ class TeamNLUTrainer:
     'buyer_update_profile': 'buyer_update_profile',
     'buyer_guest_access': 'buyer_guest_access',
     'buyer_kyc': 'buyer_kyc',
-    'buyer_chatbot_how': 'buyer_chatbot_how',
-    'buyer_dashboard_flow': 'buyer_dashboard_flow',
-    'buyer_recommendations_how': 'buyer_recommendations_how',
-    'buyer_messages_how': 'buyer_messages_how',
-    'buyer_liked_saved_how': 'buyer_liked_saved_how',
+            'buyer_chatbot_how': 'buyer_chatbot_how',
+            'buyer_dashboard_flow': 'buyer_dashboard_flow',
+            'buyer_recommendations_how': 'buyer_recommendations_how',
+            'buyer_messages_how': 'buyer_messages_how',
+            'buyer_liked_saved_how': 'buyer_liked_saved_how',
+            'buyer_unlike_property': 'buyer_unlike_property',
+            'buyer_broker_profile': 'buyer_broker_profile',
         }
         
         # Intent keywords for better classification
@@ -279,6 +281,16 @@ class TeamNLUTrainer:
         'how do I save properties', 'what are saved properties', 'liked properties',
         'where are my saved properties', 'do I need to login to save', 'paano mag save ng property',
         'kailangan ba mag login para mag save'
+    ],
+    'buyer_unlike_property': [
+        'remove like', 'remove from saved', 'unsave property',
+        'how do I unlike a property', 'how to remove from favorites',
+        'paano tanggalin ang like', 'paano alisin sa saved'
+    ],
+    'buyer_broker_profile': [
+        'who is broker', 'who is agent', 'who is landlord',
+        'who is rodrigo', 'who is rodrigo lopez',
+        'sino si', 'sino si rodrigo', 'sino si rodrigo lopez'
     ]
         }
         

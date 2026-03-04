@@ -169,7 +169,6 @@ export function initChatbot() {
                 <input type="text" id="chatInput" 
                        placeholder="e.g. Family home with yard, under 4M, near Lipa City..." />
                 <button id="sendChatBtn"><i class="fas fa-paper-plane"></i> Send</button>
-                <button id="voiceInputBtn" class="voice-btn"><i class="fas fa-microphone"></i></button>
             `;
             chatContainer.appendChild(chatInputDiv);
         }
