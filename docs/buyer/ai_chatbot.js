@@ -169,6 +169,7 @@ export function initChatbot() {
                 <input type="text" id="chatInput" 
                        placeholder="e.g. Family home with yard, under 4M, near Lipa City..." />
                 <button id="sendChatBtn"><i class="fas fa-paper-plane"></i> Send</button>
+                <button id="voiceInputBtn" class="voice-btn"><i class="fas fa-microphone"></i></button>
             `;
             chatContainer.appendChild(chatInputDiv);
         }
@@ -301,13 +302,9 @@ export async function processChatMessage(userMessage) {
             query: userMessage,
             user_id: currentUser ? currentUser.uid : 'anonymous'
         };
-        if (window.lastChatContext != null) {
-            if (window.lastChatContext.previous_query != null)
-                requestData.previous_query = window.lastChatContext.previous_query;
-            if (window.lastChatContext.previous_entities != null)
-                requestData.previous_entities = window.lastChatContext.previous_entities;
-            if (window.lastChatContext.previous_intent != null)
-                requestData.previous_intent = window.lastChatContext.previous_intent;
+        if (window.lastChatContext?.previous_query != null && window.lastChatContext?.previous_entities != null) {
+            requestData.previous_query = window.lastChatContext.previous_query;
+            requestData.previous_entities = window.lastChatContext.previous_entities;
         }
         console.log("📤 Sending to backend:", requestData);
         
@@ -418,12 +415,11 @@ export async function processChatMessage(userMessage) {
             typingMessage.remove();
         }
         
-        // Store context for conversational follow-ups (so "in Lipa City" / "agent" continues the conversation)
+        // Store context for conversational follow-ups (so "in Lipa City" / "under 2M" refines last search)
         if (data && (data.response || data.message) && data.success !== false) {
             window.lastChatContext = {
                 previous_query: userMessage,
-                previous_entities: data.entities && typeof data.entities === 'object' ? data.entities : {},
-                previous_intent: data.intent || null
+                previous_entities: data.entities && typeof data.entities === 'object' ? data.entities : {}
             };
         } else {
             window.lastChatContext = null;

@@ -44,140 +44,23 @@ body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-
 .gallery-hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--primary); margin-bottom: 24px; }
 .gallery-hero .main-media-wrap { width: 100%; height: 420px; position: relative; }
 .gallery-hero .main-media-wrap img, .gallery-hero .main-media-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.gallery-hero .main-media-wrap img { cursor: zoom-in; }
-.gallery-hero .main-media-wrap video { cursor: pointer; }
 .gallery-hero .main-media-wrap video { background: #000; }
-.gallery-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 42px;
-  height: 42px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 3;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-.gallery-nav-btn:hover { background: rgba(0, 0, 0, 0.72); }
-.gallery-nav-btn:active { transform: translateY(-50%) scale(0.96); }
-.gallery-nav-prev { left: 14px; }
-.gallery-nav-next { right: 14px; }
 .gallery-badges { position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; flex-wrap: wrap; z-index: 2; }
 .badge { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .badge-sale { background: var(--accent); color: white; }
 .badge-rent { background: #059669; color: white; }
 .badge-lease { background: #0ea5e9; color: white; }
-.save-btn-float {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: auto;
-  height: auto;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  z-index: 3;
-  opacity: 1;
-  transition: transform 0.2s ease;
-  box-shadow: none;
-}
-.save-btn-float:hover { transform: scale(1.08); }
-.save-btn-float .save-icon {
-  color: #ffffff;
-  line-height: 1;
-  transition: color 0.2s ease, filter 0.2s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-}
-.save-btn-float:hover .save-icon {
-  color: #2563eb;
-  filter: drop-shadow(0 2px 4px rgba(29, 78, 216, 0.28));
-}
-.save-btn-float.saved .save-icon {
-  color: #d4af37;
-  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.35));
-}
-.save-btn-float.saved:hover .save-icon {
-  color: #b8860b;
-  filter: drop-shadow(0 2px 5px rgba(184, 134, 11, 0.38));
-}
+.badge-active { background: white; color: var(--primary); }
+.save-btn-float { position: absolute; top: 20px; right: 20px; padding: 12px 24px; border-radius: 12px;
+  border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  background: white; color: var(--primary); box-shadow: var(--shadow-lg); transition: all 0.2s; z-index: 2; }
+.save-btn-float:hover { transform: translateY(-2px); }
+.save-btn-float.saved { background: var(--success); color: white; border: none; }
 .gallery-thumbs { display: flex; gap: 8px; padding: 12px; background: rgba(0,0,0,0.5); overflow-x: auto; }
 .gallery-thumbs .thumb-item { width: 80px; height: 60px; border-radius: 8px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; flex-shrink: 0; overflow: hidden; position: relative; }
 .gallery-thumbs .thumb-item:hover, .gallery-thumbs .thumb-item.active { opacity: 1; border: 2px solid white; }
 .gallery-thumbs .thumb-item img, .gallery-thumbs .thumb-item video { width: 100%; height: 100%; object-fit: cover; }
 .video-badge { position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }
-
-/* Fullscreen media lightbox */
-.media-lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.92);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-}
-.media-lightbox.show { display: flex; }
-.media-lightbox-content {
-  position: relative;
-  width: min(96vw, 1200px);
-  height: min(90vh, 760px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.media-lightbox-media {
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 10px;
-  object-fit: contain;
-  background: #000;
-}
-.media-lightbox-close {
-  position: absolute;
-  top: -44px;
-  right: 0;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.16);
-  color: white;
-  cursor: pointer;
-}
-.media-lightbox-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  color: white;
-  cursor: pointer;
-}
-.media-lightbox-nav.prev { left: 12px; }
-.media-lightbox-nav.next { right: 12px; }
-.media-lightbox-counter {
-  position: absolute;
-  bottom: -34px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #e5e7eb;
-  font-size: 0.85rem;
-}
 
 /* Content Grid */
 .content-grid { display: grid; grid-template-columns: 1fr 420px; gap: 24px; align-items: start; }
@@ -288,7 +171,18 @@ body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-
 .loading-state .loading-ai-note { font-size: 0.9rem; margin-top: 12px; color: var(--text-light); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Recommended by BahAI badge */
+.badge-bahai { background: linear-gradient(135deg, var(--accent) 0%, #b8860b 100%); color: white; }
 .gallery-image-count { position: absolute; bottom: 70px; right: 20px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; z-index: 2; }
+
+/* AI Insights panel */
+.bahai-insights-panel { background: linear-gradient(135deg, rgba(11,46,82,0.04) 0%, rgba(212,175,55,0.08) 100%); border: 1px solid rgba(212,175,55,0.25); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px; }
+.bahai-insights-label { font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.bahai-insights-label i { color: var(--accent); }
+.bahai-insights-list { list-style: none; padding: 0; margin: 0; }
+.bahai-insights-list li { font-size: 0.95rem; color: var(--text-dark); padding: 6px 0; padding-left: 20px; position: relative; line-height: 1.4; }
+.bahai-insights-list li::before { content: '•'; color: var(--accent); font-weight: 700; position: absolute; left: 0; }
+.bahai-insights-footer { font-size: 0.7rem; color: var(--text-light); margin-top: 12px; font-style: italic; }
 
 /* Trust microcopy */
 .trust-note { font-size: 0.8rem; color: var(--text-light); margin-top: 12px; display: flex; align-items: center; gap: 6px; }
@@ -588,8 +482,9 @@ body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-
 .email-btn { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
 .call-btn { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
 
-/* Mobile: disable sticky sidebar */
+/* Mobile: stack AI insights, disable sticky sidebar */
 @media (max-width: 900px) {
+  .bahai-insights-panel { padding: 16px 18px; }
 }
 </style>
 </head>
@@ -668,7 +563,7 @@ body { font-family: 'Inter', sans-serif; background: #f1f5f9; color: var(--text-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, addDoc, deleteDoc, setDoc, updateDoc, orderBy, serverTimestamp, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, addDoc, deleteDoc, setDoc, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCIfzneDzWVveG8p_0mywoA9D9F5AyzZX4",
@@ -685,11 +580,25 @@ window.firebaseApp = app;
 
 const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
+const isFromAI = urlParams.get('source') === 'ai';
+const amenityCategoryFromQuery = (urlParams.get('amenity') || '').toLowerCase().trim();
+const allowedAmenityCategories = ['school', 'hospital', 'clinic', 'dental', 'mall', 'gym', 'park'];
+const effectiveAmenityCategory = allowedAmenityCategories.includes(amenityCategoryFromQuery)
+  ? amenityCategoryFromQuery
+  : 'all';
+const shouldLoadNearbyAmenityProof = allowedAmenityCategories.includes(amenityCategoryFromQuery);
+const detailsContextSuffix = `${isFromAI ? '&source=ai' : ''}${shouldLoadNearbyAmenityProof ? `&amenity=${encodeURIComponent(effectiveAmenityCategory)}` : ''}`;
+
+function buildPropertyDetailsUrl(id) {
+  return `new_property_details.html?id=${encodeURIComponent(id || '')}${detailsContextSuffix}`;
+}
 
 let currentListing = null;
 let currentUserInfo = null;
 let currentConversationId = null;
 let messageListener = null;
+let propertyLoadStarted = false;
+let googleMapsLoadPromise = null;
 
 // ========== KYC CHECK FUNCTIONS (ADDED) ==========
 
@@ -837,8 +746,12 @@ async function handleContactClick(contactId, propertyId) {
 
 // ========== END OF KYC CHECK FUNCTIONS ==========
 
-// Google Maps API Key
-const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+// Runtime map config loaded from backend
+let GOOGLE_MAPS_API_KEY = "";
+// Temporary fallback so map still works if /api/public-config is unavailable.
+const LEGACY_GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
+const CHATBOT_BACKEND_URL = "https://bahai.onrender.com";
+let runtimeConfigLoaded = false;
 
 const labels = {
   propertyCategory: { residential: "Residential", commercial: "Commercial", land: "Land", condo: "Condominium", special: "Special Purpose" },
@@ -942,12 +855,6 @@ async function loadProperty() {
     currentListing = { id: propDoc.id, ...propDoc.data() };
     const contactId = currentListing.agentId || currentListing.brokerId || currentListing.userId || currentListing.landlordId;
     currentUserInfo = await loadUserInfo(contactId);
-    // Count this as a view when buyer opens the property details page
-    try {
-      await updateDoc(doc(db, "properties", propertyId), { views: increment(1) });
-    } catch (viewErr) {
-      console.warn("Could not increment property views:", viewErr);
-    }
     renderProperty();
     setupSaveButton();
     
@@ -970,19 +877,71 @@ async function loadProperty() {
 }
 
 // Google Maps Functions from old code
+async function loadRuntimePublicConfig() {
+  if (runtimeConfigLoaded) return;
+  try {
+    const response = await fetch(`${CHATBOT_BACKEND_URL}/api/public-config`);
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    if (!response.ok || !contentType.includes("application/json")) {
+      throw new Error(`public-config unavailable (status ${response.status}, content-type: ${contentType || "unknown"})`);
+    }
+    const data = await response.json();
+    if (data && data.success && data.google_maps_api_key) {
+      GOOGLE_MAPS_API_KEY = (data.google_maps_api_key || "").trim();
+    }
+  } catch (error) {
+    console.warn("Could not load public runtime config from backend:", error);
+    GOOGLE_MAPS_API_KEY = LEGACY_GOOGLE_MAPS_API_KEY;
+  } finally {
+    if (!GOOGLE_MAPS_API_KEY) {
+      GOOGLE_MAPS_API_KEY = LEGACY_GOOGLE_MAPS_API_KEY;
+    }
+    runtimeConfigLoaded = true;
+  }
+}
+
 async function loadGoogleMapsAPI() {
-  return new Promise((resolve, reject) => {
-    if (window.google && window.google.maps) {
+  await loadRuntimePublicConfig();
+
+  if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
+    return Promise.resolve();
+  }
+
+  if (googleMapsLoadPromise) {
+    return googleMapsLoadPromise;
+  }
+
+  googleMapsLoadPromise = new Promise((resolve, reject) => {
+    if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
       resolve();
       return;
     }
 
+    if (!GOOGLE_MAPS_API_KEY) {
+      reject(new Error("Google Maps key is not configured. Set GOOGLE_MAPS_API_KEY in backend env."));
+      return;
+    }
+
+    const existingScript = document.getElementById("googleMapsScript");
+    if (existingScript) {
+      existingScript.addEventListener("load", () => {
+        if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
+          resolve();
+        } else {
+          reject(new Error("Google Maps API loaded but Map constructor is unavailable"));
+        }
+      }, { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Failed to load existing Google Maps script")), { once: true });
+      return;
+    }
+
     const script = document.createElement('script');
+    script.id = "googleMapsScript";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      if (window.google && window.google.maps) {
+      if (window.google && window.google.maps && typeof window.google.maps.Map === "function") {
         resolve();
       } else {
         reject(new Error("Google Maps API failed to initialize"));
@@ -991,6 +950,8 @@ async function loadGoogleMapsAPI() {
     script.onerror = () => reject(new Error("Failed to load Google Maps script"));
     document.head.appendChild(script);
   });
+
+  return googleMapsLoadPromise;
 }
 
 function initPropertyMap(lat, lng, title) {
@@ -1015,19 +976,115 @@ function initPropertyMap(lat, lng, title) {
       zoom: 16,
       mapTypeControl: true,
       streetViewControl: true,
-      fullscreenControl: true
+      fullscreenControl: true,
+      gestureHandling: "greedy",
+      scrollwheel: true,
+      draggable: true
     });
 
-    // Add marker
+    // Property marker
     new google.maps.Marker({
       position: { lat: latitude, lng: longitude },
       map: map,
       title: title || "Property Location",
       animation: google.maps.Animation.DROP
     });
+
+    // Load nearby proof only when amenity was explicitly provided by user query flow.
+    const proofEl = document.getElementById("nearbyProof");
+    if (shouldLoadNearbyAmenityProof) {
+      loadNearbyLandmarkProof(map, latitude, longitude);
+    } else if (proofEl) {
+      proofEl.innerHTML = "";
+    }
   } catch (error) {
     console.error("Error initializing map:", error);
     showMapPlaceholder(lat, lng);
+  }
+}
+
+function getLandmarkMarkerIcon(category) {
+  const icons = {
+    school: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    hospital: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    clinic: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    dental: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
+    mall: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+    gym: "https://maps.google.com/mapfiles/ms/icons/pink-dot.png",
+    park: "https://maps.google.com/mapfiles/ms/icons/ltblue-dot.png",
+    beach: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+    church: "https://maps.google.com/mapfiles/ms/icons/purple-dot.png",
+    port: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
+  };
+  return icons[category] || "https://maps.google.com/mapfiles/ms/icons/ltblue-dot.png";
+}
+
+function formatLandmarkCategory(category) {
+  const labels = {
+    school: "School",
+    hospital: "Hospital",
+    clinic: "Clinic",
+    dental: "Dental",
+    mall: "Mall",
+    gym: "Gym",
+    park: "Park",
+    beach: "Beach",
+    church: "Church",
+    port: "Port"
+  };
+  return labels[category] || (category || "Amenity");
+}
+
+async function loadNearbyLandmarkProof(map, latitude, longitude) {
+  const proofEl = document.getElementById("nearbyProof");
+  try {
+    const buildNearbyUrl = (category, useStaticFallback) =>
+      `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(category)}&limit=200&max_distance_km=5&use_static_fallback=${useStaticFallback ? 1 : 0}`;
+
+    // First try live places only, then retry with static fallback if needed.
+    let response = await fetch(buildNearbyUrl(effectiveAmenityCategory, false));
+    let data = await response.json();
+    if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
+      response = await fetch(buildNearbyUrl(effectiveAmenityCategory, true));
+      data = await response.json();
+    }
+
+    if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
+      if (proofEl) {
+        const label = effectiveAmenityCategory === 'all' ? 'amenity' : formatLandmarkCategory(effectiveAmenityCategory).toLowerCase();
+        proofEl.innerHTML = `<em>No live nearby ${label} proof available right now.</em>`;
+      }
+      return;
+    }
+
+    const infoWindow = new google.maps.InfoWindow();
+    data.results.forEach((item) => {
+      const marker = new google.maps.Marker({
+        position: { lat: item.lat, lng: item.lng },
+        map,
+        icon: getLandmarkMarkerIcon(item.category),
+        title: `${item.name} (${item.distance_km} km)`
+      });
+      marker.addListener("click", () => {
+        infoWindow.setContent(
+          `<strong>${item.name}</strong><br/>Category: ${formatLandmarkCategory(item.category)}<br/>Distance: ${item.distance_km} km`
+        );
+        infoWindow.open(map, marker);
+      });
+    });
+
+    if (proofEl) {
+      const titleText = effectiveAmenityCategory === 'all'
+        ? `${data.results.length} nearby places found.`
+        : `${data.results.length} nearby ${formatLandmarkCategory(effectiveAmenityCategory).toLowerCase()} places found.`;
+      proofEl.innerHTML = `<div style="margin-bottom:6px;"><strong>${titleText}</strong></div>` +
+        data.results
+          .map(item => `<div>• <strong>${item.name}</strong> (${formatLandmarkCategory(item.category)}) - ${item.distance_km} km</div>`)
+          .join("");
+    }
+  } catch (error) {
+    console.warn("Could not load nearby landmark proof:", error);
+    if (proofEl) proofEl.innerHTML = "<em>Unable to load nearby amenity proof.</em>";
   }
 }
 
@@ -1043,6 +1100,20 @@ function showMapPlaceholder(lat, lng) {
         <i class="fas fa-external-link-alt"></i> Open in Google Maps
       </a>
     </div>`;
+}
+
+function populateBahaiInsights(l, type) {
+  const list = document.getElementById('bahaiInsightsList');
+  if (!list) return;
+  const insights = [];
+  const loc = l.location || l.address || l.city;
+  if (loc) insights.push(`Located in ${loc}`);
+  const price = l.pricing || l.salePrice || l.monthlyRent || (l.annualRent || 0) / 12;
+  if (price > 0) insights.push('Matches typical budget ranges for this area');
+  const pt = (l.propertyType || l.propertyCategory || '').replace(/_/g, ' ');
+  if (pt) insights.push(`Similar to other ${pt} properties you may like`);
+  if (insights.length === 0) insights.push('This property meets common search criteria');
+  list.innerHTML = insights.map(i => `<li>${i}</li>`).join('');
 }
 
 async function loadSimilarProperties(current) {
@@ -1083,7 +1154,7 @@ function renderSimilarProperties(properties) {
     const img = (p.photos || p.imageUrls || [])[0] || 'https://via.placeholder.com/280x160/0b2e52/white?text=No+Image';
     const title = (p.title || 'Untitled').substring(0, 50) + ((p.title || '').length > 50 ? '…' : '');
     const loc = (p.location || p.address || 'Location not specified').substring(0, 40) + ((p.location || p.address || '').length > 40 ? '…' : '');
-    return `<a href="new_property_details.html?id=${p.id}" class="similar-property-card">
+    return `<a href="${buildPropertyDetailsUrl(p.id)}" class="similar-property-card">
       <img src="${img}" alt="${title}">
       <div class="similar-property-card-content">
         <div class="similar-property-card-title">${title}</div>
@@ -1376,6 +1447,9 @@ function showCalculatorResults(htmlContent, calculatorType) {
   
   resultsContainer.innerHTML = htmlContent;
   resultsContainer.classList.add('show');
+  
+  // Scroll to results
+  resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function showCalculatorError(message) {
@@ -1628,6 +1702,9 @@ function renderProperty() {
         <div class="map-container">
           <div id="propertyMap"></div>
         </div>
+        <div id="nearbyProof" style="margin-top:10px;font-size:12px;color:var(--text-light);line-height:1.5;">
+          <em>Loading nearest amenities...</em>
+        </div>
         <div style="margin-top: 12px; font-size: 12px; color: var(--text-light); display: flex; justify-content: space-between;">
           <span>Coordinates: ${parseFloat(l.latitude).toFixed(6)}, ${parseFloat(l.longitude).toFixed(6)}</span>
           <a href="https://www.google.com/maps?q=${l.latitude},${l.longitude}" target="_blank" rel="noopener" style="color: var(--primary); text-decoration: none;">
@@ -1641,25 +1718,20 @@ function renderProperty() {
   const html = `
     <div class="gallery-hero">
       <div class="main-media-wrap">
-        <img src="${isFirstVideo ? 'https://via.placeholder.com/800x400/0b2e52/white?text=Video+Thumbnail' : firstMedia}" alt="${l.title}" id="mainGalleryImg" title="Click to open full image" style="${isFirstVideo ? 'display:none;' : 'display:block;'}">
+        <img src="${isFirstVideo ? 'https://via.placeholder.com/800x400/0b2e52/white?text=Video+Thumbnail' : firstMedia}" alt="${l.title}" id="mainGalleryImg" style="${isFirstVideo ? 'display:none;' : 'display:block;'}">
         <video id="mainGalleryVideo" controls style="${isFirstVideo ? 'display:block;' : 'display:none;'}">
           ${isFirstVideo ? `<source src="${firstMedia}" type="video/mp4">Your browser does not support the video tag.` : ''}
         </video>
-        ${allMedia.length > 1 ? `
-        <button type="button" class="gallery-nav-btn gallery-nav-prev" id="galleryPrevBtn" aria-label="Previous media">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <button type="button" class="gallery-nav-btn gallery-nav-next" id="galleryNextBtn" aria-label="Next media">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        ` : ''}
       </div>
       <div class="gallery-badges">
+        ${isFromAI ? '<span class="badge badge-bahai"><i class="fas fa-robot" style="margin-right:4px;"></i> Recommended by BahAI</span>' : ''}
         <span class="badge ${badgeClass}">${badgeText}</span>
+        <span class="badge badge-active">${l.status === 'active' ? 'Available' : (l.status || 'Available')}</span>
       </div>
       ${mediaCountLabel ? `<span class="gallery-image-count">${mediaCountLabel}</span>` : ''}
-      <button type="button" class="save-btn-float" id="saveBtnFloat" aria-label="Save property">
-        <i class="far fa-heart save-icon" aria-hidden="true"></i>
+      <button class="save-btn-float" id="saveBtnFloat">
+        <i class="far fa-heart" id="saveIcon"></i>
+        <span id="saveText">Save Property</span>
       </button>
       ${allMedia.length > 1 ? `
       <div class="gallery-thumbs">
@@ -1685,6 +1757,12 @@ function renderProperty() {
             <div class="stat"><i class="fas fa-ruler-combined"></i><span>${l.floorArea || l.totalArea || '—'} sqm</span></div>
             ${l.lotArea ? `<div class="stat"><i class="bi bi-map"></i><span>${l.lotArea} sqm Lot</span></div>` : ''}
           </div>
+        </div>
+
+        <div class="bahai-insights-panel" id="bahaiInsightsPanel">
+          <div class="bahai-insights-label"><i class="fas fa-robot"></i> BahAI Insights</div>
+          <ul class="bahai-insights-list" id="bahaiInsightsList"></ul>
+          <div class="bahai-insights-footer">Insights improve as you interact with the system</div>
         </div>
 
         ${l.description ? `
@@ -1744,27 +1822,11 @@ function renderProperty() {
       <div class="similar-properties-label">Suggested by BahAI</div>
       <div class="similar-properties-grid" id="similarPropertiesGrid"></div>
     </div>
-
-    <div class="media-lightbox" id="mediaLightbox" aria-hidden="true">
-      <div class="media-lightbox-content">
-        <button type="button" class="media-lightbox-close" id="mediaLightboxClose" aria-label="Close media viewer">
-          <i class="fas fa-times"></i>
-        </button>
-        <button type="button" class="media-lightbox-nav prev" id="mediaLightboxPrev" aria-label="Previous media">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <img class="media-lightbox-media" id="mediaLightboxImage" alt="Property media preview" style="display:none;">
-        <video class="media-lightbox-media" id="mediaLightboxVideo" controls style="display:none;"></video>
-        <button type="button" class="media-lightbox-nav next" id="mediaLightboxNext" aria-label="Next media">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        <div class="media-lightbox-counter" id="mediaLightboxCounter"></div>
-      </div>
-    </div>
   `;
 
   document.getElementById('propertyContent').innerHTML = html;
 
+  populateBahaiInsights(l, type);
   loadSimilarProperties(l).then(similar => {
     if (similar && similar.length > 0) {
       document.getElementById('similarPropertiesSection').style.display = 'block';
@@ -1772,136 +1834,30 @@ function renderProperty() {
     }
   });
 
-  let currentMediaIndex = 0;
   if (allMedia.length > 1) {
-    const thumbs = document.querySelectorAll('.gallery-thumbs .thumb-item');
-    const mainImg = document.getElementById('mainGalleryImg');
-    const mainVideo = document.getElementById('mainGalleryVideo');
-    const prevBtn = document.getElementById('galleryPrevBtn');
-    const nextBtn = document.getElementById('galleryNextBtn');
-
-    const showMediaAt = (index) => {
-      currentMediaIndex = (index + allMedia.length) % allMedia.length;
-      const mediaUrl = allMedia[currentMediaIndex];
-      if (!mediaUrl) return;
-
-      if (isVideoFile(mediaUrl)) {
-        mainImg.style.display = 'none';
-        mainVideo.style.display = 'block';
-        mainVideo.src = mediaUrl;
-        mainVideo.load();
-      } else {
-        mainVideo.pause();
-        mainVideo.style.display = 'none';
-        mainImg.style.display = 'block';
-        mainImg.src = mediaUrl;
-      }
-
-      thumbs.forEach(t => t.classList.remove('active'));
-      const activeThumb = document.querySelector(`.gallery-thumbs .thumb-item[data-index="${currentMediaIndex}"]`);
-      if (activeThumb) {
-        activeThumb.classList.add('active');
-        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-      }
-    };
-
-    thumbs.forEach(thumb => {
+    document.querySelectorAll('.gallery-thumbs .thumb-item').forEach(thumb => {
       thumb.addEventListener('click', () => {
         const idx = parseInt(thumb.dataset.index, 10);
-        if (!Number.isNaN(idx)) showMediaAt(idx);
+        const mediaUrl = allMedia[idx];
+        if (!mediaUrl) return;
+        const isVideo = isVideoFile(mediaUrl);
+        const mainImg = document.getElementById('mainGalleryImg');
+        const mainVideo = document.getElementById('mainGalleryVideo');
+        if (isVideo) {
+          mainImg.style.display = 'none';
+          mainVideo.style.display = 'block';
+          mainVideo.src = mediaUrl;
+          mainVideo.load();
+        } else {
+          mainVideo.style.display = 'none';
+          mainImg.style.display = 'block';
+          mainImg.src = mediaUrl;
+        }
+        document.querySelectorAll('.gallery-thumbs .thumb-item').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
       });
     });
-
-    prevBtn?.addEventListener('click', () => showMediaAt(currentMediaIndex - 1));
-    nextBtn?.addEventListener('click', () => showMediaAt(currentMediaIndex + 1));
   }
-
-  // Click main media to open a full-screen viewer with left/right navigation
-  const mainImgEl = document.getElementById('mainGalleryImg');
-  const mainVideoEl = document.getElementById('mainGalleryVideo');
-  const lightbox = document.getElementById('mediaLightbox');
-  const lightboxImg = document.getElementById('mediaLightboxImage');
-  const lightboxVideo = document.getElementById('mediaLightboxVideo');
-  const lightboxCounter = document.getElementById('mediaLightboxCounter');
-  const lightboxPrev = document.getElementById('mediaLightboxPrev');
-  const lightboxNext = document.getElementById('mediaLightboxNext');
-  const lightboxClose = document.getElementById('mediaLightboxClose');
-
-  const renderLightboxMedia = () => {
-    if (!allMedia.length) return;
-    const mediaUrl = allMedia[(currentMediaIndex + allMedia.length) % allMedia.length];
-    const mediaIsVideo = isVideoFile(mediaUrl);
-
-    if (mediaIsVideo) {
-      lightboxImg.style.display = 'none';
-      lightboxVideo.style.display = 'block';
-      lightboxVideo.src = mediaUrl;
-      lightboxVideo.load();
-    } else {
-      lightboxVideo.pause();
-      lightboxVideo.style.display = 'none';
-      lightboxImg.style.display = 'block';
-      lightboxImg.src = mediaUrl;
-    }
-
-    if (lightboxCounter) lightboxCounter.textContent = `${currentMediaIndex + 1} / ${allMedia.length}`;
-    const showNav = allMedia.length > 1;
-    if (lightboxPrev) lightboxPrev.style.display = showNav ? 'flex' : 'none';
-    if (lightboxNext) lightboxNext.style.display = showNav ? 'flex' : 'none';
-  };
-
-  const openLightboxAt = (index) => {
-    if (!allMedia.length || !lightbox) return;
-    currentMediaIndex = (index + allMedia.length) % allMedia.length;
-    renderLightboxMedia();
-    lightbox.classList.add('show');
-    lightbox.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeLightbox = () => {
-    if (!lightbox) return;
-    lightbox.classList.remove('show');
-    lightbox.setAttribute('aria-hidden', 'true');
-    if (lightboxVideo) {
-      lightboxVideo.pause();
-      lightboxVideo.removeAttribute('src');
-      lightboxVideo.load();
-    }
-    document.body.style.overflow = '';
-  };
-
-  mainImgEl?.addEventListener('click', () => openLightboxAt(currentMediaIndex));
-  mainVideoEl?.addEventListener('click', () => openLightboxAt(currentMediaIndex));
-  lightboxPrev?.addEventListener('click', () => {
-    currentMediaIndex = (currentMediaIndex - 1 + allMedia.length) % allMedia.length;
-    renderLightboxMedia();
-  });
-  lightboxNext?.addEventListener('click', () => {
-    currentMediaIndex = (currentMediaIndex + 1) % allMedia.length;
-    renderLightboxMedia();
-  });
-  lightboxClose?.addEventListener('click', closeLightbox);
-  lightbox?.addEventListener('click', (e) => {
-    if (e.target === lightbox) closeLightbox();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (!lightbox || !lightbox.classList.contains('show')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft' && allMedia.length > 1) {
-      currentMediaIndex = (currentMediaIndex - 1 + allMedia.length) % allMedia.length;
-      renderLightboxMedia();
-    }
-    if (e.key === 'ArrowRight' && allMedia.length > 1) {
-      currentMediaIndex = (currentMediaIndex + 1) % allMedia.length;
-      renderLightboxMedia();
-    }
-  });
-
-  if (isFirstVideo && allMedia.length > 0) {
-    currentMediaIndex = 0;
-  }
-
   if (isFirstVideo && allMedia.length > 0) {
     const mainVideo = document.getElementById('mainGalleryVideo');
     if (mainVideo) mainVideo.src = firstMedia;
@@ -1926,8 +1882,9 @@ function setupSaveButton() {
     if (!btn) return;
     btn.classList.toggle('saved', isSaved);
     const icon = btn.querySelector('i');
-    if (icon) icon.className = isSaved ? 'fas fa-heart save-icon' : 'far fa-heart save-icon';
-    btn.setAttribute('aria-label', isSaved ? 'Remove from saved' : 'Save property');
+    if (icon) icon.className = isSaved ? 'fas fa-heart' : 'far fa-heart';
+    const text = btn.querySelector('span');
+    if (text) text.textContent = isSaved ? 'Saved' : 'Save Property';
   };
 
   const checkSaved = async () => {
@@ -2039,7 +1996,7 @@ function updateMessagingModal(userInfo, property) {
     const type = property.monthlyRent ? 'rent' : property.annualRent ? 'lease' : 'sale';
     const price = type === 'rent' ? `₱${(property.monthlyRent||0).toLocaleString()}/mo` : type === 'lease' ? `₱${(property.annualRent||0).toLocaleString()}/yr` : `₱${(property.pricing||property.salePrice||0).toLocaleString()}`;
     document.getElementById('messagePropertyPrice').textContent = price;
-    ctxEl.onclick = () => { closeMessageModal(); window.location.href = 'new_property_details.html?id=' + (property.id || propertyId); };
+    ctxEl.onclick = () => { closeMessageModal(); window.location.href = buildPropertyDetailsUrl(property.id || propertyId); };
   } else {
     ctxEl.style.display = 'none';
     unavEl.style.display = 'block';
@@ -2208,8 +2165,16 @@ document.getElementById('messageBahaiSuggestions').addEventListener('click', (e)
 
 onAuthStateChanged(auth, (user) => {
   if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
-  if (propertyId) loadProperty();
+  if (propertyId && !propertyLoadStarted) {
+    propertyLoadStarted = true;
+    loadProperty();
+  }
 });
+
+if (propertyId && !propertyLoadStarted) {
+  propertyLoadStarted = true;
+  loadProperty();
+}
 </script>
 
 <script src="../sidebar-user.js"></script>
