@@ -501,6 +501,48 @@
       text-decoration: underline;
     }
 
+    /* KYC required warning - like broker (no redirect, clear message) */
+    .kyc-required-card {
+      background: linear-gradient(135deg, #fff8e6 0%, #ffecb3 100%);
+      border: 1px solid #f0c14b;
+      border-radius: var(--border-radius-sm);
+      padding: 20px 24px;
+      margin: 0 0 20px 0;
+      display: none;
+    }
+    .kyc-required-card.show {
+      display: block;
+    }
+    .kyc-required-card h2 {
+      font-size: 1.1rem;
+      color: #856404;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .kyc-required-card p {
+      font-size: 0.95rem;
+      color: #664d03;
+      margin: 0 0 16px 0;
+      line-height: 1.5;
+    }
+    .kyc-required-card a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-gradient);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .kyc-required-card a:hover {
+      opacity: 0.95;
+    }
+
     .filter-buttons {
       display: flex;
       gap: 8px;
@@ -2191,10 +2233,17 @@
           <button type="button" class="chat-back-to-list" id="chatBackToList" aria-label="Back to conversations">
             <i class="fas fa-arrow-left"></i>
           </button>
-        </div>
       </div>
+    </div>
 
-      <div class="chat-messages-container" id="chatMessagesContainer">
+    <!-- KYC required warning (shown when buyer not verified - like broker, no redirect) -->
+    <div class="kyc-required-card" id="kycRequiredCard">
+      <h2><i class="fas fa-exclamation-triangle"></i> KYC Verification Required</h2>
+      <p>You must complete Buyer KYC verification before you can send messages to brokers or property owners. You can still open this page and view conversations; complete verification to reply.</p>
+      <a href="buyer-kyc.html"><i class="fas fa-id-card"></i> Complete KYC Verification</a>
+    </div>
+
+    <div class="chat-messages-container" id="chatMessagesContainer">
         <div class="empty-state">
           <div class="empty-state-icon">💬</div>
           <h3>Select a conversation to begin</h3>
@@ -2333,6 +2382,7 @@ let conversationToDelete = null;
 let unreadSnapshotMap = new Map();
 let hasProcessedRealtimeSnapshot = false;
 const defaultMessagesPageTitle = document.title;
+let buyerKycApproved = null; // cache: true/false after first check
 
 // Debug mode
 const DEBUG = true;
@@ -2558,18 +2608,44 @@ async function initPage() {
   
   const targetUserId = getUrlParam('userId');
   
-  // Load current user data first
-  await loadCurrentUserData();
+  try {
+    // Load current user data first
+    await loadCurrentUserData();
+  } catch (e) {
+    debugLog('Load current user data error:', e);
+    currentUser.displayName = currentUser.displayName || currentUser.email || 'Buyer';
+  }
   
-  // Update notice text
-  document.getElementById('noticeText').textContent = 
-    `Logged in as: ${currentUser.displayName || currentUser.email}`;
+  // Preload buyer KYC status (required to send messages)
+  try {
+    await isBuyerKycApproved();
+  } catch (e) {
+    debugLog('KYC check error:', e);
+    buyerKycApproved = false;
+  }
+  
+  // Show KYC required card when not verified (like broker - clear message, no redirect)
+  const kycCard = document.getElementById('kycRequiredCard');
+  const noticeEl = document.getElementById('noticeText');
+  if (buyerKycApproved) {
+    if (kycCard) kycCard.classList.remove('show');
+    if (noticeEl) noticeEl.textContent = `Logged in as: ${currentUser.displayName || currentUser.email}`;
+  } else {
+    if (kycCard) kycCard.classList.add('show');
+    if (noticeEl) noticeEl.innerHTML = 'KYC verification required to send messages. <a href="buyer-kyc.html">Complete verification</a> to message brokers.';
+  }
   
   // Setup event listeners
   setupEventListeners();
   
-  // Load conversations
-  await loadConversations();
+  // Load conversations (may be empty for new users - don't block page)
+  try {
+    await loadConversations();
+  } catch (e) {
+    debugLog('Load conversations error (new user?):', e);
+    const listEl = document.getElementById('conversationsList');
+    if (listEl) listEl.innerHTML = '<div class="empty-state"><p>No conversations yet. Complete KYC to message from property listings.</p></div>';
+  }
   
   // If conversationId in URL, open that conversation (mobile deep link)
   if (conversationIdFromUrl && allConversations.length > 0) {
@@ -3348,8 +3424,17 @@ async function selectConversation(conversationId, brokerId, propertyId = null, s
     await loadPropertyData(propertyId);
   }
   
-  // Show chat input
+  // Show chat input and apply KYC state (unverified buyers cannot send)
   document.getElementById('chatInputContainer').style.display = 'block';
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendButton');
+  if (!buyerKycApproved) {
+    if (chatInput) { chatInput.disabled = true; chatInput.placeholder = 'Complete KYC verification to send messages'; }
+    if (sendBtn) sendBtn.disabled = true;
+  } else {
+    if (chatInput) { chatInput.disabled = false; chatInput.placeholder = 'Type your message…'; }
+    if (sendBtn) sendBtn.disabled = false;
+  }
   
   // Load messages for this conversation
   await loadMessages(conversationId, brokerId);
@@ -3677,6 +3762,30 @@ async function markConversationAsRead(conversationId) {
   }
 }
 
+// Buyer KYC: only approved buyers can send messages (same as property details contact)
+async function isBuyerKycApproved() {
+  if (!currentUser) return false;
+  if (buyerKycApproved !== null) return buyerKycApproved;
+  try {
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    if (!userDoc.exists()) { buyerKycApproved = false; return false; }
+    const userData = userDoc.data();
+    const kycStatus = userData.kycStatus || 'not_submitted';
+    buyerKycApproved = (kycStatus === 'approved');
+    return buyerKycApproved;
+  } catch (e) {
+    debugLog('KYC check error:', e);
+    buyerKycApproved = false;
+    return false;
+  }
+}
+
+function showKYCRequiredForMessages() {
+  showError('KYC verification required to message. Complete verification in your account.');
+  const goKyc = confirm('You need to complete Buyer KYC verification before sending messages. Go to KYC page now?');
+  if (goKyc) window.location.href = 'buyer-kyc.html';
+}
+
 // Send message
 async function sendMessage() {
   const messageInput = document.getElementById('chatInput');
@@ -3685,6 +3794,11 @@ async function sendMessage() {
   
   if (!messageText || !currentBrokerId) {
     showError('Please select a conversation first');
+    return;
+  }
+  
+  if (!(await isBuyerKycApproved())) {
+    showKYCRequiredForMessages();
     return;
   }
   

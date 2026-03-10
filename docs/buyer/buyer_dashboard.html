@@ -271,6 +271,71 @@
         gap: 12px;
     }
     .section-title i { color: #d4af37; font-size: 1.3rem; }
+    
+    /* Recommendations header actions (location toggle + refresh icon) */
+    .reco-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .reco-location-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-light);
+    }
+    .reco-location-toggle-label {
+        white-space: nowrap;
+    }
+    .reco-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+    }
+    .reco-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .reco-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #d1d5db;
+        transition: .2s;
+        border-radius: 999px;
+    }
+    .reco-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 3px;
+        top: 3px;
+        background-color: white;
+        transition: .2s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .reco-toggle-switch input:checked + .reco-toggle-slider {
+        background: var(--primary-gradient);
+    }
+    .reco-toggle-switch input:checked + .reco-toggle-slider:before {
+        transform: translateX(18px);
+    }
+    .reco-refresh-btn {
+        padding: 10px 14px !important;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
 
     /* Listings grid & cards - match broker */
     .properties-section, .recommendations-section { margin-bottom: 40px; }
@@ -1140,12 +1205,24 @@
                 AI Recommendations For You
             </h2>
             <p style="color: var(--text-light); font-size: 15px; margin-top: 5px;" id="recommendationsSubtitle">
-                Based on your saved properties and search history
+                Based on your saved properties, searches, and (optionally) your location
+            </p>
+            <p style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                When <strong>Use my location</strong> is on, recommendations may use your approximate location. When it’s off, they use only your likes and browsing history.
             </p>
         </div>
-        <button id="refreshRecommendationsBtn" class="search-button" style="padding: 12px 24px; font-size: 14px;">
-            <i class="fas fa-sync-alt"></i> Refresh
-        </button>
+        <div class="reco-header-actions">
+            <div class="reco-location-toggle">
+                <label class="reco-toggle-switch">
+                    <input type="checkbox" id="recoLocationToggle" checked>
+                    <span class="reco-toggle-slider"></span>
+                </label>
+                <span class="reco-location-toggle-label">Use my location</span>
+            </div>
+            <button id="refreshRecommendationsBtn" class="search-button reco-refresh-btn" title="Refresh recommendations">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
     </div>
     <div id="recommendedListingsContainer" class="recommendations-grid">
         <div class="loading-state">
@@ -2092,6 +2169,8 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyBwwAkIEixeUysaGrMb9BtTsMwz_C9Noxk";
 
 // Python Backend URL
 const PYTHON_API_URL = "https://us-central1-bahai-1b76d.cloudfunctions.net/personalized_recommendations";
+const RECO_LOCATION_TOGGLE_KEY = 'useLocationForRecommendations';
+let useLocationForRecommendations = true;
 
 // --- HELPER FUNCTIONS ---
 
@@ -3077,6 +3156,43 @@ function setupEventListeners() {
         });
     }
     
+    // Location toggle for recommendations (on/off inside the system, not device GPS)
+    const locationToggle = document.getElementById('recoLocationToggle');
+    if (locationToggle) {
+        // Initialize from localStorage
+        try {
+            const stored = localStorage.getItem(RECO_LOCATION_TOGGLE_KEY);
+            if (stored !== null) {
+                useLocationForRecommendations = stored === 'true';
+                locationToggle.checked = useLocationForRecommendations;
+            } else {
+                useLocationForRecommendations = true;
+                locationToggle.checked = true;
+            }
+        } catch {
+            useLocationForRecommendations = true;
+            locationToggle.checked = true;
+        }
+
+        locationToggle.addEventListener('change', async function() {
+            useLocationForRecommendations = !!locationToggle.checked;
+            try {
+                localStorage.setItem(RECO_LOCATION_TOGGLE_KEY, useLocationForRecommendations ? 'true' : 'false');
+            } catch {}
+
+            // When user toggles location, reload recommendations
+            try {
+                if (auth.currentUser) {
+                    await loadRecommendationsFromPython();
+                } else {
+                    showGuestRecommendations();
+                }
+            } catch (error) {
+                console.log("Could not reload recommendations after toggle:", error);
+            }
+        });
+    }
+    
     // Initialize messaging listeners
     initializeMessagingListeners();
 }
@@ -3802,6 +3918,11 @@ async function getDefaultPopularProperties(count = 8) {
 }
 
 async function getLocationBasedRecommendations(userId) {
+    // If user turned off location-based recommendations in the UI, skip using any coordinates
+    if (!useLocationForRecommendations) {
+        return { location: null, usedSavedLocation: false };
+    }
+
     let location = null;
     let usedSavedLocation = false;
 
@@ -3816,6 +3937,8 @@ async function getLocationBasedRecommendations(userId) {
         // If user explicitly denies geolocation, do not use saved coordinates.
         if (error && error.code === 1) {
             try { localStorage.removeItem(USER_LOCATION_STORAGE_KEY); } catch (e) {}
+            // Show a small in-app hint instead of silently failing
+            showSaveToast('Location is blocked in your browser. Turn it on in Site Settings to use location-based recommendations.', true);
             return { location: null, usedSavedLocation: false };
         }
         const storedLocation = getLocationFromLocalStorage();
@@ -4141,9 +4264,16 @@ async function generateSuperSmartRecommendations(currentUser) {
         recommendations = await getDefaultPopularProperties(RECOMMENDATION_RESULT_LIMIT);
     }
 
-    const message = hasNoPersonalData
-        ? 'Smart picks based on location, activity, and popular listings'
-        : 'Recommended using your location, likes, searches, and recent views';
+    let message;
+    if (hasNoPersonalData) {
+        message = useLocationForRecommendations
+            ? 'Smart picks based on location, activity, and popular listings'
+            : 'Smart picks based on activity and popular listings (location off)';
+    } else {
+        message = useLocationForRecommendations
+            ? 'Recommended using your location, likes, searches, and recent views'
+            : 'Recommended using your likes, searches, and recent views (location off)';
+    }
 
     return {
         recommendations,

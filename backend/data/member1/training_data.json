@@ -404,6 +404,539 @@
       "average_price": "₱1,200-₱3,500/sqm for agricultural lands"
     },
     {
+      "query": "residential for sale",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "residential",
+        "listing_type": "sale"
+      },
+      "variations": [
+        "residential for sale",
+        "residential properties for sale",
+        "residential for sale in batangas",
+        "residential houses for sale",
+        "residential property for sale",
+        "show me residential for sale",
+        "find residential for sale",
+        "residential for sale lipa",
+        "residential for sale batangas city",
+        "bahay at residential for sale",
+        "residential lots for sale"
+      ],
+      "response_template": "📍 **Residential properties for sale**\n\nI found {count} residential properties for sale. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "residential for rent",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "residential",
+        "listing_type": "rent"
+      },
+      "variations": [
+        "residential for rent",
+        "residential properties for rent",
+        "residential for rent in batangas",
+        "residential units for rent",
+        "show me residential for rent",
+        "find residential for rent",
+        "residential for rent lipa",
+        "paupa na residential",
+        "residential for rent batangas city"
+      ],
+      "response_template": "📍 **Residential properties for rent**\n\nI found {count} residential properties for rent. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "commercial for sale",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "commercial",
+        "listing_type": "sale"
+      },
+      "variations": [
+        "commercial for sale",
+        "commercial properties for sale",
+        "commercial for sale in batangas",
+        "commercial spaces for sale",
+        "show me commercial for sale",
+        "find commercial for sale",
+        "commercial for sale lipa",
+        "commercial building for sale"
+      ],
+      "response_template": "📍 **Commercial properties for sale**\n\nI found {count} commercial properties for sale. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "commercial for lease",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "commercial",
+        "listing_type": "lease"
+      },
+      "variations": [
+        "commercial for lease",
+        "commercial properties for lease",
+        "commercial for lease in batangas",
+        "commercial spaces for lease",
+        "show me commercial for lease",
+        "find commercial for lease",
+        "commercial for lease lipa",
+        "office for lease",
+        "retail space for lease",
+        "commercial unit for lease"
+      ],
+      "response_template": "📍 **Commercial properties for lease**\n\nI found {count} commercial properties for lease. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "land for sale",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "land",
+        "listing_type": "sale"
+      },
+      "variations": [
+        "land for sale",
+        "land for sale in batangas",
+        "lots for sale",
+        "land for sale lipa",
+        "show me land for sale",
+        "find land for sale",
+        "land / lot for sale",
+        "vacant lot for sale",
+        "agricultural land for sale",
+        "commercial lot for sale",
+        "residential lot for sale"
+      ],
+      "response_template": "📍 **Land / lots for sale**\n\nI found {count} land or lot properties for sale. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "land for lease",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "land",
+        "listing_type": "lease"
+      },
+      "variations": [
+        "land for lease",
+        "land for lease in batangas",
+        "lots for lease",
+        "show me land for lease",
+        "find land for lease",
+        "lease land batangas"
+      ],
+      "response_template": "📍 **Land / lots for lease**\n\nI found {count} land or lot properties for lease. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "special purpose properties",
+      "intent": "find_property",
+      "entities": {
+        "property_category": "special"
+      },
+      "variations": [
+        "special purpose properties",
+        "special purpose property",
+        "special purpose for sale",
+        "special purpose for lease",
+        "show me special purpose properties",
+        "find special purpose properties",
+        "resort property",
+        "event venue",
+        "school property",
+        "sports facility",
+        "hospitality property",
+        "parking area for lease"
+      ],
+      "response_template": "📍 **Special purpose properties**\n\nI found {count} special purpose properties. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties for sale",
+      "intent": "find_property",
+      "entities": {
+        "listing_type": "sale"
+      },
+      "variations": [
+        "properties for sale",
+        "for sale properties",
+        "show me properties for sale",
+        "find properties for sale",
+        "what's for sale",
+        "available for sale",
+        "properties for sale in batangas",
+        "for sale batangas",
+        "mga property na for sale"
+      ],
+      "response_template": "📍 **Properties for sale**\n\nI found {count} properties for sale. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties for rent",
+      "intent": "find_property",
+      "entities": {
+        "listing_type": "rent"
+      },
+      "variations": [
+        "properties for rent",
+        "for rent properties",
+        "show me properties for rent",
+        "find properties for rent",
+        "rental properties",
+        "available for rent",
+        "properties for rent in batangas",
+        "for rent batangas",
+        "mga paupahan",
+        "paupa"
+      ],
+      "response_template": "📍 **Properties for rent**\n\nI found {count} properties for rent. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties for lease",
+      "intent": "find_property",
+      "entities": {
+        "listing_type": "lease"
+      },
+      "variations": [
+        "properties for lease",
+        "for lease properties",
+        "show me properties for lease",
+        "find properties for lease",
+        "lease properties",
+        "available for lease",
+        "properties for lease in batangas",
+        "for lease batangas",
+        "commercial for lease"
+      ],
+      "response_template": "📍 **Properties for lease**\n\nI found {count} properties for lease. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "houses with aircon in lipa",
+      "intent": "find_with_feature",
+      "entities": {
+        "property_type": "house",
+        "feature": "aircon",
+        "location": "Lipa City"
+      },
+      "variations": [
+        "houses with aircon in lipa",
+        "houses with aircon in lipa city",
+        "house with air conditioning in lipa",
+        "bahay na may aircon sa lipa",
+        "find houses with aircon in lipa",
+        "show me houses with aircon lipa",
+        "houses with ac in lipa"
+      ],
+      "response_template": "📍 **Houses with aircon in {location}**\n\nI found {count} houses with air conditioning. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with wifi in batangas city",
+      "intent": "find_with_feature",
+      "entities": {
+        "feature": "wifi",
+        "location": "Batangas City"
+      },
+      "variations": [
+        "properties with wifi in batangas city",
+        "properties with wifi in batangas",
+        "apartments with wifi in batangas city",
+        "with wifi in batangas",
+        "property na may wifi sa batangas",
+        "find properties with wifi batangas",
+        "units with internet in batangas city"
+      ],
+      "response_template": "📍 **Properties with WiFi in {location}**\n\nI found {count} properties with WiFi/internet. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "houses with aircon and wifi",
+      "intent": "find_with_feature",
+      "entities": {
+        "property_type": "house",
+        "feature": "aircon",
+        "features": ["aircon", "wifi"]
+      },
+      "variations": [
+        "houses with aircon and wifi",
+        "houses with aircon and wifi in lipa",
+        "apartments with aircon and wifi",
+        "properties with aircon and wifi",
+        "with aircon and wifi",
+        "bahay na may aircon at wifi",
+        "find houses with aircon and wifi",
+        "condos with wifi and aircon"
+      ],
+      "response_template": "📍 **Properties with aircon and WiFi**\n\nI found {count} properties with both aircon and WiFi. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with swimming pool",
+      "intent": "find_with_feature",
+      "entities": {
+        "feature": "swimming pool"
+      },
+      "variations": [
+        "properties with swimming pool",
+        "houses with swimming pool",
+        "houses with pool",
+        "properties with pool",
+        "with swimming pool",
+        "with pool",
+        "find properties with swimming pool",
+        "show me houses with pool",
+        "may pool na property",
+        "bahay na may pool"
+      ],
+      "response_template": "📍 **Properties with swimming pool**\n\nI found {count} properties with a swimming pool. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with parking",
+      "intent": "find_with_feature",
+      "entities": {
+        "feature": "parking"
+      },
+      "variations": [
+        "properties with parking",
+        "houses with parking",
+        "apartments with parking",
+        "with parking",
+        "find properties with parking",
+        "condos with parking",
+        "may parking na property",
+        "bahay na may parking",
+        "property with garage"
+      ],
+      "response_template": "📍 **Properties with parking**\n\nI found {count} properties with parking. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with wifi",
+      "intent": "find_with_feature",
+      "entities": {
+        "feature": "wifi"
+      },
+      "variations": [
+        "properties with wifi",
+        "with wifi",
+        "find properties with wifi",
+        "apartments with internet",
+        "units with wifi",
+        "any property with wifi",
+        "property na may wifi"
+      ],
+      "response_template": "📍 **Properties with WiFi**\n\nI found {count} properties with WiFi/internet. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with aircon",
+      "intent": "find_with_feature",
+      "entities": {
+        "feature": "aircon"
+      },
+      "variations": [
+        "properties with aircon",
+        "with aircon",
+        "houses with air conditioning",
+        "apartments with ac",
+        "property na may aircon",
+        "find properties with aircon"
+      ],
+      "response_template": "📍 **Properties with air conditioning**\n\nI found {count} properties with aircon. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "apartments with aircon in tanauan",
+      "intent": "find_with_feature",
+      "entities": {
+        "property_type": "apartment",
+        "feature": "aircon",
+        "location": "Tanauan City"
+      },
+      "variations": [
+        "apartments with aircon in tanauan",
+        "apartment with aircon tanauan city",
+        "apartments with aircon in tanauan city",
+        "apartment na may aircon sa tanauan"
+      ],
+      "response_template": "📍 **Apartments with aircon in {location}**\n\nI found {count} apartments with aircon. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with garden",
+      "intent": "find_with_feature",
+      "entities": {
+        "feature": "garden"
+      },
+      "variations": [
+        "properties with garden",
+        "houses with garden",
+        "with garden",
+        "with backyard",
+        "property with garden",
+        "bahay na may garden"
+      ],
+      "response_template": "📍 **Properties with garden**\n\nI found {count} properties with a garden or backyard. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties for sale with swimming pool",
+      "intent": "find_with_feature",
+      "entities": {
+        "listing_type": "sale",
+        "feature": "swimming pool"
+      },
+      "variations": [
+        "properties for sale with pool",
+        "houses for sale with swimming pool",
+        "for sale with pool",
+        "buy property with pool",
+        "sale properties with pool",
+        "mga property na for sale na may pool"
+      ],
+      "response_template": "📍 **Properties for sale with swimming pool**\n\nI found {count} properties for sale with a pool. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties for rent with wifi",
+      "intent": "find_with_feature",
+      "entities": {
+        "listing_type": "rent",
+        "feature": "wifi"
+      },
+      "variations": [
+        "properties for rent with wifi",
+        "for rent with wifi",
+        "apartments for rent with internet",
+        "rental with wifi",
+        "house for rent with wifi",
+        "paupahan na may wifi"
+      ],
+      "response_template": "📍 **Properties for rent with WiFi**\n\nI found {count} properties for rent with WiFi. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties for lease with aircon",
+      "intent": "find_with_feature",
+      "entities": {
+        "listing_type": "lease",
+        "feature": "aircon"
+      },
+      "variations": [
+        "properties for lease with aircon",
+        "for lease with aircon",
+        "commercial for lease with aircon",
+        "office for lease with ac",
+        "lease with air conditioning",
+        "paarkila na may aircon"
+      ],
+      "response_template": "📍 **Properties for lease with aircon**\n\nI found {count} properties for lease with air conditioning. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "houses for sale with parking",
+      "intent": "find_with_feature",
+      "entities": {
+        "listing_type": "sale",
+        "property_type": "house",
+        "feature": "parking"
+      },
+      "variations": [
+        "houses for sale with parking",
+        "house for sale with garage",
+        "for sale house with parking"
+      ],
+      "response_template": "📍 **Houses for sale with parking**\n\nI found {count} houses for sale with parking. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "apartments for rent with aircon",
+      "intent": "find_with_feature",
+      "entities": {
+        "listing_type": "rent",
+        "property_type": "apartment",
+        "feature": "aircon"
+      },
+      "variations": [
+        "apartments for rent with aircon",
+        "apartment for rent with ac",
+        "rent apartment with air conditioning"
+      ],
+      "response_template": "📍 **Apartments for rent with aircon**\n\nI found {count} apartments for rent with aircon. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "houses with 3 bedrooms",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "house",
+        "exact_bedrooms": 3
+      },
+      "variations": [
+        "houses with 3 bedrooms",
+        "3 bedroom house",
+        "house with 3 beds",
+        "3br house",
+        "find houses with 3 bedrooms",
+        "show me 3 bedroom houses"
+      ],
+      "response_template": "📍 **Houses with 3 bedrooms**\n\nI found {count} houses with 3 bedrooms. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties with 2 bathrooms",
+      "intent": "find_property",
+      "entities": {
+        "bathrooms": 2
+      },
+      "variations": [
+        "properties with 2 bathrooms",
+        "2 bathroom",
+        "with 2 restrooms",
+        "2 restrooms",
+        "2 comfort room",
+        "with 2 CR",
+        "2 toilets",
+        "house with 2 bathrooms"
+      ],
+      "response_template": "📍 **Properties with 2 bathrooms**\n\nI found {count} properties with 2 bathrooms. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "bahay na may apat na kwarto",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "house",
+        "exact_bedrooms": 4
+      },
+      "variations": [
+        "bahay na may apat na kwarto",
+        "house with 4 bedrooms in tagalog",
+        "apat na kwarto",
+        "mga bahay na may apat na kwarto",
+        "tatlong kwarto",
+        "dalawang kwarto",
+        "bahay na may dalawang kwarto",
+        "condo na may tatlong kwarto",
+        "apartment na may 3 kwarto",
+        "property na may anim na kwarto"
+      ],
+      "response_template": "📍 **Properties with {exact_bedrooms} bedrooms**\n\nI found {count} properties. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "bahay na may dalawang banyo",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "house",
+        "bathrooms": 2
+      },
+      "variations": [
+        "bahay na may dalawang banyo",
+        "apat na banyo",
+        "with 2 banyo",
+        "property na may tatlong banyo",
+        "condo na may 2 banyo",
+        "dalawang banyo"
+      ],
+      "response_template": "📍 **Properties with {bathrooms} bathrooms**\n\nI found {count} properties. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "4 bedroom 2 bathroom house",
+      "intent": "find_property",
+      "entities": {
+        "property_type": "house",
+        "exact_bedrooms": 4,
+        "bathrooms": 2
+      },
+      "variations": [
+        "4 bedroom 2 bathroom house",
+        "3 bedroom 2 bath",
+        "house 3br 2 bathroom",
+        "apartment with 2 bedrooms and 1 bathroom",
+        "condo 2 bed 2 restroom"
+      ],
+      "response_template": "📍 **Properties matching your criteria**\n\nI found {count} properties. Here are some options:\n\n{property_list}"
+    },
+    {
       "query": "properties that accept bank financing",
       "intent": "financing",
       "entities": {
@@ -457,6 +990,57 @@
         "• Must be of legal age (at least 21 years old)",
         "• Filipino citizen or resident alien"
       ]
+    },
+    {
+      "query": "properties that accept BDO",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "bank financing",
+        "bank_name": "BDO Unibank"
+      },
+      "variations": [
+        "properties that accept BDO",
+        "properties that accept BDO financing",
+        "houses with BDO financing",
+        "BDO bank financing properties",
+        "find properties with BDO loan",
+        "properties with BDO Unibank",
+        "show me BDO financed properties"
+      ],
+      "response_template": "🏦 **Properties with BDO Unibank Financing**\n\nI found {count} properties that offer BDO financing. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties that accept BPI",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "bank financing",
+        "bank_name": "BPI"
+      },
+      "variations": [
+        "properties that accept BPI",
+        "properties that accept BPI financing",
+        "houses with BPI financing",
+        "BPI bank financing properties",
+        "find properties with BPI loan",
+        "properties with BPI",
+        "show me BPI financed properties"
+      ],
+      "response_template": "🏦 **Properties with BPI Financing**\n\nI found {count} properties that offer BPI financing. Here are some options:\n\n{property_list}"
+    },
+    {
+      "query": "properties that accept Metrobank financing",
+      "intent": "financing",
+      "entities": {
+        "financing_type": "bank financing",
+        "bank_name": "Metrobank"
+      },
+      "variations": [
+        "properties that accept Metrobank",
+        "properties with Metrobank financing",
+        "houses with Metrobank loan",
+        "find properties Metrobank financing"
+      ],
+      "response_template": "🏦 **Properties with Metrobank Financing**\n\nI found {count} properties that offer Metrobank financing. Here are some options:\n\n{property_list}"
     },
     {
       "query": "show me properties that accept pag-ibig financing",

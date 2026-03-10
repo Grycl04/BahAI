@@ -21,6 +21,8 @@
     {
       "query": "what do you do",
       "intent": "about_system",
+      "response_template_english": "🤖 **What BahAI Does For You**\n\nI'm the AI assistant inside BahAI. I help you search and compare properties in Batangas, answer questions about locations, financing, and KYC, and guide you in using the platform (dashboard, AI recommendations, messages, and saved properties).",
+      "response_template_tagalog": "🤖 **Ano ang ginagawa ng BahAI assistant**\n\nAko ang AI assistant sa loob ng BahAI. Tinutulungan kitang maghanap at magkumpara ng properties sa Batangas, sumagot tungkol sa locations, financing at KYC, at gabayan ka sa paggamit ng platform (dashboard, AI recommendations, messages, at saved properties).",
       "variations": [
         "what can you do",
         "what can you help with",
@@ -53,6 +55,8 @@
     {
       "query": "what is bah.ai",
       "intent": "about_system",
+      "response_template_english": "🏡 **What is BahAI?**\n\nBahAI is a smart real estate platform focused on Batangas. It combines an AI chatbot for property inquiries, rule-based property recommendations, and KYC-verified messaging so buyers, brokers, and landlords can safely search, list, and inquire about properties.",
+      "response_template_tagalog": "🏡 **Ano ang BahAI?**\n\nAng BahAI ay isang smart real estate platform na nakatuon sa Batangas. Pinagsasama nito ang AI chatbot para sa tanong tungkol sa properties, rule-based na recommendations, at KYC-verified messaging para ligtas na makapaghanap, makapag-list, at makapagtanong ang buyers, brokers, at landlords.",
       "variations": [
         "what is bahai",
         "what is bah ai",
@@ -69,6 +73,8 @@
     {
       "query": "how do you work",
       "intent": "about_system",
+      "response_template_english": "⚙️ **How BahAI Assistant Works**\n\nI use a trained AI model to understand your questions, then apply rules and real listings from BahAI to show properties, explain processes (financing, KYC, messaging), or answer questions about the system.",
+      "response_template_tagalog": "⚙️ **Paano gumagana ang BahAI assistant**\n\nGumagamit ako ng trained AI model para maintindihan ang tanong mo, tapos gumagamit ako ng rules at tunay na listings sa BahAI para magpakita ng properties, magpaliwanag ng proseso (financing, KYC, messaging), o sumagot tungkol sa system.",
       "variations": [
         "how does this work",
         "how does it work",

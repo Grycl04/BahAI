@@ -852,6 +852,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'location': None,
         'landmark': None,
         'feature': None,
+        'features': None,  # list of amenities when user says "with X and Y" (e.g. aircon and wifi)
         'price_range': None,
         'bedrooms': None,
         'bathrooms': None,
@@ -863,6 +864,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'is_property_search_with_financing': False,
         'has_pagibig_query': False,
         'listing_type': None,
+        'property_category': None,  # residential | commercial | land | special (for category-level search)
         'has_general_search': False,
         'has_ready_query': False,
         'max_price': None,
@@ -1003,6 +1005,30 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.warning(f"⚠️ Could not parse bedroom pattern '{pattern}': {e}")
                 continue
     
+    # Tagalog bedroom: "apat na kwarto", "bahay na may apat na kwarto", "4 kwarto", "tatlong kwarto"
+    if entities.get('exact_bedrooms') is None:
+        tagalog_bed = re.search(
+            r'(apat|tatlo|tatlong|dalawa|dalawang|isa|isang|lima|anim|pito|walo|siyam|sampu)\s+(?:na\s+)?kwarto',
+            query_lower
+        )
+        if tagalog_bed:
+            tagalog_num = {'apat': 4, 'tatlo': 3, 'tatlong': 3, 'dalawa': 2, 'dalawang': 2,
+                           'isa': 1, 'isang': 1, 'lima': 5, 'anim': 6, 'pito': 7, 'walo': 8, 'siyam': 9, 'sampu': 10}
+            word = tagalog_bed.group(1).lower()
+            if word in tagalog_num:
+                bedrooms = tagalog_num[word]
+                entities['exact_bedrooms'] = bedrooms
+                entities['bedrooms'] = bedrooms
+                logger.info(f"🛏️ Parsed bedroom count (Tagalog kwarto): {bedrooms}")
+        else:
+            # "4 kwarto", "4 na kwarto"
+            kwarto_num = re.search(r'(\d+)\s+(?:na\s+)?kwarto', query_lower)
+            if kwarto_num:
+                bedrooms = int(kwarto_num.group(1))
+                entities['exact_bedrooms'] = bedrooms
+                entities['bedrooms'] = bedrooms
+                logger.info(f"🛏️ Parsed bedroom count (kwarto): {bedrooms}")
+    
     # Detect if this is a general search (no location specified)
     has_location_terms = any(term in query_lower for term in ['in ', 'at ', 'within ', 'inside '])
     has_specific_location = False
@@ -1109,14 +1135,31 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 entities['query_type'] = 'information_request'
                 logger.info("📋 Ambiguous financing query - treating as INFORMATION REQUEST")
     
-    # Detect listing type
+    # Detect listing type (for sale / for rent / for lease)
     if 'for rent' in query_lower or 'rental' in query_lower:
         entities['listing_type'] = 'rent'
     elif 'for sale' in query_lower or 'buy' in query_lower:
         entities['listing_type'] = 'sale'
     elif 'for lease' in query_lower:
         entities['listing_type'] = 'lease'
-    
+
+    # Property category detection (residential, commercial, land, special purpose)
+    # Only set if no specific property_type already set from a more specific phrase
+    if not entities.get('property_category'):
+        if any(p in query_lower for p in ['special purpose', 'special purpose property', 'special purpose properties']):
+            entities['property_category'] = 'special'
+        elif 'residential' in query_lower and 'residential lot' not in query_lower:
+            entities['property_category'] = 'residential'
+        elif 'commercial' in query_lower:
+            entities['property_category'] = 'commercial'
+        elif any(p in query_lower for p in ['land for', 'land / lot', 'land and lot', 'lots for', 'agricultural land']):
+            entities['property_category'] = 'land'
+        elif 'condo' in query_lower or 'condominium' in query_lower:
+            # Condo is both category and type; keep type from map below, don't set category
+            pass
+        elif any(p in query_lower for p in ['industrial', 'warehouse', 'storage']) and 'land' not in query_lower:
+            entities['property_category'] = 'industrial'
+
     # Property type detection - UPDATED FOR CASE INSENSITIVITY (check phrases first so "vacant lot" wins over "lot")
     if 'vacant lot' in query_lower or 'vacant lots' in query_lower:
         entities['property_type'] = 'land'
@@ -1139,6 +1182,9 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         }
         for key, value in property_type_map.items():
             if key in query_lower:
+                # When user said "commercial" we already set property_category; don't narrow to commercial_building so lease types show
+                if entities.get('property_category') == 'commercial' and key == 'commercial':
+                    break
                 entities['property_type'] = value
                 break
     
@@ -1275,7 +1321,25 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     if not entities.get('feature') and 'parking' in query_lower:
         entities['feature'] = 'parking'
         logger.info(f"🏷️ Detected feature: parking (standalone)")
-    
+
+    # Multiple amenities: "with aircon and wifi", "houses with pool and parking in lipa"
+    if entities.get('feature'):
+        features_list = [entities['feature']]
+        # Look for "and <word>" or "& <word>" after feature keywords
+        and_patterns = [
+            r'(?:and|&)\s+(?:with\s+)?(wifi|aircon|air\s*conditioning|pool|parking|garden|security|elevator|balcony|internet|garage)',
+            r'(?:wifi|aircon|pool|parking|garden|security)\s+(?:and|&)\s+(?:with\s+)?(wifi|aircon|pool|parking|garden|security)',
+        ]
+        for pat in and_patterns:
+            for m in re.finditer(pat, query_lower, re.I):
+                extra = m.group(1).strip().lower().replace(' ', '_')
+                if extra in ('air_conditioning',): extra = 'aircon'
+                if extra not in [f.lower() for f in features_list]:
+                    features_list.append(extra.replace('_', ' '))
+        if len(features_list) > 1:
+            entities['features'] = features_list
+            logger.info(f"🏷️ Detected multiple features: {features_list}")
+
     # Landmark detection
     if 'near' in query_lower or 'close to' in query_lower or 'around' in query_lower or 'beside' in query_lower:
         # Extract word after landmark terms
@@ -1283,10 +1347,33 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         if match:
             entities['landmark'] = match.group(1).strip()
     
-    # Bathroom detection
-    bath_match = re.search(r'(\d+)\s+(?:bathroom|bath|banyo)', query_lower)
+    # Bathroom detection (EN + synonyms + Tagalog)
+    # Synonyms: bathroom, bath, banyo, restroom(s), comfort room(s), CR, toilet(s)
+    bath_match = re.search(
+        r'(\d+)\s+(?:bathroom|bath|banyo|restroom|restrooms|comfort\s*room|comfort\s*rooms|toilet|toilets|cr)\b',
+        query_lower, re.I
+    )
     if bath_match:
         entities['bathrooms'] = int(bath_match.group(1))
+    else:
+        # Tagalog: "apat na banyo", "dalawang banyo"
+        tagalog_bath = re.search(
+            r'(apat|tatlo|tatlong|dalawa|dalawang|isa|isang|lima|anim|pito|walo|siyam|sampu)\s+(?:na\s+)?banyo',
+            query_lower
+        )
+        if tagalog_bath:
+            tagalog_num = {'apat': 4, 'tatlo': 3, 'tatlong': 3, 'dalawa': 2, 'dalawang': 2,
+                           'isa': 1, 'isang': 1, 'lima': 5, 'anim': 6, 'pito': 7, 'walo': 8, 'siyam': 9, 'sampu': 10}
+            word = tagalog_bath.group(1).lower()
+            if word in tagalog_num:
+                entities['bathrooms'] = tagalog_num[word]
+        else:
+            # "2 banyo" or "4 na banyo"
+            bath_num = re.search(r'(\d+)\s+(?:na\s+)?banyo', query_lower)
+            if bath_num:
+                entities['bathrooms'] = int(bath_num.group(1))
+    if entities.get('bathrooms'):
+        logger.info(f"🚿 Parsed bathroom count: {entities['bathrooms']}")
     
     # ========== ADD MEMBER3 DETECTION LOGIC ==========
     
@@ -2161,6 +2248,9 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                 logger.info("🔍 No location specified - showing properties from all locations")
         
         # Filter by property type if specified - ENHANCED CONDO MATCHING
+        # When only property_category is set (no specific type), we filter client-side by category's type list
+        if entities.get('property_category') and not entities.get('property_type'):
+            logger.info(f"🔍 Property category filter: {entities['property_category']} (will filter client-side)")
         if entities.get('property_type'):
             property_type = entities['property_type'].lower()
             
@@ -2435,6 +2525,24 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - type {prop_listing_type} != {want_type}")
                     matches = False
                     continue
+
+            # ========== PROPERTY CATEGORY FILTER (residential / commercial / land / special) ==========
+            if entities.get('property_category') and matches:
+                _cat = (entities.get('property_category') or '').lower()
+                CATEGORY_TYPES = {
+                    'residential': ['house', 'townhouse', 'bungalow', 'duplex', 'village_lot', 'apartment', 'boarding_house', 'condo', 'condo_unit', 'condominium', 'room', 'dormitory'],
+                    'commercial': ['commercial_building', 'office_space', 'retail_space', 'warehouse', 'showroom', 'office_floor', 'retail_space_lease', 'building_lease', 'commercial_unit', 'showroom_lease', 'warehouse_lease', 'office_unit', 'food_stall', 'shop'],
+                    'land': ['residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 'beachfront', 'development_land', 'vacant_lot'],
+                    'special': ['resort_property', 'event_venue', 'parking_area', 'school_property', 'hospitality', 'sports_facility'],
+                    'industrial': ['warehouse', 'storage_unit', 'factory', 'workshop'],
+                }
+                allowed = CATEGORY_TYPES.get(_cat)
+                if allowed:
+                    prop_type = str(property_data.get('propertyType', property_data.get('type', ''))).lower()
+                    if prop_type not in [t.lower() for t in allowed]:
+                        matches = False
+                        logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - type {prop_type} not in category {_cat}")
+                        continue
             
             # Apply property type filtering (for categories with multiple types)
             if entities.get('property_type') and property_type in type_map:
@@ -2586,14 +2694,12 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - not ideal for single-professional profile")
             
             # ========== CLIENT-SIDE FEATURE/AMENITY FILTERING ==========
-            if entities.get('feature') and matches:
-                requested_feature = entities['feature'].lower()
+            requested_features = entities.get('features') or ([entities['feature']] if entities.get('feature') else [])
+            if requested_features and matches:
                 prop_amenities = property_data.get('amenities', []) or []
                 prop_furnishing = (property_data.get('furnishing') or '').lower()
                 prop_description = (property_data.get('description') or '').lower()
-                # Build searchable text from amenities + furnishing + description
                 searchable = ' '.join([str(a).lower() for a in prop_amenities]) + ' ' + prop_furnishing + ' ' + prop_description
-                # Feature synonyms for flexible matching (query term -> possible DB values)
                 feature_synonyms = {
                     'parking': ['parking', 'garage', 'carport', 'car park'],
                     'swimming pool': ['pool', 'swimming pool', 'swimmingpool'],
@@ -2606,11 +2712,14 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     'balcony': ['balcony', 'terrace'],
                     'maids room': ['maid', 'maids room', 'helpers quarter', 'staff room'],
                 }
-                match_terms = feature_synonyms.get(requested_feature, [requested_feature])
-                feature_found = any(term in searchable for term in match_terms)
-                if not feature_found:
-                    matches = False
-                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - no amenity match for '{requested_feature}'")
+                for requested_feature in requested_features:
+                    req = str(requested_feature).lower().strip()
+                    match_terms = feature_synonyms.get(req, [req])
+                    feature_found = any(term in searchable for term in match_terms)
+                    if not feature_found:
+                        matches = False
+                        logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - no amenity match for '{req}'")
+                        break
 
             # ========== CLIENT-SIDE READY-TO-MOVE FILTERING ==========
             if entities.get('has_ready_query') and matches:
@@ -3575,8 +3684,38 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     
     elif intent == 'match_needs':
         return generate_match_needs_response(entities, properties, language)
-    
-    
+
+    # ========== BUYER-SPECIFIC INTENTS WITH SPECIAL LOGIC ==========
+    if intent == 'buyer_kyc':
+        q_lower = (original_query or '').lower()
+        # Short "what is KYC" answer (definition + why only)
+        if any(phrase in q_lower for phrase in ['what is kyc', 'ano ang kyc', 'kyc verification']):
+            if is_tl:
+                return (
+                    "🪪 **Buyer KYC – Ano Ito**\n\n"
+                    "**Ano ang KYC?**\n"
+                    "Ang KYC (Know Your Customer) ay identity verification. Pinapatunayan nito na tunay kang tao gamit ang valid ID at face match check.\n\n"
+                    "**Bakit kailangan ang KYC?**\n"
+                    "• **Mas ligtas na accounts** – Mas kaunti ang fake o spam accounts\n"
+                    "• **Proteksyon para sa iyo at sellers** – Alam ng brokers/landlords na verified buyer ang kausap nila\n"
+                    "• **Mas secure na platform** – Tumutulong panatilihing mapagkakatiwalaan ang BahAI para sa lahat\n\n"
+                    "Kapag KYC verified ka, pwede ka nang mag‑message sa brokers/landlords, mag‑schedule ng viewing, at mag‑submit ng formal offers."
+                )
+            return (
+                "🪪 **Buyer KYC – What It Is**\n\n"
+                "**What is KYC?**\n"
+                "KYC (Know Your Customer) is identity verification. It confirms you are a real person using a valid ID and a face match check.\n\n"
+                "**Why is KYC needed?**\n"
+                "• **Safer accounts** – Reduces fake or spam accounts\n"
+                "• **Protects you & sellers** – Brokers/landlords know they’re talking to verified buyers\n"
+                "• **More secure platform** – Helps keep BahAI trustworthy for everyone\n\n"
+                "Once you’re KYC verified, you can message brokers/landlords, schedule viewings, and submit formal offers."
+            )
+        # Otherwise (e.g. 'paano ang KYC', 'how does KYC work') → use full template from training
+        dataset_template = _get_intent_template('buyer_kyc', is_tl, random_choice=False)
+        if dataset_template:
+            return render_intent_template(dataset_template, intent, entities, properties)
+
     # ========== HANDLE BASIC INTENTS FIRST ==========
     if intent == 'greeting':
         dataset_template = _get_intent_template('greeting', is_tl, random_choice=True)
@@ -3643,7 +3782,8 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         if 'sino sino ang mga agent' in original_query or 'who are the agents' in original_query or 'list of agents' in original_query:
             return generate_roles_list_response(language, roles=['agent'])
 
-        dataset_template = _get_intent_template('about_system', is_tl, random_choice=False)
+        # Use one of several short templates so answers vary (like greetings)
+        dataset_template = _get_intent_template('about_system', is_tl, random_choice=True)
         if dataset_template:
             return render_intent_template(dataset_template, intent, entities, properties)
         if is_tl:
@@ -4643,6 +4783,7 @@ def chat():
             return jsonify({'error': 'No JSON data provided'}), 400
 
         query = data.get('query', '').strip()
+        raw_user_message = query  # Keep for location-only follow-up merge
         previous_query = (data.get('previous_query') or '').strip()
         previous_entities = data.get('previous_entities')
         previous_intent = (data.get('previous_intent') or '').strip()
@@ -4658,7 +4799,7 @@ def chat():
         short_followup_threshold = 4
         short_followup_phrases = [
             'paano', 'pano', 'paano ito', 'paano yun', 'pano ito', 'pano yun',
-            'paano pa', 'how', 'how about this', 'how is this', 'tell me more'
+            'paano pa', 'how', 'how about this', 'how is this', 'tell me more', 'ano pa'
         ]
         buyer_followup_intents = {
             'buyer_kyc',
@@ -4797,10 +4938,14 @@ def chat():
                         logger.info(f"⚠️ FORCE OVERRIDE: Lifestyle query detected, changing intent from {intent} to match_needs")
                     intent = 'match_needs'
                     confidence = 0.99
-                elif ('na may' in query_lower and any(w in query_lower for w in ['property', 'properties', 'bahay', 'apartment', 'condo', 'house'])) or \
-                     ('mga property na may' in query_lower):
+                elif any(phrase in query_lower for phrase in [
+                    'with wifi', 'with aircon', 'with pool', 'with parking', 'with garden',
+                    'with air conditioning', 'with internet', 'with elevator', 'with security',
+                    'with balcony', 'with garage', 'na may wifi', 'na may aircon', 'na may pool',
+                    'na may parking', 'may wifi', 'may aircon', 'may pool', 'may parking'
+                ]) or (('with' in query_lower or ' na may ' in query_lower) and any(w in query_lower for w in ['wifi', 'aircon', 'pool', 'parking', 'garden', 'elevator', 'security', 'balcony'])):
                     if intent != 'find_with_feature':
-                        logger.info(f"⚠️ FORCE OVERRIDE: Feature query detected, changing intent from {intent} to find_with_feature")
+                        logger.info(f"⚠️ FORCE OVERRIDE: Amenity/feature query detected, changing intent from {intent} to find_with_feature")
                     intent = 'find_with_feature'
                     confidence = 0.99
                 # "for sale properties", "for rent", "properties for sale" -> find_property (not location_info)
@@ -4896,6 +5041,24 @@ def chat():
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
         entities['original_query'] = query
+        # Location-only follow-up fix: e.g. user said "sa tanauan" after "sa lipa"; combined query "sa lipa sa tanauan" would match Lipa first. Use new location from current message only and keep previous criteria (house, 3 bedrooms).
+        if previous_entities and len(raw_user_message.split()) <= 6:
+            r_lower = raw_user_message.lower()
+            location_only_pattern = (
+                r_lower.startswith('sa ') or r_lower.startswith('in ') or
+                r_lower.strip() in ('tanauan', 'lipa', 'batangas', 'nasugbu', 'malvar', 'bauan', 'sto tomas') or
+                re.match(r'^(sa|in)\s+\w+(\s+city)?$', r_lower)
+            )
+            if location_only_pattern and not re.search(r'\b(under|with|bedroom|kwarto|bath|banyo)\b', r_lower):
+                loc_from_current = extract_entities_from_query(raw_user_message)
+                if loc_from_current.get('location'):
+                    entities = { **previous_entities, **entities }
+                    entities['location'] = loc_from_current['location']
+                    entities['original_query'] = (previous_query + ' ' + raw_user_message).strip()
+                    if previous_intent and previous_intent in ('find_property', 'find_property_with_criteria', 'find_with_feature', 'find_near_landmark'):
+                        intent = previous_intent
+                        confidence = 0.95
+                    logger.info(f"💬 Location-only follow-up: using location {entities['location']} and keeping previous criteria (e.g. beds/type)")
         logger.info(f"🏷️ Entities: {entities}")
 
         # AI fallback when NLU is not confident (Groq free or OpenAI)
@@ -4903,6 +5066,9 @@ def chat():
             (confidence < OPENAI_FALLBACK_CONFIDENCE_THRESHOLD or intent == 'unknown')
             and bool(GROQ_API_KEY or OPENAI_API_KEY)
         )
+        # Never use AI fallback for small-talk/system intents (we have our own templates)
+        if intent in ['about_system', 'greeting', 'thanks', 'goodbye', 'help']:
+            use_ai_fallback = False
         # If user clearly asked for a property type (e.g. "vacant lot", "subdivision", "lands"), run search and show real results or "no listings" — don't use generic AI reply
         if use_ai_fallback and entities.get('property_type'):
             query_lower = query.strip().lower()
@@ -5145,11 +5311,12 @@ def determine_intent_fallback(query: str) -> str:
     ]):
         return 'about_system'
     about_system_indicators = [
-        'what are you', 'who are you', 'what is this system', 'what is this chatbot',
-        'what is bahAI', 'tell me about yourself', 'introduce yourself', 'what do you do',
-        'what can you do', 'what is your purpose', 'system overview', 'about the system',
-        'what is the system about',
-        'what services do you offer', 'give me an introduction', 'explain what you do'
+        'what are you', 'who are you', 'what is this', 'what is this system', 'what is this chatbot',
+        'what is bahai', 'what is bah.ai', 'what is bahai assistant', 'tell me about yourself',
+        'introduce yourself', 'what do you do', 'what can you do', 'what is your purpose',
+        'system overview', 'about the system', 'what is the system about',
+        'what services do you offer', 'give me an introduction', 'explain what you do',
+        'pinagkaiba nito sa iba', 'pinagkaiba nito', 'ano ito'
     ]
     
     for indicator in about_system_indicators:

@@ -305,6 +305,9 @@ export async function processChatMessage(userMessage) {
         if (window.lastChatContext?.previous_query != null && window.lastChatContext?.previous_entities != null) {
             requestData.previous_query = window.lastChatContext.previous_query;
             requestData.previous_entities = window.lastChatContext.previous_entities;
+            if (window.lastChatContext.previous_intent != null) {
+                requestData.previous_intent = window.lastChatContext.previous_intent;
+            }
         }
         console.log("📤 Sending to backend:", requestData);
         
@@ -419,7 +422,8 @@ export async function processChatMessage(userMessage) {
         if (data && (data.response || data.message) && data.success !== false) {
             window.lastChatContext = {
                 previous_query: userMessage,
-                previous_entities: data.entities && typeof data.entities === 'object' ? data.entities : {}
+                previous_entities: data.entities && typeof data.entities === 'object' ? data.entities : {},
+                previous_intent: data.intent || null
             };
         } else {
             window.lastChatContext = null;
