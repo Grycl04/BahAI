@@ -3688,8 +3688,15 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     # ========== BUYER-SPECIFIC INTENTS WITH SPECIAL LOGIC ==========
     if intent == 'buyer_kyc':
         q_lower = (original_query or '').lower()
-        # Short "what is KYC" answer (definition + why only)
-        if any(phrase in q_lower for phrase in ['what is kyc', 'ano ang kyc', 'kyc verification']):
+        # "How does KYC work" / process / steps → always use full template (ID, selfie, 70%, Face++, link)
+        is_process_question = any(x in q_lower for x in [
+            'paano', 'how does', 'how do i', 'how to', 'steps', 'process', 'gumagana', 'mag-kyc', 'mag kyc'
+        ])
+        # Short "what is KYC" answer only for definition-style (what is / ano ang) and NOT process
+        is_definition_question = not is_process_question and any(
+            phrase in q_lower for phrase in ['what is kyc', 'ano ang kyc', 'kyc verification']
+        )
+        if is_definition_question:
             if is_tl:
                 return (
                     "🪪 **Buyer KYC – Ano Ito**\n\n"
