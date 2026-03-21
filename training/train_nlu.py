@@ -124,7 +124,7 @@ class TeamNLUTrainer:
     'greeting': ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
                  'how are you', 'what\'s up', 'sup', 'hi there', 'hello there'],
     'thanks': ['thank you', 'thanks', 'thank', 'thanks a lot', 'appreciate', 'grateful'],
-    'help': ['help', 'what can you do', 'how can you help', 'assist', 'support', 'guide', 'explain'],
+    'help': ['help', 'need help', 'can you help', 'assist', 'support', 'guide', 'how to use'],
     'about_system': [
         'what are you', 'who are you', 'what is this', 'what is the system', 
         'what do you do', 'what can you help with', 'tell me about yourself',
@@ -132,7 +132,7 @@ class TeamNLUTrainer:
         'introduce yourself', 'system overview', 'what is your purpose',  # Add these
         'what services do you offer', 'give me an overview', 'explain your features'
     ],
-    'goodbye': ['bye', 'goodbye', 'see you', 'farewell', 'exit', 'quit', 'end'],
+    'goodbye': ['bye', 'goodbye', 'see you', 'farewell', 'exit', 'quit', 'end', 'that is all', 'nothing else', 'done for now', 'talk later'],
             'financing': ['accept bank financing', 'accept financing', 'bank loan', 
                          'mortgage', 'pag-ibig', 'payment method', 'financing type',
                          'documents needed', 'requirements for', 'how to get',
@@ -630,6 +630,35 @@ class TeamNLUTrainer:
             ("hi what are you", "about_system"),
             ("hello what is this", "about_system"),
             ("hey what do you do", "about_system"),
+            ("what can this system do", "about_system"),
+            ("what does bahai do", "about_system"),
+            ("what features does this system have", "about_system"),
+
+            # Clear help intent (usage guidance, not system identity)
+            ("help me use this", "help"),
+            ("how to use this chatbot", "help"),
+            ("guide me on using the app", "help"),
+            ("assist me with searching", "help"),
+            ("i need help using this", "help"),
+
+            # Buyer signup vs login boundary fixes
+            ("how do i sign up as a buyer", "buyer_signup"),
+            ("i need to create a buyer account", "buyer_signup"),
+            ("register new buyer account", "buyer_signup"),
+            ("where do i sign up", "buyer_signup"),
+            ("how do i register", "buyer_signup"),
+            ("how do i log in to my buyer account", "buyer_login"),
+            ("i already have account how to sign in", "buyer_login"),
+            ("where do i login", "buyer_login"),
+            ("access buyer dashboard login", "buyer_login"),
+            ("log in existing account", "buyer_login"),
+
+            # Casual goodbye variants that were colliding
+            ("nothing else", "goodbye"),
+            ("that is all for now", "goodbye"),
+            ("okay im done", "goodbye"),
+            ("i am done for now", "goodbye"),
+            ("talk later", "goodbye"),
 
             
     
@@ -1302,18 +1331,20 @@ def create_additional_training_file(data_dir):
             
             {"text": "help", "intent": "help"},
             {"text": "can you help me", "intent": "help"},
-            {"text": "what can you do", "intent": "help"},
             {"text": "how can you help", "intent": "help"},
             {"text": "assist me", "intent": "help"},
             {"text": "need help", "intent": "help"},
             {"text": "support me", "intent": "help"},
             {"text": "guide me", "intent": "help"},
+            {"text": "help me use this", "intent": "help"},
+            {"text": "how to use this chatbot", "intent": "help"},
             
             {"text": "what are you", "intent": "about_system"},
             {"text": "who are you", "intent": "about_system"},
             {"text": "what is this", "intent": "about_system"},
             {"text": "what is this system", "intent": "about_system"},
             {"text": "what do you do", "intent": "about_system"},
+            {"text": "what can you do", "intent": "about_system"},
             {"text": "what can you help with", "intent": "about_system"},
             {"text": "tell me about yourself", "intent": "about_system"},
             {"text": "what is this system about", "intent": "about_system"},
@@ -1346,6 +1377,8 @@ def create_additional_training_file(data_dir):
             {"text": "Access my buyer account", "intent": "buyer_login"},
             {"text": "Log into buyer dashboard", "intent": "buyer_login"},
             {"text": "How to sign in", "intent": "buyer_login"},
+            {"text": "How do I login to existing account", "intent": "buyer_login"},
+            {"text": "I already have account where to login", "intent": "buyer_login"},
             {"text": "Buyer login help", "intent": "buyer_login"},
             {"text": "Can't log in", "intent": "buyer_login_errors"},  # Note: different intent
             {"text": "Login problems", "intent": "buyer_login_errors"},  # Note: different intent
@@ -1383,6 +1416,9 @@ def create_additional_training_file(data_dir):
             {"text": "bye bye", "intent": "goodbye"},
             {"text": "talk to you later", "intent": "goodbye"},
             {"text": "see you later", "intent": "goodbye"},
+            {"text": "nothing else", "intent": "goodbye"},
+            {"text": "that is all for now", "intent": "goodbye"},
+            {"text": "i am done for now", "intent": "goodbye"},
                         # Force "find [property] in [location]" to be find_property
             {"text": "find apartments in batangas city", "intent": "find_property"},
             {"text": "find apartment in batangas city", "intent": "find_property"},

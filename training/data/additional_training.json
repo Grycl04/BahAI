@@ -65,10 +65,6 @@
       "intent": "help"
     },
     {
-      "text": "what can you do",
-      "intent": "help"
-    },
-    {
       "text": "how can you help",
       "intent": "help"
     },
@@ -89,6 +85,14 @@
       "intent": "help"
     },
     {
+      "text": "help me use this",
+      "intent": "help"
+    },
+    {
+      "text": "how to use this chatbot",
+      "intent": "help"
+    },
+    {
       "text": "what are you",
       "intent": "about_system"
     },
@@ -106,6 +110,10 @@
     },
     {
       "text": "what do you do",
+      "intent": "about_system"
+    },
+    {
+      "text": "what can you do",
       "intent": "about_system"
     },
     {
@@ -210,6 +218,14 @@
     },
     {
       "text": "How to sign in",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "How do I login to existing account",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "I already have account where to login",
       "intent": "buyer_login"
     },
     {
@@ -322,6 +338,18 @@
     },
     {
       "text": "see you later",
+      "intent": "goodbye"
+    },
+    {
+      "text": "nothing else",
+      "intent": "goodbye"
+    },
+    {
+      "text": "that is all for now",
+      "intent": "goodbye"
+    },
+    {
+      "text": "i am done for now",
       "intent": "goodbye"
     },
     {
