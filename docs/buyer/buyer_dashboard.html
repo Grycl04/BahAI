@@ -4701,7 +4701,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Guest user
             console.log('👤 Guest user (not logged in)');
-            welcomeText.textContent = "Welcome to BahAI Real Estate!";
+            // Only show one welcome block for guests (prevents duplicated welcome text)
+            welcomeText.textContent = "";
             guestMessage.style.display = 'block';
             
             // Show guest recommendations

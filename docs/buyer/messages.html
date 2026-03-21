@@ -65,6 +65,113 @@
       display: none;
     }
 
+    /* Guest access lock (messages require sign-in) */
+    .guest-lock {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 10050;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .guest-lock-card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--bg-white, #ffffff);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      padding: 22px 20px;
+      text-align: center;
+    }
+
+    .guest-lock-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .guest-lock-text {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .guest-lock-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .guest-login-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      background: var(--primary-gradient);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 25px rgba(11, 46, 82, 0.2);
+    }
+
+    .guest-login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(11, 46, 82, 0.25);
+    }
+
+    .guest-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(229, 231, 235, 1);
+      background: rgba(248, 250, 252, 1);
+      color: var(--text-dark);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: transform 0.15s ease;
+    }
+
+    .guest-close-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .guest-back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: 1px solid rgba(229, 231, 235, 1);
+      background: transparent;
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 800;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .guest-back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
     /* Mobile Menu Toggle - same as buyer dashboard */
     .mobile-menu-toggle {
       display: none;
@@ -499,48 +606,6 @@
       color: var(--primary-light);
       font-weight: 600;
       text-decoration: underline;
-    }
-
-    /* KYC required warning - like broker (no redirect, clear message) */
-    .kyc-required-card {
-      background: linear-gradient(135deg, #fff8e6 0%, #ffecb3 100%);
-      border: 1px solid #f0c14b;
-      border-radius: var(--border-radius-sm);
-      padding: 20px 24px;
-      margin: 0 0 20px 0;
-      display: none;
-    }
-    .kyc-required-card.show {
-      display: block;
-    }
-    .kyc-required-card h2 {
-      font-size: 1.1rem;
-      color: #856404;
-      margin: 0 0 8px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .kyc-required-card p {
-      font-size: 0.95rem;
-      color: #664d03;
-      margin: 0 0 16px 0;
-      line-height: 1.5;
-    }
-    .kyc-required-card a {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--primary-gradient);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-    .kyc-required-card a:hover {
-      opacity: 0.95;
     }
 
     .filter-buttons {
@@ -2162,6 +2227,25 @@
 </head>
 
 <body>
+<!-- Guest access notifier (shown when not authenticated) -->
+<div id="guestNotice" class="guest-lock" role="dialog" aria-modal="true" aria-labelledby="guestNoticeTitle">
+  <div class="guest-lock-card">
+    <button type="button" class="guest-close-btn" id="guestDismissBtn" aria-label="Dismiss guest notice">×</button>
+    <div class="guest-lock-title" id="guestNoticeTitle">You are browsing as a guest</div>
+    <div class="guest-lock-text">
+      Messages are available after you login or sign up. Please sign in to continue.
+    </div>
+    <div class="guest-lock-actions">
+      <a id="guestLoginBtn" class="guest-login-btn" href="../login.html?redirect=buyer/messages.html">
+        <i class="fas fa-right-to-bracket"></i> Login
+      </a>
+      <button type="button" id="guestBackBtn" class="guest-back-btn" aria-label="Go back and continue browsing">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Mobile Menu Toggle -->
 <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
 
@@ -2233,17 +2317,10 @@
           <button type="button" class="chat-back-to-list" id="chatBackToList" aria-label="Back to conversations">
             <i class="fas fa-arrow-left"></i>
           </button>
+        </div>
       </div>
-    </div>
 
-    <!-- KYC required warning (shown when buyer not verified - like broker, no redirect) -->
-    <div class="kyc-required-card" id="kycRequiredCard">
-      <h2><i class="fas fa-exclamation-triangle"></i> KYC Verification Required</h2>
-      <p>You must complete Buyer KYC verification before you can send messages to brokers or property owners. You can still open this page and view conversations; complete verification to reply.</p>
-      <a href="buyer-kyc.html"><i class="fas fa-id-card"></i> Complete KYC Verification</a>
-    </div>
-
-    <div class="chat-messages-container" id="chatMessagesContainer">
+      <div class="chat-messages-container" id="chatMessagesContainer">
         <div class="empty-state">
           <div class="empty-state-icon">💬</div>
           <h3>Select a conversation to begin</h3>
@@ -2382,7 +2459,6 @@ let conversationToDelete = null;
 let unreadSnapshotMap = new Map();
 let hasProcessedRealtimeSnapshot = false;
 const defaultMessagesPageTitle = document.title;
-let buyerKycApproved = null; // cache: true/false after first check
 
 // Debug mode
 const DEBUG = true;
@@ -2479,7 +2555,8 @@ function seedUnreadSnapshotState() {
 onAuthStateChanged(auth, async (user) => {
   if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
   if (!user) {
-    window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname || "buyer/messages.html");
+    // Keep guest on this page and show notifier instead of immediate redirect
+    showGuestNotice();
     return;
   }
   
@@ -2489,6 +2566,50 @@ onAuthStateChanged(auth, async (user) => {
   // Initialize the page
   initPage();
 });
+
+function showGuestNotice() {
+  try {
+    document.body.classList.add('guest-mode');
+    var overlay = document.getElementById('guestNotice');
+    if (overlay) overlay.style.display = 'flex';
+
+    function dismissAndGoBack() {
+      try {
+        var overlayEl = document.getElementById('guestNotice');
+        if (overlayEl) overlayEl.style.display = 'none';
+        // Prefer returning to the previous page if possible.
+        if (window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+      } catch (e) {}
+      // Fallback destination.
+      window.location.href = '../buyer/buyer_dashboard.html';
+    }
+
+    var dismissBtn = document.getElementById('guestDismissBtn');
+    if (dismissBtn) {
+      dismissBtn.onclick = dismissAndGoBack;
+    }
+
+    var backBtn = document.getElementById('guestBackBtn');
+    if (backBtn) {
+      backBtn.onclick = dismissAndGoBack;
+    }
+
+    var loginBtn = document.getElementById('guestLoginBtn');
+    if (loginBtn) {
+      // Return here after login
+      var redirectPath = window.location.pathname || 'buyer/messages.html';
+      var redirectSearch = window.location.search || '';
+      var redirect = encodeURIComponent(redirectPath + redirectSearch);
+      loginBtn.setAttribute('href', "../login.html?redirect=" + redirect);
+    }
+  } catch (e) {
+    // Fallback: safe redirect if overlay can't render
+    window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname || "buyer/messages.html");
+  }
+}
 
 // Get URL param (e.g. userId from view_profile Message link)
 function getUrlParam(name) {
@@ -2608,44 +2729,18 @@ async function initPage() {
   
   const targetUserId = getUrlParam('userId');
   
-  try {
-    // Load current user data first
-    await loadCurrentUserData();
-  } catch (e) {
-    debugLog('Load current user data error:', e);
-    currentUser.displayName = currentUser.displayName || currentUser.email || 'Buyer';
-  }
+  // Load current user data first
+  await loadCurrentUserData();
   
-  // Preload buyer KYC status (required to send messages)
-  try {
-    await isBuyerKycApproved();
-  } catch (e) {
-    debugLog('KYC check error:', e);
-    buyerKycApproved = false;
-  }
-  
-  // Show KYC required card when not verified (like broker - clear message, no redirect)
-  const kycCard = document.getElementById('kycRequiredCard');
-  const noticeEl = document.getElementById('noticeText');
-  if (buyerKycApproved) {
-    if (kycCard) kycCard.classList.remove('show');
-    if (noticeEl) noticeEl.textContent = `Logged in as: ${currentUser.displayName || currentUser.email}`;
-  } else {
-    if (kycCard) kycCard.classList.add('show');
-    if (noticeEl) noticeEl.innerHTML = 'KYC verification required to send messages. <a href="buyer-kyc.html">Complete verification</a> to message brokers.';
-  }
+  // Update notice text
+  document.getElementById('noticeText').textContent = 
+    `Logged in as: ${currentUser.displayName || currentUser.email}`;
   
   // Setup event listeners
   setupEventListeners();
   
-  // Load conversations (may be empty for new users - don't block page)
-  try {
-    await loadConversations();
-  } catch (e) {
-    debugLog('Load conversations error (new user?):', e);
-    const listEl = document.getElementById('conversationsList');
-    if (listEl) listEl.innerHTML = '<div class="empty-state"><p>No conversations yet. Complete KYC to message from property listings.</p></div>';
-  }
+  // Load conversations
+  await loadConversations();
   
   // If conversationId in URL, open that conversation (mobile deep link)
   if (conversationIdFromUrl && allConversations.length > 0) {
@@ -3424,17 +3519,8 @@ async function selectConversation(conversationId, brokerId, propertyId = null, s
     await loadPropertyData(propertyId);
   }
   
-  // Show chat input and apply KYC state (unverified buyers cannot send)
+  // Show chat input
   document.getElementById('chatInputContainer').style.display = 'block';
-  const chatInput = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('sendButton');
-  if (!buyerKycApproved) {
-    if (chatInput) { chatInput.disabled = true; chatInput.placeholder = 'Complete KYC verification to send messages'; }
-    if (sendBtn) sendBtn.disabled = true;
-  } else {
-    if (chatInput) { chatInput.disabled = false; chatInput.placeholder = 'Type your message…'; }
-    if (sendBtn) sendBtn.disabled = false;
-  }
   
   // Load messages for this conversation
   await loadMessages(conversationId, brokerId);
@@ -3762,30 +3848,6 @@ async function markConversationAsRead(conversationId) {
   }
 }
 
-// Buyer KYC: only approved buyers can send messages (same as property details contact)
-async function isBuyerKycApproved() {
-  if (!currentUser) return false;
-  if (buyerKycApproved !== null) return buyerKycApproved;
-  try {
-    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-    if (!userDoc.exists()) { buyerKycApproved = false; return false; }
-    const userData = userDoc.data();
-    const kycStatus = userData.kycStatus || 'not_submitted';
-    buyerKycApproved = (kycStatus === 'approved');
-    return buyerKycApproved;
-  } catch (e) {
-    debugLog('KYC check error:', e);
-    buyerKycApproved = false;
-    return false;
-  }
-}
-
-function showKYCRequiredForMessages() {
-  showError('KYC verification required to message. Complete verification in your account.');
-  const goKyc = confirm('You need to complete Buyer KYC verification before sending messages. Go to KYC page now?');
-  if (goKyc) window.location.href = 'buyer-kyc.html';
-}
-
 // Send message
 async function sendMessage() {
   const messageInput = document.getElementById('chatInput');
@@ -3794,11 +3856,6 @@ async function sendMessage() {
   
   if (!messageText || !currentBrokerId) {
     showError('Please select a conversation first');
-    return;
-  }
-  
-  if (!(await isBuyerKycApproved())) {
-    showKYCRequiredForMessages();
     return;
   }
   

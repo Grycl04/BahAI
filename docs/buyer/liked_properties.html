@@ -10,6 +10,7 @@
     <style>
         :root {
             --primary: #0b2e52;
+            --primary-gradient: linear-gradient(135deg, #0b2e52 0%, #1e3a5f 100%);
             --primary-dark: #071e38;
             --primary-light: #1e3a5f;
             --secondary: #d4af37;
@@ -983,9 +984,136 @@
                 padding: 0;
             }
         }
+
+        /* Guest access lock (saved properties require sign-in) */
+        .guest-lock {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 10050;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .guest-lock-card {
+            width: 100%;
+            max-width: 720px;
+            background: var(--bg-white, #ffffff);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            border: 1px solid rgba(229, 231, 235, 0.9);
+            padding: 22px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .guest-lock-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .guest-lock-text {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .guest-lock-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .guest-login-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 25px rgba(11, 46, 82, 0.2);
+        }
+
+        .guest-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(11, 46, 82, 0.25);
+        }
+
+        .guest-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid rgba(229, 231, 235, 1);
+            background: rgba(248, 250, 252, 1);
+            color: var(--text-dark);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.15s ease;
+        }
+
+        .guest-close-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .guest-back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            border: 1px solid rgba(229, 231, 235, 1);
+            background: transparent;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 800;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .guest-back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
     </style>
 </head>
 <body>
+    <!-- Guest access notifier (shown when not authenticated) -->
+    <div id="guestNotice" class="guest-lock" role="dialog" aria-modal="true" aria-labelledby="guestNoticeTitle">
+        <div class="guest-lock-card">
+            <button type="button" class="guest-close-btn" id="guestDismissBtn" aria-label="Dismiss guest notice">×</button>
+            <div class="guest-lock-title" id="guestNoticeTitle">You are browsing as a guest</div>
+            <div class="guest-lock-text">
+                Saved properties require you to login or sign up. Please sign in to continue.
+            </div>
+            <div class="guest-lock-actions">
+                <a id="guestLoginBtn" class="guest-login-btn" href="../login.html?redirect=buyer/liked_properties.html">
+                    <i class="fas fa-right-to-bracket"></i> Login
+                </a>
+                <button type="button" id="guestBackBtn" class="guest-back-btn" aria-label="Go back and continue browsing">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Menu Toggle -->
     <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
         <i class="fas fa-bars"></i>
@@ -1175,13 +1303,52 @@
         onAuthStateChanged(auth, async (user) => {
             if (typeof window.updateBuyerNavAuth === 'function') window.updateBuyerNavAuth(user);
             if (!user) {
-                window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname || "buyer/liked_properties.html");
+                // Keep guest on this page and show notifier instead of immediate redirect
+                showGuestNotice();
                 return;
             }
             
             console.log('User authenticated:', user.uid);
             await loadLikedProperties(user.uid);
         });
+
+        function showGuestNotice() {
+            try {
+                document.body.classList.add('guest-mode');
+                var overlay = document.getElementById('guestNotice');
+                if (overlay) overlay.style.display = 'flex';
+
+                var dismissAndGoBack = function() {
+                    try {
+                        var overlayEl = document.getElementById('guestNotice');
+                        if (overlayEl) overlayEl.style.display = 'none';
+                        if (window.history.length > 1) {
+                            window.history.back();
+                            return;
+                        }
+                    } catch (e) {}
+                    // Fallback destination
+                    window.location.href = '../buyer/buyer_dashboard.html';
+                };
+
+                var dismissBtn = document.getElementById('guestDismissBtn');
+                if (dismissBtn) dismissBtn.onclick = dismissAndGoBack;
+
+                var backBtn = document.getElementById('guestBackBtn');
+                if (backBtn) backBtn.onclick = dismissAndGoBack;
+
+                var loginBtn = document.getElementById('guestLoginBtn');
+                if (loginBtn) {
+                    var redirectPath = window.location.pathname || 'buyer/liked_properties.html';
+                    var redirectSearch = window.location.search || '';
+                    var redirect = encodeURIComponent(redirectPath + redirectSearch);
+                    loginBtn.setAttribute('href', '../login.html?redirect=' + redirect);
+                }
+            } catch (e) {
+                // Fallback: safe redirect if overlay can't render
+                window.location.href = "../login.html?redirect=" + encodeURIComponent(window.location.pathname || "buyer/liked_properties.html");
+            }
+        }
 
         // Main function to load liked properties
         async function loadLikedProperties(userId) {
