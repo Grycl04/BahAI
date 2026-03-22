@@ -229,6 +229,42 @@
       "intent": "buyer_login"
     },
     {
+      "text": "I already have an account where do I log in",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "where can i login",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "where can i log in",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "open login page",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "buyer portal login",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "log me in to buyer dashboard",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "how to access my buyer account",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "i have account i need to sign in",
+      "intent": "buyer_login"
+    },
+    {
+      "text": "existing account sign in",
+      "intent": "buyer_login"
+    },
+    {
       "text": "Buyer login help",
       "intent": "buyer_login"
     },
