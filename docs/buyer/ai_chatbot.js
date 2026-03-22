@@ -363,16 +363,21 @@ export async function processChatMessage(userMessage) {
             // Remove typing indicator first
             if (typingMessage) typingMessage.remove();
             
-            // Try alternative endpoint if the primary fails
-            const alternativeUrl = backendUrl.includes('localhost') 
-                ? "https://bahai.onrender.com/api/chat" 
-                : "http://localhost:10000/api/chat";
+            // Try alternative endpoint if local fails.
+            // In production, retry the same Render endpoint once (cold start can exceed initial timeout).
+            const isProductionBackend = !backendUrl.includes('localhost');
+            const alternativeUrl = isProductionBackend
+                ? backendUrl
+                : "https://bahai.onrender.com/api/chat";
             
             console.log("🔄 Trying alternative endpoint:", alternativeUrl);
             
             try {
                 const alternativeController = new AbortController();
-                const alternativeTimeout = setTimeout(() => alternativeController.abort(), 30000);
+                const alternativeTimeout = setTimeout(
+                    () => alternativeController.abort(),
+                    isProductionBackend ? 60000 : 30000
+                );
                 
                 const fallbackResponse = await fetch(alternativeUrl, {
                     method: 'POST',
@@ -397,19 +402,50 @@ export async function processChatMessage(userMessage) {
                 }
             } catch (fallbackError) {
                 console.error('❌ Fallback also failed:', fallbackError);
-                
-                // Use fallback response
-                const isProduction = !backendUrl.includes('localhost');
-                
-                data = {
-                    success: true,
-                    response: isProduction ? 
-                        `I received your query: **"${userMessage}"**\n\n📢 **The AI service is starting up...**\n\nThis is normal with free hosting - it takes 30-60 seconds for the first request.\n\n🔍 **While you wait, you can:**\n\n• **Use the search filters above** - Find properties by location, type, and price\n• **Browse by category** - Check out the property category cards below\n• **Try these quick searches:**\n  • "Apartments in Batangas City"\n  • "Houses under ₱3M"\n  • "Properties with 3 bedrooms"\n\n💡 **Tip:** The AI service will respond automatically once it's ready!` :
-                        `I received your query: **"${userMessage}"**\n\n❌ **Could not connect to local backend.**\n\nPlease make sure your Python backend is running on http://localhost:10000\n\n🔍 **Commands to start the backend:**\n\`\`\`bash\ncd your-backend-folder\npython app.py\n\`\`\``,
-                    properties: [],
-                    intent: 'fallback',
-                    properties_found: 0
-                };
+
+                // --- Layer 3 (optional): local backend when using deployed frontend ---
+                // Render cold start is fixed by retrying the same URL above; localhost does NOT wake Render.
+                // This attempt only helps when a presenter (or developer) runs the Python API on the same
+                // machine as the browser (e.g. demo: deployed site + local backend on port 10000).
+                const LOCAL_API_FALLBACK = 'http://localhost:10000/api/chat';
+                if (isProductionBackend) {
+                    try {
+                        const localController = new AbortController();
+                        const localTimeout = setTimeout(() => localController.abort(), 20000);
+                        const localRes = await fetch(LOCAL_API_FALLBACK, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(requestData),
+                            signal: localController.signal,
+                            mode: 'cors'
+                        });
+                        clearTimeout(localTimeout);
+                        if (localRes.ok) {
+                            const text = await localRes.text();
+                            const cleanText = text.replace(/undefined/g, 'null');
+                            data = JSON.parse(cleanText);
+                            console.log('✅ Connected to local backend fallback (demo / dev)');
+                        } else {
+                            throw new Error('Local fallback not ok');
+                        }
+                    } catch (localErr) {
+                        console.error('❌ Local fallback failed:', localErr);
+                        data = null;
+                    }
+                }
+
+                if (!data || typeof data.response === 'undefined') {
+                    const isProduction = isProductionBackend;
+                    data = {
+                        success: true,
+                        response: isProduction ?
+                            `I received your query: **"${userMessage}"**\n\n📢 **The AI service is still starting up on Render.**\n\nThis can happen on free hosting after inactivity (cold start). Please wait about 30-60 seconds and try again.\n\n🔍 **While you wait, you can:**\n\n• **Use the search filters above** - Find properties by location, type, and price\n• **Browse by category** - Check out the property category cards below\n• **Try these quick searches:**\n  • "Apartments in Batangas City"\n  • "Houses under ₱3M"\n  • "Properties with 3 bedrooms"` :
+                            `I received your query: **"${userMessage}"**\n\n❌ **Could not connect to local backend.**\n\nPlease make sure your Python backend is running on http://localhost:10000\n\n🔍 **Commands to start the backend:**\n\`\`\`bash\ncd your-backend-folder\npython app.py\n\`\`\``,
+                        properties: [],
+                        intent: 'fallback',
+                        properties_found: 0
+                    };
+                }
             }
         }
         

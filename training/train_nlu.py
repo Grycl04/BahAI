@@ -202,7 +202,12 @@ class TeamNLUTrainer:
     ],
     'buyer_login': [
         'login', 'sign in', 'log in', 'access account', 'buyer dashboard',
-        'mag login', 'pumasok sa account', 'sign in sa buyer'
+        'log into account', 'login page', 'where to login', 'where do i login',
+        'where can i log in', 'already have an account', 'existing account login',
+        'open my account', 'enter my account', 'access my dashboard',
+        'buyer portal login', 'member login', 'account sign in',
+        'how do i login', 'how can i login', 'how do i sign in',
+        'paano mag login', 'pumasok sa account', 'sign in sa buyer'
     ],
     'buyer_login_google': [
         'google login', 'google sign in', 'continue with google', 
@@ -650,6 +655,10 @@ class TeamNLUTrainer:
             ("how do i log in to my buyer account", "buyer_login"),
             ("i already have account how to sign in", "buyer_login"),
             ("where do i login", "buyer_login"),
+            ("where can i login", "buyer_login"),
+            ("where can i log in", "buyer_login"),
+            ("i already have an account where do i log in", "buyer_login"),
+            ("i have an account where can i sign in", "buyer_login"),
             ("access buyer dashboard login", "buyer_login"),
             ("log in existing account", "buyer_login"),
 
@@ -1379,6 +1388,15 @@ def create_additional_training_file(data_dir):
             {"text": "How to sign in", "intent": "buyer_login"},
             {"text": "How do I login to existing account", "intent": "buyer_login"},
             {"text": "I already have account where to login", "intent": "buyer_login"},
+            {"text": "I already have an account where do I log in", "intent": "buyer_login"},
+            {"text": "where can i login", "intent": "buyer_login"},
+            {"text": "where can i log in", "intent": "buyer_login"},
+            {"text": "open login page", "intent": "buyer_login"},
+            {"text": "buyer portal login", "intent": "buyer_login"},
+            {"text": "log me in to buyer dashboard", "intent": "buyer_login"},
+            {"text": "how to access my buyer account", "intent": "buyer_login"},
+            {"text": "i have account i need to sign in", "intent": "buyer_login"},
+            {"text": "existing account sign in", "intent": "buyer_login"},
             {"text": "Buyer login help", "intent": "buyer_login"},
             {"text": "Can't log in", "intent": "buyer_login_errors"},  # Note: different intent
             {"text": "Login problems", "intent": "buyer_login_errors"},  # Note: different intent
