@@ -716,6 +716,16 @@ def get_unintelligible_query_message(language: str) -> str:
     )
 
 
+# Single-letter / short “words” (j, r, opp) often get misclassified as about_system — allow only obvious tokens.
+_GIBBERISH_SHORT_OK_2 = frozenset({
+    'hi', 'ok', 'no', 'yo', 'po', 'oo', 'ho', 'eh', 'uh', 'ha', 'we', 'me', 'so', 'go', 'ma', 'pa',
+})
+_GIBBERISH_SHORT_OK_3 = frozenset({
+    'yes', 'yep', 'yup', 'nah', 'nope', 'nop', 'opo', 'hey', 'buy', 'how', 'why', 'who', 'map',
+    'lot', 'faq', 'kyc', 'bed', 'own', 'new', 'can', 'may', 'sir', 'any', 'all', 'one', 'two',
+})
+
+
 def is_gibberish_or_random_mash(query: str) -> bool:
     """
     Heuristic for keyboard mash / dummy text that the NLU often mislabels as about_system.
@@ -731,12 +741,29 @@ def is_gibberish_or_random_mash(query: str) -> bool:
         return False
 
     letters_only = re.sub(r'[^a-zA-Z]', '', raw.lower())
+    words = [w for w in raw.split() if w]
+    vowels = sum(1 for c in letters_only if c in 'aeiouy')
+
+    # One token only: catch single letters and 3-char mash (e.g. opp) that skip the longer-string rules
+    if len(words) == 1:
+        lo = letters_only
+        n = len(lo)
+        if n == 0:
+            # Punctuation-only or symbols — treat very short as noise
+            return len(raw) <= 3
+        if n == 1:
+            return True
+        if n == 2:
+            return lo not in _GIBBERISH_SHORT_OK_2
+        if n == 3:
+            return lo not in _GIBBERISH_SHORT_OK_3
+        if n == 4 and vowels == 0:
+            return True
+
     if len(letters_only) < 4:
         return False
 
-    vowels = sum(1 for c in letters_only if c in 'aeiouy')
     v_ratio = vowels / len(letters_only)
-    words = raw.split()
 
     # No vowels in a medium token = almost never a real English/Filipino word
     if len(letters_only) >= 5 and vowels == 0:
