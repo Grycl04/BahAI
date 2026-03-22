@@ -814,6 +814,60 @@ def _is_place_question(query: str) -> bool:
     return False
 
 
+_LIVABILITY_QUERY_PHRASES = (
+    'where to live',
+    'best place to live',
+    'best neighborhood',
+    'saan maganda tumira',
+    'magandang tirhan',
+    'magandang tirhan ba',
+    'where in batangas',
+    'where in lipa',
+)
+
+
+def _is_traffic_congestion_question(query: str) -> bool:
+    """
+    User is asking about traffic / trapik (where it's heavy, how roads are), not property search or 'where to live'.
+    """
+    q = (query or '').lower().strip()
+    if not re.search(r'\b(traffic|trapik)\b', q):
+        return False
+    if any(p in q for p in _LIVABILITY_QUERY_PHRASES):
+        return False
+    if re.search(
+        r'\b(properties|property|listings?|bahay|house|houses|condo|apartment|for sale|for rent|for lease|near hospital|near hospitals|near school|near mall)\b',
+        q,
+    ):
+        return False
+    if re.search(r'\b(find|search|show me|look for|hanap|maghanap)\b', q):
+        return False
+    return True
+
+
+def _traffic_in_batangas_brief(is_tl: bool) -> str:
+    """Static answer when we can't or shouldn't use live traffic APIs (works without AI keys)."""
+    if is_tl:
+        return (
+            "🚗 **Trapiko sa Batangas**\n\n"
+            "Walang real-time na traffic feed ang BahAI, pero ito ang **karaniwang pattern**:\n\n"
+            "• **Batangas City** — mataas ang volume palapit sa **port**, commercial centers, at major intersections lalo tuwing rush hour.\n"
+            "• **Lipa, Tanauan, Sto. Tomas** — busy sa umaga/hapon malapit sa **highways** (e.g. papuntang SLEX/STAR) at sa paligid ng schools/offices.\n"
+            "• **Coastal / tourism routes** (hal. papuntang beach areas) — mas siksikan weekends at holidays.\n\n"
+            "💡 Para sa **aktwal na sitwasyon ngayon**, gamitin ang **Google Maps** o **Waze**. "
+            "Kung naghahanap ka ng **property** malapit sa highway, school, o hospital, sabihin mo lang (hal. *hanap ng bahay sa Lipa malapit sa highway*)."
+        )
+    return (
+        "🚗 **Traffic in Batangas**\n\n"
+        "BahAI doesn’t have a live traffic feed, but **in general**:\n\n"
+        "• **Batangas City** — heavier around the **port**, downtown/commercial areas, and main intersections (especially rush hour).\n"
+        "• **Lipa, Tanauan, Sto. Tomas** — busy mornings/evenings near **major highways** (toward SLEX/STAR) and around schools/offices.\n"
+        "• **Coastal / resort routes** — busier on weekends and holidays.\n\n"
+        "💡 For **real-time conditions**, use **Google Maps** or **Waze**. "
+        "If you want a **property** near a highway, school, or hospital, say so (e.g. *find a house in Lipa near the highway*)."
+    )
+
+
 def get_out_of_scope_message(language: str) -> str:
     """Message when the user asks something not property-related."""
     if language == 'tl':
@@ -3787,7 +3841,12 @@ def _build_best_places_in_batangas(entities: Dict[str, Any], is_tl: bool) -> str
             return "🏘️ **Mga magandang lugar sa Batangas:**\n• Lipa City — malapit sa schools at family-friendly\n• Batangas City — urban amenities at port access\n• Tanauan City — malapit sa Metro Manila at Taal Lake"
         return "🏘️ **Best places to consider in Batangas:**\n• **Lipa City** — schools, family-friendly, cooler climate\n• **Batangas City** — urban amenities, port, universities\n• **Tanauan City** — near Metro Manila, Taal Lake views"
     if is_tl:
-        return "🏘️ **Mga magandang lugar sa Batangas (para sa pamilya o may anak):**\n\n" + "\n\n".join(lines) + "\n\n💡 Para sa detalye sa isang lugar, subukan: *'Tell me about Lipa City'* o *'About Batangas City'*."
+        header = (
+            "🏘️ **Mga magandang lugar sa Batangas (para sa pamilya o may anak):**\n\n"
+            if for_families
+            else "🏘️ **Mga magandang lugar sa Batangas:**\n\n"
+        )
+        return header + "\n\n".join(lines) + "\n\n💡 Para sa detalye sa isang lugar, subukan: *'Tell me about Lipa City'* o *'About Batangas City'*."
     return "🏘️ **Best places to live in Batangas:**\n\n" + "\n\n".join(lines) + "\n\n💡 For details on a specific area, try: *'Tell me about Lipa City'* or *'About Batangas City'*."
 
 
@@ -3798,7 +3857,12 @@ def render_intent_template(template: str, intent: str, entities: Dict[str, Any],
         return ""
 
     query_lower = str(entities.get('original_query', '')).lower()
-    livability_phrases = ['where to live', 'best place to live', 'best neighborhood', 'saan maganda tumira', 'magandang tirhan']
+    livability_phrases = list(_LIVABILITY_QUERY_PHRASES)
+
+    # Traffic / trapik questions — never fall through to city list or broken {placeholder} templates
+    if intent == 'location_info' and _is_traffic_congestion_question(str(entities.get('original_query', ''))):
+        oq = str(entities.get('original_query', ''))
+        return _traffic_in_batangas_brief(detect_language(oq) == 'tl')
 
     # For livability with a SPECIFIC location (e.g. "best place to live in Lipa City")
     if intent == 'location_info' and entities.get('location') and any(p in query_lower for p in livability_phrases):
@@ -3869,6 +3933,9 @@ def render_intent_template(template: str, intent: str, entities: Dict[str, Any],
     if '{' in response and '}' in response:
         is_tl = detect_language(str(entities.get('original_query', ''))) == 'tl'
         if intent == 'location_info':
+            oq_fb = str(entities.get('original_query', ''))
+            if _is_traffic_congestion_question(oq_fb):
+                return _traffic_in_batangas_brief(is_tl)
             if entities.get('location'):
                 response = build_best_places_to_live(entities['location'], {}, is_tl=is_tl)
             else:
@@ -3959,6 +4026,10 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     original_query = entities.get('original_query', '')
     language = detect_language(original_query)
     is_tl = language == 'tl'
+
+    # Traffic / trapik (e.g. "saan traffic sa batangas") — before templates so we never show "best places" list by mistake
+    if intent == 'location_info' and _is_traffic_congestion_question(str(original_query)):
+        return _traffic_in_batangas_brief(is_tl)
     
     # ========== HANDLE MEMBER3 INTENTS FIRST ==========
     if intent == 'find_property_for_need':
@@ -4533,7 +4604,7 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
     # Add location-specific information for location_info intent
     if intent == 'location_info' and entities.get('location'):
         location_query = str(entities.get('original_query', '')).lower()
-        livability_phrases = ['where to live', 'best place to live', 'best neighborhood', 'saan maganda tumira', 'magandang tirhan']
+        livability_phrases = list(_LIVABILITY_QUERY_PHRASES)
         location_name = entities['location']
         if any(p in location_query for p in livability_phrases):
             profile = {}
