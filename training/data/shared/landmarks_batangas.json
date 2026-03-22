@@ -1,6 +1,6 @@
 {
   "comment": "Landmarks for map-based 'near X' filtering. Property must have latitude/longitude (from map pin). Distance in km. Approximate coordinates for Batangas area.",
-  "radius_km": 5,
+  "radius_km": 2,
   "categories": {
     "school": {
       "keywords_for_description": ["school", "university", "college", "campus", "near school", "walking distance to school", "malapit sa school", "malapit sa university", "malapit sa college"],

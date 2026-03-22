@@ -1039,7 +1039,7 @@ async function loadNearbyLandmarkProof(map, latitude, longitude) {
   const proofEl = document.getElementById("nearbyProof");
   try {
     const buildNearbyUrl = (category, useStaticFallback) =>
-      `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(category)}&limit=200&max_distance_km=5&use_static_fallback=${useStaticFallback ? 1 : 0}`;
+      `${CHATBOT_BACKEND_URL}/api/nearby_landmarks?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&category=${encodeURIComponent(category)}&limit=200&max_distance_km=2&use_static_fallback=${useStaticFallback ? 1 : 0}`;
 
     // First try live places only, then retry with static fallback if needed.
     let response = await fetch(buildNearbyUrl(effectiveAmenityCategory, false));

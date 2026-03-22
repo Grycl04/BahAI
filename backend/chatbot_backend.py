@@ -2036,7 +2036,7 @@ def _landmark_matches_property(
     property_data: Dict[str, Any],
     landmark_query: str,
     landmarks_data: Dict[str, Any],
-    radius_km: float = 5.0
+    radius_km: float = 2.0
 ) -> bool:
     """
     True if property is considered 'near' the landmark.
@@ -4940,14 +4940,15 @@ def nearby_landmarks():
         limit = request.args.get('limit', default=120, type=int)
         limit = max(1, min(limit, 300))
         max_distance_raw = request.args.get('max_distance_km')
+        # Near amenities: default & max 2 km (was 5 km)
         if max_distance_raw is None or str(max_distance_raw).strip() == '':
-            max_distance_km = 5.0
+            max_distance_km = 2.0
         else:
             try:
                 parsed_distance = float(max_distance_raw)
-                max_distance_km = 5.0 if parsed_distance <= 0 else max(0.5, min(parsed_distance, 10.0))
+                max_distance_km = 2.0 if parsed_distance <= 0 else max(0.5, min(parsed_distance, 2.0))
             except (TypeError, ValueError):
-                max_distance_km = 5.0
+                max_distance_km = 2.0
         use_static_fallback_raw = (request.args.get('use_static_fallback', '1') or '1').strip().lower()
         use_static_fallback = use_static_fallback_raw in ['1', 'true', 'yes', 'y']
 
