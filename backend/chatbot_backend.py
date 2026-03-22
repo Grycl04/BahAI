@@ -1350,12 +1350,28 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
                 logger.info("📋 Ambiguous financing query - treating as INFORMATION REQUEST")
     
     # Detect listing type (for sale / for rent / for lease)
-    if 'for rent' in query_lower or 'rental' in query_lower:
-        entities['listing_type'] = 'rent'
-    elif 'for sale' in query_lower or 'buy' in query_lower:
-        entities['listing_type'] = 'sale'
-    elif 'for lease' in query_lower:
-        entities['listing_type'] = 'lease'
+    # Use RIGHTMOST phrase when the query combines turns (e.g. "for rent … for sale" → sale)
+    qnorm = query_lower.replace('for rents', 'for rent').replace('for sales', 'for sale')
+    pos_sale = qnorm.rfind('for sale')
+    pos_rent = qnorm.rfind('for rent')
+    pos_lease = qnorm.rfind('for lease')
+    pos_rental = qnorm.rfind('rental') if 'rental' in qnorm else -1
+    buy_matches = list(re.finditer(r'\bbuy\b', qnorm))
+    pos_buy = buy_matches[-1].start() if buy_matches else -1
+    candidates = [
+        (pos_sale, 'sale'),
+        (pos_rent, 'rent'),
+        (pos_lease, 'lease'),
+        (pos_rental, 'rent'),
+        (pos_buy, 'sale'),
+    ]
+    best_pos, best_lt = -1, None
+    for pos, lt in candidates:
+        if pos >= 0 and pos >= best_pos:
+            best_pos = pos
+            best_lt = lt
+    if best_lt:
+        entities['listing_type'] = best_lt
 
     # Property category detection (residential, commercial, land, special purpose)
     # Only set if no specific property_type already set from a more specific phrase
@@ -1416,6 +1432,7 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'mabini': 'Mabini',
         'malvar': 'Malvar',
         'bauan': 'Bauan',
+        'bauana': 'Bauan',  # common typo
         'balayan': 'Balayan',
         'san juan': 'San Juan',
         'sto tomas': 'Sto. Tomas City', 'santo tomas': 'Sto. Tomas City',
@@ -1446,17 +1463,26 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         'calaca': 'Calaca'
     }
     
-    for location_key, location_value in batangas_locations.items():
-        # Check for exact match first
-        if location_key in query_lower:
-            entities['location'] = location_value
-            has_specific_location = True
-            break
-        # Also check if location is a standalone word (with word boundaries)
-        elif re.search(r'\b' + re.escape(location_key) + r'\b', query_lower):
-            entities['location'] = location_value
-            has_specific_location = True
-            break
+    # Prefer the RIGHTMOST matching place when the query combines context, e.g.
+    # previous "lipa" + "tell me about bauan" → must resolve to Bauan, not Lipa.
+    best_loc_end = -1
+    best_loc_key_len = -1
+    best_loc_value = None
+    for location_key, location_value in sorted(
+        batangas_locations.items(),
+        key=lambda kv: (-len(kv[0]), kv[0]),
+    ):
+        pattern = r'\b' + re.escape(location_key) + r'\b'
+        for m in re.finditer(pattern, query_lower):
+            epos = m.end()
+            klen = len(location_key)
+            if epos > best_loc_end or (epos == best_loc_end and klen > best_loc_key_len):
+                best_loc_end = epos
+                best_loc_key_len = klen
+                best_loc_value = location_value
+    if best_loc_value is not None:
+        entities['location'] = best_loc_value
+        has_specific_location = True
     
     # ========== FEATURE DETECTION ==========
     feature_keywords = {
@@ -4390,7 +4416,9 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         }
     
     # Try to find matching template from training data
-    if training_data and 'training_samples' in training_data:
+    # location_info: NEVER use training samples here — samples embed one city's text (e.g. Lipa) in
+    # sample_data while {location} may come from entities (e.g. Bauan), producing wrong copy.
+    if training_data and 'training_samples' in training_data and intent != 'location_info':
         # Look for samples with matching intent
         matching_samples = [s for s in training_data['training_samples'] if s.get('intent') == intent]
         
@@ -5057,13 +5085,24 @@ def chat():
         effective_query = query
         if previous_query and previous_entities and len(query.split()) <= 6:
             q_lower = query.lower()
+            # New question about a place — do not prepend previous turn (would break e.g. Lipa → "tell me about Bauan")
+            is_new_location_question = any(
+                p in q_lower for p in [
+                    'tell me about', 'what is ', 'what\'s ', 'information about',
+                    'describe ', 'details about', 'about the ', 'ano ang ', 'tungkol sa ',
+                    'kwento tungkol', 'impormasyon tungkol',
+                ]
+            )
             # Refinement patterns: location only, price only, property type only, or "in X"
             is_refinement = (
-                any(loc in q_lower for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan', 'city']) or
-                re.search(r'\bunder\s+[\d.]+\s*m\b|\bunder\s+\d+', q_lower) or
-                re.search(r'\b(under|below|max)\s+[\d.,]+\s*(m|million|m)\b', q_lower) or
-                q_lower.strip() in ('apartments', 'houses', 'condos', 'for rent', 'for sale') or
-                q_lower.startswith('in ') or q_lower.startswith('with ')
+                not is_new_location_question
+                and (
+                    any(loc in q_lower for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan', 'city']) or
+                    re.search(r'\bunder\s+[\d.]+\s*m\b|\bunder\s+\d+', q_lower) or
+                    re.search(r'\b(under|below|max)\s+[\d.,]+\s*(m|million|m)\b', q_lower) or
+                    q_lower.strip() in ('apartments', 'houses', 'condos', 'for rent', 'for sale') or
+                    q_lower.startswith('in ') or q_lower.startswith('with ')
+                )
             )
             if is_refinement:
                 effective_query = (previous_query + ' ' + query).strip()
@@ -5308,6 +5347,27 @@ def chat():
                     logger.info("🛑 about_system without explicit platform question → out_of_scope")
                     intent = 'out_of_scope'
                     confidence = 0.99
+
+        # "bauan" / "lipa" alone — NLU sometimes returns about_system; treat like a place search, not product intros
+        raw_l_place = raw_user_message.strip().lower()
+        asks_place_description = any(
+            p in raw_l_place for p in [
+                'tell me about', 'what is ', 'what\'s ', 'information about',
+                'describe ', 'details about', 'ano ang ', 'tungkol sa ',
+            ]
+        )
+        if (
+            intent in ('about_system', 'greeting', 'help', 'unknown')
+            and not forced_unintelligible
+            and entities.get('location')
+            and not asks_place_description
+            and not query_explicitly_asks_about_bahai_platform(raw_user_message)
+            and len(raw_user_message.split()) <= 3
+        ):
+            _prev_intent = intent
+            intent = 'find_property'
+            confidence = max(confidence, 0.95)
+            logger.info(f"🛑 Short place-only message → find_property (was {_prev_intent})")
 
         # Location-only follow-up fix: e.g. user said "sa tanauan" after "sa lipa"; combined query "sa lipa sa tanauan" would match Lipa first. Use new location from current message only and keep previous criteria (house, 3 bedrooms).
         if previous_entities and len(raw_user_message.split()) <= 6:
