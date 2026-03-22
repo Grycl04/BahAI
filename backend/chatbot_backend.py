@@ -746,16 +746,67 @@ def query_explicitly_asks_about_bahai_platform(query: str) -> bool:
     return False
 
 
+def is_assistant_identity_question(query: str) -> bool:
+    """
+    True when the user asks who/what *you* (the assistant) are — not brokers, not the company abstractly.
+    Used so we don't random_pick a generic 'What is BahAI?' template for 'who are you' / 'sino ka'.
+    """
+    q = (query or '').lower().strip()
+    if not q:
+        return False
+    if re.search(r'\bwho are the (brokers|agents|landlords)\b', q):
+        return False
+    if re.search(r'\bsino\s+sino\s+ang\s+mga\s+(broker|agent|landlord)', q):
+        return False
+    if re.search(r'\bwho are you\b', q):
+        return True
+    if re.search(r'\bwhat are you\b', q) and not re.search(
+        r'\bwhat are you\s+(doing|selling|looking|wearing|eating|working)\b', q
+    ):
+        return True
+    if re.search(r'\bsino\s+ka(\s+po)?\b', q) or re.search(r'\bsino(\s+po)?\s+kayo\b', q):
+        return True
+    return False
+
+
+def _is_standalone_livability_or_traffic_query(query: str) -> bool:
+    """
+    True when the current message is about traffic/weather/flooding etc., not a refinement of a prior property search.
+    Prevents merging e.g. 'Properties near hospitals' + 'saan traffic sa batangas' into one bogus search query.
+    """
+    q = (query or '').lower().strip()
+    if len(q) < 4:
+        return False
+    if re.search(r'\b(find|search|show me|look for|hanap|maghanap|need properties|need a house)\b', q):
+        return False
+    if re.search(r'\b(traffic|trapik)\b', q):
+        return True
+    if re.search(r'\bsaan\s+(ang\s+)?(traffic|trapik)\b|\bsaan\s+may\s+(traffic|trapik)\b|\bsaan\s+madalas\s+(ang\s+)?traffic', q):
+        return True
+    if re.search(r'\bweather\b|\bpanahon\b|\bpagbaha\b|\bbaha\b|\bpollution\b|\bcrowded\b', q) and not re.search(
+        r'\b(property|properties|listing|bahay|apartment|condo|for sale|for rent)\b', q
+    ):
+        return True
+    return False
+
+
 def _is_place_question(query: str) -> bool:
     """True if the user is asking a specific question about a place (traffic, weather, safety, etc.) that we may not have in the dataset."""
     if not query or len(query.strip()) < 5:
         return False
     q = query.lower().strip()
     place_question_starts = ('is it ', 'is there ', 'how is ', 'how\'s the ', 'how\'s ', 'how is the ', 'what about ', 'is lipa ', 'is batangas ')
-    place_question_any = ('traffic', 'safe', 'weather', 'noisy', 'quiet', 'expensive', 'affordable', 'crowded', 'flood', 'flooding', 'pollution', 'clean', 'good to live', 'nice to live', 'maganda ba', 'safe ba', 'traffic ba')
+    place_question_any = (
+        'traffic', 'trapik', 'safe', 'weather', 'noisy', 'quiet', 'expensive', 'affordable', 'crowded',
+        'flood', 'flooding', 'pollution', 'clean', 'good to live', 'nice to live',
+        'maganda ba', 'safe ba', 'traffic ba', 'trapik ba', 'panahon',
+    )
     has_location = any(loc in q for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan', 'calatagan', 'mabini'])
     if not has_location:
         return False
+    # Tagalog: "saan traffic sa batangas", "saan madalas trapik"
+    if re.search(r'\bsaan\s+.*\b(traffic|trapik)\b', q):
+        return True
     if any(q.startswith(s) for s in place_question_starts):
         return True
     if any(p in q for p in place_question_any) and not any(v in q for v in ['find', 'search', 'show me', 'look for', 'property', 'properties', 'house', 'apartment', 'condo', 'rent', 'buy', 'available']):
@@ -4029,6 +4080,25 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         if 'sino sino ang mga agent' in original_query or 'who are the agents' in original_query or 'list of agents' in original_query:
             return generate_roles_list_response(language, roles=['agent'])
 
+        # "Who are you?" / "Sino ka?" — always introduce the assistant, not a random about_system variant
+        if is_assistant_identity_question(original_query):
+            if is_tl:
+                return (
+                    "🏠 **BahAI – Property Assistant mo sa Batangas**\n\n"
+                    "Ako ang AI chatbot sa BahAI — ang property assistant mo dito. "
+                    "Tinutulungan kitang maghanap at mag-explore ng properties sa Batangas, "
+                    "sumagot tungkol sa financing at KYC, at gabayan ka sa paggamit ng platform "
+                    "(dashboard, recommendations, messages, saved properties).\n\n"
+                    "Hindi ako broker o tao; automated assistant ako na kumokonekta sa tunay na listings sa BahAI."
+                )
+            return (
+                "🏠 **BahAI – Your Batangas Property Assistant**\n\n"
+                "I’m the AI chatbot inside BahAI — your property assistant here. "
+                "I help you search and explore listings in Batangas, answer questions about financing and KYC, "
+                "and guide you through the platform (dashboard, recommendations, messages, saved properties).\n\n"
+                "I’m not a human broker; I’m an automated assistant that works with real listings on BahAI."
+            )
+
         # Use one of several short templates so answers vary (like greetings)
         dataset_template = _get_intent_template('about_system', is_tl, random_choice=True)
         if dataset_template:
@@ -5094,9 +5164,12 @@ def chat():
                     'kwento tungkol', 'impormasyon tungkol',
                 ]
             )
+            # Traffic/weather/etc. — never append to previous turn (would mix with "near hospitals" searches)
+            is_standalone_livability = _is_standalone_livability_or_traffic_query(q_lower)
             # Refinement patterns: location only, price only, property type only, or "in X"
             is_refinement = (
                 not is_new_location_question
+                and not is_standalone_livability
                 and (
                     any(loc in q_lower for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan', 'city']) or
                     re.search(r'\bunder\s+[\d.]+\s*m\b|\bunder\s+\d+', q_lower) or
@@ -5284,11 +5357,20 @@ def chat():
                         logger.info(f"⚠️ FORCE OVERRIDE: Property inventory question (is there land/listings…), changing intent from {intent} to find_property")
                     intent = 'find_property'
                     confidence = 0.99
-                # Place question: "is it traffic in lipa?", "how's the weather in Batangas?" -> answer the question, don't show properties
+                # Place question: "is it traffic in lipa?", "saan traffic sa batangas?" -> answer the question, don't show properties
                 place_question_starts = ('is it ', 'is there ', 'how is ', 'how\'s the ', 'how\'s ', 'how is the ', 'what about ', 'is lipa ', 'is batangas ')
-                place_question_any = ('traffic', 'safe', 'weather', 'noisy', 'quiet', 'expensive', 'affordable', 'crowded', 'flood', 'flooding', 'pollution', 'clean', 'good to live', 'nice to live')
-                has_place_q = any(query_lower.strip().startswith(s) for s in place_question_starts) or \
-                    any(p in query_lower for p in place_question_any) and any(loc in query_lower for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan'])
+                place_question_any = (
+                    'traffic', 'trapik', 'safe', 'weather', 'noisy', 'quiet', 'expensive', 'affordable', 'crowded',
+                    'flood', 'flooding', 'pollution', 'clean', 'good to live', 'nice to live', 'panahon',
+                )
+                has_place_q = (
+                    bool(re.search(r'\bsaan\s+.*\b(traffic|trapik)\b', query_lower))
+                    or any(query_lower.strip().startswith(s) for s in place_question_starts)
+                    or (
+                        any(p in query_lower for p in place_question_any)
+                        and any(loc in query_lower for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan'])
+                    )
+                )
                 # Do NOT treat as place/weather if user is asking about listings (e.g. "is there lands for sale")
                 mentions_property_inventory = (
                     any(p in query_lower for p in ['for sale', 'for rent', 'for lease']) or
