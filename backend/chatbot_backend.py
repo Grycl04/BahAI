@@ -703,6 +703,56 @@ def get_out_of_scope_message(language: str) -> str:
     )
 
 
+def get_unintelligible_query_message(language: str) -> str:
+    """Random letters / keyboard mash — not a real question (do not show about_system templates)."""
+    if language == 'tl':
+        return (
+            "Hindi ko maintindihan ang mensahe. Paki-type ng malinaw na tanong tungkol sa property "
+            "(hal. *hanap ng bahay sa Lipa*, *presyo*, o *Ano ang BahAI?*)."
+        )
+    return (
+        "I couldn’t understand that—it doesn’t look like a real question. "
+        "Please ask something clear about properties or the platform (e.g. *find a house in Lipa*, *What is BahAI?*)."
+    )
+
+
+def is_gibberish_or_random_mash(query: str) -> bool:
+    """
+    Heuristic for keyboard mash / dummy text that the NLU often mislabels as about_system.
+    """
+    if not query or not isinstance(query, str):
+        return False
+    raw = query.strip()
+    if len(raw) > 200:
+        return False
+    if re.search(r'https?://|@|\S+@\S+\.', raw):
+        return False
+    if re.search(r'\d{3,}', raw) and sum(c.isdigit() for c in raw) / max(len(raw), 1) > 0.4:
+        return False
+
+    letters_only = re.sub(r'[^a-zA-Z]', '', raw.lower())
+    if len(letters_only) < 4:
+        return False
+
+    vowels = sum(1 for c in letters_only if c in 'aeiouy')
+    v_ratio = vowels / len(letters_only)
+    words = raw.split()
+
+    # No vowels in a medium token = almost never a real English/Filipino word
+    if len(letters_only) >= 5 and vowels == 0:
+        return True
+    # One “word”, mostly consonants (catches rgtryhth, vdfgrd with stray y)
+    if len(words) == 1 and len(letters_only) >= 6 and v_ratio < 0.22:
+        return True
+    if len(letters_only) >= 8 and v_ratio < 0.18:
+        return True
+    if len(letters_only) >= 6 and len(set(letters_only)) <= 3:
+        return True
+    if re.search(r'[bcdfghjklmnpqrstvwxyz]{6,}', letters_only):
+        return True
+    return False
+
+
 def _ai_fallback_system_prompt(language: str) -> str:
     """Shared system prompt for Groq/OpenAI fallback. Limits answers to property/real estate only."""
     lang_instruction = "Reply in Tagalog if the user wrote in Tagalog; otherwise in English."
@@ -718,19 +768,49 @@ def _ai_fallback_system_prompt(language: str) -> str:
     )
 
 
-def call_groq_fallback(user_query: str, language: str = 'en') -> str:
+def _gibberish_ai_system_prompt(language: str) -> str:
+    """
+    When heuristic marks input as gibberish, Groq/OpenAI crafts a short reply:
+    out of scope + invite real estate questions (no need to enumerate every mash string in training).
+    """
+    if language == 'tl':
+        return (
+            "Ikaw ang AI assistant ng BahAI — isang real estate platform sa Batangas. "
+            "Ang mensahe ng user ay mukhang random na letra, keyboard mash, o hindi tunay na tanong (hindi maintindihan). "
+            "Sumagot nang maikli (2–4 pangungusap), magalang. Sabihing hindi mo maintindihan ang input, "
+            "at ang BahAI ay tumutulong lamang sa mga tanong tungkol sa properties, presyo/lokasyon, financing, KYC/messaging, o paggamit ng platform. "
+            "Anyayahan silang magtanong tungkol sa bahay, condo, lupa, o lugar sa Batangas. "
+            "Wag gumawa ng pekeng listings o presyo."
+        )
+    return (
+        "You are the BahAI assistant for a Batangas-focused real estate platform. "
+        "The user's message appears to be random letters, keyboard mash, or not a real question (unintelligible). "
+        "Reply in 2–4 short, friendly sentences. Say politely that you couldn't understand their message, "
+        "and that BahAI only helps with real estate: searching properties, locations in Batangas, financing, KYC/messaging, or how to use the platform. "
+        "Invite them to ask a clear question about houses, condos, land, or areas in Batangas. "
+        "Do not invent listings or prices."
+    )
+
+
+def call_groq_fallback(
+    user_query: str,
+    language: str = 'en',
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 400,
+    temperature: float = 0.5,
+) -> str:
     """Call Groq API (free tier). Same request shape as OpenAI. Raises on failure."""
     if not GROQ_API_KEY:
         raise ValueError("GROQ_API_KEY not set")
-    system_content = _ai_fallback_system_prompt(language)
+    system_content = system_prompt if system_prompt is not None else _ai_fallback_system_prompt(language)
     payload = {
         "model": GROQ_MODEL,
         "messages": [
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_query}
         ],
-        "max_tokens": 400,
-        "temperature": 0.5
+        "max_tokens": max_tokens,
+        "temperature": temperature
     }
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -748,19 +828,25 @@ def call_groq_fallback(user_query: str, language: str = 'en') -> str:
     return content.strip() or "I couldn't generate a reply for that. Try asking about properties or how to contact agents."
 
 
-def call_openai_fallback(user_query: str, language: str = 'en') -> str:
+def call_openai_fallback(
+    user_query: str,
+    language: str = 'en',
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 400,
+    temperature: float = 0.5,
+) -> str:
     """Call OpenAI Chat API. Uses OPENAI_API_KEY. Raises on failure."""
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY not set")
-    system_content = _ai_fallback_system_prompt(language)
+    system_content = system_prompt if system_prompt is not None else _ai_fallback_system_prompt(language)
     payload = {
         "model": "gpt-3.5-turbo",
         "messages": [
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_query}
         ],
-        "max_tokens": 400,
-        "temperature": 0.5
+        "max_tokens": max_tokens,
+        "temperature": temperature
     }
     headers = {
         "Authorization": f"Bearer {OPENAI_API_KEY}",
@@ -789,6 +875,34 @@ def call_ai_fallback(user_query: str, language: str = 'en') -> str:
     if OPENAI_API_KEY:
         try:
             return call_openai_fallback(user_query, language)
+        except Exception as e:
+            errors.append(f"OpenAI: {e}")
+    if errors:
+        raise RuntimeError("; ".join(errors))
+    raise ValueError("No AI fallback key set (GROQ_API_KEY or OPENAI_API_KEY)")
+
+
+def call_ai_gibberish_response(user_query: str, language: str = 'en') -> str:
+    """
+    Groq (then OpenAI) generates a short 'unintelligible / out of scope' reply focused on real estate.
+    Used when is_gibberish_or_random_mash() fires — no need to train every possible mash string.
+    """
+    sys_p = _gibberish_ai_system_prompt(language)
+    errors: List[str] = []
+    if GROQ_API_KEY:
+        try:
+            return call_groq_fallback(
+                user_query, language,
+                system_prompt=sys_p, max_tokens=220, temperature=0.35,
+            )
+        except Exception as e:
+            errors.append(f"Groq: {e}")
+    if OPENAI_API_KEY:
+        try:
+            return call_openai_fallback(
+                user_query, language,
+                system_prompt=sys_p, max_tokens=220, temperature=0.35,
+            )
         except Exception as e:
             errors.append(f"OpenAI: {e}")
     if errors:
@@ -3813,6 +3927,15 @@ def generate_response(intent: str, entities: Dict[str, Any], properties: List[Di
         return about_response
 
     elif intent == 'out_of_scope':
+        if entities.get('unintelligible_query'):
+            # Groq/OpenAI crafts the reply (heuristic only flags gibberish; we don't train every mash string)
+            uq = str(entities.get('original_query') or original_query or '').strip()
+            if GROQ_API_KEY or OPENAI_API_KEY:
+                try:
+                    return call_ai_gibberish_response(uq or '(empty)', language)
+                except Exception as e:
+                    logger.warning(f"Gibberish AI reply failed: {e}, using static message")
+            return get_unintelligible_query_message(language)
         dataset_template = _get_intent_template('out_of_scope', is_tl, random_choice=False)
         if dataset_template:
             return dataset_template
@@ -4850,6 +4973,7 @@ def chat():
         logger.info(f"💬 Query: '{query}'")
         
         # Step 1: Predict intent
+        forced_unintelligible = False
         intent = "unknown"
         confidence = 0.0
         
@@ -5044,10 +5168,19 @@ def chat():
         else:
             # Model not loaded - use fallback
             intent = determine_intent_fallback(query)
+
+        # Keyboard mash / dummy letters → never use about_system templates
+        if is_gibberish_or_random_mash(query):
+            logger.info(f"🛑 Unintelligible / gibberish → out_of_scope (was {intent})")
+            intent = 'out_of_scope'
+            confidence = 0.99
+            forced_unintelligible = True
         
         # Step 2: Extract entities
         entities = extract_entities_from_query(query)
         entities['original_query'] = query
+        if forced_unintelligible:
+            entities['unintelligible_query'] = True
         # Location-only follow-up fix: e.g. user said "sa tanauan" after "sa lipa"; combined query "sa lipa sa tanauan" would match Lipa first. Use new location from current message only and keep previous criteria (house, 3 bedrooms).
         if previous_entities and len(raw_user_message.split()) <= 6:
             r_lower = raw_user_message.lower()
