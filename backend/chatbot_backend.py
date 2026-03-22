@@ -5218,11 +5218,25 @@ def chat():
                         logger.info(f"⚠️ FORCE OVERRIDE: Amenity/feature query detected, changing intent from {intent} to find_with_feature")
                     intent = 'find_with_feature'
                     confidence = 0.99
-                # "for sale properties", "for rent", "properties for sale" -> find_property (not location_info)
+                # "for sale properties", "for rent", "lands for sale", etc. -> find_property (not location_info)
                 elif any(phrase in query_lower for phrase in ['for sale', 'for rent', 'for lease']) and \
-                     any(w in query_lower for w in ['propert', 'listing', 'listings', 'house', 'houses', 'apartment', 'condo']):
+                     any(w in query_lower for w in [
+                         'propert', 'listing', 'listings', 'house', 'houses', 'apartment', 'condo',
+                         'land', 'lands', 'lot', 'lots', 'bahay', 'lupa', 'warehouse', 'townhouse', 'commercial',
+                     ]):
                     if intent != 'find_property':
                         logger.info(f"⚠️ FORCE OVERRIDE: Listing-type search (for sale/rent/lease) detected, changing intent from {intent} to find_property")
+                    intent = 'find_property'
+                    confidence = 0.99
+                # "is there any land / listings / properties ..." — inventory question, not traffic/weather
+                elif re.search(r'\b(is there|are there|do you have)\b', query_lower) and any(
+                    re.search(rf'\b{re.escape(w)}\b', query_lower) for w in [
+                        'land', 'lands', 'lot', 'lots', 'property', 'properties', 'listing', 'listings',
+                        'house', 'houses', 'condo', 'apartment', 'warehouse', 'townhouse', 'subdivision',
+                    ]
+                ):
+                    if intent != 'find_property':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Property inventory question (is there land/listings…), changing intent from {intent} to find_property")
                     intent = 'find_property'
                     confidence = 0.99
                 # Place question: "is it traffic in lipa?", "how's the weather in Batangas?" -> answer the question, don't show properties
@@ -5230,7 +5244,17 @@ def chat():
                 place_question_any = ('traffic', 'safe', 'weather', 'noisy', 'quiet', 'expensive', 'affordable', 'crowded', 'flood', 'flooding', 'pollution', 'clean', 'good to live', 'nice to live')
                 has_place_q = any(query_lower.strip().startswith(s) for s in place_question_starts) or \
                     any(p in query_lower for p in place_question_any) and any(loc in query_lower for loc in ['lipa', 'batangas', 'tanauan', 'nasugbu', 'malvar', 'sto tomas', 'bauan'])
-                if has_place_q and not any(v in query_lower for v in ['find', 'search', 'show me', 'look for', 'property', 'properties', 'house', 'apartment', 'condo', 'rent', 'buy']):
+                # Do NOT treat as place/weather if user is asking about listings (e.g. "is there lands for sale")
+                mentions_property_inventory = (
+                    any(p in query_lower for p in ['for sale', 'for rent', 'for lease']) or
+                    any(re.search(rf'\b{re.escape(w)}\b', query_lower) for w in [
+                        'land', 'lands', 'lot', 'lots', 'property', 'properties', 'listing', 'listings',
+                        'house', 'houses', 'condo', 'apartment', 'warehouse', 'townhouse', 'subdivision', 'bahay', 'lupa',
+                    ])
+                )
+                if has_place_q and not mentions_property_inventory and not any(v in query_lower for v in [
+                    'find', 'search', 'show me', 'look for', 'buy',
+                ]):
                     if intent != 'location_info':
                         logger.info(f"⚠️ FORCE OVERRIDE: Place question detected (e.g. traffic/weather/safety), changing intent from {intent} to location_info")
                     intent = 'location_info'
