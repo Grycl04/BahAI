@@ -5148,8 +5148,43 @@ def chat():
                     intent = 'about_system'
                     confidence = 0.99
 
+                # How to log in (Tagalog) — NLU often mislabels as buyer_guest_access
+                if re.search(
+                    r'(paano|pano)\s+(mag\s*login|maglogin|mag\-login)\b|'
+                    r'how\s+(to|do\s+i)\s+(log\s+in|login)\b|'
+                    r'\bbuyer\s+login\b|'
+                    r'paano\s+pumasok(?:\s+sa)?(?:\s+account)?|'
+                    r'saan\s+(ako\s+)?(pwedeng\s+)?(mag\s*login|maglogin)\b',
+                    query_lower,
+                ) and not re.search(r'\b(for sale|for rent|for lease)\b', query_lower):
+                    if intent != 'buyer_login':
+                        logger.info(f"⚠️ FORCE OVERRIDE: Login how-to → buyer_login (was {intent})")
+                    intent = 'buyer_login'
+                    confidence = 0.99
+                # Listing type + optional budget — beats buyer_* when context/session bleeds (e.g. after signup)
+                elif re.search(r'\b(for sale|for rent|for lease)\b', query_lower) or (
+                    re.search(r'\b(below|under|less than|above|over|maximum|max|up to|at least)\b', query_lower)
+                    and re.search(r'[\d.]+', query_lower)
+                    and re.search(
+                        r'\b(house|houses|condo|condos|apartment|apartments|land|lots?|property|properties|bahay|lupa|commercial|studio|room)\b',
+                        query_lower,
+                    )
+                ):
+                    has_crit = bool(
+                        (
+                            re.search(r'\b(below|under|less than|above|over|maximum|max|up to|at least)\b', query_lower)
+                            and re.search(r'[\d.]+', query_lower)
+                        )
+                        or re.search(r'\b\d+\s*(bed|bedroom|br)\b', query_lower)
+                    )
+                    new_int = 'find_property_with_criteria' if has_crit else 'find_property'
+                    if intent != new_int:
+                        logger.info(f"⚠️ FORCE OVERRIDE: Listing/criteria search → {new_int} (was {intent})")
+                    intent = new_int
+                    confidence = 0.99
+
                 # Buyer auth/account overrides (higher priority than model confusion)
-                if any(phrase in query_lower for phrase in [
+                elif any(phrase in query_lower for phrase in [
                     'sign up requirements', 'what do i need to sign up',
                     'requirements for sign up', 'ano requirements para mag sign up',
                     'anong kailangan para mag sign up'
@@ -5174,11 +5209,20 @@ def chat():
                         logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_signup_phone")
                     intent = 'buyer_signup_phone'
                     confidence = 0.99
-                elif any(phrase in query_lower for phrase in [
-                    'how to sign up', 'sign up', 'signup', 'register', 'create account',
-                    'create buyer account', 'buyer registration', 'paano mag sign up',
-                    'paano gumawa ng account', 'magparehistro', 'gusto ko mag sign up'
-                ]):
+                elif (
+                    not re.search(r'\b(for sale|for rent|for lease)\b', query_lower)
+                    and (
+                        any(phrase in query_lower for phrase in [
+                            'how to sign up', 'create buyer account', 'buyer registration',
+                            'paano mag sign up', 'paano gumawa ng account', 'magparehistro',
+                            'gusto ko mag sign up', 'sign up buyer', 'become a buyer', 'register as buyer',
+                        ])
+                        or re.search(r'\bsignup\b', query_lower)
+                        or re.search(r'\bregister\b', query_lower)
+                        or re.search(r'\bcreate\s+account\b', query_lower)
+                        or re.search(r'\bsign\s+up\b', query_lower)
+                    )
+                ):
                     if intent != 'buyer_signup':
                         logger.info(f"⚠️ FORCE OVERRIDE: Changing intent from {intent} to buyer_signup")
                     intent = 'buyer_signup'
@@ -5701,18 +5745,38 @@ def determine_intent_fallback(query: str) -> str:
         return 'buyer_signup_phone'
 
     if any(phrase in query_lower for phrase in [
-        'how to sign up', 'sign up', 'signup', 'register', 'create account',
-        'sign up buyer', 'buyer sign up', 'create buyer account',
-        'become a buyer', 'register as buyer', 'buyer registration',
-        'paano mag sign up', 'paano gumawa ng account', 'magparehistro'
-    ]):
-        return 'buyer_signup'
-
-    if any(phrase in query_lower for phrase in [
         'buyer login', 'login to buyer', 'sign in buyer',
         'log in as buyer', 'buyer sign in'
-    ]):
+    ]) or re.search(
+        r'(paano|pano)\s+(mag\s*login|maglogin|mag\-login)\b|'
+        r'how\s+(to|do\s+i)\s+(log\s+in|login)\b|'
+        r'paano\s+pumasok(?:\s+sa)?(?:\s+account)?|'
+        r'saan\s+(ako\s+)?(pwedeng\s+)?(mag\s*login|maglogin)\b',
+        query_lower,
+    ):
         return 'buyer_login'
+
+    if (
+        not re.search(r'\b(for sale|for rent|for lease)\b', query_lower)
+        and (
+            any(phrase in query_lower for phrase in [
+                'how to sign up', 'sign up buyer', 'buyer sign up', 'create buyer account',
+                'become a buyer', 'register as buyer', 'buyer registration',
+                'paano mag sign up', 'paano gumawa ng account', 'magparehistro',
+            ])
+            or re.search(r'\bsignup\b', query_lower)
+            or re.search(r'\bregister\b', query_lower)
+            or re.search(r'\bcreate\s+account\b', query_lower)
+            or re.search(r'\bsign\s+up\b', query_lower)
+        )
+    ):
+        return 'buyer_signup'
+
+    # Listing type search (after login/signup phrases — "how to sign up for lease" → property, not signup)
+    if re.search(r'\b(for sale|for rent|for lease)\b', query_lower):
+        if re.search(r'\b(below|under|less than|above|over|maximum|max|up to)\b', query_lower) and re.search(r'[\d.]+', query_lower):
+            return 'find_property_with_criteria'
+        return 'find_property'
 
     if any(phrase in query_lower for phrase in [
         'login with google', 'google login', 'sign in with google',

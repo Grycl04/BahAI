@@ -1788,6 +1788,13 @@ async function logSaveEvent(userId, propertyId) {
 
 // Apply filters function for this page
 async function applyFilters() {
+    // Keep chatbot deep-link context (near-mall map pins on property details)
+    const preservedChatbot = {
+        amenity: searchFilters.amenity,
+        source: searchFilters.source,
+        propertyIds: searchFilters.propertyIds
+    };
+
     // Collect filter values
     const filters = {
         location: document.getElementById('filterLocation').value || undefined,
@@ -1801,21 +1808,26 @@ async function applyFilters() {
     );
     
     // Update searchFilters and reload
-    searchFilters = cleanFilters;
+    searchFilters = { ...cleanFilters };
+    if (preservedChatbot.amenity) searchFilters.amenity = preservedChatbot.amenity;
+    if (preservedChatbot.source) searchFilters.source = preservedChatbot.source;
+    if (Array.isArray(preservedChatbot.propertyIds) && preservedChatbot.propertyIds.length > 0) {
+        searchFilters.propertyIds = preservedChatbot.propertyIds;
+    }
 
     // Load listings with filters
     await loadAllListings();
 
-    // Update URL without reloading
+    // Update URL without reloading (include amenity/source/propertyIds for details-page map)
     const newUrl = new URL(window.location);
-    newUrl.searchParams.set('filters', encodeURIComponent(JSON.stringify(cleanFilters)));
+    newUrl.searchParams.set('filters', encodeURIComponent(JSON.stringify(searchFilters)));
     window.history.pushState({}, '', newUrl);
 
     // Log search event for AI recommendations (only if user is logged in)
     try {
         const currentUser = auth.currentUser;
-        if (currentUser && Object.keys(cleanFilters).length > 0) {
-            await logSearchEvent(currentUser.uid, cleanFilters);
+        if (currentUser && Object.keys(searchFilters).length > 0) {
+            await logSearchEvent(currentUser.uid, searchFilters);
             console.log('✔️ Search event logged for AI recommendations');
         }
     } catch (error) {
@@ -2387,15 +2399,19 @@ function makePropertyCardsClickable() {
         card.addEventListener('click', function(e) {
             if (
                 e.target.closest('.listing-save-btn') ||
-                e.target.closest('button')
+                e.target.closest('button') ||
+                e.target.closest('a.card-link-overlay')
             ) {
-                e.stopPropagation();
                 return;
             }
 
             const listingId = this.getAttribute('data-listing-id');
             if (listingId) {
-                window.location.href = `new_property_details.html?id=${listingId}`;
+                // Must match overlay link (displayListings) so chatbot flows keep ?amenity=&source=ai for nearby map pins
+                const amenitySuffix = searchFilters.amenity
+                    ? `&amenity=${encodeURIComponent(searchFilters.amenity)}&source=ai`
+                    : '';
+                window.location.href = `new_property_details.html?id=${encodeURIComponent(listingId)}${amenitySuffix}`;
             }
         });
     });
