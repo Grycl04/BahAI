@@ -660,8 +660,72 @@ _OFF_TOPIC_KEYWORDS = [
 _PROPERTY_CONTEXT_TERMS = [
     "property", "properties", "house", "apartment", "condo", "rent", "buy", "buying",
     "location", "city", "area", "price", "budget", "agent", "broker", "landlord",
-    "bahay", "lupa", "bili", "upa", "presyo", "lugar", "titirhan", "real estate",
+    "bahay", "lupa", "lupain", "lupang", "lote", "land", "lands", "lot", "lots",
+    "subdivision", "subdivisions", "subdibisyon",
+    "bili", "upa", "presyo", "lugar", "titirhan", "real estate",
 ]
+
+
+def _query_signals_land_or_lot_search(query: str) -> bool:
+    """
+    User is asking about land / lots / lupa listings, not a generic 'what is BahAI' question.
+    Conservative on bare 'lot' to avoid 'a lot of …'.
+    """
+    q = (query or '').lower().strip()
+    if not q:
+        return False
+    if re.search(r'\b(lupa|lupain|lupang|lote)\b', q):
+        return True
+    if re.search(r'\b(land|lands)\b', q):
+        return True
+    if re.search(r'\b(vacant|residential|commercial|farm|agricultural)\s+lot', q):
+        return True
+    if re.search(r'\blots?\s+for\s+(sale|rent|lease)\b', q) or re.search(r'\b(land|lands)\s+for\s+(sale|rent|lease)\b', q):
+        return True
+    if re.search(r'\b(is there|are there|may|meron|mayroon)\b', q) and re.search(r'\b(land|lands|lot|lots|lupa|lupain)\b', q):
+        return True
+    if re.search(r'\blots?\b', q) and 'a lot of' not in q and re.search(
+        r'\b(search|searching|find|listing|listings|website|posted|available|any|hanap|naghanap)\b', q
+    ):
+        return True
+    return False
+
+
+# Single-token property searches NLU often mislabels as about_system / help / unknown
+_PROPERTY_TYPE_ONE_WORD = {
+    'subdivision': 'subdivision',
+    'subdivisions': 'subdivision',
+    'subdibisyon': 'subdivision',
+    'lupain': 'land',
+    'lupa': 'land',
+    'lote': 'land',
+    'land': 'land',
+    'lands': 'land',
+    'house': 'house',
+    'houses': 'house',
+    'bahay': 'house',
+    'condo': 'condo',
+    'condos': 'condo',
+    'apartment': 'apartment',
+    'apartments': 'apartment',
+    'townhouse': 'townhouse',
+    'townhouses': 'townhouse',
+    'warehouse': 'warehouse',
+    'commercial': 'commercial',
+}
+
+
+def _apply_short_property_type_token(query: str, entities: Dict[str, Any]) -> None:
+    """If the message is one word and it's a property type, set property_type (mutates entities)."""
+    raw = (query or '').strip().lower()
+    words = raw.split()
+    if len(words) != 1:
+        return
+    token = words[0].strip('?.!,')
+    if entities.get('property_type'):
+        return
+    if token in _PROPERTY_TYPE_ONE_WORD:
+        entities['property_type'] = _PROPERTY_TYPE_ONE_WORD[token]
 
 
 def is_off_topic_for_real_estate(query: str) -> bool:
@@ -1225,10 +1289,22 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         entities['property_type'] = 'house'
     elif 'townhouse' in query_lower or 'townhouses' in query_lower:
         entities['property_type'] = 'townhouse'
+    elif 'subdivision' in query_lower or 'subdivisions' in query_lower or 'subdibisyon' in query_lower:
+        entities['property_type'] = 'subdivision'
     elif 'commercial' in query_lower:
         entities['property_type'] = 'commercial'
-    elif 'land' in query_lower or 'lot' in query_lower:
+    elif re.search(r'\b(lupa|lupain|lupang|lote)\b', query_lower):
         entities['property_type'] = 'land'
+    elif 'land' in query_lower or 'lands' in query_lower:
+        entities['property_type'] = 'land'
+    elif re.search(r'\b(vacant|residential|commercial|farm|agricultural)\s+lot', query_lower):
+        entities['property_type'] = 'land'
+    elif re.search(r'\blots?\s+for\s+(sale|rent|lease)\b', query_lower):
+        entities['property_type'] = 'land'
+    elif 'lot' in query_lower or 'lots' in query_lower:
+        # Avoid matching the idiom "a lot of …"
+        if 'a lot of' not in query_lower and not re.search(r'\ba lot\b', query_lower):
+            entities['property_type'] = 'land'
         
     # ========== Parse numeric price values for filtering ==========
     max_price = None
@@ -5542,6 +5618,7 @@ def chat():
         entities['original_query'] = query
         if forced_unintelligible:
             entities['unintelligible_query'] = True
+        _apply_short_property_type_token(query, entities)
 
         # NLU often mislabels random words as about_system → generic BahAI intros. Only keep about_system
         # when the user clearly asks about the product/assistant (or we already have property/location context).
@@ -5568,6 +5645,26 @@ def chat():
                 if not has_property_signal:
                     logger.info("🛑 about_system without explicit platform question → out_of_scope")
                     intent = 'out_of_scope'
+                    confidence = 0.99
+                elif entities.get('property_type') or _query_signals_land_or_lot_search(query):
+                    # e.g. "lupain", "subdivision", "are there lands on the website" — inventory search, not BahAI product intro
+                    logger.info("🛑 about_system + property/land-lot listing intent → find_property")
+                    intent = 'find_property'
+                    confidence = 0.99
+
+        # buyer_chatbot_how mis-fire when user mentions "website" while asking for land listings
+        if intent == 'buyer_chatbot_how' and (entities.get('property_type') or _query_signals_land_or_lot_search(query)):
+            logger.info("🛑 buyer_chatbot_how + land/lot/lupa query → find_property")
+            intent = 'find_property'
+            confidence = 0.99
+
+        # Single-word property types (e.g. "subdivision") → find_property, not about_system / help / unknown
+        if intent in ('about_system', 'help', 'unknown', 'buyer_chatbot_how') and not forced_unintelligible:
+            if not query_explicitly_asks_about_bahai_platform(query):
+                nwords = len((query or '').strip().split())
+                if entities.get('property_type') and nwords <= 2:
+                    logger.info(f"🛑 Short property-type query → find_property (was {intent})")
+                    intent = 'find_property'
                     confidence = 0.99
 
         # "bauan" / "lipa" alone — NLU sometimes returns about_system; treat like a place search, not product intros
