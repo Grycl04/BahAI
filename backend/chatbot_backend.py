@@ -652,6 +652,9 @@ _OFF_TOPIC_KEYWORDS = [
     "sport", "basketball", "football", "game", "video game", "how to code",
     "medical", "doctor", "hospital", "sick", "medicine", "vaccine",
     "school", "homework", "exam", "math problem", "equation",
+    # Profanity / insults — not property-related (substring match on whole query)
+    "tangina", "putangina", "putang ina", "gago", "bobo", "tarantado", "bwisit",
+    "pakyu", "fuck", "shit", "asshole",
 ]
 # Property-related terms: if query contains these, we allow the API (don't treat as off-topic)
 _PROPERTY_CONTEXT_TERMS = [
@@ -671,6 +674,76 @@ def is_off_topic_for_real_estate(query: str) -> bool:
     if has_property:
         return False  # Property context → allow
     return has_off
+
+
+# Single-token queries that clearly mean “tell me about the product” (not random nouns like “laptop”).
+_ABOUT_SYSTEM_STANDALONE_WORDS = frozenset({
+    'bahai',
+    'chatbot', 'assistant', 'platform', 'system', 'app', 'website', 'site',
+    'introduction', 'overview', 'capabilities', 'features', 'services',
+    'help', 'intro', 'guide', 'tutorial', 'faq',
+})
+
+
+def query_explicitly_asks_about_bahai_platform(query: str) -> bool:
+    """
+    True only if the user is clearly asking about BahAI, this chatbot, or the platform.
+    NLU often labels unrelated dictionary words (laptop, kilo, tangina) as about_system — those must return False.
+    """
+    if not query or not isinstance(query, str):
+        return False
+    q = query.lower().strip()
+    if len(q) < 2:
+        return False
+
+    # Broker / agent list questions (template answers use real data)
+    if any(phrase in q for phrase in [
+        'who are the brokers', 'who are the agents', 'who are the landlords',
+        'sino sino ang mga broker', 'sino sino ang mga agent', 'sino sino ang mga landlord',
+        'list of brokers', 'list of agents', 'list of landlords',
+    ]):
+        return True
+
+    # Same phrases as determine_intent_fallback about_system
+    for indicator in (
+        'what are you', 'who are you', 'what is this', 'what is this system', 'what is this chatbot',
+        'what is bahai', 'what is bah.ai', 'what is bahai assistant', 'tell me about yourself',
+        'introduce yourself', 'what do you do', 'what can you do', 'what is your purpose',
+        'system overview', 'about the system', 'what is the system about',
+        'what services do you offer', 'give me an introduction', 'explain what you do',
+        'pinagkaiba nito sa iba', 'pinagkaiba nito', 'ano ito',
+        'how do you work', 'how does this work', 'how does bahai work', 'how does it work',
+        'tell me about the platform', 'tell me about this app', 'about the chatbot',
+        'what is this for', 'what are you for', 'ano ang bahai', 'ano ang platform',
+        'paano gumana', 'paano ka tumutulong', 'sino ka', 'bakit ka nandito',
+    ):
+        if indicator in q:
+            return True
+
+    # Product name appears anywhere
+    if re.search(r'\b(bah\.?ai|bahai)\b', q):
+        return True
+
+    # Question-style: platform / assistant / you / this tool …
+    if re.search(
+        r'\b(what|who|how|why|when|where|tell me|explain|describe|introduce|can you|could you)\b',
+        q,
+    ) and re.search(
+        r'\b(you|yourself|bah\.?ai|bahai|this system|this chatbot|this app|the platform|'
+        r'this platform|this tool|the assistant|your purpose|you work|you help|'
+        r'your features|your capabilities|this website|the website|this service)\b',
+        q,
+    ):
+        return True
+
+    # Single word: only a small allowlist (not “laptop”, “kilo”, …)
+    words = [w for w in q.split() if w.strip()]
+    if len(words) == 1:
+        token = re.sub(r'[^a-z0-9.]', '', words[0].lower()).replace('.', '')
+        if token in _ABOUT_SYSTEM_STANDALONE_WORDS:
+            return True
+
+    return False
 
 
 def _is_place_question(query: str) -> bool:
@@ -5208,6 +5281,34 @@ def chat():
         entities['original_query'] = query
         if forced_unintelligible:
             entities['unintelligible_query'] = True
+
+        # NLU often mislabels random words as about_system → generic BahAI intros. Only keep about_system
+        # when the user clearly asks about the product/assistant (or we already have property/location context).
+        if intent == 'about_system' and not forced_unintelligible:
+            if not query_explicitly_asks_about_bahai_platform(query):
+                qlow = query.lower()
+                has_property_signal = (
+                    entities.get('location')
+                    or entities.get('property_type')
+                    or entities.get('sale_type')
+                    or entities.get('bank_name')
+                    or entities.get('listing_type')
+                    or entities.get('has_pagibig_query')
+                    or entities.get('financing_info_request')
+                    or any(term in qlow for term in _PROPERTY_CONTEXT_TERMS)
+                    or any(
+                        k in qlow
+                        for k in (
+                            'financing', 'pag-ibig', 'pagibig', 'mortgage', 'bank loan',
+                            'installment', 'amortization', 'kyc', 'broker', 'landlord',
+                        )
+                    )
+                )
+                if not has_property_signal:
+                    logger.info("🛑 about_system without explicit platform question → out_of_scope")
+                    intent = 'out_of_scope'
+                    confidence = 0.99
+
         # Location-only follow-up fix: e.g. user said "sa tanauan" after "sa lipa"; combined query "sa lipa sa tanauan" would match Lipa first. Use new location from current message only and keep previous criteria (house, 3 bedrooms).
         if previous_entities and len(raw_user_message.split()) <= 6:
             r_lower = raw_user_message.lower()
