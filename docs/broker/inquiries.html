@@ -1264,6 +1264,76 @@
       transform: translateY(-2px);
     }
 
+    /* Schedule details modal opened from conversation cards */
+    .modal.schedule-details-modal {
+      max-width: 680px;
+      width: min(680px, calc(100vw - 40px));
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+    }
+
+    .modal.schedule-details-modal .modal-header {
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .modal.schedule-details-modal .modal-content {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .modal.schedule-details-modal .modal-content h3 {
+      margin-bottom: 12px;
+    }
+
+    .modal.schedule-details-modal .schedule-details {
+      margin: 0 0 14px 0 !important;
+      padding: 14px;
+    }
+
+    .modal.schedule-details-modal .schedule-info-row {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .modal.schedule-details-modal .modal-actions {
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .modal.schedule-details-modal {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        padding: 20px;
+      }
+
+      .modal.schedule-details-modal .modal-header {
+        gap: 12px;
+      }
+
+      .modal.schedule-details-modal .modal-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .modal.schedule-details-modal .modal-content h3 {
+        font-size: 18px;
+      }
+
+      .modal.schedule-details-modal .modal-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .modal.schedule-details-modal .modal-btn {
+        width: 100%;
+      }
+    }
+
     /* ===== RESPONSIVE DESIGN ===== */
     
     /* Tablet - same as broker dashboard */
@@ -3055,7 +3125,7 @@ function showScheduleDetailsModal(schedule, scheduleId) {
       </div>
       <div class="modal-content">
         <h3>Viewing Schedule Details</h3>
-        <div class="schedule-details" style="margin: 20px 0;">
+        <div class="schedule-details">
           <div class="schedule-info-row">
             <span class="schedule-info-label">Status:</span>
             <span class="schedule-status-badge status-${schedule.status}">${schedule.status}</span>
@@ -3117,7 +3187,7 @@ function showScheduleDetailsModal(schedule, scheduleId) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay active';
   modal.innerHTML = `
-    <div class="modal" style="max-width: 500px;">
+    <div class="modal schedule-details-modal">
       ${modalContent}
     </div>
   `;
