@@ -1264,73 +1264,199 @@
       transform: translateY(-2px);
     }
 
-    /* Schedule details modal opened from conversation cards */
+    .modal-btn.confirm {
+      background: var(--secondary-gradient);
+      color: white;
+    }
+    .modal-btn.confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+    .modal-btn.decline {
+      background: var(--error);
+      color: white;
+    }
+    .modal-btn.decline:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
+    .modal-btn.alternative {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      color: white;
+    }
+    .modal-btn.alternative:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+    }
+
+    /* Schedule details modal (match schedule_management style) */
     .modal.schedule-details-modal {
-      max-width: 680px;
-      width: min(680px, calc(100vw - 40px));
-      max-height: calc(100vh - 40px);
+      max-width: 1150px;
+      max-height: 90vh;
+      padding: 0;
       overflow-y: auto;
+      border-radius: var(--border-radius);
     }
-
     .modal.schedule-details-modal .modal-header {
-      align-items: flex-start;
-      margin-bottom: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 40px 24px;
+      margin: 0;
+      position: relative;
     }
-
-    .modal.schedule-details-modal .modal-content {
-      flex: 1;
-      min-width: 0;
-      width: 100%;
+    .modal.schedule-details-modal .modal-header h3 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
     }
-
-    .modal.schedule-details-modal .modal-content h3 {
-      margin-bottom: 12px;
+    .modal.schedule-details-modal .modal-header h3 i {
+      color: #d4af37;
     }
-
-    .modal.schedule-details-modal .schedule-details {
-      margin: 0 0 14px 0 !important;
-      padding: 14px;
+    .modal.schedule-details-modal .modal-close-x {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-white);
+      color: var(--text-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 16px;
+      line-height: 1;
     }
-
-    .modal.schedule-details-modal .schedule-info-row {
-      margin-bottom: 8px;
+    .modal.schedule-details-modal .modal-close-x:hover {
+      background: var(--bg-light);
+      transform: translateY(-1px);
+    }
+    .modal.schedule-details-modal .modal-body {
+      margin: 0;
+      padding: 0 40px 32px;
+    }
+    .modal.schedule-details-modal .modal-sections-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .modal.schedule-details-modal .modal-section {
+      margin: 0;
+      background: var(--bg-light);
+      padding: 24px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(11, 46, 82, 0.04);
+    }
+    .modal.schedule-details-modal .modal-section.full-width {
+      grid-column: 1 / -1;
+    }
+    .modal.schedule-details-modal .modal-section h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal.schedule-details-modal .modal-section h4 i {
+      color: #d4af37;
+    }
+    .modal.schedule-details-modal .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .modal.schedule-details-modal .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .modal.schedule-details-modal .detail-label {
+      font-size: 11px;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .modal.schedule-details-modal .detail-value {
       font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-
+    .modal.schedule-details-modal .schedule-notes {
+      margin-top: 0;
+      padding: 16px;
+      background: var(--bg-white);
+      border-radius: 8px;
+      border-left: 4px solid #d4af37;
+    }
+    .modal.schedule-details-modal .schedule-notes-content {
+      font-size: 14px;
+      color: var(--text-dark);
+      line-height: 1.5;
+    }
     .modal.schedule-details-modal .modal-actions {
-      margin-top: 4px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
       flex-wrap: wrap;
+      padding: 24px 40px;
+      margin: 0;
+      border-top: 1px solid var(--border);
+    }
+    .modal.schedule-details-modal .modal-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
     }
 
     @media (max-width: 768px) {
       .modal.schedule-details-modal {
-        width: calc(100vw - 24px);
-        max-height: calc(100vh - 24px);
-        padding: 20px;
+        max-width: 100%;
       }
-
       .modal.schedule-details-modal .modal-header {
-        gap: 12px;
+        padding: 24px 20px 20px;
       }
-
-      .modal.schedule-details-modal .modal-icon {
-        width: 42px;
-        height: 42px;
-        font-size: 16px;
-        flex-shrink: 0;
+      .modal.schedule-details-modal .modal-header h3 {
+        font-size: 20px;
       }
-
-      .modal.schedule-details-modal .modal-content h3 {
-        font-size: 18px;
+      .modal.schedule-details-modal .modal-body {
+        padding: 0 20px 24px;
       }
-
+      .modal.schedule-details-modal .modal-sections-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .modal.schedule-details-modal .modal-section.full-width {
+        grid-column: 1;
+      }
       .modal.schedule-details-modal .modal-actions {
         flex-direction: column;
-        align-items: stretch;
+        padding: 20px;
       }
-
       .modal.schedule-details-modal .modal-btn {
         width: 100%;
+        justify-content: center;
+      }
+      .modal.schedule-details-modal .modal-close-x {
+        top: 12px;
+        right: 12px;
+        width: 34px;
+        height: 34px;
       }
     }
 
@@ -3120,65 +3246,104 @@ function showScheduleDetailsModal(schedule, scheduleId) {
   
   const modalContent = `
     <div class="modal-header">
-      <div class="modal-icon" style="background: rgba(11, 46, 82, 0.1); color: var(--primary);">
-        <i class="fas fa-calendar-check"></i>
-      </div>
-      <div class="modal-content">
-        <h3>Viewing Schedule Details</h3>
-        <div class="schedule-details">
-          <div class="schedule-info-row">
-            <span class="schedule-info-label">Status:</span>
-            <span class="schedule-status-badge status-${schedule.status}">${schedule.status}</span>
+      <button class="modal-close-x" onclick="closeScheduleModal()" aria-label="Close schedule details">
+        <i class="fas fa-times"></i>
+      </button>
+      <h3><i class="fas fa-calendar-check"></i> Schedule Details</h3>
+    </div>
+    <div class="modal-body">
+      <div class="modal-sections-grid">
+        <div class="modal-section">
+          <h4><i class="fas fa-info-circle"></i> Schedule Information</h4>
+          <div class="modal-grid">
+            <div class="detail-item">
+              <span class="detail-label">Status</span>
+              <span class="detail-value">
+                <span class="schedule-status-badge status-${schedule.status}">${schedule.status}</span>
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Date</span>
+              <span class="detail-value"><i class="fas fa-calendar-day"></i> ${formattedDate}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Time</span>
+              <span class="detail-value"><i class="fas fa-clock"></i> ${schedule.proposedTime || 'Not specified'}</span>
+            </div>
+            ${schedule.alternativeDate ? `
+              <div class="detail-item">
+                <span class="detail-label">Alternative Date</span>
+                <span class="detail-value"><i class="fas fa-calendar-alt"></i> ${schedule.alternativeDate}</span>
+              </div>
+            ` : ''}
+            ${schedule.alternativeTime ? `
+              <div class="detail-item">
+                <span class="detail-label">Alternative Time</span>
+                <span class="detail-value"><i class="fas fa-clock"></i> ${schedule.alternativeTime}</span>
+              </div>
+            ` : ''}
           </div>
-          <div class="schedule-info-row">
-            <span class="schedule-info-label">Date:</span>
-            <span class="schedule-info-value">${formattedDate}</span>
+        </div>
+
+        <div class="modal-section">
+          <h4><i class="fas fa-user"></i> Buyer Information</h4>
+          <div class="modal-grid">
+            <div class="detail-item">
+              <span class="detail-label">Buyer ID</span>
+              <span class="detail-value"><i class="fas fa-id-card"></i> ${schedule.buyerId || 'Not specified'}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Conversation ID</span>
+              <span class="detail-value"><i class="fas fa-comments"></i> ${schedule.conversationId || 'Not specified'}</span>
+            </div>
           </div>
-          <div class="schedule-info-row">
-            <span class="schedule-info-label">Time:</span>
-            <span class="schedule-info-value">${schedule.proposedTime || 'Not specified'}</span>
+        </div>
+
+        <div class="modal-section full-width">
+          <h4><i class="fas fa-home"></i> Property Information</h4>
+          <div class="modal-grid">
+            <div class="detail-item">
+              <span class="detail-label">Property ID</span>
+              <span class="detail-value"><i class="fas fa-home"></i> ${schedule.propertyId || 'Not specified'}</span>
+            </div>
           </div>
-          ${schedule.alternativeDate ? `
-            <div class="schedule-info-row">
-              <span class="schedule-info-label">Alternative Date:</span>
-              <span class="schedule-info-value">${schedule.alternativeDate}</span>
-            </div>
-          ` : ''}
-          ${schedule.alternativeTime ? `
-            <div class="schedule-info-row">
-              <span class="schedule-info-label">Alternative Time:</span>
-              <span class="schedule-info-value">${schedule.alternativeTime}</span>
-            </div>
-          ` : ''}
-          ${schedule.notes ? `
-            <div class="schedule-notes">
-              <div class="schedule-notes-label">Buyer Notes:</div>
-              <div class="schedule-notes-content">${schedule.notes}</div>
-            </div>
-          ` : ''}
-          ${schedule.brokerNotes ? `
-            <div class="schedule-notes">
-              <div class="schedule-notes-label">Your Notes:</div>
-              <div class="schedule-notes-content">${schedule.brokerNotes}</div>
-            </div>
-          ` : ''}
-          ${schedule.declineReason ? `
-            <div class="schedule-notes">
-              <div class="schedule-notes-label">Decline Reason:</div>
-              <div class="schedule-notes-content">${schedule.declineReason}</div>
-            </div>
-          ` : ''}
         </div>
       </div>
+
+      ${schedule.notes ? `
+        <div class="modal-section full-width" style="margin-top: 24px;">
+          <h4><i class="fas fa-sticky-note"></i> Buyer Notes</h4>
+          <div class="schedule-notes">
+            <div class="schedule-notes-content">${schedule.notes}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${schedule.brokerNotes ? `
+        <div class="modal-section full-width" style="margin-top: 16px;">
+          <h4><i class="fas fa-sticky-note"></i> Your Notes</h4>
+          <div class="schedule-notes">
+            <div class="schedule-notes-content">${schedule.brokerNotes}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${schedule.declineReason ? `
+        <div class="modal-section full-width" style="margin-top: 16px;">
+          <h4><i class="fas fa-comment-alt"></i> Decline Reason</h4>
+          <div class="schedule-notes">
+            <div class="schedule-notes-content">${schedule.declineReason}</div>
+          </div>
+        </div>
+      ` : ''}
     </div>
     <div class="modal-actions">
-      <button class="modal-btn cancel" onclick="closeScheduleModal()">Close</button>
       ${schedule.status === 'pending' ? `
-        <button class="modal-btn" style="background: var(--success); color: white;" onclick="confirmScheduleFromModal('${scheduleId}')">Confirm</button>
-        <button class="modal-btn delete" onclick="declineScheduleFromModal('${scheduleId}')">Decline</button>
-        <button class="modal-btn" style="background: var(--accent); color: white;" onclick="suggestAlternativeFromModal('${scheduleId}')">Suggest Alternative</button>
+        <button class="modal-btn confirm" onclick="confirmScheduleFromModal('${scheduleId}')"><i class="fas fa-check"></i> Confirm</button>
+        <button class="modal-btn decline" onclick="declineScheduleFromModal('${scheduleId}')"><i class="fas fa-times"></i> Decline</button>
+        <button class="modal-btn alternative" onclick="suggestAlternativeFromModal('${scheduleId}')"><i class="fas fa-clock"></i> Suggest Alternative</button>
       ` : schedule.status === 'alternative' ? `
-        <button class="modal-btn" style="background: var(--success); color: white;" onclick="confirmAlternativeFromModal('${scheduleId}')">Confirm Alternative</button>
+        <button class="modal-btn confirm" onclick="confirmAlternativeFromModal('${scheduleId}')"><i class="fas fa-check"></i> Confirm Alternative</button>
       ` : ''}
     </div>
   `;

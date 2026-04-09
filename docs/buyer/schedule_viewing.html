@@ -591,6 +591,24 @@ let selectedTime = null;
 let viewingScheduleId = null;
 let isBroker = false;
 
+function closeScheduleWindow() {
+  // Try to close popup first (works when opened via window.open).
+  window.close();
+
+  // If browser blocks close (non-script-opened tab), fallback gracefully.
+  setTimeout(() => {
+    if (!window.closed) {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else if (isBroker) {
+        window.location.href = "../broker/schedule_management.html";
+      } else {
+        window.location.href = "messages.html";
+      }
+    }
+  }, 80);
+}
+
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const buyerId = urlParams.get('buyerId');
@@ -647,7 +665,7 @@ async function initPage() {
       if (!user) {
         showError('Please log in to schedule a viewing');
         setTimeout(() => {
-          window.close();
+          closeScheduleWindow();
         }, 2000);
         return;
       }
@@ -933,7 +951,7 @@ function showScheduleForm() {
 function setupEventListeners() {
   // Cancel button
   document.getElementById('cancelBtn').addEventListener('click', function() {
-    window.close();
+    closeScheduleWindow();
   });
   
   // Submit button
@@ -1029,7 +1047,7 @@ async function submitScheduleRequest() {
       if (window.opener) {
         window.opener.postMessage({ type: 'schedule_updated', scheduleId: viewingScheduleId }, '*');
       }
-      window.close();
+      closeScheduleWindow();
     }, 2000);
     
   } catch (error) {
@@ -1086,7 +1104,7 @@ async function brokerCreateSchedule() {
       if (window.opener) {
         window.opener.postMessage({ type: 'schedule_updated', scheduleId: viewingScheduleId }, '*');
       }
-      window.close();
+      closeScheduleWindow();
     }, 2000);
     
   } catch (error) {
@@ -1139,7 +1157,7 @@ async function confirmSchedule() {
       if (window.opener) {
         window.opener.postMessage({ type: 'schedule_confirmed', scheduleId: viewingScheduleId }, '*');
       }
-      window.close();
+      closeScheduleWindow();
     }, 2000);
     
   } catch (error) {
@@ -1189,7 +1207,7 @@ async function declineSchedule() {
       if (window.opener) {
         window.opener.postMessage({ type: 'schedule_declined', scheduleId: viewingScheduleId }, '*');
       }
-      window.close();
+      closeScheduleWindow();
     }, 2000);
     
   } catch (error) {
@@ -1243,7 +1261,7 @@ async function suggestAlternativeTime() {
       if (window.opener) {
         window.opener.postMessage({ type: 'schedule_alternative', scheduleId: viewingScheduleId }, '*');
       }
-      window.close();
+      closeScheduleWindow();
     }, 2000);
     
   } catch (error) {
@@ -1328,7 +1346,7 @@ async function acceptAlternativeTime() {
       if (window.opener) {
         window.opener.postMessage({ type: 'schedule_confirmed', scheduleId: viewingScheduleId }, '*');
       }
-      window.close();
+      closeScheduleWindow();
     }, 2000);
     
   } catch (error) {
