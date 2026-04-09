@@ -748,6 +748,9 @@ function displayListings(listings) {
     const area = listing.floorArea || listing.totalArea || listing.squareFootage || 'N/A';
     const typeLabel = listing.type === 'lease' ? 'Lease' : (listing.type === 'sale' ? 'Sale' : 'Rent');
     const status = (listing.status || 'active').toLowerCase();
+    const occupancyLabel = (listing.type === 'sale' || listing.listingType === 'sale')
+      ? ((listing.occupancyStatus || 'rfo') === 'preselling' ? 'Preselling' : 'RFO')
+      : null;
 
     const statusLabel = status === 'active' ? 'Available' : status.charAt(0).toUpperCase() + status.slice(1);
     return `
@@ -773,6 +776,7 @@ function displayListings(listings) {
             <div class="detail"><i class="fas fa-bed"></i> ${listing.bedrooms || 0} beds</div>
             <div class="detail"><i class="fas fa-bath"></i> ${listing.bathrooms || 0} baths</div>
             <div class="detail"><i class="fas fa-ruler-combined"></i> ${area} ${typeof (listing.floorArea || listing.totalArea) === 'number' ? 'sqm' : ''}</div>
+            ${occupancyLabel ? `<div class="detail"><i class="fas fa-key"></i> ${occupancyLabel}</div>` : ''}
           </div>
           <div class="listing-actions">
             <button class="action-btn edit-btn"><i class="fas fa-edit"></i> Edit</button>

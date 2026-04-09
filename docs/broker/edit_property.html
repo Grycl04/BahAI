@@ -1217,17 +1217,25 @@
             <label for="saleFurnishing">Furnishing</label>
             <select id="saleFurnishing">
               <option value="">-- Select --</option>
-              <option value="furnished">Fully Furnished</option>
-              <option value="semi-furnished">Semi-Furnished</option>
-              <option value="unfurnished">Unfurnished</option>
+              <option value="furnished">Furnished</option>
+              <option value="complete">Complete</option>
+              <option value="bare">Bare</option>
             </select>
           </div>
           
           <div class="form-group">
+            <label for="saleOccupancyStatus" class="required">Unit Status</label>
+            <select id="saleOccupancyStatus" required onchange="updateSaleOccupancyUI()">
+              <option value="rfo">Ready for Occupancy (RFO)</option>
+              <option value="preselling">Preselling</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="saleYearBuiltGroup">
             <label for="saleYearBuilt">Year Built</label>
             <div class="input-with-icon">
               <i class="bi bi-calendar"></i>
-              <input type="number" id="saleYearBuilt" placeholder="e.g., 2015" min="1900" max="2024">
+              <input type="number" id="saleYearBuilt" placeholder="e.g., 2015" min="1900" max="2026" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,4)">
             </div>
           </div>
         </div>
@@ -2192,8 +2200,15 @@
     document.getElementById('saleBathrooms').value = data.bathrooms || '';
     document.getElementById('saleFloorArea').value = data.floorArea || '';
     document.getElementById('saleLotArea').value = data.lotArea || '';
-    document.getElementById('saleFurnishing').value = data.furnishing || '';
+    const rawFurnishing = (data.furnishing || '').toLowerCase();
+    const normalizedFurnishing =
+      rawFurnishing === 'semi-furnished' ? 'complete' :
+      rawFurnishing === 'unfurnished' ? 'bare' :
+      rawFurnishing;
+    document.getElementById('saleFurnishing').value = normalizedFurnishing || '';
     document.getElementById('saleYearBuilt').value = data.yearBuilt || '';
+    document.getElementById('saleOccupancyStatus').value = data.occupancyStatus || 'rfo';
+    updateSaleOccupancyUI();
     
     // Sale Information
     document.getElementById('salePrice').value = data.salePrice || data.pricing || '';
@@ -2522,6 +2537,19 @@
     } else {
       bankOptionsSection.classList.remove('active');
     }
+  }
+
+  function updateSaleOccupancyUI() {
+    var occupancyEl = document.getElementById('saleOccupancyStatus');
+    var yearBuiltGroup = document.getElementById('saleYearBuiltGroup');
+    var yearBuiltEl = document.getElementById('saleYearBuilt');
+    if (!occupancyEl || !yearBuiltGroup || !yearBuiltEl) return;
+
+    var isPreselling = occupancyEl.value === 'preselling';
+    yearBuiltGroup.style.display = isPreselling ? 'none' : '';
+    yearBuiltEl.disabled = isPreselling;
+    yearBuiltEl.max = '2026';
+    if (isPreselling) yearBuiltEl.value = '';
   }
 
   // ===== LEASE FORM FUNCTIONS =====
@@ -3205,7 +3233,8 @@
       }
       
       const userData = userDoc.data();
-      kycStatus = userData.kycStatus || 'not_submitted';
+      const userIsAgent = userData.userType === 'agent' || userData.userRole === 'agent' || userData.role === 'agent';
+      kycStatus = userIsAgent ? 'approved' : (userData.kycStatus || 'not_submitted');
       
       const warning = document.getElementById('kycWarning');
       const badge = document.getElementById('kycBadge');
@@ -3240,7 +3269,7 @@
           break;
           
         case 'approved':
-          badgeText.textContent = 'KYC: Verified ✓';
+          badgeText.textContent = userIsAgent ? 'KYC: Verified via Broker ✓' : 'KYC: Verified ✓';
           warning.style.display = 'none';
           break;
       }
@@ -3441,6 +3470,23 @@
       showMessage('Please select a sale type', 'error');
       return false;
     }
+
+    const occupancyEl = document.getElementById('saleOccupancyStatus');
+    if (!occupancyEl || !occupancyEl.value) {
+      showMessage('Please select unit status (RFO or Preselling)', 'error');
+      if (occupancyEl) occupancyEl.focus();
+      return false;
+    }
+
+    const yearBuiltEl = document.getElementById('saleYearBuilt');
+    if (occupancyEl.value !== 'preselling' && yearBuiltEl && yearBuiltEl.value) {
+      const y = parseInt(yearBuiltEl.value, 10);
+      if (Number.isNaN(y) || y < 1900 || y > 2026) {
+        showMessage('Year Built must be between 1900 and 2026 for RFO properties', 'error');
+        yearBuiltEl.focus();
+        return false;
+      }
+    }
     
     // Validation for sold status
     const saleStatus = document.getElementById('saleStatus').value;
@@ -3569,6 +3615,7 @@
       furnishing: document.getElementById('saleFurnishing').value || null,
       yearBuilt: document.getElementById('saleYearBuilt').value ? 
         parseInt(document.getElementById('saleYearBuilt').value) : null,
+      occupancyStatus: document.getElementById('saleOccupancyStatus').value,
       salePrice: parseFloat(document.getElementById('salePrice').value),
       priceNegotiable: document.getElementById('priceNegotiable').value,
       saleType: document.getElementById('saleTypeInput').value,
@@ -3588,6 +3635,10 @@
       updatedAt: new Date()
     };
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateSaleOccupancyUI();
+  });
 
   function collectLeaseFormData() {
     const amenities = [];

@@ -2255,6 +2255,9 @@ async function displayListings(listings, page = 1, refreshData = true) {
         const bedrooms = listing.bedrooms || (listingType === 'rent' && listing.propertyType === 'studio' ? 'Studio' : 0);
         const bathrooms = listing.bathrooms || 0;
         const area = listing.floorArea || listing.totalArea || 'N/A';
+        const occupancyLabel = listingType === 'sale'
+            ? ((listing.occupancyStatus || 'rfo') === 'preselling' ? 'Preselling' : 'RFO')
+            : null;
         const title = listing.title || 'Untitled Property';
         const truncatedTitle = title.length > 50 ? title.substring(0, 50) + '...' : title;
         const truncatedAddress = completeAddress.length > 40 ? completeAddress.substring(0, 40) + '...' : completeAddress;
@@ -2297,6 +2300,7 @@ async function displayListings(listings, page = 1, refreshData = true) {
                         <div class="detail"><i class="fas fa-bed"></i> ${bedrooms}<span class="detail-unit">${bedrooms === 'Studio' ? '' : ' beds'}</span></div>
                         <div class="detail"><i class="fas fa-bath"></i> ${bathrooms}<span class="detail-unit"> baths</span></div>
                         <div class="detail"><i class="fas fa-ruler-combined"></i> ${area}<span class="detail-unit"> sqm</span></div>
+                        ${occupancyLabel ? `<div class="detail"><i class="fas fa-key"></i> ${occupancyLabel}</div>` : ''}
                     </div>
                     <div class="listing-broker">
                         ${brokerAvatarWrapper}

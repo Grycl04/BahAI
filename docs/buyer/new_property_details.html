@@ -755,7 +755,7 @@ let runtimeConfigLoaded = false;
 
 const labels = {
   propertyCategory: { residential: "Residential", commercial: "Commercial", land: "Land", condo: "Condominium", special: "Special Purpose" },
-  furnishing: { furnished: "Fully Furnished", "semi-furnished": "Semi-Furnished", unfurnished: "Unfurnished" },
+  furnishing: { furnished: "Furnished", complete: "Complete", bare: "Bare", "semi-furnished": "Complete", unfurnished: "Bare" },
   saleType: { outright: "Outright Cash", installment: "Installment", bank_financing: "Bank Financing" },
   leaseType: { gross: "Gross Lease", net: "Net Lease", "triple-net": "Triple Net" },
   paymentTerms: { monthly: "Monthly", quarterly: "Quarterly", "semi-annual": "Semi-Annual", annual: "Annual" },
@@ -1542,12 +1542,13 @@ function renderProperty() {
     ['Floor Area', l.floorArea || l.totalArea ? (l.floorArea || l.totalArea) + ' sqm' : '—'],
     ['Lot Area', l.lotArea ? l.lotArea + ' sqm' : '—'],
     ['Furnishing', labels.furnishing[l.furnishing] || l.furnishing || '—'],
-    ['Year Built', l.yearBuilt || '—']
+    ['Year Built', (type === 'sale' && (l.occupancyStatus || 'rfo') === 'preselling') ? '—' : (l.yearBuilt || '—')]
   ];
 
   let saleItems = [];
   if (type === 'sale') {
     saleItems = [
+      ['Unit Status', (l.occupancyStatus || 'rfo') === 'preselling' ? 'Preselling' : 'Ready for Occupancy (RFO)'],
       ['Sale Price', '₱' + (l.salePrice || l.pricing || 0).toLocaleString()],
       ['Price Negotiable', l.priceNegotiable === 'yes' ? 'Yes' : 'No'],
       ['Sale Type', labels.saleType[l.saleType] || l.saleType || '—']

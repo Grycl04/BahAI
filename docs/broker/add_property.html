@@ -1215,17 +1215,25 @@
           <label for="saleFurnishing">Furnishing</label>
           <select id="saleFurnishing">
             <option value="">-- Select --</option>
-            <option value="furnished">Fully Furnished</option>
-            <option value="semi-furnished">Semi-Furnished</option>
-            <option value="unfurnished">Unfurnished</option>
+            <option value="furnished">Furnished</option>
+            <option value="complete">Complete</option>
+            <option value="bare">Bare</option>
           </select>
         </div>
         
         <div class="form-group">
+          <label for="saleOccupancyStatus" class="required">Unit Status</label>
+          <select id="saleOccupancyStatus" required onchange="updateSaleOccupancyUI()">
+            <option value="rfo" selected>Ready for Occupancy (RFO)</option>
+            <option value="preselling">Preselling</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="saleYearBuiltGroup">
           <label for="saleYearBuilt">Year Built</label>
           <div class="input-with-icon">
             <i class="bi bi-calendar"></i>
-            <input type="number" id="saleYearBuilt" placeholder="e.g., 2015" min="1900" max="2024">
+            <input type="number" id="saleYearBuilt" placeholder="e.g., 2015" min="1900" max="2026" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,4)">
           </div>
         </div>
       </div>
@@ -2121,6 +2129,22 @@
     }
   }
 
+  function updateSaleOccupancyUI() {
+    var occupancyEl = document.getElementById('saleOccupancyStatus');
+    var yearBuiltGroup = document.getElementById('saleYearBuiltGroup');
+    var yearBuiltEl = document.getElementById('saleYearBuilt');
+    if (!occupancyEl || !yearBuiltGroup || !yearBuiltEl) return;
+
+    var isPreselling = occupancyEl.value === 'preselling';
+    yearBuiltGroup.style.display = isPreselling ? 'none' : '';
+    yearBuiltEl.disabled = isPreselling;
+    yearBuiltEl.max = '2026';
+
+    if (isPreselling) {
+      yearBuiltEl.value = '';
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     var bankSelect = document.getElementById('saleFinancingBank');
     if (bankSelect) {
@@ -2129,6 +2153,7 @@
         if (otherWrap) otherWrap.style.display = (this.value === 'Other') ? 'block' : 'none';
       });
     }
+    updateSaleOccupancyUI();
   });
 
   // ===== LEASE FORM FUNCTIONS =====
@@ -3142,6 +3167,24 @@ function autoFillAddressFromGeocode(result, formType) {
       showMessage('Please select a sale type', 'error');
       return false;
     }
+
+    const occupancyEl = document.getElementById('saleOccupancyStatus');
+    if (!occupancyEl || !occupancyEl.value) {
+      showMessage('Please select unit status (RFO or Preselling)', 'error');
+      if (occupancyEl) occupancyEl.focus();
+      return false;
+    }
+
+    const yearBuiltEl = document.getElementById('saleYearBuilt');
+    if (occupancyEl.value !== 'preselling' && yearBuiltEl && yearBuiltEl.value) {
+      const yearBuiltVal = parseInt(yearBuiltEl.value, 10);
+      if (Number.isNaN(yearBuiltVal) || yearBuiltVal < 1900 || yearBuiltVal > 2026) {
+        showMessage('Year Built must be between 1900 and 2026 for RFO properties', 'error');
+        yearBuiltEl.focus();
+        return false;
+      }
+    }
+
     if (selectedSaleType === 'bank_financing') {
       var bankEl = document.getElementById('saleFinancingBank');
       var bankOtherEl = document.getElementById('saleFinancingBankOther');
@@ -3232,6 +3275,7 @@ function autoFillAddressFromGeocode(result, formType) {
       furnishing: document.getElementById('saleFurnishing').value || null,
       yearBuilt: document.getElementById('saleYearBuilt').value ? 
         parseInt(document.getElementById('saleYearBuilt').value) : null,
+      occupancyStatus: document.getElementById('saleOccupancyStatus').value,
       salePrice: parseFloat(document.getElementById('salePrice').value),
       priceNegotiable: document.getElementById('priceNegotiable').value,
       saleType: document.getElementById('saleTypeInput').value,
@@ -3330,6 +3374,7 @@ function autoFillAddressFromGeocode(result, formType) {
       if (bankWrap) bankWrap.style.display = 'none';
       var bankOtherWrap = document.getElementById('saleFinancingBankOtherWrap');
       if (bankOtherWrap) bankOtherWrap.style.display = 'none';
+      updateSaleOccupancyUI();
       updateSalePropertyTypes();
       
       document.getElementById('saleImages').value = '';

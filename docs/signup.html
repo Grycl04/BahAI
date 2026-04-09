@@ -1379,7 +1379,7 @@ async function sendOTPEmail(email, otp, fullName) {
           email, 
           phone, 
           role,
-          kycStatus: role === 'buyer' ? "not_required" : "not_submitted",
+          kycStatus: (role === 'buyer' || role === 'agent') ? "not_required" : "not_submitted",
           createdAt: serverTimestamp(),
           authMethod: 'email_password',
           emailVerified: false
@@ -1612,7 +1612,7 @@ async function sendOTPEmail(email, otp, fullName) {
           email: userEmail,
           phone: user.phoneNumber || "",
           role: selectedRole,
-          kycStatus: selectedRole === 'buyer' ? "not_required" : "not_submitted",
+          kycStatus: (selectedRole === 'buyer' || selectedRole === 'agent') ? "not_required" : "not_submitted",
           createdAt: serverTimestamp(),
           profilePhoto: user.photoURL || "",
           emailVerified: true, // Google users are verified

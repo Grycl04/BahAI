@@ -1131,6 +1131,16 @@ let currentUser = null;
 let userRole = null;
 let kycStatus = null;
 
+function getDashboardUrlByRole(role) {
+    const dashboardMap = {
+        broker: 'broker/broker_dashboard.html',
+        agent: 'broker/agent_dashboard.html',
+        seller: 'seller_dashboard.html',
+        landlord: 'landlord/landlord_dashboard.html'
+    };
+    return dashboardMap[role] || 'dashboard.html';
+}
+
 // Setup preview handlers
 setupPreview("brokerIdDocument", "previewBrokerId");
 setupPreview("brokerEndorsement", "previewEndorsement");
@@ -1414,16 +1424,22 @@ onAuthStateChanged(auth, async (user) => {
         kycStatus = userData.kycStatus || "not_submitted";
         console.log("Role:", userRole, "KYC Status:", kycStatus);
 
+        if (userRole === "agent") {
+            if (kycStatus !== "not_required") {
+                await updateDoc(doc(db, "users", user.uid), { kycStatus: "not_required" });
+                kycStatus = "not_required";
+            }
+            showMessage("Agent accounts are verified under their broker. KYC submission is not required.", "success");
+            setTimeout(() => {
+                window.location.replace(getDashboardUrlByRole(userRole));
+            }, 1200);
+            return;
+        }
+
         roleBadge.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
-        const dashboardMap = {
-            broker: 'broker/broker_dashboard.html',
-            agent: 'broker/agent_dashboard.html',
-            seller: 'seller_dashboard.html',
-            landlord: 'landlord/landlord_dashboard.html'
-        };
         const backLink = document.getElementById("backLink");
-        backLink.href = dashboardMap[userRole] || 'dashboard.html';
+        backLink.href = getDashboardUrlByRole(userRole);
 
         showRoleSpecificContent(userRole);
         updateStatusDisplay(kycStatus);
@@ -1463,6 +1479,11 @@ function updateStatusDisplay(status) {
     statusBadge.className = `status-badge status-${status}`;
     
     switch(status) {
+        case "not_required":
+            statusBadge.textContent = "Not Required";
+            showMessage("KYC is not required for your account.", "success");
+            uploadForm.classList.add("hidden");
+            break;
         case "not_submitted":
             statusBadge.textContent = "Not Submitted";
             uploadForm.classList.remove("hidden");
@@ -1769,7 +1790,12 @@ kycForm.addEventListener("submit", async (e) => {
         updateProgress(100, "Complete!");
         
         setTimeout(() => {
-            window.location.reload();
+            if (faceVerificationResult.verified) {
+                // Go back to role dashboard instead of forcing user through login.
+                window.location.replace(getDashboardUrlByRole(userRole));
+            } else {
+                window.location.reload();
+            }
         }, 3000);
 
     } catch (error) {

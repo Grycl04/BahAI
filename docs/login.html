@@ -1627,8 +1627,9 @@ async function resendOTP(email) {
           );
         }
 
-        // Only block if pending
-        if (data.kycStatus === "pending") {
+        // Only block if pending and role is KYC-required
+        const isKYCExemptRole = data.role === "buyer" || data.role === "agent";
+        if (!isKYCExemptRole && data.kycStatus === "pending") {
           showNotification('info', '🕒 Your KYC is pending approval. You can access dashboard but cannot post properties.');
           setTimeout(() => {
             window.location.href = getRedirectPage(data.role);
@@ -1945,7 +1946,7 @@ async function resendOTP(email) {
           phone: user.phoneNumber || "",
           photoURL: user.photoURL,
           role,
-          kycStatus: role === "buyer" ? "not_required" : "not_submitted",
+          kycStatus: (role === "buyer" || role === "agent") ? "not_required" : "not_submitted",
           createdAt: serverTimestamp(),
           provider: "google",
           lastLogin: serverTimestamp(),
@@ -1954,7 +1955,7 @@ async function resendOTP(email) {
         
         await setDoc(userRef, data);
         
-        const message = role === "buyer" 
+        const message = (role === "buyer" || role === "agent")
           ? "✅ Account created! Start browsing properties."
           : "✅ Account created! Please complete KYC verification.";
         

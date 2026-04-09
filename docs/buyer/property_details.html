@@ -2270,9 +2270,11 @@ const propertyCategoryLabels = {
 
 // Furnishing Labels
 const furnishingLabels = {
-    furnished: "Fully Furnished",
-    "semi-furnished": "Semi-Furnished",
-    unfurnished: "Unfurnished"
+    furnished: "Furnished",
+    complete: "Complete",
+    bare: "Bare",
+    "semi-furnished": "Complete",
+    unfurnished: "Bare"
 };
 
 // Lease Type Labels
@@ -3683,6 +3685,10 @@ function renderSalePropertyDetails(listing) {
     <div class="detail-section">
         <h4><i class="bi bi-cash-coin"></i> Sale Information</h4>
         <div class="detail-row">
+            <span class="detail-label">Unit Status:</span>
+            <span class="detail-value">${(listing.occupancyStatus || 'rfo') === 'preselling' ? 'Preselling' : 'Ready for Occupancy (RFO)'}</span>
+        </div>
+        <div class="detail-row">
             <span class="detail-label">Sale Price:</span>
             <span class="detail-value">₱${(listing.salePrice || listing.pricing || 0).toLocaleString()}</span>
         </div>
@@ -4050,7 +4056,7 @@ function displayPropertyDetails(listing, userInfo) {
                         </div>
                     </div>
                     ` : ''}
-                    ${listing.yearBuilt ? `
+                    ${listing.yearBuilt && !((listingType === 'sale') && ((listing.occupancyStatus || 'rfo') === 'preselling')) ? `
                     <div class="info-item">
                         <div class="info-icon"><i class="bi bi-calendar"></i></div>
                         <div class="info-content">

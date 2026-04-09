@@ -1104,6 +1104,11 @@ const processingTime = document.getElementById("processingTime");
 let currentUser = null;
 let kycStatus = null;
 
+function redirectBuyerToDashboard() {
+    // Avoid forcing a fresh login after successful KYC.
+    window.location.replace("buyer_dashboard.html?kyc=approved");
+}
+
 // Setup preview handlers
 setupPreview("govId", "previewGovId");
 setupPreview("govIdBack", "previewGovIdBack");
@@ -1692,9 +1697,13 @@ kycForm.addEventListener("submit", async (e) => {
 
         updateProgress(100, "Complete!");
         
-        // Reload page after 3 seconds
+        // Send user back to dashboard after successful approval
         setTimeout(() => {
-            window.location.reload();
+            if (faceVerificationResult.verified) {
+                redirectBuyerToDashboard();
+            } else {
+                window.location.reload();
+            }
         }, 3000);
 
     } catch (error) {
