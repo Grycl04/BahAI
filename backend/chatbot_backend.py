@@ -1375,8 +1375,12 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
     bedroom_patterns = [
         # "with 3 bedrooms" or "with 3 bedroom"
         (r'with\s+(\d+)\s+bedroom(?:s)?\b', lambda m: int(m.group(1))),
+        # "with 1 room" / "with 2 rooms"
+        (r'with\s+(\d+)\s+room(?:s)?\b', lambda m: int(m.group(1))),
         # "3 bedrooms" or "3 bedroom"
         (r'\b(\d+)\s+bedroom(?:s)?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))),
+        # "1 room" / "2 rooms" (treated as bedroom count for search)
+        (r'\b(\d+)\s+room(?:s)?\b(?!\s*(?:bath|bathroom))', lambda m: int(m.group(1))),
         # "3-bedroom" or "3br"
         (r'(\d+)(?:-|\s*)bedroom|(\d+)br\b', lambda m: int(m.group(1)) if m.group(1) else int(m.group(2))),
         # "3 bed"
@@ -1568,7 +1572,9 @@ def extract_entities_from_query(query: str) -> Dict[str, Any]:
         elif 'condo' in query_lower or 'condominium' in query_lower:
             # Condo is both category and type; keep type from map below, don't set category
             pass
-        elif any(p in query_lower for p in ['industrial', 'warehouse', 'storage']) and 'land' not in query_lower:
+        elif any(p in query_lower for p in ['industrial', 'warehouse', 'storage']) and not any(
+            t in query_lower for t in ['land', 'lot', 'lupa', 'lupain']
+        ):
             entities['property_category'] = 'industrial'
 
     # Property type detection - UPDATED FOR CASE INSENSITIVITY (check phrases first so "vacant lot" wins over "lot")
@@ -2575,14 +2581,16 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         if has_sale_type_query or has_specific_bank or has_pagibig_query:
             query = query.where(filter=FieldFilter('type', '==', 'sale'))
             logger.info("🔍 Filtering: Sale properties only")
-        # When user asks for "for sale" or "for rent" or "for lease" properties only
+        # When user asks for "for sale" / "for rent" / "for lease" properties only:
+        # IMPORTANT: we avoid strict server-side filtering on `type` here because
+        # the Firestore `type` field may store values like "for lease" or "lease"
+        # depending on how the landlord/broker posted the listing.
+        # We rely on the client-side listing_type normalization + filtering later.
         elif entities.get('listing_type'):
             list_type = entities['listing_type']
-            try:
-                query = query.where(filter=FieldFilter('type', '==', list_type))
-                logger.info(f"🔍 Filtering: {list_type} properties only")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not filter by type {list_type}: {e}")
+            logger.info(
+                f"🔍 Listing-type requested: {list_type} (skip strict server-side type filter; use client-side normalization)"
+            )
 
         # Level 1: Filter by saleType
         if has_sale_type_query and not has_specific_bank and not has_pagibig_query:
@@ -2706,8 +2714,8 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                 'industrial': ['warehouse'],
                 
                 # For land category
-                'land': ['residential_lot', 'commercial_lot', 'agricultural_land'],
-                'lot': ['residential_lot', 'commercial_lot', 'agricultural_land'],
+                'land': ['residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 'development_land', 'vacant_lot'],
+                'lot': ['residential_lot', 'commercial_lot', 'agricultural_land', 'industrial_lot', 'development_land', 'vacant_lot'],
                 'residential_lot': ['residential_lot'],
                 'commercial_lot': ['commercial_lot'],
                 'agricultural': ['agricultural_land'],
@@ -2733,27 +2741,9 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
                     # Subdivision: no Firestore type filter; fetch broader and filter client-side by type + "subdivision" in title/description
                     logger.info("🔍 Subdivision search - no type filter in Firestore, will filter client-side by type and keyword")
                 elif isinstance(possible_types, list):
-                    # For multiple possible types, try each one in order
-                    logger.info(f"🔍 Will filter client-side for property types: {possible_types}")
-                    
-                    # Try each possible type in sequence until one works
-                    filter_applied = False
-                    for i, type_option in enumerate(possible_types):
-                        try:
-                            temp_query = query.where(filter=FieldFilter('propertyType', '==', type_option))
-                            # Test with a small limit to see if query works
-                            test_docs = list(temp_query.limit(1).get())
-                            if test_docs or i == 0:  # Use first type even if no results yet
-                                query = temp_query
-                                logger.info(f"🔍 Filtering by property type: {type_option}")
-                                filter_applied = True
-                                break
-                        except Exception as e:
-                            logger.debug(f"⚠️ Could not filter by {type_option}: {e}")
-                            continue
-                    
-                    if not filter_applied:
-                        logger.info("💡 Will apply property type filtering client-side")
+                    # Multi-type search (e.g., land) should not lock to one subtype in Firestore.
+                    # Fetch broader docs and apply strict subtype matching client-side below.
+                    logger.info(f"🔍 Multi-type property search; applying allowed type list client-side: {possible_types}")
                 else:
                     # Single type mapping
                     try:
@@ -2773,23 +2763,49 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
         if entities.get('max_price'):
             max_price = entities['max_price']
             logger.info(f"💰 Applying max price filter: ₱{max_price:,.0f}")
-            
-            # Try all possible price fields
-            price_fields = ['monthlyRent', 'salePrice', 'annualRent', 'price']
+
+            # IMPORTANT:
+            # Don't blindly apply inequality to the first "possible" field (e.g., monthlyRent),
+            # or sale/land listings may be excluded before client-side filtering.
+            # Prefer listing-aware field selection; otherwise, do client-side price filtering.
+            listing_type_hint = str(
+                entities.get('listing_type')
+                or entities.get('type')
+                or entities.get('sale_type')
+                or ''
+            ).lower()
+            property_type_hint = str(entities.get('property_type') or '').lower()
+            category_hint = str(entities.get('property_category') or '').lower()
+
+            preferred_price_fields = []
+            if listing_type_hint == 'rent':
+                preferred_price_fields = ['monthlyRent']
+            elif listing_type_hint == 'lease':
+                preferred_price_fields = ['annualRent']
+            elif listing_type_hint == 'sale':
+                preferred_price_fields = ['salePrice']
+            elif (
+                (property_type_hint in ('land', 'lot', 'residential_lot', 'commercial_lot', 'agricultural_land') or category_hint == 'land')
+                and any(t in listing_type_hint for t in ('sale', 'buy'))
+            ):
+                # Land + explicit sale/buy intent -> salePrice is safe.
+                # For generic "land under X" (no listing type), skip server-side field narrowing
+                # so lease-land (annualRent) can still match via client-side numeric filtering.
+                preferred_price_fields = ['salePrice']
+
             price_filter_applied = False
-            
-            for field in price_fields:
-                try:
-                    query = query.where(filter=FieldFilter(field, '<=', max_price))
-                    logger.info(f"🔍 Filtering by max {field}: ₱{max_price:,.0f}")
-                    price_filter_applied = True
-                    break
-                except Exception as price_error:
-                    logger.debug(f"⚠️ Could not filter by {field}: {price_error}")
-                    continue
-            
+            if preferred_price_fields:
+                for field in preferred_price_fields:
+                    try:
+                        query = query.where(filter=FieldFilter(field, '<=', max_price))
+                        logger.info(f"🔍 Filtering by max {field}: ₱{max_price:,.0f}")
+                        price_filter_applied = True
+                        break
+                    except Exception as price_error:
+                        logger.debug(f"⚠️ Could not filter by {field}: {price_error}")
+
             if not price_filter_applied:
-                logger.info("💡 Will apply price filtering client-side")
+                logger.info("💡 No safe server-side price field selected; applying max price client-side")
         
         # ========== APPLY BEDROOM FILTER IF SPECIFIED ==========
         if entities.get('exact_bedrooms') is not None:
@@ -2940,10 +2956,24 @@ def search_firestore_properties(entities: Dict[str, Any]) -> List[Dict[str, Any]
 
             # ========== LISTING TYPE FILTER (for sale / rent / lease) ==========
             if entities.get('listing_type') and not (has_sale_type_query or has_specific_bank or has_pagibig_query) and matches:
-                prop_listing_type = str(property_data.get('type', property_data.get('listingType', ''))).lower()
-                want_type = str(entities['listing_type']).lower()
+                prop_listing_type_raw = str(property_data.get('type', property_data.get('listingType', ''))).lower().strip()
+                want_type_raw = str(entities['listing_type']).lower().strip()
+
+                def _norm_listing_type(v: str) -> str:
+                    if 'lease' in v:
+                        return 'lease'
+                    if 'rent' in v or 'rental' in v:
+                        return 'rent'
+                    if 'sale' in v or 'buy' in v:
+                        return 'sale'
+                    return v
+
+                prop_listing_type = _norm_listing_type(prop_listing_type_raw)
+                want_type = _norm_listing_type(want_type_raw)
                 if prop_listing_type != want_type:
-                    logger.debug(f"❌ Property {property_data.get('id', 'unknown')} excluded - type {prop_listing_type} != {want_type}")
+                    logger.debug(
+                        f"❌ Property {property_data.get('id', 'unknown')} excluded - type {prop_listing_type_raw} ({prop_listing_type}) != {want_type_raw} ({want_type})"
+                    )
                     matches = False
                     continue
 
@@ -5572,7 +5602,7 @@ def chat():
 
                 # Pattern 1C: criteria search with bed/bath/price should be find_property_with_criteria
                 has_price_criteria = bool(re.search(r'\b(under|below|less than|maximum|max|up to|\d+\s*m)\b', query_lower))
-                has_bed_criteria = bool(re.search(r'\b(\d+)\s*(bed|bedroom|br)s?\b', query_lower))
+                has_bed_criteria = bool(re.search(r'\b(\d+)\s*(bed|bedroom|br|room)s?\b', query_lower))
                 has_bath_criteria = bool(re.search(r'\b(\d+)\s*(bath|bathroom|banyo)s?\b', query_lower))
                 if has_property_type and (has_price_criteria or has_bed_criteria or has_bath_criteria):
                     if intent != 'find_property_with_criteria':
@@ -6398,7 +6428,7 @@ def determine_intent_fallback(query: str) -> str:
         return 'match_needs'
     
     # Property with criteria intent
-    if re.search(r'\b(\d+)\s*(bed|bedroom|br|bath|bathroom|banyo)s?\b', query_lower) and any(word in query_lower for word in [
+    if re.search(r'\b(\d+)\s*(bed|bedroom|br|room|bath|bathroom|banyo)s?\b', query_lower) and any(word in query_lower for word in [
         'apartment', 'apartments', 'house', 'houses', 'condo', 'condos', 'property', 'properties', 'bahay'
     ]):
         return 'find_property_with_criteria'
