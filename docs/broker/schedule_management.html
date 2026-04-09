@@ -1758,8 +1758,20 @@ function setupAlternativeScheduleListener() {
       
       snapshot.forEach(doc => {
         const scheduleData = doc.data();
-        if (scheduleData.brokerId === currentUser.uid || 
-            scheduleData.userId === currentUser.uid) {
+        const isOwnedByBroker =
+          scheduleData.brokerId === currentUser.uid ||
+          scheduleData.userId === currentUser.uid;
+        // Fallback for legacy/misaligned docs where brokerId may be missing,
+        // but conversationId still contains the broker UID.
+        const isConversationLinked =
+          !!scheduleData.conversationId &&
+          String(scheduleData.conversationId).includes(currentUser.uid);
+
+        if (isOwnedByBroker || isConversationLinked) {
+          // Normalize brokerId for downstream filters/actions.
+          if (!scheduleData.brokerId) {
+            scheduleData.brokerId = currentUser.uid;
+          }
           brokerSchedules.push({
             id: doc.id,
             ...scheduleData

@@ -3403,6 +3403,7 @@ function renderScheduleMessage(message) {
   
   const element = document.createElement('div');
   element.className = `message-schedule ${scheduleStatus} ${isSent ? 'sent-schedule' : 'received-schedule'}`;
+  element.style.cursor = 'pointer';
   
   // Add alignment based on sender
   if (isSent) {
@@ -3485,8 +3486,67 @@ function renderScheduleMessage(message) {
       ${formatMessageTime(timestamp)}
     </div>
   `;
+
+  // Make schedule card clickable to open modal details from conversation.
+  element.addEventListener('click', async () => {
+    await openScheduleModalFromMessage(scheduleId, message.conversationId);
+  });
+
+  // Keep action buttons working without bubbling to card click.
+  element.querySelectorAll('.schedule-action-btn').forEach((btn) => {
+    btn.addEventListener('click', (ev) => ev.stopPropagation());
+  });
   
   return element;
+}
+
+// Open schedule details modal from a conversation schedule message.
+async function openScheduleModalFromMessage(scheduleId, conversationId) {
+  try {
+    if (scheduleId) {
+      const scheduleRef = doc(db, 'schedules', scheduleId);
+      const scheduleDoc = await getDoc(scheduleRef);
+      if (scheduleDoc.exists()) {
+        showScheduleDetailsModal(scheduleDoc.data(), scheduleId);
+        return;
+      }
+    }
+
+    // Fallback for older/partial messages without scheduleId:
+    // load the latest schedule from the same conversation.
+    if (conversationId) {
+      const schedulesRef = collection(db, 'schedules');
+      const q = query(
+        schedulesRef,
+        where('conversationId', '==', conversationId)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const schedules = [];
+        snapshot.forEach((sDoc) => {
+          const data = sDoc.data() || {};
+          const createdAtMs = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0;
+          const updatedAtMs = data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : 0;
+          schedules.push({
+            id: sDoc.id,
+            data,
+            rankTs: Math.max(createdAtMs, updatedAtMs)
+          });
+        });
+        schedules.sort((a, b) => b.rankTs - a.rankTs);
+        const latest = schedules[0];
+        if (latest) {
+          showScheduleDetailsModal(latest.data, latest.id);
+          return;
+        }
+      }
+    }
+
+    showError('Unable to load schedule details');
+  } catch (error) {
+    console.error('Error opening schedule modal from message:', error);
+    showError('Unable to load schedule details');
+  }
 }
 
 // Schedule action functions for inline event handlers
