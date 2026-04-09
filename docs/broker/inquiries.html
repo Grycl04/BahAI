@@ -1296,6 +1296,7 @@
       padding: 0;
       overflow-y: auto;
       border-radius: var(--border-radius);
+      position: relative;
     }
     .modal.schedule-details-modal .modal-header {
       display: flex;
@@ -1319,8 +1320,8 @@
     }
     .modal.schedule-details-modal .modal-close-x {
       position: absolute;
-      top: 16px;
-      right: 16px;
+      top: -18px;
+      right: 0;
       width: 36px;
       height: 36px;
       border: 1px solid var(--border);
@@ -1334,6 +1335,8 @@
       transition: all 0.2s ease;
       font-size: 16px;
       line-height: 1;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      z-index: 2;
     }
     .modal.schedule-details-modal .modal-close-x:hover {
       background: var(--bg-light);
@@ -1453,8 +1456,8 @@
         justify-content: center;
       }
       .modal.schedule-details-modal .modal-close-x {
-        top: 12px;
-        right: 12px;
+        top: -16px;
+        right: 8px;
         width: 34px;
         height: 34px;
       }
@@ -3231,7 +3234,7 @@ async function viewExistingSchedule(propertyId, buyerId) {
 }
 
 // Show schedule details modal
-function showScheduleDetailsModal(schedule, scheduleId) {
+async function showScheduleDetailsModal(schedule, scheduleId) {
   // Format date
   const scheduleDate = schedule.proposedDate?.toDate ? 
     schedule.proposedDate.toDate() : 
@@ -3244,6 +3247,79 @@ function showScheduleDetailsModal(schedule, scheduleId) {
     day: 'numeric'
   });
   
+  // Load display-ready buyer/property data like schedule management modal.
+  let buyerName = 'Unknown Buyer';
+  let buyerEmail = 'No email';
+  let buyerPhone = 'No phone';
+  let propertyTitle = 'Unknown Property';
+  let propertyLocation = 'Location not specified';
+  let priceDisplay = 'Not specified';
+
+  try {
+    if (schedule.buyerId) {
+      let buyer = userMap.get(schedule.buyerId);
+      if (!buyer) {
+        const userDoc = await getDoc(doc(db, 'users', schedule.buyerId));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          buyer = {
+            displayName: extractUserName(userData),
+            email: userData.email || 'No email',
+            phone: userData.phone || userData.phoneNumber || userData.mobile || 'No phone'
+          };
+          userMap.set(schedule.buyerId, buyer);
+        }
+      }
+      if (buyer) {
+        buyerName = buyer.displayName || buyerName;
+        buyerEmail = buyer.email || buyerEmail;
+        buyerPhone = buyer.phone || buyerPhone;
+      }
+    }
+
+    if (schedule.propertyId) {
+      let property = propertyMap.get(schedule.propertyId);
+      if (!property) {
+        const propertyDoc = await getDoc(doc(db, 'properties', schedule.propertyId));
+        if (propertyDoc.exists()) {
+          const propertyData = propertyDoc.data();
+          let price = 0;
+          let priceLabel = '';
+          if (propertyData.monthlyRent && propertyData.monthlyRent > 0) {
+            price = propertyData.monthlyRent;
+            priceLabel = 'month';
+          } else if (propertyData.annualRent && propertyData.annualRent > 0) {
+            price = propertyData.annualRent;
+            priceLabel = 'year';
+          } else {
+            const salePrice = propertyData.salePrice || propertyData.pricing || propertyData.price || 0;
+            if (salePrice > 0) {
+              price = salePrice;
+            }
+          }
+          property = {
+            title: propertyData.title || 'Untitled Property',
+            location: propertyData.location || propertyData.address || 'Location not specified',
+            price,
+            priceLabel
+          };
+          propertyMap.set(schedule.propertyId, property);
+        }
+      }
+      if (property) {
+        propertyTitle = property.title || propertyTitle;
+        propertyLocation = property.location || propertyLocation;
+        if ((property.price || 0) > 0) {
+          priceDisplay = property.priceLabel
+            ? `₱${property.price.toLocaleString()}/${property.priceLabel}`
+            : `₱${property.price.toLocaleString()}`;
+        }
+      }
+    }
+  } catch (detailsError) {
+    debugLog('⚠️ Unable to load full schedule detail cards:', detailsError?.message || detailsError);
+  }
+
   const modalContent = `
     <div class="modal-header">
       <button class="modal-close-x" onclick="closeScheduleModal()" aria-label="Close schedule details">
@@ -3289,12 +3365,16 @@ function showScheduleDetailsModal(schedule, scheduleId) {
           <h4><i class="fas fa-user"></i> Buyer Information</h4>
           <div class="modal-grid">
             <div class="detail-item">
-              <span class="detail-label">Buyer ID</span>
-              <span class="detail-value"><i class="fas fa-id-card"></i> ${schedule.buyerId || 'Not specified'}</span>
+              <span class="detail-label">Name</span>
+              <span class="detail-value"><i class="fas fa-user"></i> ${buyerName}</span>
             </div>
             <div class="detail-item">
-              <span class="detail-label">Conversation ID</span>
-              <span class="detail-value"><i class="fas fa-comments"></i> ${schedule.conversationId || 'Not specified'}</span>
+              <span class="detail-label">Email</span>
+              <span class="detail-value"><i class="fas fa-envelope"></i> ${buyerEmail}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Phone</span>
+              <span class="detail-value"><i class="fas fa-phone"></i> ${buyerPhone}</span>
             </div>
           </div>
         </div>
@@ -3303,8 +3383,16 @@ function showScheduleDetailsModal(schedule, scheduleId) {
           <h4><i class="fas fa-home"></i> Property Information</h4>
           <div class="modal-grid">
             <div class="detail-item">
-              <span class="detail-label">Property ID</span>
-              <span class="detail-value"><i class="fas fa-home"></i> ${schedule.propertyId || 'Not specified'}</span>
+              <span class="detail-label">Title</span>
+              <span class="detail-value"><i class="fas fa-home"></i> ${propertyTitle}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Location</span>
+              <span class="detail-value"><i class="fas fa-map-marker-alt"></i> ${propertyLocation}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Price</span>
+              <span class="detail-value"><i class="fas fa-tag"></i> ${priceDisplay}</span>
             </div>
           </div>
         </div>
