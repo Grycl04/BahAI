@@ -22,3 +22,7 @@ backend/.env.local
 
 /data/
 !backend/.env.example
+
+# NLU / thesis evaluation artifacts (regenerate locally; not part of deployed app)
+evaluation_outputs/
+docs/evaluation/
