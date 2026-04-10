@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, classification_report
 import pickle
 import os
 import glob
+import csv
 import pandas as pd
 import numpy as np
 import re
@@ -23,6 +24,126 @@ import sys
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _export_option2_evaluation_outputs(
+    project_root: str,
+    X_val: list,
+    y_val: list,
+    val_predictions: list,
+    balancing_target_count: float,
+) -> None:
+    """Write held-out (20%) evaluation CSVs used by thesis/export scripts."""
+    eval_dir = os.path.join(project_root, "evaluation_outputs")
+    os.makedirs(eval_dir, exist_ok=True)
+
+    n = len(y_val)
+    correct = sum(
+        1
+        for a, b in zip(y_val, val_predictions)
+        if str(a).lower() == str(b).lower()
+    )
+    wrong = n - correct
+    acc_pct = round(100.0 * correct / n, 2) if n else 0.0
+    err_pct = round(100.0 * wrong / n, 2) if n else 0.0
+
+    detailed_path = os.path.join(eval_dir, "aligned_option2_detailed_predictions.csv")
+    with open(detailed_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["query", "expected_intent", "predicted_intent", ""])
+        for q, exp, pred in zip(X_val, y_val, val_predictions):
+            w.writerow([q, exp, pred, ""])
+
+    stats = {}
+    for exp, pred in zip(y_val, val_predictions):
+        if exp not in stats:
+            stats[exp] = {"total": 0, "correct": 0}
+        stats[exp]["total"] += 1
+        if str(exp).lower() == str(pred).lower():
+            stats[exp]["correct"] += 1
+
+    per_intent_rows = []
+    for intent, s in stats.items():
+        tot = s["total"]
+        cor = s["correct"]
+        wr = tot - cor
+        ap = round(100.0 * cor / tot, 2) if tot else 0.0
+        ep = round(100.0 * wr / tot, 2) if tot else 0.0
+        per_intent_rows.append((intent, tot, cor, wr, ap, ep))
+
+    per_intent_rows.sort(key=lambda r: (-r[4], r[0]))
+
+    per_path = os.path.join(eval_dir, "aligned_option2_per_intent_metrics.csv")
+    with open(per_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["intent", "test_queries", "correct", "wrong", "accuracy_percent", "error_percent"])
+        for intent, tot, cor, wr, ap, ep in per_intent_rows:
+            w.writerow([intent, tot, cor, wr, ap, ep])
+        w.writerow(["TOTAL:", n, correct, wrong, acc_pct, err_pct])
+
+    pair_counts = Counter()
+    for exp, pred in zip(y_val, val_predictions):
+        if str(exp).lower() != str(pred).lower():
+            pair_counts[(exp, pred)] += 1
+
+    conf_path = os.path.join(eval_dir, "aligned_option2_confusion_pairs.csv")
+    with open(conf_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["expected_intent", "predicted_intent", "count"])
+        for (exp, pred), cnt in pair_counts.most_common():
+            w.writerow([exp, pred, cnt])
+
+    summary_path = os.path.join(eval_dir, "aligned_accuracy_summary.csv")
+    option1_row = None
+    if os.path.isfile(summary_path):
+        with open(summary_path, encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.reader(f))
+        for row in rows[1:]:
+            if row and row[0].startswith("Option 1"):
+                option1_row = row
+                break
+    if not option1_row:
+        option1_row = [
+            "Option 1 (aligned): all samples in-sample",
+            "4232",
+            "3802",
+            "430",
+            "89.84",
+            "10.16",
+            "",
+        ]
+
+    option2_row = [
+        "Option 2 (aligned): 80/20 held-out after balancing",
+        str(n),
+        str(correct),
+        str(wrong),
+        str(acc_pct),
+        str(err_pct),
+        str(balancing_target_count),
+    ]
+    with open(summary_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            [
+                "evaluation",
+                "total_queries",
+                "correct",
+                "wrong",
+                "accuracy_percent",
+                "error_percent",
+                "balancing_target_count",
+            ]
+        )
+        w.writerow(option1_row)
+        w.writerow(option2_row)
+
+    print(f"\n📁 Wrote Option 2 evaluation outputs to {eval_dir}")
+    print(f"   • {os.path.basename(detailed_path)} ({n} test queries)")
+    print(f"   • {os.path.basename(per_path)}")
+    print(f"   • {os.path.basename(conf_path)}")
+    print(f"   • {os.path.basename(summary_path)} (Option 2 row updated; Option 1 preserved if present)")
+
 
 class TeamNLUTrainer:
     def __init__(self):
@@ -117,6 +238,8 @@ class TeamNLUTrainer:
     'buyer_recommendations_how': 'buyer_recommendations_how',
     'buyer_messages_how': 'buyer_messages_how',
     'buyer_liked_saved_how': 'buyer_liked_saved_how',
+    'buyer_sale_unit_status': 'buyer_sale_unit_status',
+    'buyer_year_built_sale': 'buyer_year_built_sale',
         }
         
         # Intent keywords for better classification
@@ -1211,7 +1334,12 @@ class TeamNLUTrainer:
                 val_buyer_predictions = self.pipeline.predict(X_val_buyer)
                 print(f"\n🔍 Classification report for BUYER INTENTS:")
                 print(classification_report(y_val_buyer, val_buyer_predictions))
-        
+
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        _export_option2_evaluation_outputs(
+            project_root, X_val, y_val, val_predictions, float(target_count)
+        )
+
         return True  # <-- This return was missing indentation
 
     def save_model(self):

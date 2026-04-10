@@ -6535,7 +6535,9 @@ def health_check():
     'buyer_dashboard_flow',
     'buyer_recommendations_how',
     'buyer_messages_how',
-    'buyer_liked_saved_how'
+    'buyer_liked_saved_how',
+    'buyer_sale_unit_status',
+    'buyer_year_built_sale',
 ],
         'mock_data_mode': db is None,  # True if using mock data
         'timestamp': datetime.now().isoformat(),

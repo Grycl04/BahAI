@@ -317,3 +317,49 @@
 | **Guest** | View dashboard, search, filters, property details | Save, like, message, schedule |
 | **Logged in (no KYC)** | All guest + save/like properties | Message brokers, schedule viewings |
 | **Logged in + KYC verified** | Full access: message, schedule, make offers | — |
+
+---
+
+## 8. SALE UNIT STATUS (RFO / PRESELLING)
+
+**Intent:** `buyer_sale_unit_status`
+
+| # | Query / Variation |
+|---|-------------------|
+| 1 | what is preselling |
+| 2 | what is ready for occupancy |
+| 3 | what is rfo |
+| 4 | preselling vs rfo |
+| 5 | difference of preselling and rfo |
+| 6 | ready for sale ba ito |
+| 7 | is this ready for sale or preselling |
+| 8 | what does unit status mean |
+| 9 | show me rfo properties |
+| 10 | can i search preselling |
+| 11 | ano ang preselling |
+| 12 | ano ang ready for occupancy |
+| 13 | ano ang rfo |
+| 14 | preselling ba ito o rfo |
+| 15 | ano ibig sabihin ng unit status |
+| 16 | paano maghanap ng preselling |
+| 17 | gusto ko ng rfo na property |
+| 18 | ano ang kaibahan ng preselling at rfo |
+
+---
+
+## 9. YEAR BUILT (SALE LISTINGS)
+
+**Intent:** `buyer_year_built_sale`
+
+| # | Query / Variation |
+|---|-------------------|
+| 1 | show houses built in 2026 |
+| 2 | houses built in 2026 |
+| 3 | can i search by year built |
+| 4 | year built filter for sale |
+| 5 | where can i see year built |
+| 6 | tinayo nung 2026 na bahay |
+| 7 | bahay na tinayo noong 2026 |
+| 8 | paano mag filter ng year built |
+| 9 | taon ng pagkakatayo ng bahay |
+| 10 | show houses built in 2026 in batangas |

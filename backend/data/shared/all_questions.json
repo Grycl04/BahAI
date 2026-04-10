@@ -116,6 +116,19 @@
       "feature": {
         "values": ["pool", "garden", "parking", "elevator", "security", "wifi", "aircon", "furnished"]
       },
+
+      "ready_status": {
+        "values": ["ready for occupancy", "rfo", "preselling", "ready for sale"],
+        "aliases": {
+          "ready for occupancy": ["rfo", "ready for sale", "move in ready", "ready to move in", "agad malipatan", "ready na tirhan"],
+          "preselling": ["pre selling", "pre-selling", "under development", "hindi pa ready", "hindi pa tapos"]
+        }
+      },
+
+      "year_built": {
+        "patterns": ["built in \\d{4}", "year built \\d{4}", "tinayo nung \\d{4}", "tinayo noong \\d{4}", "taon ng pagkakatayo \\d{4}"],
+        "examples": ["built in 2026", "year built 2025", "houses built in 2026", "tinayo nung 2026", "bahay na tinayo noong 2026"]
+      },
       
       "financing_type": {
         "values": ["bank financing", "pag-ibig", "in-house financing", "cash", "installment"]

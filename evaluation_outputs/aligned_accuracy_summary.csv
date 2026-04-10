@@ -1,0 +1,3 @@
+evaluation,total_queries,correct,wrong,accuracy_percent,error_percent,balancing_target_count
+Option 1 (aligned): all samples in-sample,4232,3802,430,89.84,10.16,
+Option 2 (aligned): 80/20 held-out after balancing,3037,2828,209,93.12,6.88,397.0

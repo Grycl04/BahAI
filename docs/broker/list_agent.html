@@ -758,14 +758,25 @@
         cancelDeleteBtn.addEventListener('click', () => {
             confirmationModal.style.display = 'none';
             agentToDelete = null;
+            confirmDeleteBtn.disabled = true;
         });
 
         confirmDeleteBtn.addEventListener('click', async () => {
-            if (agentToDelete) {
-                await deleteAgent(agentToDelete);
-                confirmationModal.style.display = 'none';
-                agentToDelete = null;
+            const input = document.getElementById('deleteConfirmationInput');
+            const confirmationText = input ? input.value.trim() : '';
+
+            if (confirmationText !== 'DELETE') {
+                alert('Please type DELETE to confirm.');
+                confirmDeleteBtn.disabled = true;
+                if (input) input.focus();
+                return;
             }
+
+            if (!agentToDelete) return;
+
+            await deleteAgent(agentToDelete);
+            confirmationModal.style.display = 'none';
+            agentToDelete = null;
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -1224,6 +1235,7 @@
 
         window.showDeleteConfirmation = function(agentId, agentName, agentEmail) {
             agentToDelete = agentId;
+            confirmDeleteBtn.disabled = true;
             confirmationTitle.textContent = `Delete ${agentName}`;
             confirmationMessage.innerHTML = `
                 Are you sure you want to delete <strong>${agentName}</strong> (${agentEmail})?<br><br>
@@ -1246,7 +1258,7 @@
                     input.focus();
                     // Enable/disable delete button based on input
                     input.addEventListener('input', function() {
-                        confirmDeleteBtn.disabled = this.value !== 'DELETE';
+                        confirmDeleteBtn.disabled = this.value.trim() !== 'DELETE';
                     });
                 }
             }, 100);
